@@ -3,10 +3,12 @@ import Image from "next/image";
 import building from "@/../public/images/login.jpg";
 const layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <main className="flex flex-col items-center justify-center h-screen px-lg">
+    <main className="flex flex-col items-center justify-center h-screen lg:px-lg px-4">
       <div className="flex w-full h-[90%] bg-white">
-        <div className="w-[50%] h-full px-4xl">{children}</div>
-        <div className="w-[50%] h-full ">
+        <div className="lg:w-[50%] w-full h-full lg:px-4xl px-4">
+          {children}
+        </div>
+        <div className="lg:w-[50%] w-full h-full lg:block hidden ">
           <Image
             src={building}
             alt="building"

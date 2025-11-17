@@ -1,6 +1,24 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import clsx, { ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
+export const cn = (...args: ClassValue[]) => {
+  return twMerge(clsx(args));
+};
+
+export type SizeInRem =
+  | `${
+      | 0.75
+      | 0.875
+      | 1
+      | 1.25
+      | 1.5
+      | 1.75
+      | 1.875
+      | 2
+      | 2.25
+      | 2.5
+      | 2.75
+      | 3
+      | 3.25
+      | 3.5}rem`
+  | (`${number}rem` & NonNullable<unknown>);

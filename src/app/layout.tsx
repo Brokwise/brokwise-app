@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "../globals.css";
 import { QueryClientProviderWrapper } from "@/providers/queryClientProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const hostGrotesk = localFont({
   src: "../../public/fonts/HostGrotesk-VariableFont_wght.ttf",
@@ -30,6 +31,7 @@ export default function RootLayout({
         className={`${hostGrotesk.variable} ${instrumentSerif.variable} antialiased`}
       >
         <QueryClientProviderWrapper>{children}</QueryClientProviderWrapper>
+        <Toaster />
       </body>
     </html>
   );
