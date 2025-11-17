@@ -1,7 +1,7 @@
 import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/authStore";
+import { firebaseAuth } from "@/config/firebase";
 const useAxios = () => {
   const router = useRouter();
   const axiosInstance = axios.create({
@@ -14,7 +14,7 @@ const useAxios = () => {
   axiosInstance.interceptors.response.use(
     (response) => {
       if (response.status === 401 || response.status === 403) {
-        useAuthStore.getState().logout();
+        firebaseAuth.signOut();
         toast.error("Session expired, please login again");
         router.push("/login");
       }
@@ -25,8 +25,8 @@ const useAxios = () => {
     }
   );
   axiosInstance.interceptors.request.use(
-    (config) => {
-      const token = useAuthStore.getState().token;
+    async (config) => {
+      const token = await firebaseAuth.currentUser?.getIdToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }

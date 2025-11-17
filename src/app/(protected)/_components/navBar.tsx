@@ -1,74 +1,33 @@
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+"use client";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React from "react";
-import { Bell, Heart } from "lucide-react";
+import { Notifications } from "./notifications";
+import { FavouriteProperties } from "./favouriteProperties";
+
+import { UserAvatar } from "./userAvatar";
 
 const NavBar = () => {
   return (
     <div
       id="navHeader"
-      className="w-full h-[4rem] bg-slate-50 flex justify-between items-center"
+      className="w-full h-[4rem] bg-slate-50 flex justify-between items-center px-4xl"
     >
       <div>
         <h1>Brokwise</h1>
       </div>
       <div>
-        <Tabs defaultValue="account" className="w-[400px]">
+        <Tabs defaultValue="properties" className="w-[400px]">
           <TabsList>
-            <TabsTrigger value="account">Properties</TabsTrigger>
-            <TabsTrigger value="password">Password</TabsTrigger>
-            <TabsTrigger value="password">Password</TabsTrigger>
-            <TabsTrigger value="password">Password</TabsTrigger>
-            <TabsTrigger value="password">Password</TabsTrigger>
+            <TabsTrigger value="properties">Properties</TabsTrigger>
+            <TabsTrigger value="listProperty">List Property</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
-      <div>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size={"icon"}>
-              <Bell />
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Notifications</SheetTitle>
-              <SheetDescription>
-                Make changes to your profile here. Click save when you&apos;re
-                done.
-              </SheetDescription>
-            </SheetHeader>
-          </SheetContent>
-        </Sheet>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size={"icon"}>
-              <Heart />
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Notifications</SheetTitle>
-              <SheetDescription>
-                Make changes to your profile here. Click save when you&apos;re
-                done.
-              </SheetDescription>
-            </SheetHeader>
-          </SheetContent>
-        </Sheet>
+      <div className="flex gap-md">
+        <Notifications />
+        <FavouriteProperties />
+        <UserAvatar />
       </div>
     </div>
   );

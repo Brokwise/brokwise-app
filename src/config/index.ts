@@ -18,7 +18,7 @@ const initClient = () => {
   );
   return {
     version: pkg.version,
-    backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL,
+    backendUrl: process.env.NEXT_PUBLIC_API_URL,
     frontendUrl: process.env.NEXT_PUBLIC_FRONTEND_URL,
     googleOauthClientId: process.env.NEXT_PUBLIC_GOOGLE_OAUTH_CLIENT_ID,
     firebaseConfig: {
