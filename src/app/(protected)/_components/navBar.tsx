@@ -6,8 +6,10 @@ import { Notifications } from "./notifications";
 import { FavouriteProperties } from "./favouriteProperties";
 
 import { UserAvatar } from "./userAvatar";
+import { useRouter } from "next/navigation";
 
 const NavBar = () => {
+  const router = useRouter();
   return (
     <div
       id="navHeader"
@@ -20,7 +22,14 @@ const NavBar = () => {
         <Tabs defaultValue="properties" className="w-[400px]">
           <TabsList>
             <TabsTrigger value="properties">Properties</TabsTrigger>
-            <TabsTrigger value="listProperty">List Property</TabsTrigger>
+            <TabsTrigger
+              value="listProperty"
+              onClick={() => {
+                router.push("/property/createProperty");
+              }}
+            >
+              List Property
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
