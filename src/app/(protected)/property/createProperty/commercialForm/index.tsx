@@ -27,12 +27,14 @@ import {
   commercialPropertySchema,
   CommercialPropertyFormData,
 } from "@/validators/property";
+import { useAddProperty } from "@/hooks/useProperty";
 
 interface CommercialFormProps {
   onBack: () => void;
 }
 
 export const CommercialForm: React.FC<CommercialFormProps> = ({ onBack }) => {
+  const { addProperty, isLoading } = useAddProperty();
   const form = useForm<CommercialPropertyFormData>({
     resolver: zodResolver(commercialPropertySchema),
     defaultValues: {
@@ -44,12 +46,17 @@ export const CommercialForm: React.FC<CommercialFormProps> = ({ onBack }) => {
       description: "",
       isPriceNegotiable: false,
       isFeatured: false,
+      location: {
+        type: "Point",
+        coordinates: [0, 0],
+      },
+      featuredMedia: "",
+      images: [],
     },
   });
 
   const onSubmit = (data: CommercialPropertyFormData) => {
-    console.log("Commercial Property Data:", data);
-    // Handle form submission here
+    addProperty(data);
   };
 
   const propertyType = form.watch("propertyType");
@@ -1027,17 +1034,54 @@ export const CommercialForm: React.FC<CommercialFormProps> = ({ onBack }) => {
               />
             </div>
 
-            {/* Add Location - Placeholder for Google Maps */}
+            {/* Location Details */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Location Details</h3>
-              <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                <p className="text-sm text-muted-foreground">
-                  Google Maps Integration - Click to select location
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  (To be implemented with Google Maps API)
-                </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="location.coordinates.1"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Latitude</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Latitude"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="location.coordinates.0"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Longitude</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Longitude"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
+              <FormDescription>
+                Enter coordinates manually (Map integration coming soon)
+              </FormDescription>
             </div>
 
             {/* Add Localities */}
@@ -1055,8 +1099,9 @@ export const CommercialForm: React.FC<CommercialFormProps> = ({ onBack }) => {
                       onChange={(e) =>
                         field.onChange(
                           e.target.value
-                            .split(", ")
-                            .filter((item) => item.trim())
+                            .split(",")
+                            .map((item) => item.trim())
+                            .filter((item) => item)
                         )
                       }
                     />
@@ -1084,7 +1129,7 @@ export const CommercialForm: React.FC<CommercialFormProps> = ({ onBack }) => {
                     />
                   </FormControl>
                   <FormDescription>
-                    Provide detailed information about the property (minimum 10
+                    Provide detailed information about the property (minimum 20
                     characters)
                   </FormDescription>
                   <FormMessage />
@@ -1096,34 +1141,76 @@ export const CommercialForm: React.FC<CommercialFormProps> = ({ onBack }) => {
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Media Files</h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Featured Media</label>
-                  <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                    <p className="text-xs text-muted-foreground">
-                      Upload JPEG image or MP4 video
-                    </p>
-                  </div>
-                </div>
+              <FormField
+                control={form.control}
+                name="featuredMedia"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Featured Media URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter URL for featured image/video"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Images List</label>
-                  <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                    <p className="text-xs text-muted-foreground">
-                      Upload multiple JPEG images
-                    </p>
-                  </div>
-                </div>
+              <FormField
+                control={form.control}
+                name="images"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Image URLs (Comma separated)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter image URLs separated by commas"
+                        {...field}
+                        value={field.value?.join(", ") || ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value
+                              .split(",")
+                              .map((item) => item.trim())
+                              .filter((item) => item)
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Site Plan</label>
-                  <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                    <p className="text-xs text-muted-foreground">
-                      Upload PDF or JPEG
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <FormField
+                control={form.control}
+                name="floorPlans"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Floor Plans URLs (Optional, comma separated)
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter floor plan URLs separated by commas"
+                        {...field}
+                        value={field.value?.join(", ") || ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value
+                              .split(",")
+                              .map((item) => item.trim())
+                              .filter((item) => item)
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* Checkboxes */}
@@ -1176,8 +1263,8 @@ export const CommercialForm: React.FC<CommercialFormProps> = ({ onBack }) => {
               <Button type="button" variant="outline" onClick={onBack}>
                 Cancel
               </Button>
-              <Button type="submit" className="flex-1">
-                Create Commercial Property
+              <Button type="submit" className="flex-1" disabled={isLoading}>
+                {isLoading ? "Creating..." : "Create Commercial Property"}
               </Button>
             </div>
           </form>

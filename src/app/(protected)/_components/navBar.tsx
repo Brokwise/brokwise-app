@@ -6,10 +6,13 @@ import { Notifications } from "./notifications";
 import { FavouriteProperties } from "./favouriteProperties";
 
 import { UserAvatar } from "./userAvatar";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 const NavBar = () => {
   const router = useRouter();
+  const pathname = usePathname();
+  console.log("pathname", pathname);
   return (
     <div
       id="navHeader"
@@ -19,10 +22,15 @@ const NavBar = () => {
         <h1>Brokwise</h1>
       </div>
       <div>
-        <Tabs defaultValue="properties" className="w-[400px]">
+        <Tabs defaultValue="properties" className="w-[400px]" value={pathname}>
           <TabsList>
             <TabsTrigger value="properties">Properties</TabsTrigger>
             <TabsTrigger
+              className={cn(
+                "cursor-pointer",
+                pathname === "/property/createProperty" &&
+                  "bg-primary text-white"
+              )}
               value="listProperty"
               onClick={() => {
                 router.push("/property/createProperty");

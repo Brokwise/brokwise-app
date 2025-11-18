@@ -26,6 +26,7 @@ interface WizardProps {
   onSubmit: () => void;
   isSubmitting?: boolean;
   canProceed?: boolean;
+  isLoading?: boolean;
 }
 
 export const Wizard: React.FC<WizardProps> = ({
@@ -38,6 +39,7 @@ export const Wizard: React.FC<WizardProps> = ({
   onSubmit,
   isSubmitting = false,
   canProceed = true,
+  isLoading = false,
 }) => {
   const progress = ((currentStep + 1) / steps.length) * 100;
   const isLastStep = currentStep === steps.length - 1;
@@ -125,9 +127,11 @@ export const Wizard: React.FC<WizardProps> = ({
             <Button
               type="button"
               onClick={onSubmit}
-              disabled={isSubmitting || !canProceed}
+              disabled={isSubmitting || !canProceed || isLoading}
             >
-              {isSubmitting ? "Creating Property..." : "Create Property"}
+              {isSubmitting || isLoading
+                ? "Creating Property..."
+                : "Create Property"}
             </Button>
           )}
         </div>

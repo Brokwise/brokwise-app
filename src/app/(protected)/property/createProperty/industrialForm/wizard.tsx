@@ -27,14 +27,18 @@ import {
   industrialPropertySchema,
   IndustrialPropertyFormData,
 } from "@/validators/property";
+import { useAddProperty } from "@/hooks/useProperty";
 
 interface IndustrialWizardProps {
   onBack: () => void;
 }
 
-export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({ onBack }) => {
+export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
+  onBack,
+}) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const { addProperty, isLoading } = useAddProperty();
 
   const form = useForm<IndustrialPropertyFormData>({
     resolver: zodResolver(industrialPropertySchema),
@@ -47,6 +51,12 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({ onBack }) =>
       description: "",
       isPriceNegotiable: false,
       isFeatured: false,
+      location: {
+        type: "Point",
+        coordinates: [0, 0],
+      },
+      featuredMedia: "",
+      images: [],
     },
     mode: "onChange",
   });
@@ -54,18 +64,17 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({ onBack }) =>
   const propertyType = form.watch("propertyType");
 
   const onSubmit = (data: IndustrialPropertyFormData) => {
-    console.log("Industrial Property Data:", data);
-    // Handle form submission here
+    addProperty(data);
   };
 
   const validateCurrentStep = async (): Promise<boolean> => {
     const stepValidations: { [key: number]: string[] } = {
       0: ["propertyType", "address"],
       1: ["size", "sizeUnit"],
-      2: [], // Location step
+      2: ["location.coordinates.0", "location.coordinates.1"], // Location step
       3: ["rate", "totalPrice"],
       4: [], // Features step
-      5: ["description"],
+      5: ["description", "featuredMedia", "images"],
       6: [], // Review step
     };
 
@@ -77,7 +86,11 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({ onBack }) =>
   const handleNext = async () => {
     const isValid = await validateCurrentStep();
     if (isValid) {
-      setCompletedSteps(prev => new Set([...prev, currentStep]));
+      setCompletedSteps(prev => {
+        const newCompleted = new Set(prev);
+        newCompleted.add(currentStep);
+        return newCompleted;
+      });
       setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
     }
   };
@@ -315,17 +328,47 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({ onBack }) =>
       {/* Google Maps Location */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Add Location</h3>
-        <div className="p-8 border-2 border-dashed border-gray-300 rounded-lg text-center">
-          <p className="text-sm text-muted-foreground">
-            🗺️ Google Maps Integration
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Click to select industrial location on map
-          </p>
-          <Button variant="outline" className="mt-4" type="button">
-            Select Location
-          </Button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="location.coordinates.1"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Latitude</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Latitude"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="location.coordinates.0"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Longitude</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Longitude"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
+        <FormDescription>
+          Enter coordinates manually (Map integration coming soon)
+        </FormDescription>
       </div>
 
       {/* Localities */}
@@ -343,8 +386,9 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({ onBack }) =>
                 onChange={(e) =>
                   field.onChange(
                     e.target.value
-                      .split(", ")
-                      .filter((item) => item.trim())
+                      .split(",")
+                      .map((item) => item.trim())
+                      .filter((item) => item)
                   )
                 }
               />
@@ -524,44 +568,75 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({ onBack }) =>
       {/* Media Files */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Media Files</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Featured Media</label>
-            <div className="p-6 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-primary transition-colors cursor-pointer">
-              <p className="text-sm text-muted-foreground">
-                📷 Upload JPEG image or 🎥 MP4 video
-              </p>
-              <Button variant="outline" size="sm" className="mt-2" type="button">
-                Choose File
-              </Button>
-            </div>
-          </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Images List</label>
-            <div className="p-6 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-primary transition-colors cursor-pointer">
-              <p className="text-sm text-muted-foreground">
-                🖼️ Upload multiple JPEG images
-              </p>
-              <Button variant="outline" size="sm" className="mt-2" type="button">
-                Choose Files
-              </Button>
-            </div>
-          </div>
+        <FormField
+          control={form.control}
+          name="featuredMedia"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Featured Media URL</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Enter URL for featured image/video"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Site Plan</label>
-            <div className="p-6 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-primary transition-colors cursor-pointer">
-              <p className="text-sm text-muted-foreground">
-                📄 Upload PDF or JPEG
-              </p>
-              <Button variant="outline" size="sm" className="mt-2" type="button">
-                Choose File
-              </Button>
-            </div>
-          </div>
-        </div>
+        <FormField
+          control={form.control}
+          name="images"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Image URLs (Comma separated)</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Enter image URLs separated by commas"
+                  {...field}
+                  value={field.value?.join(", ") || ""}
+                  onChange={(e) =>
+                    field.onChange(
+                      e.target.value
+                        .split(",")
+                        .map((item) => item.trim())
+                        .filter((item) => item)
+                    )
+                  }
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="floorPlans"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Floor Plans URLs (Optional, comma separated)</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Enter floor plan URLs separated by commas"
+                  {...field}
+                  value={field.value?.join(", ") || ""}
+                  onChange={(e) =>
+                    field.onChange(
+                      e.target.value
+                        .split(",")
+                        .map((item) => item.trim())
+                        .filter((item) => item)
+                    )
+                  }
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
     </div>
   );

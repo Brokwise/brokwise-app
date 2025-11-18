@@ -1,18 +1,29 @@
-import useAxios from "@/hooks/useAxios";
-import { Property } from "@/types/property";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import useAxios from "./useAxios";
+import { PropertyFormData } from "@/validators/property";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
-export const useProperties = () => {
+export const useAddProperty = () => {
   const api = useAxios();
   const {
-    data: properties,
-    isLoading,
+    mutate: addProperty,
+    isPending: isLoading,
     error,
-  } = useQuery<Property[]>({
-    queryKey: ["properties"],
-    queryFn: async () => {
-      return (await api.get("/property")).data.data;
+  } = useMutation<unknown, AxiosError<{ message: string }>, PropertyFormData>({
+    mutationFn: async (property: PropertyFormData) => {
+      return (await api.post("/property/create", property)).data.data;
+    },
+    onSuccess: () => {
+      toast.success("Property created successfully");
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "An unknown error occurred while creating the property.";
+      toast.error(errorMessage);
     },
   });
-  return { properties, isLoading, error };
+  return { addProperty, isLoading, error };
 };

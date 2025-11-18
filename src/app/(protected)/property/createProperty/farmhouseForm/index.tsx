@@ -27,12 +27,14 @@ import {
   farmHousePropertySchema,
   FarmHousePropertyFormData,
 } from "@/validators/property";
+import { useAddProperty } from "@/hooks/useProperty";
 
 interface FarmHouseFormProps {
   onBack: () => void;
 }
 
 export const FarmHouseForm: React.FC<FarmHouseFormProps> = ({ onBack }) => {
+  const { addProperty, isLoading } = useAddProperty();
   const form = useForm<FarmHousePropertyFormData>({
     resolver: zodResolver(farmHousePropertySchema),
     defaultValues: {
@@ -44,12 +46,17 @@ export const FarmHouseForm: React.FC<FarmHouseFormProps> = ({ onBack }) => {
       description: "",
       isPriceNegotiable: false,
       isFeatured: false,
+      location: {
+        type: "Point",
+        coordinates: [0, 0],
+      },
+      featuredMedia: "",
+      images: [],
     },
   });
 
   const onSubmit = (data: FarmHousePropertyFormData) => {
-    console.log("Farm House Property Data:", data);
-    // Handle form submission here
+    addProperty(data);
   };
 
   return (
@@ -301,6 +308,86 @@ export const FarmHouseForm: React.FC<FarmHouseFormProps> = ({ onBack }) => {
               />
             </div>
 
+            {/* Location Details */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Location Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="location.coordinates.1"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Latitude</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Latitude"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="location.coordinates.0"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Longitude</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Longitude"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormDescription>
+                Enter coordinates manually (Map integration coming soon)
+              </FormDescription>
+            </div>
+
+            {/* Add Localities */}
+            <FormField
+              control={form.control}
+              name="localities"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Add Localities</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter nearby localities separated by commas"
+                      {...field}
+                      value={field.value?.join(", ") || ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value
+                            .split(",")
+                            .map((item) => item.trim())
+                            .filter((item) => item)
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Enter multiple localities separated by commas
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {/* Description */}
             <FormField
               control={form.control}
@@ -317,7 +404,7 @@ export const FarmHouseForm: React.FC<FarmHouseFormProps> = ({ onBack }) => {
                   </FormControl>
                   <FormDescription>
                     Provide detailed information about the farm house including
-                    structure, amenities, and surrounding area (minimum 10
+                    structure, amenities, and surrounding area (minimum 20
                     characters)
                   </FormDescription>
                   <FormMessage />
@@ -340,8 +427,9 @@ export const FarmHouseForm: React.FC<FarmHouseFormProps> = ({ onBack }) => {
                       onChange={(e) =>
                         field.onChange(
                           e.target.value
-                            .split(", ")
-                            .filter((item) => item.trim())
+                            .split(",")
+                            .map((item) => item.trim())
+                            .filter((item) => item)
                         )
                       }
                     />
@@ -353,6 +441,82 @@ export const FarmHouseForm: React.FC<FarmHouseFormProps> = ({ onBack }) => {
                 </FormItem>
               )}
             />
+
+            {/* Media Files */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Media Files</h3>
+
+              <FormField
+                control={form.control}
+                name="featuredMedia"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Featured Media URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter URL for featured image/video"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="images"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Image URLs (Comma separated)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter image URLs separated by commas"
+                        {...field}
+                        value={field.value?.join(", ") || ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value
+                              .split(",")
+                              .map((item) => item.trim())
+                              .filter((item) => item)
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="floorPlans"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Floor Plans URLs (Optional, comma separated)
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter floor plan URLs separated by commas"
+                        {...field}
+                        value={field.value?.join(", ") || ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value
+                              .split(",")
+                              .map((item) => item.trim())
+                              .filter((item) => item)
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Checkboxes */}
             <div className="space-y-4">
@@ -404,8 +568,8 @@ export const FarmHouseForm: React.FC<FarmHouseFormProps> = ({ onBack }) => {
               <Button type="button" variant="outline" onClick={onBack}>
                 Cancel
               </Button>
-              <Button type="submit" className="flex-1">
-                Create Farm House Property
+              <Button type="submit" className="flex-1" disabled={isLoading}>
+                {isLoading ? "Creating..." : "Create Farm House Property"}
               </Button>
             </div>
           </form>
