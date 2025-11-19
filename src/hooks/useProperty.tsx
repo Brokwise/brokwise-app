@@ -1,8 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import useAxios from "./useAxios";
 import { PropertyFormData } from "@/validators/property";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import { Property } from "@/types/property";
 
 export const useAddProperty = () => {
   const api = useAxios();
@@ -26,4 +27,19 @@ export const useAddProperty = () => {
     },
   });
   return { addProperty, isLoading, error };
+};
+
+export const useGetProperty = (id: string) => {
+  const api = useAxios();
+  const {
+    data: property,
+    isLoading,
+    error,
+  } = useQuery<Property>({
+    queryKey: ["property", id],
+    queryFn: async () => {
+      return (await api.get(`/property/details/${id}`)).data.data;
+    },
+  });
+  return { property, isLoading, error };
 };

@@ -70,15 +70,24 @@ export interface GeoLocation {
 }
 
 export interface RentalIncome {
-  min: number;
-  max: number;
+  amount: number;
+  period: string;
+}
+
+export interface Broker {
+  _id: string;
+  email: string;
+  brokerId: string | null;
+  firstName: string;
+  lastName: string;
+  mobile: string;
 }
 
 //  Main Property Interface
 
 export interface Property {
   _id: string;
-  propertyId: string; // Human-readable ID (PROP-000001)
+  propertyId: string | null; // Human-readable ID (PROP-000001)
 
   // Core & Common
   propertyCategory: PropertyCategory;
@@ -99,8 +108,8 @@ export interface Property {
   floorPlans?: string[]; // Site Plan (PDF Doc or JPEG image)
 
   // Relational IDs
-  listedBy: string; // Ref: 'Broker'
-  companyId: string; // Ref: 'Company'
+  listedBy: Broker; // Populated broker data from API
+  companyId?: string; // Ref: 'Company'
   verifiedBy?: string; // Ref: 'Admin' | 'Manager'
 
   // Metadata
