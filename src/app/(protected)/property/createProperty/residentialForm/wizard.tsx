@@ -28,6 +28,10 @@ import {
   ResidentialPropertyFormData,
 } from "@/validators/property";
 import { useAddProperty } from "@/hooks/useProperty";
+import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
+import { Loader2, Wand2Icon, X } from "lucide-react";
+import { toast } from "sonner";
+import Image from "next/image";
 
 interface ResidentialWizardProps {
   onBack: () => void;
@@ -39,7 +43,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const { addProperty, isLoading } = useAddProperty();
-
+  const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
+  const [generatingDescription, setGeneratingDescription] = useState(false);
   const form = useForm<ResidentialPropertyFormData>({
     resolver: zodResolver(residentialPropertySchema),
     defaultValues: {
@@ -57,12 +62,61 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       },
       featuredMedia: "",
       images: [],
+      floorPlans: [],
     },
     mode: "onChange",
   });
 
   const propertyType = form.watch("propertyType");
   const plotType = form.watch("plotType");
+
+  const handleFileUpload = async (
+    files: FileList | null,
+    fieldName: "featuredMedia" | "images" | "floorPlans"
+  ) => {
+    if (!files || files.length === 0) return;
+
+    setUploading((prev) => ({ ...prev, [fieldName]: true }));
+
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const path = generateFilePath(file.name, `property-${fieldName}`);
+        return await uploadFileToFirebase(file, path);
+      });
+
+      const urls = await Promise.all(uploadPromises);
+
+      if (fieldName === "featuredMedia") {
+        form.setValue(fieldName, urls[0], { shouldValidate: true });
+      } else {
+        const currentUrls = form.getValues(fieldName) || [];
+        form.setValue(fieldName, [...currentUrls, ...urls], {
+          shouldValidate: true,
+        });
+      }
+    } catch (error) {
+      console.error(`Error uploading ${fieldName}:`, error);
+      toast.error(`Error uploading ${fieldName}: ${error}`);
+    } finally {
+      setUploading((prev) => ({ ...prev, [fieldName]: false }));
+    }
+  };
+
+  const removeFile = (
+    fieldName: "featuredMedia" | "images" | "floorPlans",
+    index?: number
+  ) => {
+    if (fieldName === "featuredMedia") {
+      form.setValue(fieldName, "", { shouldValidate: true });
+    } else {
+      const currentUrls = form.getValues(fieldName) || [];
+      if (typeof index === "number") {
+        const newUrls = [...currentUrls];
+        newUrls.splice(index, 1);
+        form.setValue(fieldName, newUrls, { shouldValidate: true });
+      }
+    }
+  };
 
   const onSubmit = (data: ResidentialPropertyFormData) => {
     addProperty(data);
@@ -90,7 +144,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   const handleNext = async () => {
     const isValid = await validateCurrentStep();
     if (isValid) {
-      setCompletedSteps((prev) => new Set([...prev, currentStep]));
+      setCompletedSteps((prev) => new Set([...Array.from(prev), currentStep]));
       setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
     }
   };
@@ -102,6 +156,24 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   const handleStepClick = (stepIndex: number) => {
     if (stepIndex <= currentStep || completedSteps.has(stepIndex)) {
       setCurrentStep(stepIndex);
+    }
+  };
+
+  const handleGenerateDescription = async () => {
+    try {
+      setGeneratingDescription(true);
+      const response = await fetch("/api/ai", {
+        method: "POST",
+        body: JSON.stringify({ data: form.getValues() }),
+      });
+      const data = await response.json();
+      form.setValue("description", data.description, { shouldValidate: true });
+      setGeneratingDescription(false);
+      toast.success("Description generated successfully");
+    } catch (error) {
+      console.error("Error generating description:", error);
+      toast.error("Error generating description");
+      setGeneratingDescription(false);
     }
   };
 
@@ -711,11 +783,26 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           <FormItem>
             <FormLabel>About Property</FormLabel>
             <FormControl>
-              <Textarea
-                placeholder="Describe the property features, amenities, and other details"
-                className="min-h-[120px]"
-                {...field}
-              />
+              <div className="relative">
+                <Textarea
+                  placeholder="Describe the property features, amenities, and other details"
+                  className="min-h-[120px]"
+                  {...field}
+                />
+                <Button
+                  disabled={generatingDescription}
+                  onClick={() => handleGenerateDescription()}
+                  className="absolute bottom-2 right-2 h-8 text-sm "
+                >
+                  {generatingDescription ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      Generate Description <Wand2Icon />
+                    </>
+                  )}
+                </Button>
+              </div>
             </FormControl>
             <FormDescription>
               Provide detailed information about the property (minimum 10
@@ -735,9 +822,44 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           name="featuredMedia"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Featured Media URL</FormLabel>
+              <FormLabel>Featured Media</FormLabel>
               <FormControl>
-                <Input placeholder="Enter URL for featured image/video" {...field} />
+                <div className="space-y-2">
+                  {!field.value ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*,video/*"
+                        disabled={uploading["featuredMedia"]}
+                        onChange={(e) =>
+                          handleFileUpload(e.target.files, "featuredMedia")
+                        }
+                      />
+                      {uploading["featuredMedia"] && (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="relative w-full max-w-sm aspect-video rounded-lg border overflow-hidden">
+                      <Image
+                        width={100}
+                        height={100}
+                        src={field.value}
+                        alt="Featured Media"
+                        className="object-cover w-full h-full"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-6 w-6"
+                        onClick={() => removeFile("featuredMedia")}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -749,47 +871,107 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           name="images"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Image URLs (Comma separated)</FormLabel>
+              <FormLabel>Images</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="Enter image URLs separated by commas"
-                  {...field}
-                  value={field.value?.join(", ") || ""}
-                  onChange={(e) =>
-                    field.onChange(
-                      e.target.value
-                        .split(",")
-                        .map((item) => item.trim())
-                        .filter((item) => item)
-                    )
-                  }
-                />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      disabled={uploading["images"]}
+                      onChange={(e) =>
+                        handleFileUpload(e.target.files, "images")
+                      }
+                    />
+                    {uploading["images"] && (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    )}
+                  </div>
+
+                  {field.value && field.value.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {field.value.map((url, index) => (
+                        <div
+                          key={index}
+                          className="relative aspect-square rounded-lg border overflow-hidden group"
+                        >
+                          <Image
+                            width={100}
+                            height={100}
+                            src={url}
+                            alt={`Property image ${index + 1}`}
+                            className="object-cover w-full h-full"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeFile("images", index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="floorPlans"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Floor Plans URLs (Optional, comma separated)</FormLabel>
+              <FormLabel>Floor Plans</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="Enter floor plan URLs separated by commas"
-                  {...field}
-                  value={field.value?.join(", ") || ""}
-                  onChange={(e) =>
-                    field.onChange(
-                      e.target.value
-                        .split(",")
-                        .map((item) => item.trim())
-                        .filter((item) => item)
-                    )
-                  }
-                />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      disabled={uploading["floorPlans"]}
+                      onChange={(e) =>
+                        handleFileUpload(e.target.files, "floorPlans")
+                      }
+                    />
+                    {uploading["floorPlans"] && (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    )}
+                  </div>
+
+                  {field.value && field.value.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {field.value.map((url, index) => (
+                        <div
+                          key={index}
+                          className="relative aspect-square rounded-lg border overflow-hidden group"
+                        >
+                          <img
+                            src={url}
+                            alt={`Floor plan ${index + 1}`}
+                            className="object-cover w-full h-full"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeFile("floorPlans", index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -904,7 +1086,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         onStepClick={handleStepClick}
         onCancel={onBack}
         onSubmit={handleSubmit}
-        canProceed={true} // You can add more sophisticated validation here
+        canProceed={!Object.values(uploading).some(Boolean)}
         isLoading={isLoading}
       />
     </Form>

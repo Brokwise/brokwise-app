@@ -28,6 +28,10 @@ import {
   AgriculturalPropertyFormData,
 } from "@/validators/property";
 import { useAddProperty } from "@/hooks/useProperty";
+import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
+import { Loader2, X } from "lucide-react";
+import { toast } from "sonner";
+import Image from "next/image";
 
 interface AgriculturalWizardProps {
   onBack: () => void;
@@ -39,6 +43,7 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const { addProperty, isLoading } = useAddProperty();
+  const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
 
   const form = useForm<AgriculturalPropertyFormData>({
     resolver: zodResolver(agriculturalPropertySchema),
@@ -65,6 +70,54 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
     addProperty(data);
   };
 
+  const handleFileUpload = async (
+    files: FileList | null,
+    fieldName: "featuredMedia" | "images" | "floorPlans"
+  ) => {
+    if (!files || files.length === 0) return;
+
+    setUploading((prev) => ({ ...prev, [fieldName]: true }));
+
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const path = generateFilePath(file.name, `property-${fieldName}`);
+        return await uploadFileToFirebase(file, path);
+      });
+
+      const urls = await Promise.all(uploadPromises);
+
+      if (fieldName === "featuredMedia") {
+        form.setValue(fieldName, urls[0], { shouldValidate: true });
+      } else {
+        const currentUrls = form.getValues(fieldName) || [];
+        form.setValue(fieldName, [...currentUrls, ...urls], {
+          shouldValidate: true,
+        });
+      }
+    } catch (error) {
+      console.error(`Error uploading ${fieldName}:`, error);
+      toast.error(`Error uploading ${fieldName}: ${error}`);
+    } finally {
+      setUploading((prev) => ({ ...prev, [fieldName]: false }));
+    }
+  };
+
+  const removeFile = (
+    fieldName: "featuredMedia" | "images" | "floorPlans",
+    index?: number
+  ) => {
+    if (fieldName === "featuredMedia") {
+      form.setValue(fieldName, "", { shouldValidate: true });
+    } else {
+      const currentUrls = form.getValues(fieldName) || [];
+      if (typeof index === "number") {
+        const newUrls = [...currentUrls];
+        newUrls.splice(index, 1);
+        form.setValue(fieldName, newUrls, { shouldValidate: true });
+      }
+    }
+  };
+
   const validateCurrentStep = async (): Promise<boolean> => {
     const stepValidations: { [key: number]: string[] } = {
       0: ["address"],
@@ -84,17 +137,13 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
   const handleNext = async () => {
     const isValid = await validateCurrentStep();
     if (isValid) {
-      setCompletedSteps(prev => {
-        const newCompleted = new Set(prev);
-        newCompleted.add(currentStep);
-        return newCompleted;
-      });
-      setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
+      setCompletedSteps((prev) => new Set([...Array.from(prev), currentStep]));
+      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
     }
   };
 
   const handlePrevious = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 0));
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
   const handleStepClick = (stepIndex: number) => {
@@ -516,7 +565,9 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
               />
             </FormControl>
             <FormDescription>
-              Provide detailed information about the agricultural land including soil quality, water availability, and farming potential (minimum 10 characters)
+              Provide detailed information about the agricultural land including
+              soil quality, water availability, and farming potential (minimum
+              10 characters)
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -532,12 +583,42 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
           name="featuredMedia"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Featured Media URL</FormLabel>
+              <FormLabel>Featured Media</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Enter URL for featured image/video"
-                  {...field}
-                />
+                <div className="space-y-2">
+                  {!field.value ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*,video/*"
+                        disabled={uploading["featuredMedia"]}
+                        onChange={(e) =>
+                          handleFileUpload(e.target.files, "featuredMedia")
+                        }
+                      />
+                      {uploading["featuredMedia"] && (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="relative w-full max-w-sm aspect-video rounded-lg border overflow-hidden">
+                      <img
+                        src={field.value}
+                        alt="Featured Media"
+                        className="object-cover w-full h-full"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-6 w-6"
+                        onClick={() => removeFile("featuredMedia")}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -549,21 +630,50 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
           name="images"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Image URLs (Comma separated)</FormLabel>
+              <FormLabel>Images</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="Enter image URLs separated by commas"
-                  {...field}
-                  value={field.value?.join(", ") || ""}
-                  onChange={(e) =>
-                    field.onChange(
-                      e.target.value
-                        .split(",")
-                        .map((item) => item.trim())
-                        .filter((item) => item)
-                    )
-                  }
-                />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      disabled={uploading["images"]}
+                      onChange={(e) =>
+                        handleFileUpload(e.target.files, "images")
+                      }
+                    />
+                    {uploading["images"] && (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    )}
+                  </div>
+
+                  {field.value && field.value.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {field.value.map((url, index) => (
+                        <div
+                          key={index}
+                          className="relative aspect-square rounded-lg border overflow-hidden group"
+                        >
+                          <img
+                            src={url}
+                            alt={`Property image ${index + 1}`}
+                            className="object-cover w-full h-full"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeFile("images", index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -575,21 +685,50 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
           name="floorPlans"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Floor Plans URLs (Optional, comma separated)</FormLabel>
+              <FormLabel>Floor Plans</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="Enter floor plan URLs separated by commas"
-                  {...field}
-                  value={field.value?.join(", ") || ""}
-                  onChange={(e) =>
-                    field.onChange(
-                      e.target.value
-                        .split(",")
-                        .map((item) => item.trim())
-                        .filter((item) => item)
-                    )
-                  }
-                />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      disabled={uploading["floorPlans"]}
+                      onChange={(e) =>
+                        handleFileUpload(e.target.files, "floorPlans")
+                      }
+                    />
+                    {uploading["floorPlans"] && (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    )}
+                  </div>
+
+                  {field.value && field.value.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {field.value.map((url, index) => (
+                        <div
+                          key={index}
+                          className="relative aspect-square rounded-lg border overflow-hidden group"
+                        >
+                          <img
+                            src={url}
+                            alt={`Floor plan ${index + 1}`}
+                            className="object-cover w-full h-full"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeFile("floorPlans", index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -603,31 +742,38 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
   const ReviewStep = (
     <div className="space-y-6">
       <div className="bg-muted/50 p-6 rounded-lg">
-        <h3 className="text-lg font-medium mb-4">Review Your Agricultural Property</h3>
+        <h3 className="text-lg font-medium mb-4">
+          Review Your Agricultural Property
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
-            <strong>Property Title:</strong> {form.watch("propertyTitle") || "Not provided"}
+            <strong>Property Title:</strong>{" "}
+            {form.watch("propertyTitle") || "Not provided"}
           </div>
           <div>
             <strong>Address:</strong> {form.watch("address") || "Not provided"}
           </div>
           <div>
-            <strong>Land Size:</strong> {form.watch("size") || "0"} {form.watch("sizeUnit") || ""}
+            <strong>Land Size:</strong> {form.watch("size") || "0"}{" "}
+            {form.watch("sizeUnit") || ""}
           </div>
           <div>
-            <strong>Total Price:</strong> ₹{form.watch("totalPrice")?.toLocaleString() || "0"}
+            <strong>Total Price:</strong> ₹
+            {form.watch("totalPrice")?.toLocaleString() || "0"}
           </div>
           <div>
             <strong>Facing:</strong> {form.watch("facing") || "Not selected"}
           </div>
           <div>
-            <strong>Plot Type:</strong> {form.watch("plotType") || "Not selected"}
+            <strong>Plot Type:</strong>{" "}
+            {form.watch("plotType") || "Not selected"}
           </div>
         </div>
       </div>
 
       <div className="text-sm text-muted-foreground">
-        Please review all the information above. Click "Create Property" to submit your agricultural land listing.
+        Please review all the information above. Click "Create Property" to
+        submit your agricultural land listing.
       </div>
     </div>
   );
@@ -694,7 +840,7 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
         onStepClick={handleStepClick}
         onCancel={onBack}
         onSubmit={handleSubmit}
-        canProceed={true}
+        canProceed={!Object.values(uploading).some(Boolean)}
       />
     </Form>
   );

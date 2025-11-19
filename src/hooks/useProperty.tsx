@@ -4,8 +4,10 @@ import { PropertyFormData } from "@/validators/property";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { Property } from "@/types/property";
+import { useRouter } from "next/navigation";
 
 export const useAddProperty = () => {
+  const router = useRouter();
   const api = useAxios();
   const {
     mutate: addProperty,
@@ -15,8 +17,10 @@ export const useAddProperty = () => {
     mutationFn: async (property: PropertyFormData) => {
       return (await api.post("/property/create", property)).data.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Property created successfully");
+      console.log(data);
+      // router.push(`/property/details/${data?.id}`);
     },
     onError: (error) => {
       const errorMessage =
