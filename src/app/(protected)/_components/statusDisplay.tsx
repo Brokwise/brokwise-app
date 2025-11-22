@@ -27,13 +27,13 @@ export const StatusDisplay = () => {
   const getStatusColor = () => {
     switch (brokerData.status) {
       case "approved":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100";
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100";
       case "blacklisted":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100";
     }
   };
 
@@ -80,7 +80,7 @@ export const StatusDisplay = () => {
         <CardContent className="text-center space-y-4">
           <p className="text-gray-600">{statusInfo.message}</p>
 
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <div className="mt-6 p-4 rounded-lg">
             <h3 className="font-semibold mb-2">Your Details</h3>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>

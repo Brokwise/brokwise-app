@@ -93,7 +93,7 @@ export const OnboardingDetails = ({}) => {
     }
   };
   return (
-    <section className="flex flex-col justify-center items-center h-full w-full">
+    <section className="flex flex-col justify-center items-center h-screen w-full">
       <Button variant={"link"} onClick={() => signOut()}>
         Logout
       </Button>
@@ -101,7 +101,7 @@ export const OnboardingDetails = ({}) => {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmitProfileDetails)}
-          className="space-y-4"
+          className="space-y-4 w-[30vw]"
         >
           <FormField
             control={form.control}

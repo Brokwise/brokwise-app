@@ -21,7 +21,7 @@ import { propertyCategories } from "@/constants";
 const CreateProperty = () => {
   const [selectedCategory, setSelectedCategory] =
     useState<PropertyCategory | null>(null);
-  const [useWizard, setUseWizard] = useState(true);
+  const [useWizard] = useState(true);
   const handleCategorySelect = (category: PropertyCategory) => {
     setSelectedCategory(category);
   };
@@ -116,7 +116,7 @@ const CreateProperty = () => {
             </div>
 
             {/* Wizard Toggle - Available for all property categories */}
-            {selectedCategory && (
+            {/* {selectedCategory && (
               <div className="flex items-center gap-2">
                 <Button
                   variant={useWizard ? "default" : "outline"}
@@ -135,7 +135,7 @@ const CreateProperty = () => {
                   Single Form
                 </Button>
               </div>
-            )}
+            )} */}
           </div>
           {renderCategoryForm()}
         </div>

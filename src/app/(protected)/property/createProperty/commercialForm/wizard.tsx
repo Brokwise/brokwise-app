@@ -29,9 +29,17 @@ import {
 } from "@/validators/property";
 import { useAddProperty } from "@/hooks/useProperty";
 import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, MapPin, Wand2Icon } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
+import { LocationPicker } from "../_components/locationPicker";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface CommercialWizardProps {
   onBack: () => void;
@@ -44,6 +52,8 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const { addProperty, isLoading } = useAddProperty();
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
+  const [isLocalityDialogOpen, setIsLocalityDialogOpen] = useState(false);
+  const [generatingDescription, setGeneratingDescription] = useState(false);
 
   const form = useForm<CommercialPropertyFormData>({
     resolver: zodResolver(commercialPropertySchema),
@@ -125,7 +135,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     const stepValidations: { [key: number]: string[] } = {
       0: ["propertyType", "address"],
       1: ["size", "sizeUnit"],
-      2: ["location.coordinates.0", "location.coordinates.1"], // Location step
+      2: ["location.coordinates"], // Location step
       3: ["rate", "totalPrice"],
       4: [], // Features step
       5: ["description", "featuredMedia", "images"],
@@ -133,7 +143,9 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     };
 
     const fieldsToValidate = stepValidations[currentStep] || [];
-    const result = await form.trigger(fieldsToValidate as any);
+    const result = await form.trigger(
+      fieldsToValidate as (keyof CommercialPropertyFormData)[]
+    );
     return result;
   };
 
@@ -156,6 +168,24 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   const handleStepClick = (stepIndex: number) => {
     if (stepIndex <= currentStep || completedSteps.has(stepIndex)) {
       setCurrentStep(stepIndex);
+    }
+  };
+
+  const handleGenerateDescription = async () => {
+    try {
+      setGeneratingDescription(true);
+      const response = await fetch("/api/ai", {
+        method: "POST",
+        body: JSON.stringify({ data: form.getValues() }),
+      });
+      const data = await response.json();
+      form.setValue("description", data.description, { shouldValidate: true });
+      setGeneratingDescription(false);
+      toast.success("Description generated successfully");
+    } catch (error) {
+      console.error("Error generating description:", error);
+      toast.error("Error generating description");
+      setGeneratingDescription(false);
     }
   };
 
@@ -525,47 +555,21 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
       {/* Google Maps Location */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Add Location</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="location.coordinates.1"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Latitude</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Latitude"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="location.coordinates.0"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Longitude</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Longitude"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <FormDescription>
-          Enter coordinates manually (Map integration coming soon)
-        </FormDescription>
+        <FormField
+          control={form.control}
+          name="location.coordinates"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <LocationPicker
+                  value={field.value as [number, number]}
+                  onChange={field.onChange}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
 
       {/* Localities */}
@@ -574,7 +578,18 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         name="localities"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Add Localities</FormLabel>
+            <div className="flex items-center justify-between">
+              <FormLabel>Add Localities</FormLabel>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsLocalityDialogOpen(true)}
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                Pick from Map
+              </Button>
+            </div>
             <FormControl>
               <Textarea
                 placeholder="Enter nearby localities separated by commas (e.g., MI Road, Pink City, Bani Park)"
@@ -594,6 +609,40 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
           </FormItem>
         )}
       />
+
+      <Dialog
+        open={isLocalityDialogOpen}
+        onOpenChange={setIsLocalityDialogOpen}
+      >
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Pick a Locality</DialogTitle>
+            <DialogDescription>
+              Search or click on the map to select a locality to add.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="h-[400px]">
+            <LocationPicker
+              value={form.getValues("location.coordinates") as [number, number]}
+              onChange={() => {}}
+              onLocationSelect={(details) => {
+                const currentLocalities = form.getValues("localities") || [];
+                if (!currentLocalities.includes(details.placeName)) {
+                  form.setValue(
+                    "localities",
+                    [...currentLocalities, details.placeName],
+                    { shouldValidate: true }
+                  );
+                  toast.success(`Added ${details.placeName}`);
+                } else {
+                  toast.info(`${details.placeName} is already added`);
+                }
+                setIsLocalityDialogOpen(false);
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 
@@ -740,6 +789,80 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   );
 
   // Step 5: Features & Amenities
+  const AmenitiesList = {
+    HOTEL: [
+      "Reception Lobby Area",
+      "Daily Housekeeping",
+      "On Site Dining Restaurant",
+      "Conference Meeting Rooms",
+      "Elevator Lift",
+      "Fitness Center",
+      "Spa Massage Services",
+      "Laundry Service",
+      "Business Center",
+      "High Speed Wi Fi",
+      "Parking Space",
+      "Airport Shuttle",
+      "Cctv Surveillance",
+      "Fire Safety Equipment",
+    ],
+    HOSTEL: [
+      "Shared Kitchen",
+      "Common Lounge Area",
+      "Dormitory Private Rooms",
+      "Study Work Zones",
+      "Lockers For Each Bed",
+      "Shared Bathrooms",
+      "24 7 Security",
+      "Laundry Facilities",
+      "Wi Fi",
+      "Housekeeping",
+      "Cctv Surveillance",
+      "Bicycle Parking",
+      "Social Activities Zone",
+      "Meal Options Available",
+      "Air Conditioning Fans",
+    ],
+    OFFICE_SPACE: [
+      "Furnished Cabins Workstations",
+      "Conference Meeting Rooms",
+      "High Speed Internet",
+      "Air Conditioning",
+      "24 7 Security Surveillance",
+      "Reception Front Desk",
+      "Pantry Cafeteria",
+      "Power Backup",
+      "Printing Scanning Services",
+      "Parking Area",
+      "Elevator Lift",
+      "Fire Safety Exit Routes",
+      "Cleaning Maintenance",
+      "Access Control System",
+      "Networking It Support Infrastructure",
+    ],
+    SHOWROOM: [
+      "Large Display Windows",
+      "High Ceilings",
+      "Air Conditioning",
+      "Parking Space",
+      "Security System",
+      "Storage Area",
+      "Restrooms",
+      "Loading/Unloading Area",
+      "Power Backup",
+      "Fire Safety System",
+    ],
+    SHOP: [
+      "Display Area",
+      "Storage Space",
+      "Shutters",
+      "Power Backup",
+      "Water Connection",
+      "Parking Availability",
+      "Security",
+    ],
+  };
+
   const FeaturesStep = (
     <div className="space-y-6">
       <FormField
@@ -749,28 +872,41 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
           <FormItem>
             <FormLabel>{propertyType} Amenities</FormLabel>
             <FormControl>
-              <Textarea
-                placeholder={
-                  propertyType === "HOTEL"
-                    ? "Select from: Reception Lobby Area, Daily Housekeeping, On Site Dining Restaurant, Conference Meeting Rooms, Elevator Lift, Fitness Center, Spa Massage Services, Laundry Service, Business Center, High Speed Wi Fi, Parking Space, Airport Shuttle, Cctv Surveillance, Fire Safety Equipment"
-                    : propertyType === "HOSTEL"
-                    ? "Select from: Shared Kitchen, Common Lounge Area, Dormitory Private Rooms, Study Work Zones, Lockers For Each Bed, Shared Bathrooms, 24 7 Security, Laundry Facilities, Wi Fi, Housekeeping, Cctv Surveillance, Bicycle Parking, Social Activities Zone, Meal Options Available, Air Conditioning Fans"
-                    : propertyType === "OFFICE_SPACE"
-                    ? "Select from: Furnished Cabins Workstations, Conference Meeting Rooms, High Speed Internet, Air Conditioning, 24 7 Security Surveillance, Reception Front Desk, Pantry Cafeteria, Power Backup, Printing Scanning Services, Parking Area, Elevator Lift, Fire Safety Exit Routes, Cleaning Maintenance, Access Control System, Networking It Support Infrastructure"
-                    : "Enter amenities"
-                }
-                {...field}
-                value={field.value?.join(", ") || ""}
-                onChange={(e) =>
-                  field.onChange(
-                    e.target.value.split(", ").filter((item) => item.trim())
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                {AmenitiesList[propertyType as keyof typeof AmenitiesList]?.map(
+                  (amenity) => (
+                    <div
+                      key={amenity}
+                      className="flex flex-row items-start space-x-3 space-y-0"
+                    >
+                      <Checkbox
+                        checked={field.value?.includes(amenity)}
+                        onCheckedChange={(checked) => {
+                          const current = field.value || [];
+                          const updated = checked
+                            ? [...current, amenity]
+                            : current.filter((value) => value !== amenity);
+                          field.onChange(updated);
+                        }}
+                      />
+                      <FormLabel className="font-normal">{amenity}</FormLabel>
+                    </div>
                   )
-                }
-              />
+                ) || (
+                  <Textarea
+                    placeholder="Enter amenities"
+                    {...field}
+                    value={field.value?.join(", ") || ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value.split(", ").filter((item) => item.trim())
+                      )
+                    }
+                  />
+                )}
+              </div>
             </FormControl>
-            <FormDescription>
-              Enter amenities separated by commas
-            </FormDescription>
+            <FormDescription>Select available amenities</FormDescription>
             <FormMessage />
           </FormItem>
         )}
@@ -809,11 +945,26 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
           <FormItem>
             <FormLabel>About Property</FormLabel>
             <FormControl>
-              <Textarea
-                placeholder="Describe the property features, amenities, and other details"
-                className="min-h-[120px]"
-                {...field}
-              />
+              <div className="relative">
+                <Textarea
+                  placeholder="Describe the property features, amenities, and other details"
+                  className="min-h-[120px]"
+                  {...field}
+                />
+                <Button
+                  disabled={generatingDescription}
+                  onClick={() => handleGenerateDescription()}
+                  className="absolute bottom-2 right-2 h-8 text-sm "
+                >
+                  {generatingDescription ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      Generate Description <Wand2Icon />
+                    </>
+                  )}
+                </Button>
+              </div>
             </FormControl>
             <FormDescription>
               Provide detailed information about the property (minimum 10
@@ -852,10 +1003,12 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
                     </div>
                   ) : (
                     <div className="relative w-full max-w-sm aspect-video rounded-lg border overflow-hidden">
-                      <img
-                        src={field.value}
+                      <Image
+                        src={field.value as string}
                         alt="Featured Media"
                         className="object-cover w-full h-full"
+                        width={100}
+                        height={100}
                       />
                       <Button
                         type="button"
@@ -905,10 +1058,12 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
                           key={index}
                           className="relative aspect-square rounded-lg border overflow-hidden group"
                         >
-                          <img
+                          <Image
                             src={url}
                             alt={`Property image ${index + 1}`}
                             className="object-cover w-full h-full"
+                            width={100}
+                            height={100}
                           />
                           <Button
                             type="button"
@@ -960,10 +1115,12 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
                           key={index}
                           className="relative aspect-square rounded-lg border overflow-hidden group"
                         >
-                          <img
+                          <Image
                             src={url}
                             alt={`Floor plan ${index + 1}`}
                             className="object-cover w-full h-full"
+                            width={100}
+                            height={100}
                           />
                           <Button
                             type="button"
@@ -1036,8 +1193,8 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
       </div>
 
       <div className="text-sm text-muted-foreground">
-        Please review all the information above. Click "Create Property" to
-        submit your listing.
+        Please review all the information above. Click &apos;Create
+        Property&apos; to submit your listing.
       </div>
     </div>
   );
@@ -1105,6 +1262,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         onCancel={onBack}
         onSubmit={handleSubmit}
         canProceed={!Object.values(uploading).some(Boolean)}
+        isLoading={isLoading}
       />
     </Form>
   );

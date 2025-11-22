@@ -32,6 +32,7 @@ import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
 import { Loader2, Wand2Icon, X } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
+import { LocationPicker } from "../_components/locationPicker";
 
 interface ResidentialWizardProps {
   onBack: () => void;
@@ -137,7 +138,9 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     };
 
     const fieldsToValidate = stepValidations[currentStep] || [];
-    const result = await form.trigger(fieldsToValidate as any);
+    const result = await form.trigger(
+      fieldsToValidate as (keyof ResidentialPropertyFormData)[]
+    );
     return result;
   };
 
@@ -516,44 +519,21 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       {/* Google Maps Location */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Add Location</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="location.coordinates.1"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Latitude</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Latitude"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="location.coordinates.0"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Longitude</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Longitude"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="location.coordinates"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <LocationPicker
+                  value={field.value as [number, number]}
+                  onChange={field.onChange}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
 
       {/* Localities */}
@@ -953,10 +933,12 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                           key={index}
                           className="relative aspect-square rounded-lg border overflow-hidden group"
                         >
-                          <img
+                          <Image
                             src={url}
                             alt={`Floor plan ${index + 1}`}
                             className="object-cover w-full h-full"
+                            width={100}
+                            height={100}
                           />
                           <Button
                             type="button"
@@ -1018,8 +1000,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       </div>
 
       <div className="text-sm text-muted-foreground">
-        Please review all the information above. Click "Create Property" to
-        submit your listing.
+        Please review all the information above. Click &quot;Create
+        Property&quot; to submit your listing.
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
-import useAxios, { ApiResponse } from "@/hooks/useAxios";
-import api from "@/hooks/useAxios";
+import useAxios from "@/hooks/useAxios";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 export interface Notification {

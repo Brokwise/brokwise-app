@@ -24,14 +24,9 @@ import {
 import {
   MapPin,
   IndianRupee,
-  Home,
   Edit,
   Calendar,
   User,
-  Building,
-  Bed,
-  Bath,
-  Maximize2,
   FileText,
   CheckCircle2,
   XCircle,
@@ -72,7 +67,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
       string,
       {
         variant: "default" | "secondary" | "destructive" | "outline";
-        icon: any;
+        icon: React.ElementType;
       }
     > = {
       PENDING_APPROVAL: { variant: "secondary", icon: Loader2 },
@@ -214,15 +209,18 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <img
-                          src={image}
-                          alt={`Property ${index + 1}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src =
-                              "/images/propertyCategory/residential.jpg";
-                          }}
-                        />
+                        <React.Fragment>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={image}
+                            alt={`Property ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src =
+                                "/images/propertyCategory/residential.jpg";
+                            }}
+                          />
+                        </React.Fragment>
                       )}
                     </div>
                   </CarouselItem>

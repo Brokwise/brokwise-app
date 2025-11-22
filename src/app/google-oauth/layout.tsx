@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";
+
 import { Loader } from "@/components/ui/loader";
 import { firebaseAuth, getUserDoc, setUserDoc } from "@/config/firebase";
 import { createUser } from "@/models/api/user";
@@ -147,10 +147,10 @@ const GoogleOauthPage = () => {
   return (
     <main className="flex flex-col items-center justify-center w-svw h-dvh p-4xl bg-surface-1 enable-drag">
       <div className="flex items-center justify-center w-full mb-6xl gap-sm">
-        <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-full">
-          <Image src="/logo.png" alt="Ilumiera" width={20} height={20} />
-        </div>
-        <h1 className="text-4xl font-semibold mx-3.5">Ilumiera</h1>
+        {/* <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-full">
+          <Image src="/logo.png" alt="Brokwise" width={20} height={20} />
+        </div> */}
+        <h1 className="text-4xl font-semibold mx-3.5">Brokwise</h1>
       </div>
       <h1 className="flex flex-col md:flex-row items-center justify-center text-xl md:text-3xl gap-sm ">
         {message}

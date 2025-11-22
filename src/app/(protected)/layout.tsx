@@ -7,9 +7,11 @@ const layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <AppProvider>
       <ProtectedPage>
-        <main className="h-screen w-full">
+        <main className="h-screen w-full flex flex-col bg-background">
           <NavBar />
-          {children}
+          <div className="flex-1 overflow-y-auto">
+            {children}
+          </div>
         </main>
       </ProtectedPage>
     </AppProvider>

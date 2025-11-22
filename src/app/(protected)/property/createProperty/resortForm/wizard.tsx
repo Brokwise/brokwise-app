@@ -128,7 +128,9 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
     };
 
     const fieldsToValidate = stepValidations[currentStep] || [];
-    const result = await form.trigger(fieldsToValidate as any);
+    const result = await form.trigger(
+      fieldsToValidate as (keyof ResortPropertyFormData)[]
+    );
     return result;
   };
 
@@ -141,7 +143,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
   };
 
   const handlePrevious = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 0));
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
   const handleStepClick = (stepIndex: number) => {
@@ -184,7 +186,10 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
           <FormItem>
             <FormLabel>Property Status</FormLabel>
             <FormControl>
-              <Input placeholder="e.g., Operational, Under Construction, Ready to Operate" {...field} />
+              <Input
+                placeholder="e.g., Operational, Under Construction, Ready to Operate"
+                {...field}
+              />
             </FormControl>
             <FormDescription>
               Current operational status of the resort
@@ -368,9 +373,9 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
             )}
           />
         </div>
-        <FormDescription>
+        <p className="text-sm text-muted-foreground">
           Enter coordinates manually (Map integration coming soon)
-        </FormDescription>
+        </p>
       </div>
 
       {/* Localities */}
@@ -488,9 +493,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
                 value={field.value?.join(", ") || ""}
                 onChange={(e) =>
                   field.onChange(
-                    e.target.value
-                      .split(", ")
-                      .filter((item) => item.trim())
+                    e.target.value.split(", ").filter((item) => item.trim())
                   )
                 }
               />
@@ -543,7 +546,8 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
               />
             </FormControl>
             <FormDescription>
-              Provide comprehensive details about the resort including facilities, amenities, and unique features (minimum 10 characters)
+              Provide comprehensive details about the resort including
+              facilities, amenities, and unique features (minimum 10 characters)
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -578,10 +582,12 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
                     </div>
                   ) : (
                     <div className="relative w-full max-w-sm aspect-video rounded-lg border overflow-hidden">
-                      <img
+                      <Image
                         src={field.value}
                         alt="Featured Media"
                         className="object-cover w-full h-full"
+                        width={100}
+                        height={100}
                       />
                       <Button
                         type="button"
@@ -631,10 +637,12 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
                           key={index}
                           className="relative aspect-square rounded-lg border overflow-hidden group"
                         >
-                          <img
+                          <Image
                             src={url}
                             alt={`Property image ${index + 1}`}
                             className="object-cover w-full h-full"
+                            width={100}
+                            height={100}
                           />
                           <Button
                             type="button"
@@ -686,10 +694,12 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
                           key={index}
                           className="relative aspect-square rounded-lg border overflow-hidden group"
                         >
-                          <img
+                          <Image
                             src={url}
                             alt={`Floor plan ${index + 1}`}
                             className="object-cover w-full h-full"
+                            width={100}
+                            height={100}
                           />
                           <Button
                             type="button"
@@ -718,7 +728,9 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
   const ReviewStep = (
     <div className="space-y-6">
       <div className="bg-muted/50 p-6 rounded-lg">
-        <h3 className="text-lg font-medium mb-4">Review Your Resort Property</h3>
+        <h3 className="text-lg font-medium mb-4">
+          Review Your Resort Property
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
             <strong>Property Type:</strong> Resort
@@ -727,13 +739,16 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
             <strong>Address:</strong> {form.watch("address") || "Not provided"}
           </div>
           <div>
-            <strong>Area:</strong> {form.watch("size") || "0"} {form.watch("sizeUnit") || ""}
+            <strong>Area:</strong> {form.watch("size") || "0"}{" "}
+            {form.watch("sizeUnit") || ""}
           </div>
           <div>
-            <strong>Total Price:</strong> ₹{form.watch("totalPrice")?.toLocaleString() || "0"}
+            <strong>Total Price:</strong> ₹
+            {form.watch("totalPrice")?.toLocaleString() || "0"}
           </div>
           <div>
-            <strong>Status:</strong> {form.watch("propertyStatus") || "Not provided"}
+            <strong>Status:</strong>{" "}
+            {form.watch("propertyStatus") || "Not provided"}
           </div>
           <div>
             <strong>Facing:</strong> {form.watch("facing") || "Not selected"}
@@ -742,7 +757,8 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
       </div>
 
       <div className="text-sm text-muted-foreground">
-        Please review all the information above. Click "Create Property" to submit your resort listing.
+        Please review all the information above. Click &quot;Create
+        Property&quot; to submit your resort listing.
       </div>
     </div>
   );
@@ -810,6 +826,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
         onCancel={onBack}
         onSubmit={handleSubmit}
         canProceed={!Object.values(uploading).some(Boolean)}
+        isLoading={isLoading}
       />
     </Form>
   );

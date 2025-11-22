@@ -42,7 +42,7 @@ export const customFetch = async <ResponseType, RequestType extends object>({
     const formattedQuery = query
       ? `?${new URLSearchParams(query).toString()}`
       : "";
-    let formattedUrl =
+    const formattedUrl =
       ("path" in config ? `${Config.backendUrl}${config.path}` : config.url) +
       formattedQuery;
 

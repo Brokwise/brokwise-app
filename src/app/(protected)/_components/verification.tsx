@@ -10,7 +10,6 @@ import { LogOutIcon } from "lucide-react";
 import { logError } from "@/utils/errors";
 import { createUser } from "@/models/api/user";
 import { getDoc } from "firebase/firestore";
-import Image from "next/image";
 // import ilumierLogoDark from "@/assets/logo/ilumierDark.png";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";

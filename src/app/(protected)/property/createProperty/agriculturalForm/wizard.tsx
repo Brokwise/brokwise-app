@@ -130,7 +130,9 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
     };
 
     const fieldsToValidate = stepValidations[currentStep] || [];
-    const result = await form.trigger(fieldsToValidate as any);
+    const result = await form.trigger(
+      fieldsToValidate as (keyof AgriculturalPropertyFormData)[]
+    );
     return result;
   };
 
@@ -370,9 +372,9 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
             )}
           />
         </div>
-        <FormDescription>
+        <p className="text-sm text-muted-foreground">
           Enter coordinates manually (Map integration coming soon)
-        </FormDescription>
+        </p>
       </div>
 
       {/* Localities */}
@@ -602,10 +604,12 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
                     </div>
                   ) : (
                     <div className="relative w-full max-w-sm aspect-video rounded-lg border overflow-hidden">
-                      <img
+                      <Image
                         src={field.value}
                         alt="Featured Media"
                         className="object-cover w-full h-full"
+                        width={100}
+                        height={100}
                       />
                       <Button
                         type="button"
@@ -655,10 +659,12 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
                           key={index}
                           className="relative aspect-square rounded-lg border overflow-hidden group"
                         >
-                          <img
+                          <Image
                             src={url}
                             alt={`Property image ${index + 1}`}
                             className="object-cover w-full h-full"
+                            width={100}
+                            height={100}
                           />
                           <Button
                             type="button"
@@ -710,10 +716,12 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
                           key={index}
                           className="relative aspect-square rounded-lg border overflow-hidden group"
                         >
-                          <img
+                          <Image
                             src={url}
                             alt={`Floor plan ${index + 1}`}
                             className="object-cover w-full h-full"
+                            width={100}
+                            height={100}
                           />
                           <Button
                             type="button"
@@ -772,8 +780,8 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
       </div>
 
       <div className="text-sm text-muted-foreground">
-        Please review all the information above. Click "Create Property" to
-        submit your agricultural land listing.
+        Please review all the information above. Click &quot;Create
+        Property&quot; to submit your agricultural land listing.
       </div>
     </div>
   );
@@ -841,6 +849,7 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
         onCancel={onBack}
         onSubmit={handleSubmit}
         canProceed={!Object.values(uploading).some(Boolean)}
+        isLoading={isLoading}
       />
     </Form>
   );

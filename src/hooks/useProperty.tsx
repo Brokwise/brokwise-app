@@ -4,10 +4,8 @@ import { PropertyFormData } from "@/validators/property";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { Property } from "@/types/property";
-import { useRouter } from "next/navigation";
 
 export const useAddProperty = () => {
-  const router = useRouter();
   const api = useAxios();
   const {
     mutate: addProperty,
@@ -46,4 +44,19 @@ export const useGetProperty = (id: string) => {
     },
   });
   return { property, isLoading, error };
+};
+
+export const useGetAllProperties = () => {
+  const api = useAxios();
+  const {
+    data: properties,
+    isLoading,
+    error,
+  } = useQuery<Property[]>({
+    queryKey: ["properties"],
+    queryFn: async () => {
+      return (await api.get("/property/list")).data.data.properties;
+    },
+  });
+  return { properties, isLoading, error };
 };

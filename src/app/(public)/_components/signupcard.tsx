@@ -26,6 +26,8 @@ import {
 import { signInWithEmailAndPassword, User } from "firebase/auth";
 import { createUser } from "@/models/api/user";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import Image from "next/image";
 const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
   const [inputError, setInputError] = useState<{
     email?: string;
@@ -105,7 +107,7 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
           await sendVerificatinLink(user);
         }
       }
-      router.push("/app");
+      router.push("/");
     } catch (err) {
       const error = err as FirebaseError;
       if (isSignup) {
@@ -296,7 +298,13 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
               )}
             />
           )}
-          <Button type="submit" className="w-full" size={"lg"}>
+          <Button
+            type="submit"
+            className="w-full"
+            size={"lg"}
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {isSignup ? "Sign up" : "Login"}
           </Button>
         </form>
@@ -317,7 +325,8 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         variant="outline"
         className="w-full"
       >
-        Google
+        <Image src="/icons/google.svg" alt="google" width={24} height={24} />
+        <span>Google</span>
       </Button>
     </div>
   );

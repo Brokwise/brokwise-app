@@ -1,15 +1,12 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
-  SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -21,11 +18,13 @@ import {
 } from "@/hooks/useNotifications";
 import { Bell, Check, Clock } from "lucide-react";
 import { useMemo } from "react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Notifications = () => {
   const { notificationsData, isLoading } = useNotification();
   const { mutate, isPending } = useUpdateNotification();
-
+  const queryClient = useQueryClient();
   const { unreadNotifications, readNotifications, unreadCount } =
     useMemo(() => {
       if (!notificationsData) {
@@ -47,7 +46,18 @@ export const Notifications = () => {
     }, [notificationsData]);
 
   const handleMarkAsRead = (notification: Notification) => {
-    mutate({ read: true, _id: notification._id });
+    mutate(
+      { read: true, _id: notification._id },
+      {
+        onSuccess: () => {
+          toast.success("Notification marked as read");
+          queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        },
+        onError: () => {
+          toast.error("Failed to mark notification as read");
+        },
+      }
+    );
   };
 
   const formatDate = (dateString: string) => {
@@ -72,7 +82,9 @@ export const Notifications = () => {
   }) => (
     <Card
       className={`mb-3 transition-all duration-200 ${
-        isUnread ? "border-blue-200 bg-blue-50/50" : "border-gray-200"
+        isUnread
+          ? "border-blue-200 bg-blue-50/50 dark:bg-primary/10"
+          : "border-gray-200 dark:border-gray-900"
       }`}
     >
       <CardContent className="p-4">
@@ -80,11 +92,13 @@ export const Notifications = () => {
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-2">
               {isUnread && (
-                <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
+                <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 dark:bg-blue-500" />
               )}
               <h4
                 className={`text-sm font-medium ${
-                  isUnread ? "text-gray-900" : "text-gray-700"
+                  isUnread
+                    ? "text-gray-900 dark:text-gray-100"
+                    : "text-gray-700 dark:text-gray-100"
                 }`}
               >
                 {notification.title}
@@ -106,7 +120,7 @@ export const Notifications = () => {
               variant="ghost"
               size="sm"
               disabled={isPending}
-              className="flex-shrink-0 h-8 px-3 text-xs hover:bg-blue-100"
+              className="flex-shrink-0 h-8 px-3 text-xs hover:bg-primary/10"
             >
               <Check className="w-3 h-3 mr-1" />
               Mark read
@@ -148,16 +162,16 @@ export const Notifications = () => {
         <ScrollArea className="h-[calc(100vh-120px)] pr-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : !notificationsData || notificationsData.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Bell className="w-12 h-12 text-gray-300 mb-4" />
+              <Bell className="w-12 h-12 text-gray-300 mb-4 dark:text-gray-100" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 No notifications
               </h3>
               <p className="text-sm text-gray-500">
-                You're all caught up! Check back later for new updates.
+                You&apos;re all caught up! Check back later for new updates.
               </p>
             </div>
           ) : (
@@ -166,7 +180,7 @@ export const Notifications = () => {
               {unreadNotifications.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-4">
-                    <h3 className="text-sm font-semibold text-gray-900">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                       Unread
                     </h3>
                     <Badge variant="secondary" className="text-xs">

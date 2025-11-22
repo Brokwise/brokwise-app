@@ -2,15 +2,13 @@
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Bell, Heart } from "lucide-react";
+import { Heart } from "lucide-react";
 export const FavouriteProperties = () => {
   return (
     <Sheet>

@@ -13,7 +13,7 @@ import { ApiFunction } from "../types";
 export const createUser: ApiFunction<
   CreateUserResponse,
   CreateUserRequest
-> = async ({ fullName, email, uid, sendWelcomeEmail }) => {
+> = async ({ email, uid }) => {
   return await customFetch({
     method: "POST",
     path: "/broker/create",

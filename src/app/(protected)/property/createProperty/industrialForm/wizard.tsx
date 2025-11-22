@@ -132,7 +132,9 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
     };
 
     const fieldsToValidate = stepValidations[currentStep] || [];
-    const result = await form.trigger(fieldsToValidate as any);
+    const result = await form.trigger(
+      fieldsToValidate as (keyof IndustrialPropertyFormData)[]
+    );
     return result;
   };
 
@@ -145,7 +147,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
   };
 
   const handlePrevious = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 0));
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
   const handleStepClick = (stepIndex: number) => {
@@ -263,7 +265,10 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
           <FormItem>
             <FormLabel>Purpose</FormLabel>
             <FormControl>
-              <Input placeholder="e.g., Manufacturing, Storage, Processing, Distribution" {...field} />
+              <Input
+                placeholder="e.g., Manufacturing, Storage, Processing, Distribution"
+                {...field}
+              />
             </FormControl>
             <FormDescription>
               Specify the intended use of the industrial property
@@ -415,9 +420,9 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
             )}
           />
         </div>
-        <FormDescription>
+        <p className="text-sm text-muted-foreground">
           Enter coordinates manually (Map integration coming soon)
-        </FormDescription>
+        </p>
       </div>
 
       {/* Localities */}
@@ -522,7 +527,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
   const LegalDocumentsStep = (
     <div className="space-y-6">
       <h3 className="text-lg font-medium">Legal Documents (Optional)</h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
@@ -607,7 +612,8 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
               />
             </FormControl>
             <FormDescription>
-              Provide detailed information about the industrial property (minimum 10 characters)
+              Provide detailed information about the industrial property
+              (minimum 10 characters)
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -642,10 +648,12 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
                     </div>
                   ) : (
                     <div className="relative w-full max-w-sm aspect-video rounded-lg border overflow-hidden">
-                      <img
+                      <Image
                         src={field.value}
                         alt="Featured Media"
                         className="object-cover w-full h-full"
+                        width={100}
+                        height={100}
                       />
                       <Button
                         type="button"
@@ -695,10 +703,12 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
                           key={index}
                           className="relative aspect-square rounded-lg border overflow-hidden group"
                         >
-                          <img
+                          <Image
                             src={url}
                             alt={`Property image ${index + 1}`}
                             className="object-cover w-full h-full"
+                            width={100}
+                            height={100}
                           />
                           <Button
                             type="button"
@@ -750,10 +760,12 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
                           key={index}
                           className="relative aspect-square rounded-lg border overflow-hidden group"
                         >
-                          <img
+                          <Image
                             src={url}
                             alt={`Floor plan ${index + 1}`}
                             className="object-cover w-full h-full"
+                            width={100}
+                            height={100}
                           />
                           <Button
                             type="button"
@@ -782,7 +794,9 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
   const ReviewStep = (
     <div className="space-y-6">
       <div className="bg-muted/50 p-6 rounded-lg">
-        <h3 className="text-lg font-medium mb-4">Review Your Industrial Property</h3>
+        <h3 className="text-lg font-medium mb-4">
+          Review Your Industrial Property
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
             <strong>Property Type:</strong> {propertyType}
@@ -791,22 +805,26 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
             <strong>Address:</strong> {form.watch("address") || "Not provided"}
           </div>
           <div>
-            <strong>Size:</strong> {form.watch("size") || "0"} {form.watch("sizeUnit") || ""}
+            <strong>Size:</strong> {form.watch("size") || "0"}{" "}
+            {form.watch("sizeUnit") || ""}
           </div>
           <div>
-            <strong>Total Price:</strong> ₹{form.watch("totalPrice")?.toLocaleString() || "0"}
+            <strong>Total Price:</strong> ₹
+            {form.watch("totalPrice")?.toLocaleString() || "0"}
           </div>
           <div>
             <strong>Purpose:</strong> {form.watch("purpose") || "Not provided"}
           </div>
           <div>
-            <strong>Area Type:</strong> {form.watch("areaType") || "Not selected"}
+            <strong>Area Type:</strong>{" "}
+            {form.watch("areaType") || "Not selected"}
           </div>
         </div>
       </div>
-      
+
       <div className="text-sm text-muted-foreground">
-        Please review all the information above. Click "Create Property" to submit your industrial property listing.
+        Please review all the information above. Click &quot;Create
+        Property&quot; to submit your industrial property listing.
       </div>
     </div>
   );
@@ -874,6 +892,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
         onCancel={onBack}
         onSubmit={handleSubmit}
         canProceed={!Object.values(uploading).some(Boolean)}
+        isLoading={isLoading}
       />
     </Form>
   );
