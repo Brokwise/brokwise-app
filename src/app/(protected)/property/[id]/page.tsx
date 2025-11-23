@@ -345,49 +345,6 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
 
         {/* Sidebar */}
         <div className="lg:col-span-1 space-y-6">
-          {/* Listed By */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Listed By
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Name</p>
-                <p className="font-semibold">
-                  {property.listedBy.firstName} {property.listedBy.lastName}
-                </p>
-              </div>
-              <Separator />
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Email</p>
-                <p className="font-semibold break-all">
-                  {property.listedBy.email}
-                </p>
-              </div>
-              <Separator />
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Mobile</p>
-                <p className="font-semibold">{property.listedBy.mobile}</p>
-              </div>
-              {property.listedBy.brokerId && (
-                <>
-                  <Separator />
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Broker ID
-                    </p>
-                    <Badge variant="outline">
-                      {property.listedBy.brokerId}
-                    </Badge>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Metadata */}
           <Card>
             <CardHeader>
@@ -428,37 +385,6 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
               )}
             </CardContent>
           </Card>
-
-          {/* Contact CTA */}
-          {!owner && (
-            <Card className="bg-primary text-primary-foreground">
-              <CardContent className="pt-6">
-                <h3 className="text-xl font-bold mb-4">
-                  Interested in this property?
-                </h3>
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  className="w-full mb-2"
-                  onClick={() => {
-                    window.location.href = `tel:${property.listedBy.mobile}`;
-                  }}
-                >
-                  Call Now
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
-                  onClick={() => {
-                    window.location.href = `mailto:${property.listedBy.email}`;
-                  }}
-                >
-                  Send Email
-                </Button>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </main>

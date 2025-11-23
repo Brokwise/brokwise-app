@@ -11,23 +11,15 @@ import { Button } from "@/components/ui/button";
 import { MapPin, BedDouble, Bath, Move, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { formatPrice } from "@/utils/helper";
 
 interface PropertyCardProps {
   property: Property;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
-  // Format price to currency
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group flex flex-col h-full">
+    <Card className="overflow-hidden bg-primary/2 hover:shadow-lg transition-shadow duration-300 group flex flex-col h-full bg-sidebar">
       <div className="relative h-48 w-full overflow-hidden">
         <Image
           src={
