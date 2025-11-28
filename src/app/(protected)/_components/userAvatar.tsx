@@ -16,6 +16,7 @@ import { signOut } from "firebase/auth";
 import { Computer, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 export function UserAvatar() {
   const [user] = useAuthState(firebaseAuth);
   const [mounted, setMounted] = useState(false);
@@ -44,12 +45,19 @@ export function UserAvatar() {
       <DropdownMenuContent className="w-56" align="start">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuGroup>
-          <DropdownMenuItem>Profile</DropdownMenuItem>
+          <DropdownMenuItem>
+            <Link href="/profile">Profile</Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuGroup>
+          <DropdownMenuItem>
+            <Link href="/my-listings">My Listings</Link>
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuGroup>
           <DropdownMenuItem>
             <div className="w-full flex items-start justify-between flex-col">
-              <p>theme</p>
+              <p>Theme</p>
               <div className="flex gap-2 border rounded-full  px-2 py-[0.5px]">
                 <Button
                   variant="ghost"

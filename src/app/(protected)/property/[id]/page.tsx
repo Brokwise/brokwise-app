@@ -12,7 +12,6 @@ import {
 import { useAuthState } from "react-firebase-hooks/auth";
 import { firebaseAuth } from "@/config/firebase";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   Carousel,
@@ -24,7 +23,6 @@ import {
 import {
   MapPin,
   IndianRupee,
-  Edit,
   Calendar,
   FileText,
   CheckCircle2,
@@ -46,6 +44,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { P } from "@/components/text/p";
+
+import { Alert } from "@/components/ui/alert";
 
 const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
@@ -140,6 +140,11 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
       </Dialog>
       {/* Header Section */}
       <div className="mb-8">
+        {property.deletingStatus === "pending" && (
+          <Alert variant="destructive" className="mb-4">
+            <P text="This property is pending deletion. Please wait for it to be deleted. You can still view the property details." />
+          </Alert>
+        )}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
@@ -184,12 +189,12 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
           </div>
         </div>
 
-        {owner && (
+        {/* {owner && (
           <Button size="lg" className="w-full md:w-auto gap-2">
             <Edit className="h-4 w-4" />
             Edit Property
           </Button>
-        )}
+        )} */}
       </div>
 
       {/* Image Gallery */}

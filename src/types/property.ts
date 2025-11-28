@@ -166,4 +166,5 @@ export interface Property {
   // Timestamps
   createdAt: string;
   updatedAt: string;
+  deletingStatus?: "pending" | "approved" | "rejected";
 }

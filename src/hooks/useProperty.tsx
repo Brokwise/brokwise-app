@@ -1,9 +1,9 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useAxios from "./useAxios";
 import { PropertyFormData } from "@/validators/property";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
-import { Property } from "@/types/property";
+import { Property, ListingStatus } from "@/types/property";
 
 export const useAddProperty = () => {
   const api = useAxios();
@@ -59,4 +59,89 @@ export const useGetAllProperties = () => {
     },
   });
   return { properties, isLoading, error };
+};
+
+export const useGetMyListings = () => {
+  const api = useAxios();
+  const {
+    data: myListings,
+    isLoading,
+    error,
+  } = useQuery<Property[]>({
+    queryKey: ["my-listings"],
+    queryFn: async () => {
+      return (await api.get("/property/broker/properties")).data.data
+        .properties;
+    },
+  });
+  return { myListings, isLoading, error };
+};
+
+export const useUpdatePropertyStatus = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+  const { mutate, isPending, error } = useMutation<
+    unknown,
+    AxiosError<{ message: string }>,
+    { propertyId: string; status: ListingStatus }
+  >({
+    mutationFn: async ({ propertyId, status }) => {
+      return (
+        await api.patch(`/property/update-status/${propertyId}`, { status })
+      ).data;
+    },
+    onSuccess: () => {
+      toast.success("Property status updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["my-listings"] });
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "An unknown error occurred while updating the property status.";
+      toast.error(errorMessage);
+    },
+  });
+  return { mutate, isPending, error };
+};
+
+import { useApp } from "@/context/AppContext";
+
+export const useRequestDeleteProperty = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+  const { brokerData } = useApp();
+
+  const { mutate, isPending, error } = useMutation<
+    unknown,
+    AxiosError<{ message: string }>,
+    { propertyId: string; reason: string }
+  >({
+    mutationFn: async ({ propertyId, reason }) => {
+      if (!brokerData) {
+        throw new Error("Broker data not available");
+      }
+
+      const payload = {
+        propertyId,
+        reason,
+        brokerName: `${brokerData.firstName} ${brokerData.lastName}`,
+        brokerId: brokerData.uid,
+      };
+
+      return (await api.delete(`/property/delete`, { data: payload })).data;
+    },
+    onSuccess: () => {
+      toast.success("Property deletion request submitted successfully");
+      queryClient.invalidateQueries({ queryKey: ["my-listings"] });
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "An unknown error occurred while submitting deletion request.";
+      toast.error(errorMessage);
+    },
+  });
+  return { requestDelete: mutate, isPending, error };
 };
