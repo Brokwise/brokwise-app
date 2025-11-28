@@ -254,7 +254,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       <FormField
         control={form.control}
         name="address"
-        render={({ field }) => (
+        render={() => (
           <div className="space-y-6">
             {(propertyType === "VILLA" || propertyType === "LAND") && (
               <>

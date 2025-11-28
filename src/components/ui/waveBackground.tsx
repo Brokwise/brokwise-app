@@ -1,6 +1,6 @@
 "use client";
 import { useTheme } from "next-themes";
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 
 const WaveBackground = ({ children }: { children: React.ReactNode }) => {

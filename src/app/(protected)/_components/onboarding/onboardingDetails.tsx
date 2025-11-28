@@ -20,7 +20,6 @@ import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
 import { firebaseAuth } from "@/config/firebase";
 import { toast } from "sonner";
 import { logError } from "@/utils/errors";
-import { H1 } from "@/components/text/h1";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Select,
@@ -124,8 +123,10 @@ export const OnboardingDetails = ({}) => {
 
   const handleNext = async (e: React.MouseEvent) => {
     e.preventDefault();
-    const fields = stepFields[step as keyof typeof stepFields];
-    const isStepValid = await form.trigger(fields as any);
+    const fields = stepFields[
+      step as keyof typeof stepFields
+    ] as (keyof z.infer<typeof submitProfileDetails>)[];
+    const isStepValid = await form.trigger(fields);
 
     if (!isStepValid) return;
 

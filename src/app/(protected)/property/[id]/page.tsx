@@ -26,7 +26,6 @@ import {
   IndianRupee,
   Edit,
   Calendar,
-  User,
   FileText,
   CheckCircle2,
   XCircle,
