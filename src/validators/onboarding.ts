@@ -12,10 +12,14 @@ export const submitProfileDetails = z.object({
     .min(10, { message: "Mobile number must be at least 10 digits long" }),
   companyName: z
     .string()
-    .min(3, { message: "Company name must be at least 3 characters long" }),
+    .min(3, { message: "Company name must be at least 3 characters long" })
+    .optional()
+    .or(z.literal("")),
   gstin: z
     .string()
-    .min(15, { message: "GSTIN must be at least 15 characters long" }),
+    .min(15, { message: "GSTIN must be at least 15 characters long" })
+    .optional()
+    .or(z.literal("")),
   yearsOfExperience: z
     .number()
     .min(0, { message: "Years of experience must be >= 0" }),
@@ -24,8 +28,9 @@ export const submitProfileDetails = z.object({
     .min(3, { message: "City must be at least 3 characters long" }),
   officeAddress: z
     .string()
-    .min(3, { message: "Office address must be at least 3 characters long" }),
-  reraNumber: z.string(),
+    .min(3, { message: "Office address must be at least 3 characters long" })
+    .optional(),
+  reraNumber: z.string().optional(),
 });
 
 export const loginFormSchema = z.object({

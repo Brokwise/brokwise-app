@@ -4,6 +4,7 @@ import "../globals.css";
 import { QueryClientProviderWrapper } from "@/providers/queryClientProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/providers/themeProvider";
+import WaveBackground from "@/components/ui/waveBackground";
 
 const hostGrotesk = localFont({
   src: "../../public/fonts/HostGrotesk-VariableFont_wght.ttf",

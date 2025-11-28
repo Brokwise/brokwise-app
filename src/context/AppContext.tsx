@@ -95,7 +95,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         setBrokerDataLoading(true);
         const response = await getBrokerDetails({ uid: user.uid });
-        console.log("response.data", response.data);
         setBrokerData(response.data);
       } catch (err) {
         logError({

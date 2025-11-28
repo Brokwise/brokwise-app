@@ -11,6 +11,8 @@ import { StatusDisplay } from "@/app/(protected)/_components/statusDisplay";
 import { useApp } from "@/context/AppContext";
 
 import { logError } from "@/utils/errors";
+import WaveBackground from "@/components/ui/waveBackground";
+// import WorkspaceUI from "@/components/ui/test";
 
 export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   const [user, loading, error] = useAuthState(firebaseAuth);
@@ -92,7 +94,11 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   if (brokerData) {
     switch (brokerData.status) {
       case "incomplete":
-        return <OnboardingDetails />;
+        return (
+          <WaveBackground>
+            <OnboardingDetails />
+          </WaveBackground>
+        );
       case "pending":
       case "blacklisted":
         return <StatusDisplay />;

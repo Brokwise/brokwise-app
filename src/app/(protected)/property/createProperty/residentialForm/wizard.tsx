@@ -29,10 +29,18 @@ import {
 } from "@/validators/property";
 import { useAddProperty } from "@/hooks/useProperty";
 import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
-import { Loader2, Wand2Icon, X } from "lucide-react";
+import {
+  Building2,
+  House,
+  LandPlot,
+  Loader2,
+  Wand2Icon,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { LocationPicker } from "../_components/locationPicker";
+import { cn } from "@/lib/utils";
 
 interface ResidentialWizardProps {
   onBack: () => void;
@@ -198,15 +206,45 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
             <FormLabel>Property Type</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select property type" />
-                </SelectTrigger>
+                <div className="flex gap-2">
+                  <Button
+                    variant="selection"
+                    onClick={() => field.onChange("FLAT")}
+                    className={cn(
+                      field.value === "FLAT"
+                        ? "bg-primary text-primary-foreground"
+                        : ""
+                    )}
+                  >
+                    <House className="h-4 w-4" />
+                    Flat/Apartment
+                  </Button>
+                  <Button
+                    variant="selection"
+                    onClick={() => field.onChange("VILLA")}
+                    className={cn(
+                      field.value === "VILLA"
+                        ? "bg-primary text-primary-foreground"
+                        : ""
+                    )}
+                  >
+                    <Building2 className="h-4 w-4" />
+                    Villa
+                  </Button>
+                  <Button
+                    variant="selection"
+                    onClick={() => field.onChange("LAND")}
+                    className={cn(
+                      field.value === "LAND"
+                        ? "bg-primary text-primary-foreground"
+                        : ""
+                    )}
+                  >
+                    <LandPlot className="h-4 w-4" />
+                    Land
+                  </Button>
+                </div>
               </FormControl>
-              <SelectContent>
-                <SelectItem value="FLAT">Flat/Apartment</SelectItem>
-                <SelectItem value="VILLA">Villa</SelectItem>
-                <SelectItem value="LAND">Residential Land</SelectItem>
-              </SelectContent>
             </Select>
             <FormMessage />
           </FormItem>
@@ -217,16 +255,131 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         control={form.control}
         name="address"
         render={({ field }) => (
-          <FormItem>
-            <FormLabel>Property Address</FormLabel>
-            <FormControl>
-              <Textarea
-                placeholder="Enter complete property address"
-                {...field}
+          <div className="space-y-6">
+            {(propertyType === "VILLA" || propertyType === "LAND") && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="facing"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Front Facing</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select facing direction" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="NORTH">North</SelectItem>
+                          <SelectItem value="SOUTH">South</SelectItem>
+                          <SelectItem value="EAST">East</SelectItem>
+                          <SelectItem value="WEST">West</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="frontRoadWidth"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Front Road Width (in feet)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Enter front road width"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {plotType === "CORNER" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="sideFacing"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Side Facing</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select side facing" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="NORTH">North</SelectItem>
+                              <SelectItem value="SOUTH">South</SelectItem>
+                              <SelectItem value="EAST">East</SelectItem>
+                              <SelectItem value="WEST">West</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="sideRoadWidth"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Side Road Width (in feet)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="Enter side road width"
+                              {...field}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Google Maps Location */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Add Location</h3>
+              <FormField
+                control={form.control}
+                name="location.coordinates"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <LocationPicker
+                        value={field.value as [number, number]}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
+            </div>
+          </div>
         )}
       />
     </div>
@@ -410,158 +563,6 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           )}
         />
       )}
-    </div>
-  );
-
-  // Step 3: Location & Accessibility
-  const LocationStep = (
-    <div className="space-y-6">
-      {(propertyType === "VILLA" || propertyType === "LAND") && (
-        <>
-          <FormField
-            control={form.control}
-            name="facing"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Front Facing</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select facing direction" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="NORTH">North</SelectItem>
-                    <SelectItem value="SOUTH">South</SelectItem>
-                    <SelectItem value="EAST">East</SelectItem>
-                    <SelectItem value="WEST">West</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="frontRoadWidth"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Front Road Width (in feet)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Enter front road width"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {plotType === "CORNER" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="sideFacing"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Side Facing</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select side facing" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="NORTH">North</SelectItem>
-                        <SelectItem value="SOUTH">South</SelectItem>
-                        <SelectItem value="EAST">East</SelectItem>
-                        <SelectItem value="WEST">West</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="sideRoadWidth"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Side Road Width (in feet)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Enter side road width"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Google Maps Location */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Add Location</h3>
-        <FormField
-          control={form.control}
-          name="location.coordinates"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <LocationPicker
-                  value={field.value as [number, number]}
-                  onChange={field.onChange}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-
-      {/* Localities */}
-      <FormField
-        control={form.control}
-        name="localities"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Add Localities</FormLabel>
-            <FormControl>
-              <Textarea
-                placeholder="Enter nearby localities separated by commas (e.g., Malviya Nagar, C-Scheme, Vaishali Nagar)"
-                {...field}
-                value={field.value?.join(", ") || ""}
-                onChange={(e) =>
-                  field.onChange(
-                    e.target.value.split(", ").filter((item) => item.trim())
-                  )
-                }
-              />
-            </FormControl>
-            <FormDescription>
-              Enter multiple localities separated by commas
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
     </div>
   );
 
@@ -1020,13 +1021,6 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       description: "Size, rooms, and property details",
       component: PropertySpecsStep,
       isCompleted: completedSteps.has(1),
-    },
-    {
-      id: "location",
-      title: "Location",
-      description: "Location and accessibility details",
-      component: LocationStep,
-      isCompleted: completedSteps.has(2),
     },
     {
       id: "pricing",

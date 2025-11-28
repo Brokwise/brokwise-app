@@ -99,6 +99,7 @@ const config: Config = {
       "5xl": "0px 12px 24px 0px rgba(0, 0, 0, 0.12)",
       "6xl": "0px 2px 40px 2px rgba(0, 0, 0, 0.08)",
     },
+
     extend: {
       spacing: {
         none: "0rem",
@@ -168,6 +169,7 @@ const config: Config = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+
         chart: {
           "1": "hsl(var(--chart-1))",
           "2": "hsl(var(--chart-2))",
@@ -212,10 +214,25 @@ const config: Config = {
             height: "0",
           },
         },
+        "wave-slow": {
+          "0%, 100%": { transform: "translate(0, 0) rotate(-5deg)" },
+          "50%": { transform: "translate(20px, -30px) rotate(0deg)" },
+        },
+        "wave-slower": {
+          "0%, 100%": { transform: "translate(0, 0) rotate(10deg)" },
+          "50%": { transform: "translate(-20px, -20px) rotate(5deg)" },
+        },
+        "wave-pulse": {
+          "0%, 100%": { opacity: "0.6", transform: "scale(1)" },
+          "50%": { opacity: "0.8", transform: "scale(1.05)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        // "wave-slow": "wave-slow 20s infinite ease-in-out",
+        // "wave-slower": "wave-slower 25s infinite ease-in-out",
+        // "wave-pulse": "wave-pulse 18s infinite ease-in-out",
       },
     },
   },
