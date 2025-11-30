@@ -17,8 +17,6 @@ export const useAddProperty = () => {
     },
     onSuccess: (data) => {
       toast.success("Property created successfully");
-      console.log(data);
-      // router.push(`/property/details/${data?.id}`);
     },
     onError: (error) => {
       const errorMessage =

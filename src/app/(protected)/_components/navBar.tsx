@@ -37,6 +37,18 @@ const NavBar = () => {
               Properties
             </TabsTrigger>
             <TabsTrigger
+              onClick={() => {
+                router.push("/enquiries");
+              }}
+              className={cn(
+                "cursor-pointer",
+                pathname === "/" && "bg-primary text-white"
+              )}
+              value="/enquiries"
+            >
+              Enquiries
+            </TabsTrigger>
+            <TabsTrigger
               className={cn(
                 "cursor-pointer",
                 pathname === "/property/createProperty" &&
