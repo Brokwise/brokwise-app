@@ -54,6 +54,7 @@ const addressSchema = z.object({
 
 // Base fields required for all properties
 const basePropertySchema = z.object({
+  _id: z.string().optional(),
   address: addressSchema,
   rate: z.number().min(0, "Rate must be >= 0"),
   totalPrice: z.number().min(0, "Total price must be >= 0"),

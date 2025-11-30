@@ -21,7 +21,7 @@ import {
   residentialPropertySchema,
   ResidentialPropertyFormData,
 } from "@/validators/property";
-import { useAddProperty } from "@/hooks/useProperty";
+import { useAddProperty, useSavePropertyAsDraft } from "@/hooks/useProperty";
 import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
 import {
   Building2,
@@ -67,6 +67,7 @@ import { cn } from "@/lib/utils";
 
 interface ResidentialWizardProps {
   onBack: () => void;
+  initialData?: Partial<ResidentialPropertyFormData> & { _id?: string };
 }
 
 const FLAT_AMENITIES = [
@@ -114,10 +115,14 @@ const VILLA_AMENITIES = [
 
 export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   onBack,
+  initialData,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const { addProperty, isLoading } = useAddProperty();
+  const { savePropertyAsDraft, isPending: isSavingDraft } =
+    useSavePropertyAsDraft();
+  const [draftId, setDraftId] = useState<string | undefined>(initialData?._id);
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const [customAmenity, setCustomAmenity] = useState("");
@@ -144,6 +149,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       featuredMedia: "",
       images: [],
       floorPlans: [],
+      ...initialData,
     },
     mode: "onChange",
   });
@@ -279,6 +285,20 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     const isValid = await form.trigger();
     if (isValid) {
       form.handleSubmit(onSubmit)();
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    const data = form.getValues();
+    const payload = { ...data, _id: draftId };
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const savedProperty = await savePropertyAsDraft(payload as any);
+      if (savedProperty?._id) {
+        setDraftId(savedProperty._id);
+      }
+    } catch (error) {
+      console.error("Error saving draft:", error);
     }
   };
 
@@ -480,6 +500,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                         { value: "SQ_YARDS", label: "Square Yards" },
                         { value: "ACRES", label: "Acres" },
                         { value: "BIGHA", label: "Bigha" },
+                        { value: "SQ_METER", label: "Square Meter" },
+                        { value: "HECTARE", label: "Hectare" },
                       ]
                   ).map((item) => (
                     <Button
@@ -1267,6 +1289,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         onStepClick={handleStepClick}
         onCancel={onBack}
         onSubmit={handleSubmit}
+        onSaveDraft={handleSaveDraft}
+        isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
         isLoading={isLoading}
       />

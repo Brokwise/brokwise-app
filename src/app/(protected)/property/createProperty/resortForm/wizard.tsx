@@ -21,7 +21,7 @@ import {
   resortPropertySchema,
   ResortPropertyFormData,
 } from "@/validators/property";
-import { useAddProperty } from "@/hooks/useProperty";
+import { useAddProperty, useSavePropertyAsDraft } from "@/hooks/useProperty";
 import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
 import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -31,12 +31,19 @@ import { cn } from "@/lib/utils";
 
 interface ResortWizardProps {
   onBack: () => void;
+  initialData?: Partial<ResortPropertyFormData> & { _id?: string };
 }
 
-export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
+export const ResortWizard: React.FC<ResortWizardProps> = ({
+  onBack,
+  initialData,
+}) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const { addProperty, isLoading } = useAddProperty();
+  const { savePropertyAsDraft, isPending: isSavingDraft } =
+    useSavePropertyAsDraft();
+  const [draftId, setDraftId] = useState<string | undefined>(initialData?._id);
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
 
   const form = useForm<ResortPropertyFormData>({
@@ -61,6 +68,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
       },
       featuredMedia: "",
       images: [],
+      ...initialData,
     },
     mode: "onChange",
   });
@@ -172,6 +180,20 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
     const isValid = await form.trigger();
     if (isValid) {
       form.handleSubmit(onSubmit)();
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    const data = form.getValues();
+    const payload = { ...data, _id: draftId };
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const savedProperty = await savePropertyAsDraft(payload as any);
+      if (savedProperty?._id) {
+        setDraftId(savedProperty._id);
+      }
+    } catch (error) {
+      console.error("Error saving draft:", error);
     }
   };
 
@@ -912,6 +934,8 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({ onBack }) => {
         onStepClick={handleStepClick}
         onCancel={onBack}
         onSubmit={handleSubmit}
+        onSaveDraft={handleSaveDraft}
+        isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
         isLoading={isLoading}
       />

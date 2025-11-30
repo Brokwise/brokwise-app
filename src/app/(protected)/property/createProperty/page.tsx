@@ -3,72 +3,61 @@ import { H1 } from "@/components/text/h1";
 import { Card, CardTitle, CardHeader, CardContent } from "@/components/ui/card";
 import React, { useState } from "react";
 import { ResidentialWizard } from "./residentialForm/wizard";
-import { ResidentialForm } from "./residentialForm";
 import { CommercialWizard } from "./commercialForm/wizard";
-import { CommercialForm } from "./commercialForm";
 import { IndustrialWizard } from "./industrialForm/wizard";
-import { IndustrialForm } from "./industrialForm";
 import { AgriculturalWizard } from "./agriculturalForm/wizard";
-import { AgriculturalForm } from "./agriculturalForm";
 import { ResortWizard } from "./resortForm/wizard";
-import { ResortForm } from "./resortForm";
 import { FarmHouseWizard } from "./farmhouseForm/wizard";
-import { FarmHouseForm } from "./farmhouseForm";
 import { Button } from "@/components/ui/button";
-import { PropertyCategory } from "@/types/property";
+import { Property, PropertyCategory } from "@/types/property";
 import { propertyCategories } from "@/constants";
 import { H2 } from "@/components/text/h2";
+import { useGetMyListings } from "@/hooks/useProperty";
+import { Loader2, Edit } from "lucide-react";
 
 const CreateProperty = () => {
   const [selectedCategory, setSelectedCategory] =
     useState<PropertyCategory | null>(null);
-  const [useWizard] = useState(true);
+  const [selectedDraft, setSelectedDraft] = useState<Property | null>(null);
+  const { myListings, isLoading } = useGetMyListings();
+
+  const drafts = myListings?.filter((p) => p.listingStatus === "DRAFT") || [];
+
   const handleCategorySelect = (category: PropertyCategory) => {
     setSelectedCategory(category);
+    setSelectedDraft(null);
+  };
+
+  const handleDraftSelect = (draft: Property) => {
+    setSelectedCategory(draft.propertyCategory);
+    setSelectedDraft(draft);
   };
 
   const handleBack = () => {
     setSelectedCategory(null);
+    setSelectedDraft(null);
   };
 
   const renderCategoryForm = () => {
+    const props = {
+      onBack: handleBack,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      initialData: selectedDraft ? (selectedDraft as any) : undefined,
+    };
+
     switch (selectedCategory) {
       case "RESIDENTIAL":
-        return useWizard ? (
-          <ResidentialWizard onBack={handleBack} />
-        ) : (
-          <ResidentialForm onBack={handleBack} />
-        );
+        return <ResidentialWizard {...props} />;
       case "COMMERCIAL":
-        return useWizard ? (
-          <CommercialWizard onBack={handleBack} />
-        ) : (
-          <CommercialForm onBack={handleBack} />
-        );
+        return <CommercialWizard {...props} />;
       case "INDUSTRIAL":
-        return useWizard ? (
-          <IndustrialWizard onBack={handleBack} />
-        ) : (
-          <IndustrialForm onBack={handleBack} />
-        );
+        return <IndustrialWizard {...props} />;
       case "AGRICULTURAL":
-        return useWizard ? (
-          <AgriculturalWizard onBack={handleBack} />
-        ) : (
-          <AgriculturalForm onBack={handleBack} />
-        );
+        return <AgriculturalWizard {...props} />;
       case "RESORT":
-        return useWizard ? (
-          <ResortWizard onBack={handleBack} />
-        ) : (
-          <ResortForm onBack={handleBack} />
-        );
+        return <ResortWizard {...props} />;
       case "FARM_HOUSE":
-        return useWizard ? (
-          <FarmHouseWizard onBack={handleBack} />
-        ) : (
-          <FarmHouseForm onBack={handleBack} />
-        );
+        return <FarmHouseWizard {...props} />;
       default:
         return null;
     }
@@ -100,6 +89,44 @@ const CreateProperty = () => {
               </Card>
             ))}
           </div>
+
+          {/* Drafts Section */}
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : drafts.length > 0 ? (
+            <div className="space-y-4 pt-8 border-t">
+              <H2 text="Continue Drafting" />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {drafts.map((draft) => (
+                  <Card key={draft._id} className="overflow-hidden">
+                    <CardHeader>
+                      <CardTitle className="text-lg">
+                        {propertyCategories.find(
+                          (c) => c.key === draft.propertyCategory
+                        )?.label || draft.propertyCategory}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {draft.address?.city
+                          ? `${draft.address.city}, ${draft.address.state}`
+                          : "Location not set"}
+                      </p>
+                      <Button
+                        onClick={() => handleDraftSelect(draft)}
+                        className="w-full"
+                        variant="secondary"
+                      >
+                        <Edit className="w-4 h-4 mr-2" /> Continue Editing
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </>
       ) : (
         <div className="space-y-6">
@@ -115,28 +142,6 @@ const CreateProperty = () => {
                 } Property`}
               />
             </div>
-
-            {/* Wizard Toggle - Available for all property categories */}
-            {/* {selectedCategory && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={useWizard ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setUseWizard(true)}
-                  type="button"
-                >
-                  Step-by-Step
-                </Button>
-                <Button
-                  variant={!useWizard ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setUseWizard(false)}
-                  type="button"
-                >
-                  Single Form
-                </Button>
-              </div>
-            )} */}
           </div>
           {renderCategoryForm()}
         </div>
