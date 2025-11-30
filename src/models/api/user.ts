@@ -7,6 +7,8 @@ import {
   SubmitUserDetailsResponse,
   GetBrokerDetailsRequest,
   GetBrokerDetailsResponse,
+  UpdateProfileDetailsRequest,
+  UpdateProfileDetailsResponse,
 } from "../types/user";
 import { ApiFunction } from "../types";
 
@@ -58,6 +60,18 @@ export const submitUserDetails: ApiFunction<
       officeAddress,
       reraNumber,
     },
+    isProtected: true,
+  });
+};
+
+export const updateProfileDetails: ApiFunction<
+  UpdateProfileDetailsResponse,
+  UpdateProfileDetailsRequest
+> = async (data) => {
+  return await customFetch({
+    method: "PUT",
+    path: "/broker/updateProfileDetails",
+    body: data,
     isProtected: true,
   });
 };

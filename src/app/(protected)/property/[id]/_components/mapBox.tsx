@@ -4,6 +4,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { Property } from "@/types/property";
 import { Loader2, MapPin } from "lucide-react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { formatAddress } from "@/utils/helper";
+
 export const MapBox = ({ property }: { property: Property }) => {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -30,7 +32,9 @@ export const MapBox = ({ property }: { property: Property }) => {
       .setLngLat([lng, lat])
       .setPopup(
         new mapboxgl.Popup().setHTML(
-          `<div class="p-2"><strong>${property.propertyCategory}</strong><br/>${property.address}</div>`
+          `<div class="p-2"><strong>${
+            property.propertyCategory
+          }</strong><br/>${formatAddress(property.address)}</div>`
         )
       )
       .addTo(mapRef.current);

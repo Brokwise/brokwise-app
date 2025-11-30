@@ -1,16 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useGetProperty } from "@/hooks/useProperty";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { firebaseAuth } from "@/config/firebase";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -22,68 +15,29 @@ import {
 } from "@/components/ui/carousel";
 import {
   MapPin,
-  IndianRupee,
   Calendar,
   FileText,
   CheckCircle2,
-  XCircle,
+  ArrowLeft,
   Loader2,
+  Building2,
+  Ruler,
+  Home,
 } from "lucide-react";
 
 import { format } from "date-fns";
 import { MapBox } from "./_components/mapBox";
 import { KeyFeatures } from "./_components/keyFeatures";
 import { AdditionalDetails } from "./_components/additionalDetails";
-import { formatCurrency } from "@/utils/helper";
-import { useSearchParams } from "next/navigation";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { P } from "@/components/text/p";
+import { formatCurrency, formatAddress } from "@/utils/helper";
+import { useRouter } from "next/navigation";
 
-import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
+  const router = useRouter();
   const { property, isLoading, error } = useGetProperty(id);
-  const [user] = useAuthState(firebaseAuth);
-  const status = useSearchParams().get("status");
-  const owner = property?.listedBy.email === user?.email;
-  console.log(status, property?.listingStatus, owner);
-  const [showStatusDialog, setShowStatusDialog] = useState(
-    status?.toString().toLowerCase() === "pending_approval" &&
-      property?.listingStatus?.toString().toLowerCase() ===
-        "pending_approval" &&
-      owner
-  );
-
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<
-      string,
-      {
-        variant: "default" | "secondary" | "destructive" | "outline";
-        icon: React.ElementType;
-      }
-    > = {
-      PENDING_APPROVAL: { variant: "secondary", icon: Loader2 },
-      APPROVED: { variant: "default", icon: CheckCircle2 },
-      REJECTED: { variant: "destructive", icon: XCircle },
-    };
-    const { variant, icon: Icon } = statusMap[status] || {
-      variant: "outline" as const,
-      icon: FileText,
-    };
-    return (
-      <Badge variant={variant} className="gap-1">
-        <Icon className="h-3 w-3" />
-        {status.replace(/_/g, " ")}
-      </Badge>
-    );
-  };
 
   if (isLoading) {
     return (
@@ -96,23 +50,20 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
     );
   }
 
-  if (error) {
+  if (error || !property) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle className="text-destructive">Error</CardTitle>
-            <CardDescription>{error.message}</CardDescription>
           </CardHeader>
+          <CardContent>
+            <p>{error?.message || "Property not found"}</p>
+            <Button className="mt-4" onClick={() => router.back()}>
+              Go Back
+            </Button>
+          </CardContent>
         </Card>
-      </div>
-    );
-  }
-
-  if (!property) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-muted-foreground">Property not found</p>
       </div>
     );
   }
@@ -123,134 +74,131 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   ];
 
   return (
-    <main className="container mx-auto py-8 px-4 max-w-7xl">
-      <Dialog
-        open={showStatusDialog}
-        onOpenChange={(open) => setShowStatusDialog(open)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Property Status</DialogTitle>
-          </DialogHeader>
-          <DialogDescription>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
-            <P text="Your property is pending approval. Please wait for it to be approved." />
-          </DialogDescription>
-        </DialogContent>
-      </Dialog>
-      {/* Header Section */}
-      <div className="mb-8">
-        {property.deletingStatus === "pending" && (
-          <Alert variant="destructive" className="mb-4">
-            <P text="This property is pending deletion. Please wait for it to be deleted. You can still view the property details." />
-          </Alert>
-        )}
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <Badge variant="outline" className="text-sm">
-                {property.propertyId || "N/A"}
-              </Badge>
-              {getStatusBadge(property.listingStatus)}
-              {property.isFeatured && (
-                <Badge variant="default" className="bg-amber-500">
-                  Featured
-                </Badge>
-              )}
-              {property.isVerified && (
-                <Badge variant="default" className="bg-green-600">
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Verified
-                </Badge>
-              )}
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">
-              {property.propertyCategory} - {property.propertyType}
+    <main className="container mx-auto py-8 px-4 max-w-7xl space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              Property Details
+              <span className="text-muted-foreground font-normal text-sm bg-muted px-2 py-1 rounded-md">
+                ID: {property.propertyId || "N/A"}
+              </span>
             </h1>
-            <div className="flex items-center text-muted-foreground gap-1">
-              <MapPin className="h-4 w-4" />
-              <span>{property.address}</span>
-            </div>
-          </div>
-          <div className="flex flex-col items-start md:items-end gap-2">
-            <div className="text-3xl font-bold text-primary flex items-center">
-              <IndianRupee className="h-7 w-7" />
-              {formatCurrency(property.totalPrice)}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Rate: {formatCurrency(property.rate)}/
-              {property.sizeUnit?.toLowerCase() || "unit"}
-            </div>
-            {property.isPriceNegotiable && (
-              <Badge variant="secondary" className="text-xs">
-                Negotiable
-              </Badge>
-            )}
           </div>
         </div>
-
-        {/* {owner && (
-          <Button size="lg" className="w-full md:w-auto gap-2">
-            <Edit className="h-4 w-4" />
-            Edit Property
-          </Button>
-        )} */}
       </div>
 
-      {/* Image Gallery */}
-      {allImages.length > 0 && (
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <Carousel className="w-full">
-              <CarouselContent>
-                {allImages.map((image, index) => (
-                  <CarouselItem key={index}>
-                    <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
-                      {image.endsWith(".mp4") ? (
-                        <video
-                          src={image}
-                          controls
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <React.Fragment>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column - Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Image Gallery */}
+          <div className="rounded-xl overflow-hidden bg-muted aspect-video relative border">
+            {allImages.length > 0 ? (
+              <Carousel className="w-full h-full">
+                <CarouselContent className="h-full">
+                  {allImages.map((image, index) => (
+                    <CarouselItem key={index} className="h-full">
+                      <div className="relative w-full h-full flex items-center justify-center bg-black">
+                        {image.endsWith(".mp4") ? (
+                          <video
+                            src={image}
+                            controls
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={image}
                             alt={`Property ${index + 1}`}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              e.currentTarget.src =
-                                "/images/propertyCategory/residential.jpg";
+                              e.currentTarget.src = "/images/placeholder.webp";
                             }}
                           />
-                        </React.Fragment>
-                      )}
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              {allImages.length > 1 && (
-                <>
-                  <CarouselPrevious className="left-4" />
-                  <CarouselNext className="right-4" />
-                </>
-              )}
-            </Carousel>
-          </CardContent>
-        </Card>
-      )}
+                        )}
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                {allImages.length > 1 && (
+                  <>
+                    <CarouselPrevious className="left-4" />
+                    <CarouselNext className="right-4" />
+                  </>
+                )}
+              </Carousel>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                No images available
+              </div>
+            )}
+          </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+          {/* Overview Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Overview</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-6">
+              <div className="flex items-baseline justify-between border-b pb-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Price</p>
+                  <p className="text-3xl font-bold text-primary">
+                    {formatCurrency(property.totalPrice)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground mb-1">Rate</p>
+                  <p className="text-xl font-semibold">
+                    {formatCurrency(property.rate)} /{" "}
+                    {property.sizeUnit?.toLowerCase().replace("_", " ")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Category</p>
+                  <div className="flex flex-col items-center justify-center p-3 bg-muted/50 rounded-lg">
+                    <Building2 className="h-5 w-5 mb-2 text-primary" />
+                    <span className="font-semibold text-sm">
+                      {property.propertyCategory}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Type</p>
+                  <div className="flex flex-col items-center justify-center p-3 bg-muted/50 rounded-lg">
+                    <Home className="h-5 w-5 mb-2 text-primary" />
+                    <span className="font-semibold text-sm">
+                      {property.propertyType.replace(/_/g, " ")}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Size</p>
+                  <div className="flex flex-col items-center justify-center p-3 bg-muted/50 rounded-lg">
+                    <Ruler className="h-5 w-5 mb-2 text-primary" />
+                    <span className="font-semibold text-sm">
+                      {property.size} {property.sizeUnit?.replace("SQ_", "")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Description */}
           <Card>
             <CardHeader>
-              <CardTitle>About Property</CardTitle>
+              <CardTitle>Description</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground whitespace-pre-wrap">
+              <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
                 {property.description}
               </p>
             </CardContent>
@@ -268,7 +216,11 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   {property.amenities.map((amenity, index) => (
-                    <Badge key={index} variant="secondary">
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="px-3 py-1"
+                    >
                       {amenity}
                     </Badge>
                   ))}
@@ -286,8 +238,8 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   {property.localities.map((locality, index) => (
-                    <Badge key={index} variant="outline">
-                      <MapPin className="h-3 w-3 mr-1" />
+                    <Badge key={index} variant="outline" className="gap-1">
+                      <MapPin className="h-3 w-3" />
                       {locality}
                     </Badge>
                   ))}
@@ -311,7 +263,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
                     href={plan}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-primary hover:underline"
+                    className="flex items-center gap-2 text-primary hover:underline p-2 hover:bg-muted/50 rounded-md transition-colors"
                   >
                     <FileText className="h-4 w-4" />
                     Floor Plan {index + 1}
@@ -322,7 +274,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
                     href={property.jamabandiUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-primary hover:underline"
+                    className="flex items-center gap-2 text-primary hover:underline p-2 hover:bg-muted/50 rounded-md transition-colors"
                   >
                     <FileText className="h-4 w-4" />
                     Jamabandi Document
@@ -333,7 +285,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
                     href={property.khasraPlanUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-primary hover:underline"
+                    className="flex items-center gap-2 text-primary hover:underline p-2 hover:bg-muted/50 rounded-md transition-colors"
                   >
                     <FileText className="h-4 w-4" />
                     Khasra Plan
@@ -343,28 +295,65 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
             </Card>
           )}
 
-          {/* Location Map */}
-          <MapBox property={property} />
+          {/* Map */}
+          <Card className="overflow-hidden">
+            <CardHeader>
+              <CardTitle>Location</CardTitle>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                {formatAddress(property.address)}
+              </p>
+            </CardHeader>
+            <CardContent className="p-0 h-[400px]">
+              <MapBox property={property} />
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Sidebar */}
+        {/* Right Column - Sidebar */}
         <div className="lg:col-span-1 space-y-6">
-          {/* Metadata */}
+          {/* Status Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Status</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Current Status
+                </span>
+                <Badge
+                  variant={
+                    property.listingStatus === "ACTIVE"
+                      ? "default"
+                      : "secondary"
+                  }
+                  className={
+                    property.listingStatus === "ACTIVE"
+                      ? "bg-green-500 hover:bg-green-600"
+                      : ""
+                  }
+                >
+                  {property.listingStatus.replace("_", " ")}
+                </Badge>
+              </div>
+
+              <Separator />
+              <div className="text-xs text-muted-foreground">
+                Created: {format(new Date(property.createdAt), "PPP")}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Property Info */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                Property Info
+                Timelines
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Listed On</p>
-                <p className="font-semibold">
-                  {format(new Date(property.createdAt), "PPP")}
-                </p>
-              </div>
-              <Separator />
               <div>
                 <p className="text-sm text-muted-foreground mb-1">
                   Last Updated

@@ -3,10 +3,13 @@ import { useApp } from "@/context/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Clock, XCircle } from "lucide-react";
-
-export const StatusDisplay = () => {
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useSignOut } from "react-firebase-hooks/auth";
+import { firebaseAuth } from "@/config/firebase";
+export const StatusDisplay = ({ onEdit }: { onEdit?: () => void }) => {
   const { brokerData } = useApp();
-
+  const [signOut] = useSignOut(firebaseAuth);
   if (!brokerData) {
     return <div>Loading...</div>;
   }
@@ -27,13 +30,13 @@ export const StatusDisplay = () => {
   const getStatusColor = () => {
     switch (brokerData.status) {
       case "approved":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100";
+        return "border border-green-100 text-green-800 dark:border-green-900 dark:text-green-100 bg-transparent";
       case "pending":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100";
+        return "border border-yellow-100 text-yellow-800 dark:border-yellow-500 dark:text-yellow-100 bg-transparent";
       case "blacklisted":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100";
+        return "border border-red-100 text-red-800 dark:border-red-900 dark:text-red-100 bg-transparent";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100";
+        return "border border-gray-100 text-gray-800 dark:border-gray-900 dark:text-gray-100 bg-transparent";
     }
   };
 
@@ -68,17 +71,27 @@ export const StatusDisplay = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen p-4">
-      <Card className="w-full max-w-2xl">
-        <CardHeader className="text-center">
+      <Button
+        variant={"link"}
+        onClick={() => signOut()}
+        className="absolute top-4 right-4"
+      >
+        Logout
+      </Button>
+      <Card className="w-full max-w-2xl relative overflow-hidden">
+        <div className="absolute -top-1/2 -left-1/4 h-96 w-96 blur-3xl bg-primary/80 rounded-full"></div>
+        <CardHeader className="text-center relative">
           <div className="flex justify-center mb-4">{getStatusIcon()}</div>
           <CardTitle className="text-2xl">{statusInfo.title}</CardTitle>
-          <Badge className={getStatusColor()}>
+          <Badge className={cn(getStatusColor(), "w-fit mx-auto")}>
             {brokerData.status.charAt(0).toUpperCase() +
               brokerData.status.slice(1)}
           </Badge>
         </CardHeader>
-        <CardContent className="text-center space-y-4">
-          <p className="text-gray-600">{statusInfo.message}</p>
+        <CardContent className="text-center space-y-4 relative">
+          <p className="dark:text-gray-400 text-gray-600">
+            {statusInfo.message}
+          </p>
 
           <div className="mt-6 p-4 rounded-lg">
             <h3 className="font-semibold mb-2">Your Details</h3>
@@ -110,6 +123,12 @@ export const StatusDisplay = () => {
               )}
             </div>
           </div>
+
+          {brokerData.status === "pending" && onEdit && (
+            <Button onClick={onEdit} className="w-full mt-4">
+              Edit Details
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>

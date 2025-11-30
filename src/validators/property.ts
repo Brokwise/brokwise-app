@@ -42,9 +42,19 @@ const PlotTypeEnum = z.enum(["ROAD", "CORNER"]);
 
 const AreaTypeEnum = z.enum(["NEAR_RING_ROAD", "RIICO_AREA", "SEZ"]);
 
+const addressSchema = z.object({
+  state: z.string().min(1, "State is required"),
+  city: z.string().min(1, "City is required"),
+  address: z.string().min(5, "Address must be at least 5 characters"),
+  pincode: z
+    .string()
+    .length(6, "Pincode must be 6 digits")
+    .regex(/^\d+$/, "Pincode must be numeric"),
+});
+
 // Base fields required for all properties
 const basePropertySchema = z.object({
-  address: z.string().min(5, "Address must be at least 5 characters"),
+  address: addressSchema,
   rate: z.number().min(0, "Rate must be >= 0"),
   totalPrice: z.number().min(0, "Total price must be >= 0"),
   description: z.string().min(20, "Description must be at least 20 characters"),
@@ -53,7 +63,6 @@ const basePropertySchema = z.object({
   images: z.array(z.string().url()).min(1, "At least one image is required"),
 
   // Optional common fields
-  localities: z.array(z.string()).optional(),
   floorPlans: z.array(z.string().url()).optional(),
   isFeatured: z.boolean().optional(),
   isPriceNegotiable: z.boolean().optional(),

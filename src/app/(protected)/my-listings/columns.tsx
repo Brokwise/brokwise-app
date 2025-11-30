@@ -1,6 +1,6 @@
 "use client";
 
-import { ListingStatus, Property } from "@/types/property";
+import { ListingStatus, Property, Address } from "@/types/property";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +32,7 @@ import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
+import { formatAddress } from "@/utils/helper";
 
 const getStatusBadge = (status: ListingStatus, deletingStatus?: string) => {
   if (deletingStatus === "pending") {
@@ -220,11 +221,15 @@ export const columns: ColumnDef<Property>[] = [
     accessorKey: "address",
     header: "Location",
     cell: ({ row }) => {
-      const address = row.getValue("address") as string;
+      const address = row.getValue("address") as Address;
+      const formattedAddress = formatAddress(address);
       return (
-        <div className="max-w-[200px] truncate text-sm" title={address}>
+        <div
+          className="max-w-[200px] truncate text-sm"
+          title={formattedAddress}
+        >
           <MapPin className="mr-1 inline-block h-3 w-3 text-muted-foreground" />
-          {address}
+          {formattedAddress}
         </div>
       );
     },
@@ -377,7 +382,7 @@ function ActionCell({ property }: { property: Property }) {
             </div>
             <div className="border-t pt-4 mt-2">
               <h4 className="font-semibold mb-2">Location</h4>
-              <p className="text-sm">{property.address}</p>
+              <p className="text-sm">{formatAddress(property.address)}</p>
               {property.localities && property.localities.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {property.localities.map((loc, i) => (

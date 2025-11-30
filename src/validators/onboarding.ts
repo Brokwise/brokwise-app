@@ -9,7 +9,8 @@ export const submitProfileDetails = z.object({
     .min(3, { message: "Last name must be at least 3 characters long" }),
   mobile: z
     .string()
-    .min(10, { message: "Mobile number must be at least 10 digits long" }),
+    .min(10, { message: "Mobile number must be at least 10 digits long" })
+    .max(10, { message: "Mobile number must be at most 10 digits long" }),
   companyName: z
     .string()
     .min(3, { message: "Company name must be at least 3 characters long" })

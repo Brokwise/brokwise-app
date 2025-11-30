@@ -57,6 +57,7 @@ import {
   AlertCircle,
   Plus,
 } from "lucide-react";
+import { formatAddress } from "@/utils/helper";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -94,10 +95,11 @@ export function DataTable<TData, TValue>({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const property = row.original as any;
       const broker = property.listedBy || {};
+      const addressString = formatAddress(property.address);
 
       return (
         property.propertyId?.toLowerCase().includes(search) ||
-        property.address?.toLowerCase().includes(search) ||
+        addressString.toLowerCase().includes(search) ||
         property.propertyCategory?.toLowerCase().includes(search) ||
         property.propertyType?.toLowerCase().includes(search) ||
         broker.firstName?.toLowerCase().includes(search) ||

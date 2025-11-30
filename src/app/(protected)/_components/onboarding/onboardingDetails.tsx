@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { submitUserDetails } from "@/models/api/user";
+import { submitUserDetails, updateProfileDetails } from "@/models/api/user";
 import { useApp } from "@/context/AppContext";
 import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
 import { firebaseAuth } from "@/config/firebase";
@@ -29,7 +29,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export const OnboardingDetails = ({}) => {
+export const OnboardingDetails = ({
+  isEditing = false,
+  onCancel,
+}: {
+  isEditing?: boolean;
+  onCancel?: () => void;
+}) => {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -46,15 +52,16 @@ export const OnboardingDetails = ({}) => {
   const form = useForm<z.infer<typeof submitProfileDetails>>({
     resolver: zodResolver(submitProfileDetails),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      mobile: "",
-      companyName: "",
-      gstin: "",
-      yearsOfExperience: 0,
-      city: "",
-      officeAddress: "",
-      reraNumber: "",
+      firstName:
+        brokerData?.firstName || user?.displayName?.split(" ")[0] || "",
+      lastName: brokerData?.lastName || user?.displayName?.split(" ")[1] || "",
+      mobile: brokerData?.mobile || user?.phoneNumber || "",
+      companyName: brokerData?.companyName || "",
+      gstin: brokerData?.gstin || "",
+      yearsOfExperience: brokerData?.yearsOfExperience || 0,
+      city: brokerData?.city || "",
+      officeAddress: brokerData?.officeAddress || "",
+      reraNumber: brokerData?.reraNumber || "",
     },
   });
 
@@ -69,31 +76,47 @@ export const OnboardingDetails = ({}) => {
     try {
       setLoading(true);
 
-      await submitUserDetails({
-        uid: user.uid,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: user.email || "",
-        _id: brokerData._id,
-        mobile: data.mobile,
-        companyName: data.companyName || "",
-        gstin: data.gstin || "",
-        yearsOfExperience: data.yearsOfExperience,
-        city: data.city,
-        officeAddress: data.officeAddress || "",
-        reraNumber: data.reraNumber || "",
-      });
+      if (isEditing) {
+        await updateProfileDetails({
+          _id: brokerData._id,
+          ...data,
+        });
 
-      // Update broker data in context
-      setBrokerData({
-        ...brokerData,
-        ...data,
-        status: "pending",
-      });
+        // Update broker data in context
+        setBrokerData({
+          ...brokerData,
+          ...data,
+        });
 
-      toast.success(
-        "Profile details submitted successfully! Your account is now pending approval."
-      );
+        toast.success("Profile updated successfully!");
+        if (onCancel) onCancel();
+      } else {
+        await submitUserDetails({
+          uid: user.uid,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: user.email || "",
+          _id: brokerData._id,
+          mobile: data.mobile,
+          companyName: data.companyName,
+          gstin: data.gstin,
+          yearsOfExperience: data.yearsOfExperience,
+          city: data.city,
+          officeAddress: data.officeAddress,
+          reraNumber: data.reraNumber,
+        });
+
+        // Update broker data in context
+        setBrokerData({
+          ...brokerData,
+          ...data,
+          status: "pending",
+        });
+
+        toast.success(
+          "Profile details submitted successfully! Your account is now pending approval."
+        );
+      }
     } catch (error) {
       logError({
         description: "Error submitting profile details",
@@ -147,24 +170,22 @@ export const OnboardingDetails = ({}) => {
     <section className="flex flex-col justify-center items-center h-screen w-full">
       <Button
         variant={"link"}
-        onClick={() => signOut()}
+        onClick={() => (isEditing && onCancel ? onCancel() : signOut())}
         className="absolute top-4 right-4"
       >
-        Logout
+        {isEditing ? "Cancel" : "Logout"}
       </Button>
 
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmitProfileDetails)}
-          className="w-[30vw] relative 
-        bg-[#0f0f11] 
-        border border-white/10 
+          className="w-[50vw] lg:w-[30vw] relative bg-[#0f0f11] border border-white/10 
         rounded-2xl 
         shadow-2xl 
         flex flex-col p-xl overflow-hidden"
         >
           <h1 className="text-3xl">
-            Let&apos;s setup your
+            {isEditing ? "Update your" : "Let's setup your"}
             <span className="text-primary font-instrument-serif italic">
               {" "}
               profile
@@ -291,27 +312,14 @@ export const OnboardingDetails = ({}) => {
                                 <SelectValue placeholder="Select Years of Experience" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="0">0</SelectItem>
-                                <SelectItem value="1">1</SelectItem>
-                                <SelectItem value="2">2</SelectItem>
-                                <SelectItem value="3">3</SelectItem>
-                                <SelectItem value="4">4</SelectItem>
-                                <SelectItem value="5">5</SelectItem>
-                                <SelectItem value="6">6</SelectItem>
-                                <SelectItem value="7">7</SelectItem>
-                                <SelectItem value="8">8</SelectItem>
-                                <SelectItem value="9">9</SelectItem>
-                                <SelectItem value="10">10</SelectItem>
-                                <SelectItem value="11">11</SelectItem>
-                                <SelectItem value="12">12</SelectItem>
-                                <SelectItem value="13">13</SelectItem>
-                                <SelectItem value="14">14</SelectItem>
-                                <SelectItem value="15">15</SelectItem>
-                                <SelectItem value="16">16</SelectItem>
-                                <SelectItem value="17">17</SelectItem>
-                                <SelectItem value="18">18</SelectItem>
-                                <SelectItem value="19">19</SelectItem>
-                                <SelectItem value="20">20</SelectItem>
+                                {[...Array(21)].map((_, index) => (
+                                  <SelectItem
+                                    key={index}
+                                    value={index.toString()}
+                                  >
+                                    {index}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </FormControl>
@@ -384,12 +392,20 @@ export const OnboardingDetails = ({}) => {
               <div />
             )}
             <Button
-              type={step === 3 ? "submit" : "button"}
               onClick={handleNext}
+              type={step === 3 ? "submit" : "button"}
               size={"lg"}
-              disabled={loading || !form.formState.isValid}
+              disabled={loading}
             >
-              {loading ? "Submitting..." : step === 3 ? "Submit" : "Next"}
+              {loading
+                ? isEditing
+                  ? "Updating..."
+                  : "Submitting..."
+                : step === 3
+                ? isEditing
+                  ? "Update"
+                  : "Submit"
+                : "Next"}
               {step < 3 && !loading && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </div>

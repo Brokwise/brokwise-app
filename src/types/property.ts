@@ -83,6 +83,13 @@ export interface Broker {
   mobile: string;
 }
 
+export interface Address {
+  state: string;
+  city: string;
+  address: string;
+  pincode: string;
+}
+
 //  Main Property Interface
 
 export interface Property {
@@ -92,7 +99,7 @@ export interface Property {
   // Core & Common
   propertyCategory: PropertyCategory;
   propertyType: PropertyType;
-  address: string;
+  address: Address;
   rate: number;
   totalPrice: number;
   listingStatus: ListingStatus;

@@ -19,7 +19,7 @@ const NavBar = () => {
       className="w-full h-[4rem]  flex justify-between items-center px-4xl"
     >
       <div>
-        <h1>Brokwise</h1>
+        <h1 className="font-instrument-serif">Brokwise</h1>
       </div>
       <div>
         <Tabs defaultValue="properties" className="w-[400px]" value={pathname}>

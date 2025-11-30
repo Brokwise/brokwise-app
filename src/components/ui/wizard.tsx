@@ -88,8 +88,9 @@ export const Wizard: React.FC<WizardProps> = ({
       </div>
 
       {/* Current Step Content */}
-      <Card>
-        <CardHeader>
+      <Card className="relative overflow-hidden">
+        <div className="h-96 w-full absolute -top-1/3 right-1/2 translate-x-1/2 bg-primary/50 rounded-full blur-3xl"></div>
+        <CardHeader className="relative">
           <CardTitle className="flex items-center gap-2">
             <span className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
               {currentStep + 1}
@@ -102,7 +103,9 @@ export const Wizard: React.FC<WizardProps> = ({
             </p>
           )}
         </CardHeader>
-        <CardContent>{steps[currentStep]?.component}</CardContent>
+        <CardContent className="relative">
+          {steps[currentStep]?.component}
+        </CardContent>
       </Card>
 
       {/* Navigation Buttons */}

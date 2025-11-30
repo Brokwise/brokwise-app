@@ -9,9 +9,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
       <ProtectedPage>
         <main className="h-screen w-full flex flex-col bg-background">
           <NavBar />
-          <div className="flex-1 overflow-y-auto">
-            {children}
-          </div>
+          <div className="flex-1 overflow-y-auto">{children}</div>
         </main>
       </ProtectedPage>
     </AppProvider>

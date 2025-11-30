@@ -13,6 +13,7 @@ import {
   Columns,
   Search,
   X,
+  Filter as FilterIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,6 +27,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import Fuse from "fuse.js";
 
 const ProtectedPage = () => {
   const { properties, isLoading, error } = useGetAllProperties();
@@ -39,6 +51,7 @@ const ProtectedPage = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [priceRange, setPriceRange] = useState<number[]>([0, 100000000]);
   const [bhkFilter, setBhkFilter] = useState<string>("ALL");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const debouncedPriceRange = useDebounce(priceRange, 300);
@@ -53,18 +66,37 @@ const ProtectedPage = () => {
     return max > 0 ? max : 100000000;
   }, [properties]);
 
+  // Initialize Fuse instance
+  const fuse = useMemo(() => {
+    if (!properties) return null;
+    return new Fuse(properties, {
+      keys: [
+        { name: "address.address", weight: 0.7 },
+        { name: "address.city", weight: 0.6 },
+        { name: "address.state", weight: 0.4 },
+        { name: "society", weight: 0.5 },
+        { name: "description", weight: 0.3 },
+        { name: "propertyType", weight: 0.4 },
+      ],
+      threshold: 0.4,
+      includeScore: true,
+    });
+  }, [properties]);
+
   const filteredProperties = useMemo(() => {
     if (!properties) return [];
 
-    return properties.filter((property) => {
-      // Search Filter
-      const searchContent = `${property.address} ${property.description} ${
-        property.society || ""
-      } ${property.propertyType}`.toLowerCase();
-      const matchesSearch = searchContent.includes(
-        debouncedSearchQuery.toLowerCase()
-      );
+    let baseProperties = properties;
 
+    // Fuzzy Search
+    if (debouncedSearchQuery) {
+      if (fuse) {
+        const searchResults = fuse.search(debouncedSearchQuery);
+        baseProperties = searchResults.map((res) => res.item);
+      }
+    }
+
+    return baseProperties.filter((property) => {
       // Category Filter
       const matchesCategory =
         categoryFilter === "ALL" ||
@@ -84,11 +116,7 @@ const ProtectedPage = () => {
           : property.bhk === Number(bhkFilter));
 
       return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesMinPrice &&
-        matchesMaxPrice &&
-        matchesBhk
+        matchesCategory && matchesMinPrice && matchesMaxPrice && matchesBhk
       );
     });
   }, [
@@ -97,6 +125,7 @@ const ProtectedPage = () => {
     categoryFilter,
     debouncedPriceRange,
     bhkFilter,
+    fuse,
   ]);
 
   const clearFilters = () => {
@@ -116,6 +145,12 @@ const ProtectedPage = () => {
     }
   };
 
+  const hasActiveFilters =
+    categoryFilter !== "ALL" ||
+    bhkFilter !== "ALL" ||
+    priceRange[0] !== 0 ||
+    priceRange[1] !== maxPropertyPrice;
+
   if (error) {
     return (
       <div className="container mx-auto p-6">
@@ -132,11 +167,11 @@ const ProtectedPage = () => {
 
   return (
     <div
-      className={`container mx-auto p-6 space-y-6 ${
+      className={`container mx-auto p-6 px-80 space-y-6 ${
         view === "split" ? "h-[calc(100vh-100px)] overflow-hidden" : ""
       }`}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Properties</h1>
           <p className="text-muted-foreground mt-1">
@@ -180,83 +215,125 @@ const ProtectedPage = () => {
         </div>
       </div>
 
-      {/* Filters Section */}
-      <div className="bg-card p-4 rounded-lg border shadow-sm space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {/* Search */}
-          <div className="lg:col-span-1 relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search location, society..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8"
-            />
-          </div>
+      {/* Search and Filters Bar */}
+      <div className="bg-card p-4 rounded-lg border shadow-sm flex gap-4 items-center flex-col sm:flex-row">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search address, society, description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8"
+          />
+        </div>
 
-          {/* Category */}
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Categories</SelectItem>
-              <SelectItem value="RESIDENTIAL">Residential</SelectItem>
-              <SelectItem value="COMMERCIAL">Commercial</SelectItem>
-              <SelectItem value="INDUSTRIAL">Industrial</SelectItem>
-              <SelectItem value="AGRICULTURAL">Agricultural</SelectItem>
-              <SelectItem value="RESORT">Resort</SelectItem>
-              <SelectItem value="FARM_HOUSE">Farm House</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto relative">
+                <FilterIcon className="h-4 w-4 mr-2" />
+                Filters
+                {hasActiveFilters && (
+                  <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-primary border-2 border-background" />
+                )}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Filters</DialogTitle>
+                <DialogDescription>
+                  Refine your property search results.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-6 py-4">
+                {/* Category */}
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Select
+                    value={categoryFilter}
+                    onValueChange={setCategoryFilter}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Categories</SelectItem>
+                      <SelectItem value="RESIDENTIAL">Residential</SelectItem>
+                      <SelectItem value="COMMERCIAL">Commercial</SelectItem>
+                      <SelectItem value="INDUSTRIAL">Industrial</SelectItem>
+                      <SelectItem value="AGRICULTURAL">Agricultural</SelectItem>
+                      <SelectItem value="RESORT">Resort</SelectItem>
+                      <SelectItem value="FARM_HOUSE">Farm House</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          {/* Price Range */}
-          <div className="flex flex-col gap-2 min-w-[200px] px-2">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{formatPriceShort(priceRange[0])}</span>
-              <span>{formatPriceShort(priceRange[1])}</span>
-            </div>
-            <Slider
-              min={0}
-              max={maxPropertyPrice}
-              step={100000}
-              value={priceRange}
-              onValueChange={(value) => setPriceRange(value)}
-              className="py-2"
-            />
-          </div>
+                {/* Price Range */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Label>Price Range</Label>
+                    <div className="text-xs text-muted-foreground font-medium">
+                      {formatPriceShort(priceRange[0])} -{" "}
+                      {formatPriceShort(priceRange[1])}
+                    </div>
+                  </div>
+                  <Slider
+                    min={0}
+                    max={maxPropertyPrice}
+                    step={100000}
+                    value={priceRange}
+                    onValueChange={(value) => setPriceRange(value)}
+                    className="py-2"
+                  />
+                </div>
 
-          {/* BHK */}
-          <Select value={bhkFilter} onValueChange={setBhkFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="BHK" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Any BHK</SelectItem>
-              <SelectItem value="1">1 BHK</SelectItem>
-              <SelectItem value="2">2 BHK</SelectItem>
-              <SelectItem value="3">3 BHK</SelectItem>
-              <SelectItem value="4">4 BHK</SelectItem>
-              <SelectItem value="5+">5+ BHK</SelectItem>
-            </SelectContent>
-          </Select>
+                {/* BHK */}
+                <div className="space-y-2">
+                  <Label>BHK (Residential)</Label>
+                  <Select value={bhkFilter} onValueChange={setBhkFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="BHK" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">Any BHK</SelectItem>
+                      <SelectItem value="1">1 BHK</SelectItem>
+                      <SelectItem value="2">2 BHK</SelectItem>
+                      <SelectItem value="3">3 BHK</SelectItem>
+                      <SelectItem value="4">4 BHK</SelectItem>
+                      <SelectItem value="5+">5+ BHK</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    clearFilters();
+                    // setIsFilterOpen(false); // Optional: close on clear? Usually keep open to re-select.
+                  }}
+                  disabled={!hasActiveFilters && searchQuery === ""}
+                >
+                  Clear Filters
+                </Button>
+                <Button onClick={() => setIsFilterOpen(false)}>
+                  Show Results
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
-          {/* Clear Filters */}
-          <Button
-            variant="outline"
-            onClick={clearFilters}
-            className="w-full"
-            disabled={
-              !searchQuery &&
-              categoryFilter === "ALL" &&
-              priceRange[0] === 0 &&
-              priceRange[1] === maxPropertyPrice &&
-              bhkFilter === "ALL"
-            }
-          >
-            <X className="h-4 w-4 mr-2" />
-            Clear Filters
-          </Button>
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSearchQuery("")}
+              title="Clear Search"
+              className="shrink-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 

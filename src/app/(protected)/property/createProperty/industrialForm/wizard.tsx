@@ -6,13 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   Form,
   FormControl,
@@ -32,6 +26,8 @@ import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
 import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
+import { LocationPicker } from "../_components/locationPicker";
+import { cn } from "@/lib/utils";
 
 interface IndustrialWizardProps {
   onBack: () => void;
@@ -50,7 +46,12 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
     defaultValues: {
       propertyCategory: "INDUSTRIAL",
       propertyType: "WAREHOUSE",
-      address: "",
+      address: {
+        state: "",
+        city: "",
+        address: "",
+        pincode: "",
+      },
       rate: 0,
       totalPrice: 0,
       description: "",
@@ -67,6 +68,15 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
   });
 
   const propertyType = form.watch("propertyType");
+  const size = form.watch("size");
+  const rate = form.watch("rate");
+
+  React.useEffect(() => {
+    const calculatedPrice = (size || 0) * (rate || 0);
+    if (calculatedPrice > 0) {
+      form.setValue("totalPrice", calculatedPrice, { shouldValidate: true });
+    }
+  }, [size, rate, form]);
 
   const onSubmit = (data: IndustrialPropertyFormData) => {
     addProperty(data);
@@ -122,13 +132,18 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
 
   const validateCurrentStep = async (): Promise<boolean> => {
     const stepValidations: { [key: number]: string[] } = {
-      0: ["propertyType", "address"],
-      1: ["size", "sizeUnit"],
-      2: ["location.coordinates.0", "location.coordinates.1"], // Location step
-      3: ["rate", "totalPrice"],
-      4: [], // Features step
-      5: ["description", "featuredMedia", "images"],
-      6: [], // Review step
+      0: [
+        "propertyType",
+        "address.state",
+        "address.city",
+        "address.pincode",
+        "address.address",
+      ],
+      1: ["size", "sizeUnit", "rate", "totalPrice"],
+      2: [], // Location step
+      3: [], // Legal Docs step
+      4: ["description", "featuredMedia", "images"],
+      5: [], // Review step
     };
 
     const fieldsToValidate = stepValidations[currentStep] || [];
@@ -156,6 +171,33 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
     }
   };
 
+  const handleLocationSelect = (details: {
+    coordinates: [number, number];
+    placeName: string;
+    context?: { id: string; text: string }[];
+  }) => {
+    form.setValue("location.coordinates", details.coordinates, {
+      shouldValidate: true,
+    });
+    form.setValue("address.address", details.placeName, {
+      shouldValidate: true,
+    });
+
+    if (details.context) {
+      details.context.forEach((item: { id: string; text: string }) => {
+        if (item.id.startsWith("region")) {
+          form.setValue("address.state", item.text, { shouldValidate: true });
+        }
+        if (item.id.startsWith("place")) {
+          form.setValue("address.city", item.text, { shouldValidate: true });
+        }
+        if (item.id.startsWith("postcode")) {
+          form.setValue("address.pincode", item.text, { shouldValidate: true });
+        }
+      });
+    }
+  };
+
   const handleSubmit = async () => {
     const isValid = await form.trigger();
     if (isValid) {
@@ -172,39 +214,120 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
         render={({ field }) => (
           <FormItem>
             <FormLabel>Industrial Property Type</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select property type" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="INDUSTRIAL_PARK">Industrial Park</SelectItem>
-                <SelectItem value="INDUSTRIAL_LAND">Industrial Land</SelectItem>
-                <SelectItem value="WAREHOUSE">Warehouse</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="address"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Property Address</FormLabel>
             <FormControl>
-              <Textarea
-                placeholder="Enter complete property address including industrial area details"
-                {...field}
-              />
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { value: "INDUSTRIAL_PARK", label: "Industrial Park" },
+                  { value: "INDUSTRIAL_LAND", label: "Industrial Land" },
+                  { value: "WAREHOUSE", label: "Warehouse" },
+                ].map((item) => (
+                  <Button
+                    key={item.value}
+                    type="button"
+                    variant="selection"
+                    onClick={() => field.onChange(item.value)}
+                    className={cn(
+                      field.value === item.value
+                        ? "bg-primary text-primary-foreground"
+                        : ""
+                    )}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </div>
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column: Address Fields */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Property Address</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="address.state"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>State</FormLabel>
+                  <FormControl>
+                    <Input placeholder="State" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="address.city"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>City</FormLabel>
+                  <FormControl>
+                    <Input placeholder="City" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <FormField
+            control={form.control}
+            name="address.pincode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Pincode</FormLabel>
+                <FormControl>
+                  <Input placeholder="Pincode" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="address.address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Full Address</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Enter complete property address including industrial area details"
+                    className="min-h-[100px]"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Right Column: Map */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Locate on Map</h3>
+          <FormField
+            control={form.control}
+            name="location.coordinates"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <LocationPicker
+                    value={field.value as [number, number]}
+                    onChange={field.onChange}
+                    onLocationSelect={handleLocationSelect}
+                    className="h-full"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      </div>
     </div>
   );
 
@@ -238,19 +361,30 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Size Unit</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select unit" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="SQ_FT">Square Feet</SelectItem>
-                  <SelectItem value="SQ_METER">Square Meter</SelectItem>
-                  <SelectItem value="ACRES">Acres</SelectItem>
-                  <SelectItem value="HECTARE">Hectare</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: "SQ_FT", label: "Square Feet" },
+                    { value: "SQ_METER", label: "Square Meter" },
+                    { value: "ACRES", label: "Acres" },
+                    { value: "HECTARE", label: "Hectare" },
+                  ].map((item) => (
+                    <Button
+                      key={item.value}
+                      type="button"
+                      variant="selection"
+                      onClick={() => field.onChange(item.value)}
+                      className={cn(
+                        field.value === item.value
+                          ? "bg-primary text-primary-foreground"
+                          : ""
+                      )}
+                    >
+                      {item.label}
+                    </Button>
+                  ))}
+                </div>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -285,22 +419,101 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
         render={({ field }) => (
           <FormItem>
             <FormLabel>Area Type</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select area type" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="NEAR_RING_ROAD">Near Ring Road</SelectItem>
-                <SelectItem value="RIICO_AREA">RIICO Area</SelectItem>
-                <SelectItem value="SEZ">SEZ (Special Economic Zone)</SelectItem>
-              </SelectContent>
-            </Select>
+            <FormControl>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { value: "NEAR_RING_ROAD", label: "Near Ring Road" },
+                  { value: "RIICO_AREA", label: "RIICO Area" },
+                  { value: "SEZ", label: "SEZ (Special Economic Zone)" },
+                ].map((item) => (
+                  <Button
+                    key={item.value}
+                    type="button"
+                    variant="selection"
+                    onClick={() => field.onChange(item.value)}
+                    className={cn(
+                      field.value === item.value
+                        ? "bg-primary text-primary-foreground"
+                        : ""
+                    )}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </div>
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
+
+      <div className="pt-6 border-t space-y-6">
+        <h3 className="text-lg font-medium">Pricing Details</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="rate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Rate per Unit (₹)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter rate per unit"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="totalPrice"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Total Price (₹)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter total price"
+                    {...field}
+                    disabled
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Auto-calculated based on size and rate
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="isPriceNegotiable"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Price Negotiable</FormLabel>
+                <FormDescription>
+                  Check if the price is open for negotiation
+                </FormDescription>
+              </div>
+            </FormItem>
+          )}
+        />
+      </div>
     </div>
   );
 
@@ -315,23 +528,34 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Facing Direction</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select facing" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="NORTH">North</SelectItem>
-                  <SelectItem value="SOUTH">South</SelectItem>
-                  <SelectItem value="EAST">East</SelectItem>
-                  <SelectItem value="WEST">West</SelectItem>
-                  <SelectItem value="NORTH_EAST">North East</SelectItem>
-                  <SelectItem value="NORTH_WEST">North West</SelectItem>
-                  <SelectItem value="SOUTH_EAST">South East</SelectItem>
-                  <SelectItem value="SOUTH_WEST">South West</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: "NORTH", label: "North" },
+                    { value: "SOUTH", label: "South" },
+                    { value: "EAST", label: "East" },
+                    { value: "WEST", label: "West" },
+                    { value: "NORTH_EAST", label: "North East" },
+                    { value: "NORTH_WEST", label: "North West" },
+                    { value: "SOUTH_EAST", label: "South East" },
+                    { value: "SOUTH_WEST", label: "South West" },
+                  ].map((item) => (
+                    <Button
+                      key={item.value}
+                      type="button"
+                      variant="selection"
+                      onClick={() => field.onChange(item.value)}
+                      className={cn(
+                        field.value === item.value
+                          ? "bg-primary text-primary-foreground"
+                          : ""
+                      )}
+                    >
+                      {item.label}
+                    </Button>
+                  ))}
+                </div>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -343,17 +567,28 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Plot Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select plot type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="ROAD">Road Facing</SelectItem>
-                  <SelectItem value="CORNER">Corner Plot</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: "ROAD", label: "Road Facing" },
+                    { value: "CORNER", label: "Corner Plot" },
+                  ].map((item) => (
+                    <Button
+                      key={item.value}
+                      type="button"
+                      variant="selection"
+                      onClick={() => field.onChange(item.value)}
+                      className={cn(
+                        field.value === item.value
+                          ? "bg-primary text-primary-foreground"
+                          : ""
+                      )}
+                    >
+                      {item.label}
+                    </Button>
+                  ))}
+                </div>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -378,152 +613,10 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
           </FormItem>
         )}
       />
-
-      {/* Google Maps Location */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Add Location</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="location.coordinates.1"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Latitude</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Latitude"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="location.coordinates.0"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Longitude</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Longitude"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Enter coordinates manually (Map integration coming soon)
-        </p>
-      </div>
-
-      {/* Localities */}
-      <FormField
-        control={form.control}
-        name="localities"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Add Localities</FormLabel>
-            <FormControl>
-              <Textarea
-                placeholder="Enter nearby localities separated by commas (e.g., RIICO Industrial Area, Bhiwadi, Neemrana)"
-                {...field}
-                value={field.value?.join(", ") || ""}
-                onChange={(e) =>
-                  field.onChange(
-                    e.target.value
-                      .split(",")
-                      .map((item) => item.trim())
-                      .filter((item) => item)
-                  )
-                }
-              />
-            </FormControl>
-            <FormDescription>
-              Enter multiple localities separated by commas
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
     </div>
   );
 
-  // Step 4: Pricing
-  const PricingStep = (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="rate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Rate per Unit (₹)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter rate per unit"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="totalPrice"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Total Price (₹)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter total price"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-
-      <FormField
-        control={form.control}
-        name="isPriceNegotiable"
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-            <FormControl>
-              <Checkbox
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
-            <div className="space-y-1 leading-none">
-              <FormLabel>Price Negotiable</FormLabel>
-              <FormDescription>
-                Check if the price is open for negotiation
-              </FormDescription>
-            </div>
-          </FormItem>
-        )}
-      />
-    </div>
-  );
-
-  // Step 5: Legal Documents
+  // Step 4: Legal Documents
   const LegalDocumentsStep = (
     <div className="space-y-6">
       <h3 className="text-lg font-medium">Legal Documents (Optional)</h3>
@@ -571,31 +664,10 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
           )}
         />
       </div>
-
-      <FormField
-        control={form.control}
-        name="isFeatured"
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-            <FormControl>
-              <Checkbox
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
-            <div className="space-y-1 leading-none">
-              <FormLabel>Featured Property</FormLabel>
-              <FormDescription>
-                Mark as featured property for better visibility
-              </FormDescription>
-            </div>
-          </FormItem>
-        )}
-      />
     </div>
   );
 
-  // Step 6: Media & Description
+  // Step 5: Media & Description
   const MediaStep = (
     <div className="space-y-6">
       <FormField
@@ -790,7 +862,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
     </div>
   );
 
-  // Step 7: Review
+  // Step 6: Review
   const ReviewStep = (
     <div className="space-y-6">
       <div className="bg-muted/50 p-6 rounded-lg">
@@ -802,15 +874,36 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
             <strong>Property Type:</strong> {propertyType}
           </div>
           <div>
-            <strong>Address:</strong> {form.watch("address") || "Not provided"}
+            <strong>State:</strong>{" "}
+            {form.watch("address.state") || "Not provided"}
+          </div>
+          <div>
+            <strong>City:</strong>{" "}
+            {form.watch("address.city") || "Not provided"}
+          </div>
+          <div>
+            <strong>Pincode:</strong>{" "}
+            {form.watch("address.pincode") || "Not provided"}
+          </div>
+          <div>
+            <strong>Address:</strong>{" "}
+            {form.watch("address.address") || "Not provided"}
           </div>
           <div>
             <strong>Size:</strong> {form.watch("size") || "0"}{" "}
             {form.watch("sizeUnit") || ""}
           </div>
           <div>
+            <strong>Rate:</strong> ₹
+            {form.watch("rate")?.toLocaleString() || "0"}
+          </div>
+          <div>
             <strong>Total Price:</strong> ₹
             {form.watch("totalPrice")?.toLocaleString() || "0"}
+          </div>
+          <div>
+            <strong>Price Negotiable:</strong>{" "}
+            {form.watch("isPriceNegotiable") ? "Yes" : "No"}
           </div>
           <div>
             <strong>Purpose:</strong> {form.watch("purpose") || "Not provided"}
@@ -818,6 +911,33 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
           <div>
             <strong>Area Type:</strong>{" "}
             {form.watch("areaType") || "Not selected"}
+          </div>
+          <div>
+            <strong>Facing:</strong> {form.watch("facing") || "Not selected"}
+          </div>
+          <div>
+            <strong>Plot Type:</strong>{" "}
+            {form.watch("plotType") || "Not selected"}
+          </div>
+          <div>
+            <strong>Front Road Width:</strong>{" "}
+            {form.watch("frontRoadWidth")
+              ? `${form.watch("frontRoadWidth")} ft`
+              : "Not provided"}
+          </div>
+          <div>
+            <strong>Jamabandi URL:</strong>{" "}
+            {form.watch("jamabandiUrl") ? "Provided" : "Not provided"}
+          </div>
+          <div>
+            <strong>Khasra Plan URL:</strong>{" "}
+            {form.watch("khasraPlanUrl") ? "Provided" : "Not provided"}
+          </div>
+          <div className="col-span-2">
+            <strong>Description:</strong>{" "}
+            <p className="mt-1 text-muted-foreground">
+              {form.watch("description") || "Not provided"}
+            </p>
           </div>
         </div>
       </div>
@@ -840,7 +960,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
     {
       id: "specifications",
       title: "Specifications",
-      description: "Size, purpose, and area type",
+      description: "Size, pricing and property details",
       component: PropertySpecsStep,
       isCompleted: completedSteps.has(1),
     },
@@ -852,32 +972,25 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
       isCompleted: completedSteps.has(2),
     },
     {
-      id: "pricing",
-      title: "Pricing",
-      description: "Rate and total price",
-      component: PricingStep,
-      isCompleted: completedSteps.has(3),
-    },
-    {
       id: "legal",
       title: "Legal Docs",
       description: "Legal documents and features",
       component: LegalDocumentsStep,
-      isCompleted: completedSteps.has(4),
+      isCompleted: completedSteps.has(3),
     },
     {
       id: "media",
       title: "Media",
       description: "Photos, videos, and description",
       component: MediaStep,
-      isCompleted: completedSteps.has(5),
+      isCompleted: completedSteps.has(4),
     },
     {
       id: "review",
       title: "Review",
       description: "Review and submit",
       component: ReviewStep,
-      isCompleted: completedSteps.has(6),
+      isCompleted: completedSteps.has(5),
     },
   ];
 

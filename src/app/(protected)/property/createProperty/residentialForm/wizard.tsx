@@ -1,18 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { FieldValues, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select } from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -36,6 +30,35 @@ import {
   Loader2,
   Wand2Icon,
   X,
+  Wind,
+  Bath,
+  Archive,
+  Fan,
+  Snowflake,
+  Coffee,
+  CarFront,
+  Users,
+  Video,
+  Utensils,
+  BatteryCharging,
+  Shield,
+  Sofa,
+  Waves,
+  Gamepad2,
+  Martini,
+  Armchair,
+  Bell,
+  Dumbbell,
+  Film,
+  Droplets,
+  Flower2,
+  ShieldCheck,
+  Sun,
+  Wifi,
+  User,
+  Dog,
+  Plus,
+  Flame,
 } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -46,6 +69,49 @@ interface ResidentialWizardProps {
   onBack: () => void;
 }
 
+const FLAT_AMENITIES = [
+  { label: "Balcony", icon: Wind },
+  { label: "Attached Washroom", icon: Bath },
+  { label: "Cupboard", icon: Archive },
+  { label: "Desert Cooler", icon: Fan },
+  { label: "Air Conditioning", icon: Snowflake },
+  { label: "Cafeteria", icon: Coffee },
+  { label: "Car Parking", icon: CarFront },
+  { label: "Club House", icon: Users },
+  { label: "High Security (CCTV)", icon: Video },
+  { label: "Modular Kitchen", icon: Utensils },
+  { label: "Power Backup", icon: BatteryCharging },
+  { label: "Security Guard", icon: Shield },
+  { label: "Semi Furnished", icon: Sofa },
+  { label: "Swimming Pool", icon: Waves },
+  { label: "Wooden Wardroom", icon: Archive },
+  { label: "Children Play Area", icon: Gamepad2 },
+  { label: "CLUB & LOUNGE", icon: Martini },
+  { label: "Fully Furnished", icon: Armchair },
+  { label: "Fire Alarm System", icon: Bell },
+  { label: "Gym", icon: Dumbbell },
+  { label: "MULTIPLEX", icon: Film },
+  { label: "Rain Water Harvesting", icon: Droplets },
+];
+
+const VILLA_AMENITIES = [
+  { label: "Private Swimming Pool", icon: Waves },
+  { label: "Garden Lawn", icon: Flower2 },
+  { label: "Private Parking", icon: CarFront },
+  { label: "Fully Equipped Kitchen", icon: Utensils },
+  { label: "Barbecue Area", icon: Flame }, // Flame/FirePit
+  { label: "Security System", icon: ShieldCheck },
+  { label: "Terrace Balcony", icon: Sun },
+  { label: "Furnished Interiors", icon: Sofa },
+  { label: "Air Conditioning", icon: Snowflake },
+  { label: "Wi Fi", icon: Wifi },
+  { label: "Power Backup", icon: BatteryCharging },
+  { label: "Staff Quarters", icon: User },
+  { label: "Pet Friendly", icon: Dog },
+  { label: "Jacuzzi Spa", icon: Bath },
+  { label: "Fire Pit", icon: Flame },
+];
+
 export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   onBack,
 }) => {
@@ -54,12 +120,18 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   const { addProperty, isLoading } = useAddProperty();
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [customAmenity, setCustomAmenity] = useState("");
   const form = useForm<ResidentialPropertyFormData>({
     resolver: zodResolver(residentialPropertySchema),
     defaultValues: {
       propertyCategory: "RESIDENTIAL",
       propertyType: "FLAT",
-      address: "",
+      address: {
+        state: "",
+        city: "",
+        address: "",
+        pincode: "",
+      },
       rate: 0,
       totalPrice: 0,
       description: "",
@@ -77,7 +149,15 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   });
 
   const propertyType = form.watch("propertyType");
-  const plotType = form.watch("plotType");
+  const size = form.watch("size");
+  const rate = form.watch("rate");
+
+  React.useEffect(() => {
+    const calculatedPrice = (size || 0) * (rate || 0);
+    if (calculatedPrice > 0) {
+      form.setValue("totalPrice", calculatedPrice, { shouldValidate: true });
+    }
+  }, [size, rate, form]);
 
   const handleFileUpload = async (
     files: FileList | null,
@@ -133,16 +213,23 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
 
   const validateCurrentStep = async (): Promise<boolean> => {
     const stepValidations: { [key: number]: string[] } = {
-      0: ["propertyType", "address"],
-      1:
-        propertyType === "FLAT"
+      0: [
+        "propertyType",
+        "address.state",
+        "address.city",
+        "address.address",
+        "address.pincode",
+      ],
+      1: [
+        ...(propertyType === "FLAT"
           ? ["size", "sizeUnit", "bhk", "washrooms"]
-          : ["size", "sizeUnit", "plotType", "facing", "frontRoadWidth"],
-      2: [], // Location step - no required fields for now
-      3: ["rate", "totalPrice"],
-      4: [], // Amenities - optional
-      5: ["description", "featuredMedia", "images"],
-      6: [], // Review step
+          : ["size", "sizeUnit", "plotType", "facing", "frontRoadWidth"]),
+        "rate",
+        "totalPrice",
+      ],
+      2: [], // Features
+      3: ["description", "featuredMedia", "images"], // Media
+      4: [], // Review step
     };
 
     const fieldsToValidate = stepValidations[currentStep] || [];
@@ -195,6 +282,33 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     }
   };
 
+  const handleLocationSelect = (details: {
+    coordinates: [number, number];
+    placeName: string;
+    context?: { id: string; text: string }[];
+  }) => {
+    form.setValue("location.coordinates", details.coordinates, {
+      shouldValidate: true,
+    });
+    form.setValue("address.address", details.placeName, {
+      shouldValidate: true,
+    });
+
+    if (details.context) {
+      details.context.forEach((item: { id: string; text: string }) => {
+        if (item.id.startsWith("region")) {
+          form.setValue("address.state", item.text, { shouldValidate: true });
+        }
+        if (item.id.startsWith("place")) {
+          form.setValue("address.city", item.text, { shouldValidate: true });
+        }
+        if (item.id.startsWith("postcode")) {
+          form.setValue("address.pincode", item.text, { shouldValidate: true });
+        }
+      });
+    }
+  };
+
   // Step 1: Basic Information
   const BasicInfoStep = (
     <div className="space-y-6">
@@ -206,43 +320,27 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
             <FormLabel>Property Type</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
-                <div className="flex gap-2">
-                  <Button
-                    variant="selection"
-                    onClick={() => field.onChange("FLAT")}
-                    className={cn(
-                      field.value === "FLAT"
-                        ? "bg-primary text-primary-foreground"
-                        : ""
-                    )}
-                  >
-                    <House className="h-4 w-4" />
-                    Flat/Apartment
-                  </Button>
-                  <Button
-                    variant="selection"
-                    onClick={() => field.onChange("VILLA")}
-                    className={cn(
-                      field.value === "VILLA"
-                        ? "bg-primary text-primary-foreground"
-                        : ""
-                    )}
-                  >
-                    <Building2 className="h-4 w-4" />
-                    Villa
-                  </Button>
-                  <Button
-                    variant="selection"
-                    onClick={() => field.onChange("LAND")}
-                    className={cn(
-                      field.value === "LAND"
-                        ? "bg-primary text-primary-foreground"
-                        : ""
-                    )}
-                  >
-                    <LandPlot className="h-4 w-4" />
-                    Land
-                  </Button>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: "FLAT", label: "Flat/Apartment", icon: House },
+                    { value: "VILLA", label: "Villa", icon: Building2 },
+                    { value: "LAND", label: "Land", icon: LandPlot },
+                  ].map((item) => (
+                    <Button
+                      key={item.value}
+                      type="button"
+                      variant="selection"
+                      onClick={() => field.onChange(item.value)}
+                      className={cn(
+                        field.value === item.value
+                          ? "bg-primary text-primary-foreground"
+                          : ""
+                      )}
+                    >
+                      {item.icon && <item.icon className="h-4 w-4" />}
+                      {item.label}
+                    </Button>
+                  ))}
                 </div>
               </FormControl>
             </Select>
@@ -251,137 +349,92 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         )}
       />
 
-      <FormField
-        control={form.control}
-        name="address"
-        render={() => (
-          <div className="space-y-6">
-            {(propertyType === "VILLA" || propertyType === "LAND") && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="facing"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Front Facing</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select facing direction" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="NORTH">North</SelectItem>
-                          <SelectItem value="SOUTH">South</SelectItem>
-                          <SelectItem value="EAST">East</SelectItem>
-                          <SelectItem value="WEST">West</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="frontRoadWidth"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Front Road Width (in feet)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Enter front road width"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {plotType === "CORNER" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="sideFacing"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Side Facing</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select side facing" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="NORTH">North</SelectItem>
-                              <SelectItem value="SOUTH">South</SelectItem>
-                              <SelectItem value="EAST">East</SelectItem>
-                              <SelectItem value="WEST">West</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="sideRoadWidth"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Side Road Width (in feet)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="Enter side road width"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Google Maps Location */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Add Location</h3>
-              <FormField
-                control={form.control}
-                name="location.coordinates"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <LocationPicker
-                        value={field.value as [number, number]}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column: Address Fields */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Property Address</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="address.state"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>State</FormLabel>
+                  <FormControl>
+                    <Input placeholder="State" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="address.city"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>City</FormLabel>
+                  <FormControl>
+                    <Input placeholder="City" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-        )}
-      />
+          <FormField
+            control={form.control}
+            name="address.pincode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Pincode</FormLabel>
+                <FormControl>
+                  <Input placeholder="Pincode" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="address.address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Full Address</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Enter complete property address"
+                    className="min-h-[100px]"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Right Column: Map */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Locate on Map</h3>
+          <FormField
+            control={form.control}
+            name="location.coordinates"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <LocationPicker
+                    value={field.value as [number, number]}
+                    onChange={field.onChange}
+                    onLocationSelect={handleLocationSelect}
+                    className="h-full"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      </div>
     </div>
   );
 
@@ -415,28 +468,36 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Size Unit</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select unit" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {propertyType === "FLAT" ? (
-                    <>
-                      <SelectItem value="SQ_FT">Square Feet</SelectItem>
-                      <SelectItem value="SQ_METER">Square Meter</SelectItem>
-                    </>
-                  ) : (
-                    <>
-                      <SelectItem value="SQ_FT">Square Feet</SelectItem>
-                      <SelectItem value="SQ_YARDS">Square Yards</SelectItem>
-                      <SelectItem value="ACRES">Acres</SelectItem>
-                      <SelectItem value="BIGHA">Bigha</SelectItem>
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <div className="flex flex-wrap gap-2">
+                  {(propertyType === "FLAT"
+                    ? [
+                        { value: "SQ_FT", label: "Square Feet" },
+                        { value: "SQ_METER", label: "Square Meter" },
+                      ]
+                    : [
+                        { value: "SQ_FT", label: "Square Feet" },
+                        { value: "SQ_YARDS", label: "Square Yards" },
+                        { value: "ACRES", label: "Acres" },
+                        { value: "BIGHA", label: "Bigha" },
+                      ]
+                  ).map((item) => (
+                    <Button
+                      key={item.value}
+                      type="button"
+                      variant="selection"
+                      onClick={() => field.onChange(item.value)}
+                      className={cn(
+                        field.value === item.value
+                          ? "bg-primary text-primary-foreground"
+                          : ""
+                      )}
+                    >
+                      {item.label}
+                    </Button>
+                  ))}
+                </div>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -453,23 +514,25 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>BHK</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(Number(value))}
-                    defaultValue={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select BHK" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="1">1 BHK</SelectItem>
-                      <SelectItem value="2">2 BHK</SelectItem>
-                      <SelectItem value="3">3 BHK</SelectItem>
-                      <SelectItem value="4">4 BHK</SelectItem>
-                      <SelectItem value="5">5 BHK</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <div className="flex flex-wrap gap-2">
+                      {[1, 2, 3, 4, 5].map((num) => (
+                        <Button
+                          key={num}
+                          type="button"
+                          variant="selection"
+                          onClick={() => field.onChange(num)}
+                          className={cn(
+                            field.value === num
+                              ? "bg-primary text-primary-foreground"
+                              : ""
+                          )}
+                        >
+                          {num} BHK
+                        </Button>
+                      ))}
+                    </div>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -481,23 +544,25 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Washrooms</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(Number(value))}
-                    defaultValue={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select number" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
+                  <FormControl>
+                    <div className="flex flex-wrap gap-2">
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                        <SelectItem key={num} value={num.toString()}>
+                        <Button
+                          key={num}
+                          type="button"
+                          variant="selection"
+                          onClick={() => field.onChange(num)}
+                          className={cn(
+                            field.value === num
+                              ? "bg-primary text-primary-foreground"
+                              : "w-10"
+                          )}
+                        >
                           {num}
-                        </SelectItem>
+                        </Button>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </div>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -547,69 +612,80 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Plot Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select plot type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="ROAD">Road Facing</SelectItem>
-                  <SelectItem value="CORNER">Corner Plot</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: "ROAD", label: "Road Facing" },
+                    { value: "CORNER", label: "Corner Plot" },
+                  ].map((type) => (
+                    <Button
+                      key={type.value}
+                      type="button"
+                      variant="selection"
+                      onClick={() => field.onChange(type.value)}
+                      className={cn(
+                        field.value === type.value
+                          ? "bg-primary text-primary-foreground"
+                          : ""
+                      )}
+                    >
+                      {type.label}
+                    </Button>
+                  ))}
+                </div>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
       )}
-    </div>
-  );
 
-  // Step 4: Pricing
-  const PricingStep = (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="rate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Rate per Unit (₹)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter rate per unit"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <div className="pt-6 border-t space-y-6">
+        <h3 className="text-lg font-medium">Pricing Details</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="rate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Rate per Unit (₹)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter rate per unit"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="totalPrice"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Total Price (₹)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter total price"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
+          <FormField
+            control={form.control}
+            name="totalPrice"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Total Price (₹)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter total price"
+                    {...field}
+                    disabled
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Auto-calculated based on size and rate
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-      <div className="space-y-4">
         <FormField
           control={form.control}
           name="isPriceNegotiable"
@@ -634,7 +710,31 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     </div>
   );
 
-  // Step 5: Features & Amenities
+  // Step 3: Features & Amenities
+  const toggleAmenity = (amenity: string, field: FieldValues) => {
+    const current = (field.value || []) as string[];
+    if (current.includes(amenity)) {
+      field.onChange(current.filter((a) => a !== amenity));
+    } else {
+      field.onChange([...current, amenity]);
+    }
+  };
+
+  const handleAddCustomAmenity = (field: FieldValues) => {
+    if (!customAmenity.trim()) return;
+    const current = (field.value || []) as string[];
+    if (!current.includes(customAmenity.trim())) {
+      field.onChange([...current, customAmenity.trim()]);
+    }
+    setCustomAmenity("");
+  };
+
+  const getAmenitiesList = () => {
+    if (propertyType === "FLAT") return FLAT_AMENITIES;
+    if (propertyType === "VILLA") return VILLA_AMENITIES;
+    return [];
+  };
+
   const FeaturesStep = (
     <div className="space-y-6">
       {propertyType === "FLAT" && (
@@ -706,55 +806,89 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
               Amenities
             </FormLabel>
             <FormControl>
-              <Textarea
-                placeholder={
-                  propertyType === "FLAT"
-                    ? "Select from: Balcony, Attached Washroom, Cupboard, Desert Cooler, Air Conditioning, Cafeteria, Car Parking, Club House, High Security (CCTV), Modular Kitchen, Power Backup, Security Guard, Semi Furnished, Swimming Pool, Wooden Wardroom, Children Play Area, CLUB & LOUNGE, Fully Furnished, Fire Alarm System, Gym, MULTIPLEX, Rain Water Harvesting"
-                    : propertyType === "VILLA"
-                    ? "Select from: Private Swimming Pool, Garden Lawn, Private Parking, Fully Equipped Kitchen, Barbecue Area, Security System, Terrace Balcony, Furnished Interiors, Air Conditioning, Wi Fi, Power Backup, Staff Quarters, Pet Friendly, Jacuzzi Spa, Fire Pit"
-                    : "Enter amenities"
-                }
-                {...field}
-                value={field.value?.join(", ") || ""}
-                onChange={(e) =>
-                  field.onChange(
-                    e.target.value.split(", ").filter((item) => item.trim())
-                  )
-                }
-              />
+              <div className="space-y-4">
+                {getAmenitiesList().length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {getAmenitiesList().map((item) => {
+                      const isSelected = (field.value || []).includes(
+                        item.label
+                      );
+                      return (
+                        <Button
+                          key={item.label}
+                          type="button"
+                          variant="selection"
+                          className={cn(
+                            isSelected
+                              ? "bg-primary text-primary-foreground"
+                              : ""
+                          )}
+                          onClick={() => toggleAmenity(item.label, field)}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {item.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add custom amenity..."
+                    value={customAmenity}
+                    onChange={(e) => setCustomAmenity(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddCustomAmenity(field);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => handleAddCustomAmenity(field)}
+                    variant="secondary"
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> Add
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {(field.value || [])
+                    .filter(
+                      (amenity: string) =>
+                        !getAmenitiesList().some((i) => i.label === amenity)
+                    )
+                    .map((amenity: string, index: number) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-1 bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm"
+                      >
+                        <span>{amenity}</span>
+                        <button
+                          type="button"
+                          onClick={() => toggleAmenity(amenity, field)}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                </div>
+              </div>
             </FormControl>
             <FormDescription>
-              Enter amenities separated by commas
+              Select from the list or add your own amenities.
             </FormDescription>
             <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="isFeatured"
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-            <FormControl>
-              <Checkbox
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
-            <div className="space-y-1 leading-none">
-              <FormLabel>Featured Property</FormLabel>
-              <FormDescription>
-                Mark as featured property for better visibility
-              </FormDescription>
-            </div>
           </FormItem>
         )}
       />
     </div>
   );
 
-  // Step 6: Media & Description
+  // Step 4: Media & Description
   const MediaStep = (
     <div className="space-y-6">
       <FormField
@@ -964,7 +1098,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     </div>
   );
 
-  // Step 7: Review
+  // Step 5: Review
   const ReviewStep = (
     <div className="space-y-6">
       <div className="bg-muted/50 p-6 rounded-lg">
@@ -976,27 +1110,105 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
             <strong>Property Type:</strong> {propertyType}
           </div>
           <div>
-            <strong>Address:</strong> {form.watch("address") || "Not provided"}
+            <strong>State:</strong>{" "}
+            {form.watch("address.state") || "Not provided"}
+          </div>
+          <div>
+            <strong>City:</strong>{" "}
+            {form.watch("address.city") || "Not provided"}
+          </div>
+          <div>
+            <strong>Pincode:</strong>{" "}
+            {form.watch("address.pincode") || "Not provided"}
+          </div>
+          <div>
+            <strong>Address:</strong>{" "}
+            {form.watch("address.address") || "Not provided"}
           </div>
           <div>
             <strong>Size:</strong> {form.watch("size") || "0"}{" "}
             {form.watch("sizeUnit") || ""}
           </div>
           <div>
+            <strong>Rate:</strong> ₹
+            {form.watch("rate")?.toLocaleString() || "0"}
+          </div>
+          <div>
             <strong>Total Price:</strong> ₹
             {form.watch("totalPrice")?.toLocaleString() || "0"}
           </div>
+          <div>
+            <strong>Price Negotiable:</strong>{" "}
+            {form.watch("isPriceNegotiable") ? "Yes" : "No"}
+          </div>
+          <div>
+            <strong>Featured:</strong> {form.watch("isFeatured") ? "Yes" : "No"}
+          </div>
+
           {propertyType === "FLAT" && (
             <>
               <div>
                 <strong>BHK:</strong> {form.watch("bhk") || "Not selected"}
               </div>
               <div>
+                <strong>Washrooms:</strong>{" "}
+                {form.watch("washrooms") || "Not selected"}
+              </div>
+              <div>
                 <strong>Society:</strong>{" "}
                 {form.watch("society") || "Not provided"}
               </div>
+              <div>
+                <strong>Project Area:</strong>{" "}
+                {form.watch("projectArea")
+                  ? `${form.watch("projectArea")} sq ft`
+                  : "Not provided"}
+              </div>
+              <div>
+                <strong>Penthouse:</strong>{" "}
+                {form.watch("isPenthouse") ? "Yes" : "No"}
+              </div>
+              <div>
+                <strong>Possession Date:</strong>{" "}
+                {form.watch("possessionDate") instanceof Date
+                  ? (form.watch("possessionDate") as Date).toLocaleDateString()
+                  : (form.watch("possessionDate") as string) || "Immediate"}
+              </div>
             </>
           )}
+
+          {(propertyType === "VILLA" || propertyType === "LAND") && (
+            <>
+              <div>
+                <strong>Plot Type:</strong>{" "}
+                {form.watch("plotType") || "Not selected"}
+              </div>
+              <div>
+                <strong>Facing:</strong>{" "}
+                {form.watch("facing") || "Not selected"}
+              </div>
+              <div>
+                <strong>Front Road Width:</strong>{" "}
+                {form.watch("frontRoadWidth")
+                  ? `${form.watch("frontRoadWidth")} ft`
+                  : "Not provided"}
+              </div>
+            </>
+          )}
+
+          <div className="col-span-2">
+            <strong>Amenities:</strong>{" "}
+            {form.watch("amenities")?.length
+              ? form.watch("amenities")?.join(", ")
+              : "None selected"}
+          </div>
+
+          <div className="col-span-2">
+            <strong>Description:</strong>{" "}
+            <p className="mt-1 text-muted-foreground">
+              {form.watch("description") || "Not provided"}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -1017,38 +1229,31 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     },
     {
       id: "specifications",
-      title: "Specifications",
-      description: "Size, rooms, and property details",
+      title: "Specifications & Pricing",
+      description: "Size, details, and pricing",
       component: PropertySpecsStep,
       isCompleted: completedSteps.has(1),
-    },
-    {
-      id: "pricing",
-      title: "Pricing",
-      description: "Rate and total price",
-      component: PricingStep,
-      isCompleted: completedSteps.has(3),
     },
     {
       id: "features",
       title: "Features",
       description: "Amenities and special features",
       component: FeaturesStep,
-      isCompleted: completedSteps.has(4),
+      isCompleted: completedSteps.has(2),
     },
     {
       id: "media",
       title: "Media",
       description: "Photos, videos, and description",
       component: MediaStep,
-      isCompleted: completedSteps.has(5),
+      isCompleted: completedSteps.has(3),
     },
     {
       id: "review",
       title: "Review",
       description: "Review and submit",
       component: ReviewStep,
-      isCompleted: completedSteps.has(6),
+      isCompleted: completedSteps.has(4),
     },
   ];
 

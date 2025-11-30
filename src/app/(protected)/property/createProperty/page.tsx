@@ -17,6 +17,7 @@ import { FarmHouseForm } from "./farmhouseForm";
 import { Button } from "@/components/ui/button";
 import { PropertyCategory } from "@/types/property";
 import { propertyCategories } from "@/constants";
+import { H2 } from "@/components/text/h2";
 
 const CreateProperty = () => {
   const [selectedCategory, setSelectedCategory] =
@@ -74,10 +75,10 @@ const CreateProperty = () => {
   };
 
   return (
-    <main className="container mx-auto p-6 space-y-6">
+    <main className="container mx-auto p-6 space-y-6 px-80">
       {!selectedCategory ? (
         <>
-          <H1 text="Create Property" />
+          <H2 text="Create Property" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {propertyCategories.map((category) => (
               <Card

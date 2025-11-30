@@ -1,3 +1,5 @@
+import { Address } from "@/types/property";
+
 export const setCookie = (
   key: string,
   value: Record<string, string | number | boolean | undefined | null>,
@@ -24,4 +26,16 @@ export const formatPrice = (price: number) => {
     currency: "INR",
     maximumFractionDigits: 0,
   }).format(price);
+};
+
+export const formatAddress = (address: Address | string | undefined) => {
+  if (!address) return "";
+  if (typeof address === "string") return address;
+  const parts = [
+    address.address,
+    address.city,
+    address.state,
+    address.pincode,
+  ].filter(Boolean);
+  return parts.join(", ");
 };

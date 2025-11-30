@@ -30,14 +30,28 @@ export type SubmitUserDetailsRequest = {
   email: string;
   _id: string;
   mobile: string;
-  companyName: string;
-  gstin: string;
+  companyName?: string;
+  gstin?: string;
   yearsOfExperience: number;
   city: string;
-  officeAddress: string;
-  reraNumber: string;
+  officeAddress?: string;
+  reraNumber?: string;
 };
 export type SubmitUserDetailsResponse = Record<PropertyKey, never>;
+
+export type UpdateProfileDetailsRequest = {
+  _id: string;
+  firstName?: string;
+  lastName?: string;
+  mobile?: string;
+  companyName?: string;
+  gstin?: string;
+  yearsOfExperience?: number;
+  city?: string;
+  officeAddress?: string;
+  reraNumber?: string;
+};
+export type UpdateProfileDetailsResponse = Record<PropertyKey, never>;
 
 export type GetBrokerDetailsRequest = {
   uid: string;

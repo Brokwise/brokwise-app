@@ -2,7 +2,7 @@
 import { firebaseAuth } from "@/config/firebase";
 import { setCookie } from "@/utils/helper";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
 import pkg from "../../../../package.json";
 import { Verification } from "@/app/(protected)/_components/verification";
@@ -19,6 +19,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   const [signOut] = useSignOut(firebaseAuth);
   const router = useRouter();
   const { brokerData, brokerDataLoading } = useApp();
+  const [isEditing, setIsEditing] = useState(false);
   console.log("brokerData", brokerData);
   useEffect(() => {
     (async () => {
@@ -92,6 +93,16 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
 
   // Check broker status and render appropriate component
   if (brokerData) {
+    if (isEditing) {
+      return (
+        <WaveBackground>
+          <OnboardingDetails
+            isEditing={true}
+            onCancel={() => setIsEditing(false)}
+          />
+        </WaveBackground>
+      );
+    }
     switch (brokerData.status) {
       case "incomplete":
         return (
@@ -100,6 +111,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
           </WaveBackground>
         );
       case "pending":
+        return <StatusDisplay onEdit={() => setIsEditing(true)} />;
       case "blacklisted":
         return <StatusDisplay />;
       case "approved":

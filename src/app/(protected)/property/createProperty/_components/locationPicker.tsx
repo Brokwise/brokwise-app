@@ -26,6 +26,7 @@ interface LocationPickerProps {
   onLocationSelect?: (details: {
     coordinates: [number, number];
     placeName: string;
+    context?: { id: string; text: string }[];
   }) => void;
   className?: string;
 }
@@ -34,6 +35,7 @@ interface SearchResult {
   id: string;
   place_name: string;
   center: [number, number];
+  context?: { id: string; text: string }[];
 }
 
 export const LocationPicker = ({
@@ -89,7 +91,10 @@ export const LocationPicker = ({
         );
         const data = await response.json();
         if (data.features && data.features.length > 0) {
-          return data.features[0].place_name;
+          return {
+            place_name: data.features[0].place_name,
+            context: data.features[0].context,
+          };
         }
       } catch (error) {
         console.error("Error reverse geocoding:", error);
@@ -160,9 +165,13 @@ export const LocationPicker = ({
       });
 
       if (onLocationSelect) {
-        const placeName = await reverseGeocode(lng, lat);
-        if (placeName) {
-          onLocationSelect({ coordinates: [lng, lat], placeName });
+        const result = await reverseGeocode(lng, lat);
+        if (result) {
+          onLocationSelect({
+            coordinates: [lng, lat],
+            placeName: result.place_name,
+            context: result.context,
+          });
         }
       }
     });
@@ -203,6 +212,7 @@ export const LocationPicker = ({
       onLocationSelect({
         coordinates: [lng, lat],
         placeName: result.place_name,
+        context: result.context,
       });
     }
 
