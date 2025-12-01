@@ -1,9 +1,11 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useAxios from "./useAxios";
 import {
   CreateEnquiryDTO,
   Enquiry,
+  EnquirySubmission,
   MarketplaceEnquiry,
+  EnquiryMessage,
 } from "@/models/types/enquiry";
 
 export const useGetMarketPlaceEnquiries = () => {
@@ -50,4 +52,98 @@ export const useGetEnquiryById = (id: string) => {
     },
   });
   return { enquiry: data, isPending, error };
+};
+export const useSubmitPropertyToEnquiry = () => {
+  const api = useAxios();
+  const { mutate, isPending, error } = useMutation<
+    void,
+    Error,
+    { enquiryId: string; propertyId: string; privateMessage: string }
+  >({
+    mutationFn: async ({ enquiryId, propertyId, privateMessage }) => {
+      return (
+        await api.post(`/broker/enquiry/${enquiryId}/submit`, {
+          propertyId,
+          privateMessage,
+        })
+      ).data.data;
+    },
+  });
+  return { submitPropertyToEnquiry: mutate, isPending, error };
+};
+
+export const useGetEnquirySubmissions = (enquiryId: string) => {
+  const api = useAxios();
+  const { data, isPending, error } = useQuery<EnquirySubmission[]>({
+    queryKey: ["enquiry-submissions", enquiryId],
+    queryFn: async () => {
+      return (await api.get(`/broker/enquiry/${enquiryId}/my-submissions`)).data
+        .data;
+    },
+  });
+  return { enquirySubmissions: data, isPending, error };
+};
+
+export const useCloseEnquiry = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+  const { mutate, isPending, error } = useMutation<void, Error, string>({
+    mutationFn: async (enquiryId) => {
+      return (await api.patch(`/broker/enquiry/${enquiryId}/close`)).data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-enquiries"] });
+    },
+  });
+  return { closeEnquiry: mutate, isPending, error };
+};
+
+export const useGetReceivedProperties = (
+  enquiryId: string,
+  isMyEnquiry: boolean
+) => {
+  if (!isMyEnquiry)
+    return { receivedProperties: [], isPending: false, error: null };
+  const api = useAxios();
+  const { data, isPending, error } = useQuery<EnquirySubmission[]>({
+    queryKey: ["received-properties", enquiryId],
+    queryFn: async () => {
+      return (await api.get(`/broker/enquiry/${enquiryId}/received-properties`))
+        .data.data.properties;
+    },
+  });
+  return { receivedProperties: data, isPending, error };
+};
+
+export const useGetAdminMessages = (enquiryId: string) => {
+  const api = useAxios();
+  const { data, isPending, error } = useQuery<EnquiryMessage[]>({
+    queryKey: ["admin-messages", enquiryId],
+    queryFn: async () => {
+      return (await api.get(`/broker/enquiry/${enquiryId}/messages`)).data.data;
+    },
+  });
+  return { adminMessages: data, isPending, error };
+};
+
+export const useSendAdminMessage = (enquiryId: string) => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+  const { mutate, isPending, error } = useMutation<
+    void,
+    Error,
+    { enquiryId: string; message: string }
+  >({
+    mutationFn: async ({ enquiryId, message }) => {
+      return (
+        await api.post(`/broker/enquiry/${enquiryId}/message`, { message })
+      ).data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["admin-messages", enquiryId],
+      });
+    },
+  });
+  return { sendAdminMessage: mutate, isPending, error };
 };

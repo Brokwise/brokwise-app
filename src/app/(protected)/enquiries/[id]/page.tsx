@@ -1,27 +1,78 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useGetEnquiryById } from "@/hooks/useEnquiry";
+import {
+  useGetEnquiryById,
+  useGetEnquirySubmissions,
+  useGetMyEnquiries,
+  useCloseEnquiry,
+} from "@/hooks/useEnquiry";
 import {
   Loader2,
   MapPin,
   Calendar,
   ArrowLeft,
-  Building2,
-  BadgeCheck,
+  BedDouble,
+  Bath,
+  Maximize,
+  Home,
+  Compass,
+  IndianRupee,
+  DoorOpen,
+  LayoutGrid,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
-import { Enquiry } from "@/models/types/enquiry";
+import { SubmitEnquiry } from "./_components/submit-enquiry";
+import { useApp } from "@/context/AppContext";
+import {
+  Dialog,
+  DialogHeader,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { ReceivedProperties } from "./_components/received-properties";
+import { AdminMessages } from "./_components/admin-messages";
 
 const SingleEnquiry = () => {
   const { id } = useParams();
+  const { userData } = useApp();
+  const [confirmationText, setConfirmationText] = useState<string>("");
   const router = useRouter();
   const { enquiry, isPending, error } = useGetEnquiryById(id as string);
+  const {
+    myEnquiries,
+    isPending: isPendingMyEnquiries,
+    error: errorMyEnquiries,
+  } = useGetMyEnquiries();
+
+  const {
+    enquirySubmissions,
+    isPending: isPendingSubmissions,
+    error: errorSubmissions,
+  } = useGetEnquirySubmissions(id as string);
+  const {
+    closeEnquiry,
+    isPending: isPendingCloseEnquiry,
+    error: errorCloseEnquiry,
+  } = useCloseEnquiry();
+  const isMyEnquiry =
+    myEnquiries &&
+    myEnquiries.length > 0 &&
+    myEnquiries.some((e) => e._id === enquiry?._id);
 
   if (isPending) {
     return (
@@ -55,13 +106,13 @@ const SingleEnquiry = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100";
+        return "bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400";
       case "closed":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100";
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300";
       case "expired":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100";
+        return "bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400";
       default:
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
     }
   };
 
@@ -78,133 +129,276 @@ const SingleEnquiry = () => {
     );
   };
 
+  const RequirementItem = ({
+    icon: Icon,
+    label,
+    value,
+  }: {
+    icon: any;
+    label: string;
+    value: React.ReactNode;
+  }) => (
+    <div className="flex items-start space-x-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+      <div className="p-2 rounded-full bg-background shadow-sm">
+        <Icon className="h-4 w-4 text-primary" />
+      </div>
+      <div>
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          {label}
+        </p>
+        <div className="mt-0.5 font-semibold text-foreground">{value}</div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="container mx-auto p-4 md:p-6 max-w-4xl space-y-6">
-      <Button
-        variant="ghost"
-        className="mb-2 pl-0 hover:bg-transparent"
-        onClick={() => router.back()}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-      </Button>
-
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Main Content */}
-        <div className="md:col-span-2 space-y-6">
-          <div className="space-y-2">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="outline" className="font-mono text-xs">
-                    #{enquiry.enquiryId}
-                  </Badge>
-                  <Badge className={getStatusColor(enquiry.status)}>
-                    {enquiry.status}
-                  </Badge>
-                </div>
-                <h1 className="text-2xl font-bold leading-tight">
-                  {enquiry.enquiryType} Enquiry in {enquiry.city}
-                </h1>
-              </div>
-              {/* Actions if needed */}
-            </div>
-            <div className="flex items-center text-muted-foreground text-sm gap-4">
-              <div className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                {enquiry.localities.join(", ")}
-              </div>
-              <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
+    <div className="container mx-auto p-4 md:p-6 lg:max-w-6xl space-y-8 animate-in fade-in duration-500">
+      {/* Header Section */}
+      <div className="flex flex-col space-y-4 md:flex-row md:items-start md:justify-between md:space-y-0">
+        <div className="space-y-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-2 text-muted-foreground hover:text-foreground mb-2"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Enquiries
+          </Button>
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge
+                variant="outline"
+                className="font-mono text-xs bg-background"
+              >
+                #{enquiry.enquiryId}
+              </Badge>
+              <Badge
+                variant="secondary"
+                className={`${getStatusColor(enquiry.status)} border-0`}
+              >
+                {enquiry.status}
+              </Badge>
+              <span className="text-xs text-muted-foreground flex items-center gap-1 ml-1">
+                <Calendar className="h-3 w-3" />
                 {formatDistanceToNow(new Date(enquiry.createdAt))} ago
-              </div>
+              </span>
             </div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              {enquiry.enquiryType} Enquiry in {enquiry.city}
+            </h1>
           </div>
+          <div className="flex items-center text-muted-foreground text-sm">
+            <MapPin className="h-4 w-4 mr-1.5 text-primary/70" />
+            {enquiry.localities.join(", ")}
+          </div>
+        </div>
 
+        {/* Header Actions */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          {isMyEnquiry && enquiry.status === "active" && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="destructive">Close Enquiry</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Close Enquiry</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to close this enquiry? This action
+                    cannot be undone. Type <strong>{enquiry.enquiryId}</strong>{" "}
+                    to confirm.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <Input
+                    placeholder={`Type ${enquiry.enquiryId} to confirm`}
+                    value={confirmationText}
+                    onChange={(e) => setConfirmationText(e.target.value)}
+                  />
+                </div>
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={() => {
+                    if (confirmationText === enquiry.enquiryId) {
+                      closeEnquiry(enquiry._id);
+                    }
+                  }}
+                  disabled={
+                    confirmationText !== enquiry.enquiryId ||
+                    isPendingCloseEnquiry
+                  }
+                >
+                  {isPendingCloseEnquiry ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : null}
+                  Confirm Closure
+                </Button>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
+      </div>
+
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* Main Content Column */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Requirements Card */}
+          <Card className="overflow-hidden border-muted">
+            <CardHeader className="bg-muted/10 pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <LayoutGrid className="h-5 w-5 text-primary" />
+                Requirement Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+                <RequirementItem
+                  icon={IndianRupee}
+                  label="Budget Range"
+                  value={`₹${formatCurrency(
+                    enquiry.budget.min
+                  )} - ₹${formatCurrency(enquiry.budget.max)}`}
+                />
+
+                {enquiry.bhk && (
+                  <RequirementItem
+                    icon={BedDouble}
+                    label="BHK"
+                    value={`${enquiry.bhk} BHK`}
+                  />
+                )}
+                {enquiry.washrooms && (
+                  <RequirementItem
+                    icon={Bath}
+                    label="Washrooms"
+                    value={enquiry.washrooms}
+                  />
+                )}
+                {enquiry.size && (
+                  <RequirementItem
+                    icon={Maximize}
+                    label="Size"
+                    value={`${enquiry.size.min} - ${enquiry.size.max} ${enquiry.size.unit}`}
+                  />
+                )}
+                {enquiry.rooms && (
+                  <RequirementItem
+                    icon={DoorOpen}
+                    label="Rooms"
+                    value={enquiry.rooms}
+                  />
+                )}
+                {enquiry.beds && (
+                  <RequirementItem
+                    icon={BedDouble}
+                    label="Beds"
+                    value={enquiry.beds}
+                  />
+                )}
+                {enquiry.plotType && (
+                  <RequirementItem
+                    icon={Home}
+                    label="Plot Type"
+                    value={enquiry.plotType}
+                  />
+                )}
+                {enquiry.facing && (
+                  <RequirementItem
+                    icon={Compass}
+                    label="Facing"
+                    value={
+                      <span className="capitalize">
+                        {enquiry.facing.replace("_", " ").toLowerCase()}
+                      </span>
+                    }
+                  />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Description Card */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Description</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="whitespace-pre-wrap text-muted-foreground leading-relaxed">
-                {enquiry.description}
+              <p className="whitespace-pre-wrap text-muted-foreground leading-relaxed text-sm md:text-base">
+                {enquiry.description || "No description provided."}
               </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Requirements Details</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Budget Range</p>
-                <p className="font-semibold text-lg text-primary">
-                  ₹{formatCurrency(enquiry.budget.min)} - ₹
-                  {formatCurrency(enquiry.budget.max)}
-                </p>
+          {/* Received Properties (For My Enquiry) */}
+          <ReceivedProperties
+            id={id as string}
+            isMyEnquiry={isMyEnquiry || false}
+          />
+
+          {/* Submissions List (For Others' Enquiries) */}
+          {!isMyEnquiry && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Your Submissions</h2>
+                {enquirySubmissions?.length === 0 && (
+                  <span className="text-sm text-muted-foreground">
+                    No submissions yet
+                  </span>
+                )}
               </div>
 
-              {/* Conditional Details based on type */}
-              {enquiry.bhk && (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">BHK</p>
-                  <p className="font-medium">{enquiry.bhk} BHK</p>
+              {enquirySubmissions && enquirySubmissions.length > 0 ? (
+                <div className="space-y-3">
+                  {enquirySubmissions.map((submission) => (
+                    <Card key={submission._id}>
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-base">
+                            {submission.propertyId?.address?.city || "Property"}
+                          </CardTitle>
+                          <Badge
+                            variant={
+                              submission.status === "pending"
+                                ? "outline"
+                                : "secondary"
+                            }
+                          >
+                            {submission.status}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {submission.privateMessage || "No message"}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-              )}
-              {enquiry.washrooms && (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Washrooms</p>
-                  <p className="font-medium">{enquiry.washrooms}</p>
-                </div>
-              )}
-              {enquiry.size && (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Size</p>
-                  <p className="font-medium">
-                    {enquiry.size.min} - {enquiry.size.max} {enquiry.size.unit}
-                  </p>
-                </div>
-              )}
-              {enquiry.rooms && (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Rooms</p>
-                  <p className="font-medium">{enquiry.rooms}</p>
-                </div>
-              )}
-              {enquiry.beds && (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Beds</p>
-                  <p className="font-medium">{enquiry.beds}</p>
-                </div>
-              )}
-              {enquiry.plotType && (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Plot Type</p>
-                  <p className="font-medium">{enquiry.plotType}</p>
-                </div>
-              )}
-              {enquiry.facing && (
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Facing</p>
-                  <p className="font-medium capitalize">
-                    {enquiry.facing.replace("_", " ").toLowerCase()}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              ) : null}
+
+              {/* Action to Submit */}
+              <div className="pt-2">
+                <SubmitEnquiry enquiry={enquiry} />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Enquiry Summary</CardTitle>
+          {/* Summary Card */}
+          <Card className="bg-muted/5 border-none shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-medium">
+                Enquiry Summary
+              </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm space-y-2">
+            <CardContent className="text-sm space-y-1">
               {detailRow("Category", enquiry.enquiryCategory)}
               {detailRow("Type", enquiry.enquiryType)}
-              <Separator className="my-2" />
+              <Separator className="my-3" />
               {detailRow("City", enquiry.city)}
               {detailRow("Source", enquiry.source)}
               {detailRow(
@@ -214,15 +408,8 @@ const SingleEnquiry = () => {
             </CardContent>
           </Card>
 
-          {/* Actions */}
-          {/* <div className="space-y-3">
-            <Button className="w-full" size="lg">
-              Submit Proposal
-            </Button>
-            <Button variant="outline" className="w-full">
-              Message Broker
-            </Button>
-          </div> */}
+          {/* Admin Messages */}
+          <AdminMessages id={id as string} />
         </div>
       </div>
     </div>

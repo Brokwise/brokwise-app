@@ -1,7 +1,10 @@
 "use client";
 
 import React from "react";
-import { useGetMyEnquiries } from "@/hooks/useEnquiry";
+import {
+  useGetMyEnquiries,
+  useGetReceivedProperties,
+} from "@/hooks/useEnquiry";
 import { EnquiryCard } from "@/app/(protected)/enquiries/_components/EnquiryCard";
 import { Loader2, Plus, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";

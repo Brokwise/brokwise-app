@@ -7,6 +7,7 @@ import {
   Facing,
   AreaType,
 } from "./property";
+import { Property } from "@/types/property";
 
 // === ENUMS ===
 export type EnquiryStatus = "active" | "closed" | "expired";
@@ -113,7 +114,7 @@ export interface EnquirySubmission {
   brokerId: string;
 
   // Property Reference
-  propertyId: string;
+  propertyId: Property;
 
   // Communication
   privateMessage: string;
