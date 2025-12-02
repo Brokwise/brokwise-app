@@ -22,7 +22,11 @@ import {
   ResidentialPropertyFormData,
 } from "@/validators/property";
 import { useAddProperty, useSavePropertyAsDraft } from "@/hooks/useProperty";
-import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
+import {
+  uploadFileToFirebase,
+  generateFilePath,
+  convertImageToWebP,
+} from "@/utils/upload";
 import {
   Building2,
   House,
@@ -68,6 +72,8 @@ import { cn } from "@/lib/utils";
 interface ResidentialWizardProps {
   onBack: () => void;
   initialData?: Partial<ResidentialPropertyFormData> & { _id?: string };
+  onSubmit?: (data: ResidentialPropertyFormData) => void;
+  submitLabel?: string;
 }
 
 const FLAT_AMENITIES = [
@@ -116,6 +122,8 @@ const VILLA_AMENITIES = [
 export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   onBack,
   initialData,
+  onSubmit: onSubmitProp,
+  submitLabel,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -175,8 +183,12 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
 
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
-        const path = generateFilePath(file.name, `property-${fieldName}`);
-        return await uploadFileToFirebase(file, path);
+        const convertedFile = await convertImageToWebP(file);
+        const path = generateFilePath(
+          convertedFile.name,
+          `property-${fieldName}`
+        );
+        return await uploadFileToFirebase(convertedFile, path);
       });
 
       const urls = await Promise.all(uploadPromises);
@@ -214,7 +226,11 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   };
 
   const onSubmit = (data: ResidentialPropertyFormData) => {
-    addProperty(data);
+    if (onSubmitProp) {
+      onSubmitProp(data);
+    } else {
+      addProperty(data);
+    }
   };
 
   const validateCurrentStep = async (): Promise<boolean> => {
@@ -1289,6 +1305,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         onStepClick={handleStepClick}
         onCancel={onBack}
         onSubmit={handleSubmit}
+        submitLabel={submitLabel}
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}

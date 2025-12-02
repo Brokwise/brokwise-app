@@ -179,21 +179,15 @@ const CreateEnquiryPage = () => {
   const selectedCategory = watch("enquiryCategory");
   const selectedType = watch("enquiryType");
 
-  // Reset type when category changes
   useEffect(() => {
     setValue("enquiryType", "" as any);
   }, [selectedCategory, setValue]);
 
   const onSubmit = (data: CreateEnquiryFormValues) => {
-    // Clean up optional fields based on category/type before sending if needed,
-    // but the backend should handle extra fields or we can let them be sent as undefined/null.
-    // The DTO expects specific types, Zod handles the shape.
-
     createEnquiry(data as any, {
-      // Casting as any to bypass strict DTO match if needed, or matched by shape
       onSuccess: () => {
         toast.success("Enquiry created successfully!");
-        router.push("/enquiry");
+        router.push("/my-enquiries");
       },
       onError: (error: any) => {
         toast.error(
@@ -283,7 +277,7 @@ const CreateEnquiryPage = () => {
   );
 
   return (
-    <div className="container max-w-3xl py-8">
+    <div className="container mx-auto p-4 md:p-6 max-w-7xl space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Create New Enquiry</CardTitle>

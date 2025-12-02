@@ -4,7 +4,7 @@ import { useGetMarketPlaceEnquiries } from "@/hooks/useEnquiry";
 import { EnquiryCard } from "./_components/EnquiryCard";
 import { EnquiryFilters, FilterState } from "./_components/EnquiryFilters";
 import Fuse from "fuse.js";
-import { Loader2, Inbox, Plus } from "lucide-react";
+import { Loader2, Inbox, Plus, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 const EnquiryPage = () => {
@@ -134,10 +134,19 @@ const EnquiryPage = () => {
             Browse and respond to property enquiries from across the network.
           </p>
         </div>
-        <Button onClick={() => router.push("/enquiry/create")}>
-          <Plus className="h-4 w-4" />
-          Create Enquiry
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => router.push("/my-enquiries")}
+          >
+            <MessageCircle className="h-4 w-4" />
+            My Enquiries
+          </Button>
+          <Button onClick={() => router.push("/enquiries/create")}>
+            <Plus className="h-4 w-4" />
+            Create Enquiry
+          </Button>
+        </div>
       </div>
 
       <EnquiryFilters

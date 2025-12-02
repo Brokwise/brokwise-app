@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
-import { SubmitEnquiry } from "./_components/submit-enquiry";
 import { useApp } from "@/context/AppContext";
 import {
   Dialog,
@@ -46,6 +45,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ReceivedProperties } from "./_components/received-properties";
 import { AdminMessages } from "./_components/admin-messages";
+import { formatCurrencyEnquiry, getStatusColor } from "@/utils/helper";
 
 const SingleEnquiry = () => {
   const { id } = useParams();
@@ -92,29 +92,6 @@ const SingleEnquiry = () => {
       </div>
     );
   }
-
-  const formatCurrency = (amount: number) => {
-    if (amount >= 10000000) {
-      return `${(amount / 10000000).toFixed(2)} Cr`;
-    }
-    if (amount >= 100000) {
-      return `${(amount / 100000).toFixed(2)} L`;
-    }
-    return amount.toLocaleString("en-IN");
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400";
-      case "closed":
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300";
-      case "expired":
-        return "bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400";
-      default:
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
-    }
-  };
 
   const detailRow = (
     label: string,
@@ -256,9 +233,9 @@ const SingleEnquiry = () => {
                 <RequirementItem
                   icon={IndianRupee}
                   label="Budget Range"
-                  value={`₹${formatCurrency(
-                    enquiry.budget.min
-                  )} - ₹${formatCurrency(enquiry.budget.max)}`}
+                  value={`₹${formatCurrencyEnquiry(
+                    enquiry.budget.min as number
+                  )} - ₹${formatCurrencyEnquiry(enquiry.budget.max as number)}`}
                 />
 
                 {enquiry.bhk && (
@@ -380,7 +357,11 @@ const SingleEnquiry = () => {
 
               {/* Action to Submit */}
               <div className="pt-2">
-                <SubmitEnquiry enquiry={enquiry} />
+                <Link href={`/enquiries/${enquiry._id}/submit`}>
+                  <Button className="w-full" size="lg">
+                    Submit Proposal
+                  </Button>
+                </Link>
               </div>
             </div>
           )}
@@ -409,7 +390,16 @@ const SingleEnquiry = () => {
           </Card>
 
           {/* Admin Messages */}
-          <AdminMessages id={id as string} />
+          {!isMyEnquiry &&
+          enquirySubmissions &&
+          enquirySubmissions.length === 0 ? (
+            <p>
+              No submissions yet, to view admin messages please submit a
+              property
+            </p>
+          ) : (
+            !isMyEnquiry && <AdminMessages id={id as string} />
+          )}
         </div>
       </div>
     </div>

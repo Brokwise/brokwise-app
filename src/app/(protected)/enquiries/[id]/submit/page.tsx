@@ -1,0 +1,498 @@
+"use client";
+
+import React, { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useGetEnquiryById } from "@/hooks/useEnquiry";
+import { useGetAllProperties } from "@/hooks/useProperty";
+import {
+  useSubmitPropertyToEnquiry,
+  useSubmitFreshProperty,
+} from "@/hooks/useEnquiry";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Empty, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
+import { cn } from "@/lib/utils";
+import {
+  ArrowLeft,
+  Check,
+  Loader2,
+  MapPin,
+  Plus,
+  LayoutGrid,
+} from "lucide-react";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
+import { ResidentialWizard } from "@/app/(protected)/property/createProperty/residentialForm/wizard";
+import { CommercialWizard } from "@/app/(protected)/property/createProperty/commercialForm/wizard";
+import { IndustrialWizard } from "@/app/(protected)/property/createProperty/industrialForm/wizard";
+import { AgriculturalWizard } from "@/app/(protected)/property/createProperty/agriculturalForm/wizard";
+import { ResortWizard } from "@/app/(protected)/property/createProperty/resortForm/wizard";
+import { FarmHouseWizard } from "@/app/(protected)/property/createProperty/farmhouseForm/wizard";
+
+type View = "select" | "create" | "message";
+
+export default function SubmitEnquiryPage() {
+  const { id } = useParams();
+  const router = useRouter();
+  const {
+    enquiry,
+    isPending: isEnquiryLoading,
+    error: enquiryError,
+  } = useGetEnquiryById(id as string);
+
+  const [activeTab, setActiveTab] = useState<"existing" | "new">("existing");
+  const [message, setMessage] = useState("");
+  const { properties, isLoading: isPropertiesLoading } = useGetAllProperties();
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
+    null
+  );
+
+  // State for fresh property submission
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [freshPropertyData, setFreshPropertyData] = useState<any>(null);
+  const [view, setView] = useState<View>("select");
+
+  const { submitPropertyToEnquiry, isPending: isSubmittingExisting } =
+    useSubmitPropertyToEnquiry();
+
+  const { submitFreshProperty, isPending: isSubmittingFresh } =
+    useSubmitFreshProperty();
+
+  if (isEnquiryLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (enquiryError || !enquiry) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center min-h-[60vh] text-destructive gap-4">
+        <p>Error loading enquiry details or enquiry not found.</p>
+        <Button variant="outline" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+        </Button>
+      </div>
+    );
+  }
+
+  const handleExistingSubmit = async () => {
+    if (!selectedPropertyId) return;
+
+    submitPropertyToEnquiry(
+      {
+        enquiryId: enquiry._id,
+        propertyId: selectedPropertyId as string,
+        privateMessage: message,
+      },
+      {
+        onSuccess: () => {
+          setMessage("");
+          setSelectedPropertyId(null);
+          toast.success("Property submitted successfully");
+          router.push(`/enquiries/${id}`);
+        },
+        onError: (error: unknown) => {
+          const axiosError = error as AxiosError<{ message: string }>;
+          toast.error(
+            axiosError.response?.data?.message || "Failed to submit property"
+          );
+        },
+      }
+    );
+  };
+
+  const handleFreshPropertySubmit = async () => {
+    if (!freshPropertyData) return;
+
+    submitFreshProperty(
+      {
+        enquiryId: enquiry._id,
+        payload: {
+          ...freshPropertyData,
+          privateMessage: message,
+        },
+      },
+      {
+        onSuccess: () => {
+          setMessage("");
+          setFreshPropertyData(null);
+          toast.success("New property created and submitted successfully");
+          router.push(`/enquiries/${id}`);
+        },
+        onError: (error: unknown) => {
+          const axiosError = error as AxiosError<{ message: string }>;
+          toast.error(
+            axiosError.response?.data?.message ||
+              "Failed to create and submit property"
+          );
+        },
+      }
+    );
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleWizardSubmit = (data: any) => {
+    setFreshPropertyData(data);
+    setView("message");
+  };
+
+  const filteredProperties = properties?.filter(
+    (property) =>
+      property.listingStatus.toLowerCase() === "active" &&
+      property.propertyCategory.toLowerCase() ===
+        enquiry.enquiryCategory.toLowerCase() &&
+      property.propertyType.toLowerCase() === enquiry.enquiryType.toLowerCase()
+  );
+
+  const renderWizard = () => {
+    const commonProps = {
+      onBack: () => setActiveTab("existing"),
+      initialData: {
+        propertyCategory: enquiry.enquiryCategory,
+        propertyType: enquiry.enquiryType,
+      } as any,
+      onSubmit: handleWizardSubmit,
+      submitLabel: "Proceed to Message",
+    };
+
+    switch (enquiry.enquiryCategory) {
+      case "RESIDENTIAL":
+        return <ResidentialWizard {...commonProps} />;
+      case "COMMERCIAL":
+        return <CommercialWizard {...commonProps} />;
+      case "INDUSTRIAL":
+        return (
+          <div className="p-4 text-center">
+            <p className="mb-4">
+              Creating fresh Industrial properties during submission is not
+              fully supported yet.
+            </p>
+            <Button variant="outline" onClick={() => setActiveTab("existing")}>
+              Go back
+            </Button>
+          </div>
+        );
+      case "AGRICULTURAL":
+        return (
+          <div className="p-4 text-center">
+            <p className="mb-4">
+              Creating fresh Agricultural properties during submission is not
+              fully supported yet.
+            </p>
+            <Button variant="outline" onClick={() => setActiveTab("existing")}>
+              Go back
+            </Button>
+          </div>
+        );
+      case "RESORT":
+        return (
+          <div className="p-4 text-center">
+            <p className="mb-4">
+              Creating fresh Resort properties during submission is not fully
+              supported yet.
+            </p>
+            <Button variant="outline" onClick={() => setActiveTab("existing")}>
+              Go back
+            </Button>
+          </div>
+        );
+      case "FARM_HOUSE":
+        return (
+          <div className="p-4 text-center">
+            <p className="mb-4">
+              Creating fresh Farm House properties during submission is not
+              fully supported yet.
+            </p>
+            <Button variant="outline" onClick={() => setActiveTab("existing")}>
+              Go back
+            </Button>
+          </div>
+        );
+      default:
+        return <div>Unsupported category</div>;
+    }
+  };
+
+  return (
+    <div className="container mx-auto p-4 md:p-6 lg:max-w-5xl space-y-6 animate-in fade-in duration-500">
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="-ml-2 text-muted-foreground hover:text-foreground"
+          onClick={() => {
+            if (view === "message") {
+              setView("select");
+            } else {
+              router.back();
+            }
+          }}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          {view === "message" ? "Back to Selection" : "Back to Enquiry"}
+        </Button>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold tracking-tight">Submit Proposal</h1>
+          <p className="text-sm text-muted-foreground">
+            For{" "}
+            <span className="font-medium text-foreground">
+              {enquiry.enquiryType}
+            </span>{" "}
+            in{" "}
+            <span className="font-medium text-foreground">{enquiry.city}</span>
+          </p>
+        </div>
+      </div>
+
+      <Card className="flex flex-col min-h-[600px]">
+        {view === "message" ? (
+          <CardContent className="p-6 flex flex-col gap-6 flex-1">
+            <div className="bg-muted/30 p-6 rounded-xl border">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <LayoutGrid className="h-5 w-5" /> Confirm Submission Details
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
+                    Property Type
+                  </p>
+                  <p className="font-medium mt-1">
+                    {freshPropertyData?.propertyType}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
+                    Location
+                  </p>
+                  <p className="font-medium mt-1">
+                    {freshPropertyData?.address?.city || "Unknown"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
+                    Price
+                  </p>
+                  <p className="font-medium mt-1 text-primary">
+                    ₹{freshPropertyData?.totalPrice?.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 flex flex-col gap-2">
+              <label className="text-sm font-medium">
+                Private Message (Required)
+              </label>
+              <Textarea
+                placeholder="Add a note about why this property is a good fit..."
+                value={message}
+                minLength={5}
+                maxLength={1000}
+                onChange={(e) => setMessage(e.target.value)}
+                className="resize-none flex-1 min-h-[200px]"
+              />
+              <p className="text-xs text-muted-foreground text-right">
+                {message.length}/1000
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => setView("select")}
+                disabled={isSubmittingFresh}
+              >
+                Back
+              </Button>
+              <Button
+                onClick={handleFreshPropertySubmit}
+                disabled={message.length < 5 || isSubmittingFresh}
+                size="lg"
+              >
+                {isSubmittingFresh && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Create & Submit Proposal
+              </Button>
+            </div>
+          </CardContent>
+        ) : (
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v as "existing" | "new")}
+            className="flex-1 flex flex-col"
+          >
+            <CardHeader className="border-b px-6 py-4">
+              <TabsList className="grid w-full max-w-md grid-cols-2 bg-transparent">
+                <TabsTrigger value="existing">Select Existing</TabsTrigger>
+                <TabsTrigger value="new">Create New</TabsTrigger>
+              </TabsList>
+            </CardHeader>
+
+            <TabsContent value="existing" className="flex-1 p-0 m-0">
+              <div className="flex flex-col h-full">
+                {filteredProperties && filteredProperties.length > 0 ? (
+                  <div className="flex flex-col md:flex-row h-full min-h-[500px]">
+                    {/* Property List - Left Side */}
+                    <div className="flex-1 border-r flex flex-col">
+                      <div className="p-4 border-b bg-muted/10">
+                        <h3 className="font-medium text-sm text-muted-foreground">
+                          Select a Property
+                        </h3>
+                      </div>
+                      {isPropertiesLoading ? (
+                        <div className="flex items-center justify-center flex-1">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                      ) : (
+                        <ScrollArea className="flex-1 h-[500px]">
+                          <div className="p-4 grid grid-cols-1 gap-3">
+                            {filteredProperties.map((property) => {
+                              const isSelected =
+                                selectedPropertyId === property._id;
+                              return (
+                                <div
+                                  key={property._id}
+                                  onClick={() =>
+                                    setSelectedPropertyId(property._id)
+                                  }
+                                  className={cn(
+                                    "relative p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 hover:bg-muted/50 text-left",
+                                    isSelected
+                                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                                      : "bg-card shadow-sm border-muted"
+                                  )}
+                                >
+                                  {isSelected && (
+                                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
+                                      <Check className="h-3 w-3" />
+                                    </div>
+                                  )}
+                                  <div className="space-y-2">
+                                    <div className="flex items-start justify-between pr-6">
+                                      <h4
+                                        className="font-semibold leading-tight line-clamp-1"
+                                        title={
+                                          property.propertyTitle ||
+                                          "Untitled Property"
+                                        }
+                                      >
+                                        {property.propertyTitle ||
+                                          "Untitled Property"}
+                                      </h4>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                      <Badge
+                                        variant="outline"
+                                        className="text-[10px] h-5"
+                                      >
+                                        {property.propertyType}
+                                      </Badge>
+                                      <Badge
+                                        variant="outline"
+                                        className="text-[10px] h-5"
+                                      >
+                                        {property.propertyCategory}
+                                      </Badge>
+                                    </div>
+                                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <MapPin className="h-3 w-3" />
+                                      <span className="truncate">
+                                        {property.address?.city ||
+                                          "Unknown City"}
+                                      </span>
+                                    </div>
+                                    <div className="font-medium text-sm text-primary">
+                                      ₹
+                                      {property.totalPrice?.toLocaleString(
+                                        "en-IN"
+                                      ) || "Price on Request"}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </ScrollArea>
+                      )}
+                    </div>
+
+                    {/* Message Area - Right Side */}
+                    <div className="w-full md:w-[400px] flex flex-col p-6 bg-muted/10">
+                      <div className="flex-1 flex flex-col gap-4">
+                        <div>
+                          <h3 className="font-semibold mb-1">
+                            Proposal Message
+                          </h3>
+                          <p className="text-xs text-muted-foreground mb-4">
+                            Add a personalized note for the enquirer.
+                          </p>
+                          <Textarea
+                            placeholder="Describe why this property is a perfect match..."
+                            value={message}
+                            minLength={10}
+                            onChange={(e) => setMessage(e.target.value)}
+                            className="resize-none min-h-[200px] bg-background"
+                          />
+                        </div>
+                      </div>
+                      <div className="pt-6 border-t mt-4">
+                        <Button
+                          type="submit"
+                          className="w-full"
+                          size="lg"
+                          onClick={handleExistingSubmit}
+                          disabled={!selectedPropertyId || isSubmittingExisting}
+                        >
+                          {isSubmittingExisting && (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          )}
+                          Submit Proposal
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-12 min-h-[400px]">
+                    <Empty>
+                      <EmptyTitle>No matching properties found</EmptyTitle>
+                      <EmptyDescription>
+                        You don&apos;t have any active properties that match
+                        this enquiry.
+                        <br />
+                        Try creating a new one!
+                      </EmptyDescription>
+                    </Empty>
+                    <Button
+                      variant="default"
+                      className="mt-6"
+                      onClick={() => setActiveTab("new")}
+                    >
+                      <Plus className="mr-2 h-4 w-4" /> Create New Property
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="new" className="flex-1 p-6 m-0 min-h-0">
+              {renderWizard()}
+            </TabsContent>
+          </Tabs>
+        )}
+      </Card>
+    </div>
+  );
+}

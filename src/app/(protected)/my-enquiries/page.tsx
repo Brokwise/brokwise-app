@@ -46,7 +46,7 @@ const MyEnquiriesPage = () => {
             Manage the enquiries you have posted.
           </p>
         </div>
-        <Button onClick={() => router.push("/enquiry/create")}>
+        <Button onClick={() => router.push("/enquiries/create")}>
           <Plus className="h-4 w-4 mr-2" />
           Create Enquiry
         </Button>
@@ -101,7 +101,7 @@ const MyEnquiriesPage = () => {
           <Button
             variant="outline"
             className="mt-4"
-            onClick={() => router.push("/enquiry/create")}
+            onClick={() => router.push("/enquiries/create")}
           >
             Create your first enquiry
           </Button>

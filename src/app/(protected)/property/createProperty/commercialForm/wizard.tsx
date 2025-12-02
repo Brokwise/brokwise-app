@@ -22,7 +22,7 @@ import {
   CommercialPropertyFormData,
 } from "@/validators/property";
 import { useAddProperty, useSavePropertyAsDraft } from "@/hooks/useProperty";
-import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
+import { uploadFileToFirebase, generateFilePath, convertImageToWebP } from "@/utils/upload";
 import { Loader2, Wand2Icon } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -33,11 +33,15 @@ import { X } from "lucide-react";
 interface CommercialWizardProps {
   onBack: () => void;
   initialData?: Partial<CommercialPropertyFormData> & { _id?: string };
+  onSubmit?: (data: CommercialPropertyFormData) => void;
+  submitLabel?: string;
 }
 
 export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   onBack,
   initialData,
+  onSubmit: onSubmitProp,
+  submitLabel,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -88,7 +92,11 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   }, [size, rate, form]);
 
   const onSubmit = (data: CommercialPropertyFormData) => {
-    addProperty(data);
+    if (onSubmitProp) {
+      onSubmitProp(data);
+    } else {
+      addProperty(data);
+    }
   };
 
   const handleFileUpload = async (
@@ -101,8 +109,9 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
 
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
-        const path = generateFilePath(file.name, `property-${fieldName}`);
-        return await uploadFileToFirebase(file, path);
+        const convertedFile = await convertImageToWebP(file);
+        const path = generateFilePath(convertedFile.name, `property-${fieldName}`);
+        return await uploadFileToFirebase(convertedFile, path);
       });
 
       const urls = await Promise.all(uploadPromises);
@@ -1422,6 +1431,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         onStepClick={handleStepClick}
         onCancel={onBack}
         onSubmit={handleSubmit}
+        submitLabel={submitLabel}
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}

@@ -25,6 +25,7 @@ interface WizardProps {
   onCancel: () => void;
   onSubmit: () => void;
   onSaveDraft?: () => void;
+  submitLabel?: string;
   isSavingDraft?: boolean;
   isSubmitting?: boolean;
   canProceed?: boolean;
@@ -40,6 +41,7 @@ export const Wizard: React.FC<WizardProps> = ({
   onCancel,
   onSubmit,
   onSaveDraft,
+  submitLabel,
   isSavingDraft = false,
   isSubmitting = false,
   canProceed = true,
@@ -147,8 +149,8 @@ export const Wizard: React.FC<WizardProps> = ({
               disabled={isSubmitting || !canProceed || isLoading}
             >
               {isSubmitting || isLoading
-                ? "Creating Property..."
-                : "Create Property"}
+                ? "Processing..."
+                : submitLabel || "Create Property"}
             </Button>
           )}
         </div>

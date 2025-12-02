@@ -72,6 +72,22 @@ export const useSubmitPropertyToEnquiry = () => {
   return { submitPropertyToEnquiry: mutate, isPending, error };
 };
 
+export const useSubmitFreshProperty = () => {
+  const api = useAxios();
+  const { mutate, isPending, error } = useMutation<
+    void,
+    Error,
+    { enquiryId: string; payload: any }
+  >({
+    mutationFn: async ({ enquiryId, payload }) => {
+      return (
+        await api.post(`/broker/enquiry/${enquiryId}/submit-fresh`, payload)
+      ).data.data;
+    },
+  });
+  return { submitFreshProperty: mutate, isPending, error };
+};
+
 export const useGetEnquirySubmissions = (enquiryId: string) => {
   const api = useAxios();
   const { data, isPending, error } = useQuery<EnquirySubmission[]>({

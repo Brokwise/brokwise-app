@@ -22,7 +22,7 @@ import {
   FarmHousePropertyFormData,
 } from "@/validators/property";
 import { useAddProperty, useSavePropertyAsDraft } from "@/hooks/useProperty";
-import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
+import { uploadFileToFirebase, generateFilePath, convertImageToWebP } from "@/utils/upload";
 import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -97,8 +97,9 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
 
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
-        const path = generateFilePath(file.name, `property-${fieldName}`);
-        return await uploadFileToFirebase(file, path);
+        const convertedFile = await convertImageToWebP(file);
+        const path = generateFilePath(convertedFile.name, `property-${fieldName}`);
+        return await uploadFileToFirebase(convertedFile, path);
       });
 
       const urls = await Promise.all(uploadPromises);
