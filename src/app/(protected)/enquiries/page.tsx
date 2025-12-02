@@ -161,7 +161,7 @@ const EnquiryPage = () => {
           <Inbox className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
           <h3 className="text-lg font-medium">No enquiries found</h3>
           <p className="text-muted-foreground max-w-sm mx-auto mt-2">
-            We couldn't find any enquiries matching your filters. Try adjusting
+            We couldn&apos;t find any enquiries matching your filters. Try adjusting
             your search terms.
           </p>
           <button

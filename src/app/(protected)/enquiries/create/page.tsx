@@ -15,7 +15,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -33,11 +32,8 @@ import { useCreateEnquiry } from "@/hooks/useEnquiry";
 import {
   PropertyCategory,
   PropertyType,
-  SizeUnit,
-  PlotType,
-  Facing,
-  AreaType,
 } from "@/models/types/property";
+import { CreateEnquiryDTO } from "@/models/types/enquiry";
 
 // --- Zod Schema ---
 
@@ -166,6 +162,7 @@ const CreateEnquiryPage = () => {
   const [localityInput, setLocalityInput] = useState("");
 
   const form = useForm<CreateEnquiryFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createEnquirySchema) as any,
     defaultValues: {
       city: "",
@@ -180,15 +177,18 @@ const CreateEnquiryPage = () => {
   const selectedType = watch("enquiryType");
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setValue("enquiryType", "" as any);
   }, [selectedCategory, setValue]);
 
   const onSubmit = (data: CreateEnquiryFormValues) => {
-    createEnquiry(data as any, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    createEnquiry(data as unknown as CreateEnquiryDTO, {
       onSuccess: () => {
         toast.success("Enquiry created successfully!");
         router.push("/my-enquiries");
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onError: (error: any) => {
         toast.error(
           error.response?.data?.message || "Failed to create enquiry"

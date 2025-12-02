@@ -15,7 +15,7 @@ export const useAddProperty = () => {
     mutationFn: async (property: PropertyFormData) => {
       return (await api.post("/property/create", property)).data.data;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success("Property created successfully");
     },
     onError: (error) => {

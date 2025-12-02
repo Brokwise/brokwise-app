@@ -13,7 +13,6 @@ import {
   IndianRupee,
   BedDouble,
   Bath,
-  CalendarDays,
   Building2,
   ArrowRight,
   Clock,

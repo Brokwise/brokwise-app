@@ -22,7 +22,11 @@ import {
   IndustrialPropertyFormData,
 } from "@/validators/property";
 import { useAddProperty, useSavePropertyAsDraft } from "@/hooks/useProperty";
-import { uploadFileToFirebase, generateFilePath, convertImageToWebP } from "@/utils/upload";
+import {
+  uploadFileToFirebase,
+  generateFilePath,
+  convertImageToWebP,
+} from "@/utils/upload";
 import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -99,7 +103,10 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
         const convertedFile = await convertImageToWebP(file);
-        const path = generateFilePath(convertedFile.name, `property-${fieldName}`);
+        const path = generateFilePath(
+          convertedFile.name,
+          `property-${fieldName}`
+        );
         return await uploadFileToFirebase(convertedFile, path);
       });
 

@@ -16,7 +16,10 @@ export const uploadFileToFirebase = async (
   }
 };
 
-export const generateFilePath = (fileName: string, folder: string = "uploads") => {
+export const generateFilePath = (
+  fileName: string,
+  folder: string = "uploads"
+) => {
   const timestamp = Date.now();
   const cleanFileName = fileName.replace(/[^a-zA-Z0-9.]/g, "_");
   return `${folder}/${timestamp}_${cleanFileName}`;
@@ -28,7 +31,7 @@ export const convertImageToWebP = async (file: File): Promise<File> => {
     return file;
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
 
@@ -37,7 +40,7 @@ export const convertImageToWebP = async (file: File): Promise<File> => {
       const canvas = document.createElement("canvas");
       canvas.width = img.width;
       canvas.height = img.height;
-      
+
       const ctx = canvas.getContext("2d");
       if (!ctx) {
         resolve(file);
@@ -45,7 +48,7 @@ export const convertImageToWebP = async (file: File): Promise<File> => {
       }
 
       ctx.drawImage(img, 0, 0);
-      
+
       canvas.toBlob(
         (blob) => {
           if (blob) {

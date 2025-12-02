@@ -77,7 +77,7 @@ export const useSubmitFreshProperty = () => {
   const { mutate, isPending, error } = useMutation<
     void,
     Error,
-    { enquiryId: string; payload: any }
+    { enquiryId: string; payload: Record<string, string> }
   >({
     mutationFn: async ({ enquiryId, payload }) => {
       return (
@@ -118,8 +118,6 @@ export const useGetReceivedProperties = (
   enquiryId: string,
   isMyEnquiry: boolean
 ) => {
-  if (!isMyEnquiry)
-    return { receivedProperties: [], isPending: false, error: null };
   const api = useAxios();
   const { data, isPending, error } = useQuery<EnquirySubmission[]>({
     queryKey: ["received-properties", enquiryId],
@@ -127,7 +125,12 @@ export const useGetReceivedProperties = (
       return (await api.get(`/broker/enquiry/${enquiryId}/received-properties`))
         .data.data.properties;
     },
+    enabled: !!isMyEnquiry,
   });
+
+  if (!isMyEnquiry) {
+    return { receivedProperties: [], isPending: false, error: null };
+  }
   return { receivedProperties: data, isPending, error };
 };
 

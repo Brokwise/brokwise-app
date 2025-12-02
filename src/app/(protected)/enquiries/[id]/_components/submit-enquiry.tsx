@@ -17,24 +17,15 @@ import {
   useSubmitFreshProperty,
 } from "@/hooks/useEnquiry";
 import { cn } from "@/lib/utils";
-import { Check, Home, Loader2, MapPin, Plus } from "lucide-react";
+import { Check, Loader2, MapPin, Plus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { Empty, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResidentialWizard } from "@/app/(protected)/property/createProperty/residentialForm/wizard";
 import { CommercialWizard } from "@/app/(protected)/property/createProperty/commercialForm/wizard";
-import { IndustrialWizard } from "@/app/(protected)/property/createProperty/industrialForm/wizard";
-import { AgriculturalWizard } from "@/app/(protected)/property/createProperty/agriculturalForm/wizard";
-import { ResortWizard } from "@/app/(protected)/property/createProperty/resortForm/wizard";
-import { FarmHouseWizard } from "@/app/(protected)/property/createProperty/farmhouseForm/wizard";
 
 type View = "select" | "create" | "message";
 
@@ -42,14 +33,17 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"existing" | "new">("existing");
   const [message, setMessage] = useState("");
-  const { properties, isLoading, error } = useGetAllProperties();
+  const { properties, isLoading } = useGetAllProperties();
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
     null
   );
 
   // State for fresh property submission
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [freshPropertyData, setFreshPropertyData] = useState<any>(null);
+  const [freshPropertyData, setFreshPropertyData] = useState<Record<
+    string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    any
+  > | null>(null);
   const [view, setView] = useState<View>("select"); // 'select' includes 'create' wizard view when tab is 'new'
 
   const { submitPropertyToEnquiry, isPending: isSubmittingExisting } =
@@ -116,7 +110,7 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleWizardSubmit = (data: any) => {
+  const handleWizardSubmit = (data: Record<string, any>) => {
     setFreshPropertyData(data);
     setView("message");
   };
@@ -135,7 +129,7 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
       initialData: {
         propertyCategory: enquiry.enquiryCategory,
         propertyType: enquiry.enquiryType,
-      } as any,
+      } as Record<string, string>,
       onSubmit: handleWizardSubmit,
       submitLabel: "Proceed to Message",
     };

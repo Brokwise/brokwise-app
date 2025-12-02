@@ -15,12 +15,12 @@ export const ReceivedProperties = ({
 }) => {
   const router = useRouter();
 
-  if (!isMyEnquiry) return null;
-
   const { receivedProperties, isPending, error } = useGetReceivedProperties(
     id as string,
     isMyEnquiry
   );
+
+  if (!isMyEnquiry) return null;
 
   if (isPending) {
     return (
@@ -87,7 +87,7 @@ export const ReceivedProperties = ({
 
               {submission.privateMessage && (
                 <div className="bg-muted/20 p-2 rounded text-xs text-muted-foreground italic">
-                  "{submission.privateMessage}"
+                  &quot;{submission.privateMessage}&quot;
                 </div>
               )}
 

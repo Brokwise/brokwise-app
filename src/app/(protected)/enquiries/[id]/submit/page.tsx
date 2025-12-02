@@ -11,13 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Empty, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
@@ -34,10 +28,6 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { ResidentialWizard } from "@/app/(protected)/property/createProperty/residentialForm/wizard";
 import { CommercialWizard } from "@/app/(protected)/property/createProperty/commercialForm/wizard";
-import { IndustrialWizard } from "@/app/(protected)/property/createProperty/industrialForm/wizard";
-import { AgriculturalWizard } from "@/app/(protected)/property/createProperty/agriculturalForm/wizard";
-import { ResortWizard } from "@/app/(protected)/property/createProperty/resortForm/wizard";
-import { FarmHouseWizard } from "@/app/(protected)/property/createProperty/farmhouseForm/wizard";
 
 type View = "select" | "create" | "message";
 
@@ -58,8 +48,11 @@ export default function SubmitEnquiryPage() {
   );
 
   // State for fresh property submission
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [freshPropertyData, setFreshPropertyData] = useState<any>(null);
+  const [freshPropertyData, setFreshPropertyData] = useState<Record<
+    string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    any
+  > | null>(null);
   const [view, setView] = useState<View>("select");
 
   const { submitPropertyToEnquiry, isPending: isSubmittingExisting } =
@@ -143,7 +136,7 @@ export default function SubmitEnquiryPage() {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleWizardSubmit = (data: any) => {
+  const handleWizardSubmit = (data: Record<string, any>) => {
     setFreshPropertyData(data);
     setView("message");
   };
@@ -162,7 +155,7 @@ export default function SubmitEnquiryPage() {
       initialData: {
         propertyCategory: enquiry.enquiryCategory,
         propertyType: enquiry.enquiryType,
-      } as any,
+      } as Record<string, string>,
       onSubmit: handleWizardSubmit,
       submitLabel: "Proceed to Message",
     };

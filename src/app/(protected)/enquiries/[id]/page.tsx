@@ -24,16 +24,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
-import { useApp } from "@/context/AppContext";
 import {
   Dialog,
   DialogHeader,
@@ -49,26 +42,14 @@ import { formatCurrencyEnquiry, getStatusColor } from "@/utils/helper";
 
 const SingleEnquiry = () => {
   const { id } = useParams();
-  const { userData } = useApp();
+  // const { userData } = useApp();
   const [confirmationText, setConfirmationText] = useState<string>("");
   const router = useRouter();
   const { enquiry, isPending, error } = useGetEnquiryById(id as string);
-  const {
-    myEnquiries,
-    isPending: isPendingMyEnquiries,
-    error: errorMyEnquiries,
-  } = useGetMyEnquiries();
+  const { myEnquiries } = useGetMyEnquiries();
 
-  const {
-    enquirySubmissions,
-    isPending: isPendingSubmissions,
-    error: errorSubmissions,
-  } = useGetEnquirySubmissions(id as string);
-  const {
-    closeEnquiry,
-    isPending: isPendingCloseEnquiry,
-    error: errorCloseEnquiry,
-  } = useCloseEnquiry();
+  const { enquirySubmissions } = useGetEnquirySubmissions(id as string);
+  const { closeEnquiry, isPending: isPendingCloseEnquiry } = useCloseEnquiry();
   const isMyEnquiry =
     myEnquiries &&
     myEnquiries.length > 0 &&
@@ -111,7 +92,7 @@ const SingleEnquiry = () => {
     label,
     value,
   }: {
-    icon: any;
+    icon: React.ElementType;
     label: string;
     value: React.ReactNode;
   }) => (
