@@ -15,10 +15,8 @@ export const useAddProperty = () => {
     mutationFn: async (property: PropertyFormData) => {
       return (await api.post("/property/create", property)).data.data;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success("Property created successfully");
-      console.log(data);
-      // router.push(`/property/details/${data?.id}`);
     },
     onError: (error) => {
       const errorMessage =
@@ -144,4 +142,30 @@ export const useRequestDeleteProperty = () => {
     },
   });
   return { requestDelete: mutate, isPending, error };
+};
+export const useSavePropertyAsDraft = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending, error } = useMutation<
+    Property,
+    AxiosError<{ message: string }>,
+    PropertyFormData
+  >({
+    mutationFn: async (property: PropertyFormData) => {
+      return (await api.post(`/property/draft`, property)).data.data;
+    },
+    onSuccess: () => {
+      toast.success("Property saved as draft successfully");
+      queryClient.invalidateQueries({ queryKey: ["my-listings"] });
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "An unknown error occurred while saving the property as draft.";
+      toast.error(errorMessage);
+    },
+  });
+  return { savePropertyAsDraft: mutateAsync, isPending, error };
 };

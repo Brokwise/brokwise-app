@@ -21,8 +21,8 @@ import {
   commercialPropertySchema,
   CommercialPropertyFormData,
 } from "@/validators/property";
-import { useAddProperty } from "@/hooks/useProperty";
-import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
+import { useAddProperty, useSavePropertyAsDraft } from "@/hooks/useProperty";
+import { uploadFileToFirebase, generateFilePath, convertImageToWebP } from "@/utils/upload";
 import { Loader2, Wand2Icon } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -32,14 +32,23 @@ import { X } from "lucide-react";
 
 interface CommercialWizardProps {
   onBack: () => void;
+  initialData?: Partial<CommercialPropertyFormData> & { _id?: string };
+  onSubmit?: (data: CommercialPropertyFormData) => void;
+  submitLabel?: string;
 }
 
 export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   onBack,
+  initialData,
+  onSubmit: onSubmitProp,
+  submitLabel,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const { addProperty, isLoading } = useAddProperty();
+  const { savePropertyAsDraft, isPending: isSavingDraft } =
+    useSavePropertyAsDraft();
+  const [draftId, setDraftId] = useState<string | undefined>(initialData?._id);
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
   const [generatingDescription, setGeneratingDescription] = useState(false);
 
@@ -65,6 +74,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
       },
       featuredMedia: "",
       images: [],
+      ...initialData,
     },
     mode: "onChange",
   });
@@ -82,7 +92,11 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   }, [size, rate, form]);
 
   const onSubmit = (data: CommercialPropertyFormData) => {
-    addProperty(data);
+    if (onSubmitProp) {
+      onSubmitProp(data);
+    } else {
+      addProperty(data);
+    }
   };
 
   const handleFileUpload = async (
@@ -95,8 +109,9 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
 
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
-        const path = generateFilePath(file.name, `property-${fieldName}`);
-        return await uploadFileToFirebase(file, path);
+        const convertedFile = await convertImageToWebP(file);
+        const path = generateFilePath(convertedFile.name, `property-${fieldName}`);
+        return await uploadFileToFirebase(convertedFile, path);
       });
 
       const urls = await Promise.all(uploadPromises);
@@ -227,6 +242,20 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     const isValid = await form.trigger();
     if (isValid) {
       form.handleSubmit(onSubmit)();
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    const data = form.getValues();
+    const payload = { ...data, _id: draftId };
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const savedProperty = await savePropertyAsDraft(payload as any);
+      if (savedProperty?._id) {
+        setDraftId(savedProperty._id);
+      }
+    } catch (error) {
+      console.error("Error saving draft:", error);
     }
   };
 
@@ -1402,6 +1431,9 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         onStepClick={handleStepClick}
         onCancel={onBack}
         onSubmit={handleSubmit}
+        submitLabel={submitLabel}
+        onSaveDraft={handleSaveDraft}
+        isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
         isLoading={isLoading}
       />

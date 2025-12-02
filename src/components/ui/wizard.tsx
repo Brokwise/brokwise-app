@@ -24,6 +24,9 @@ interface WizardProps {
   onStepClick: (stepIndex: number) => void;
   onCancel: () => void;
   onSubmit: () => void;
+  onSaveDraft?: () => void;
+  submitLabel?: string;
+  isSavingDraft?: boolean;
   isSubmitting?: boolean;
   canProceed?: boolean;
   isLoading?: boolean;
@@ -37,6 +40,9 @@ export const Wizard: React.FC<WizardProps> = ({
   onStepClick,
   onCancel,
   onSubmit,
+  onSaveDraft,
+  submitLabel,
+  isSavingDraft = false,
   isSubmitting = false,
   canProceed = true,
   isLoading = false,
@@ -114,6 +120,16 @@ export const Wizard: React.FC<WizardProps> = ({
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
+          {onSaveDraft && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onSaveDraft}
+              disabled={isSavingDraft || isLoading || isSubmitting}
+            >
+              {isSavingDraft ? "Saving Draft..." : "Save as Draft"}
+            </Button>
+          )}
           {!isFirstStep && (
             <Button type="button" variant="outline" onClick={onPrevious}>
               Previous
@@ -133,8 +149,8 @@ export const Wizard: React.FC<WizardProps> = ({
               disabled={isSubmitting || !canProceed || isLoading}
             >
               {isSubmitting || isLoading
-                ? "Creating Property..."
-                : "Create Property"}
+                ? "Processing..."
+                : submitLabel || "Create Property"}
             </Button>
           )}
         </div>

@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 const NavBar = () => {
   const router = useRouter();
   const pathname = usePathname();
-
+  console.log(pathname);
   return (
     <div
       id="navHeader"
@@ -22,8 +22,8 @@ const NavBar = () => {
         <h1 className="font-instrument-serif">Brokwise</h1>
       </div>
       <div>
-        <Tabs defaultValue="properties" className="w-[400px]" value={pathname}>
-          <TabsList>
+        <Tabs defaultValue="properties" className="" value={pathname}>
+          <TabsList className="bg-transparent">
             <TabsTrigger
               onClick={() => {
                 router.push("/");
@@ -37,10 +37,21 @@ const NavBar = () => {
               Properties
             </TabsTrigger>
             <TabsTrigger
+              onClick={() => {
+                router.push("/enquiries");
+              }}
               className={cn(
                 "cursor-pointer",
-                pathname === "/property/createProperty" &&
-                  "bg-primary text-white"
+                pathname.includes("/enquiries") && "bg-primary text-white"
+              )}
+              value="/enquiries"
+            >
+              Enquiries
+            </TabsTrigger>
+            <TabsTrigger
+              className={cn(
+                "cursor-pointer",
+                pathname === "/property/createProperty" && " text-white"
               )}
               value="listProperty"
               onClick={() => {

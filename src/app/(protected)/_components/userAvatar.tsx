@@ -48,6 +48,9 @@ export function UserAvatar() {
           <DropdownMenuItem>
             <Link href="/profile">Profile</Link>
           </DropdownMenuItem>
+          <DropdownMenuItem>
+            <Link href="/my-enquiries">My Enquiries</Link>
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuGroup>
           <DropdownMenuItem>
