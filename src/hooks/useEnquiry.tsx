@@ -7,6 +7,7 @@ import {
   MarketplaceEnquiry,
   EnquiryMessage,
 } from "@/models/types/enquiry";
+import { Property } from "@/types/property";
 
 export const useGetMarketPlaceEnquiries = () => {
   const api = useAxios();
@@ -119,7 +120,9 @@ export const useGetReceivedProperties = (
   isMyEnquiry: boolean
 ) => {
   const api = useAxios();
-  const { data, isPending, error } = useQuery<EnquirySubmission[]>({
+  const { data, isPending, error } = useQuery<
+    { property: Property; receivedAt: Date; submissionId: string }[]
+  >({
     queryKey: ["received-properties", enquiryId],
     queryFn: async () => {
       return (await api.get(`/broker/enquiry/${enquiryId}/received-properties`))

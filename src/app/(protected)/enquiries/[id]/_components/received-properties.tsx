@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, MapPin, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-
+import { format } from "date-fns";
 export const ReceivedProperties = ({
   id,
   isMyEnquiry,
@@ -19,7 +19,7 @@ export const ReceivedProperties = ({
     id as string,
     isMyEnquiry
   );
-
+  console.log(receivedProperties);
   if (!isMyEnquiry) return null;
 
   if (isPending) {
@@ -56,53 +56,46 @@ export const ReceivedProperties = ({
       </div>
 
       <div className="space-y-3">
-        {receivedProperties.map((submission) => (
+        {receivedProperties.map(({ property, receivedAt, submissionId }) => (
           <Card
-            key={submission._id}
+            key={submissionId}
             className="overflow-hidden transition-all hover:shadow-md"
           >
             <CardHeader className="p-3 bg-muted/30 pb-2">
               <div className="flex justify-between items-start gap-2">
-                <CardTitle className="text-sm font-medium line-clamp-1 leading-tight">
-                  {submission.propertyId?.propertyTitle ||
-                    "Property Title Unavailable"}
+                <CardTitle className="text-sm font-medium line-clamp-1 leading-tight flex items-center gap-2 justify-between">
+                  {`${property.propertyCategory} ${property.propertyType} at ${
+                    property?.address?.city || "Unknown Location"
+                  }`}
+                  <span className="text-xs text-muted-foreground">
+                    {format(receivedAt, "dd MMM yyyy, hh:mm a")}
+                  </span>
                 </CardTitle>
-                <Badge
-                  variant={
-                    submission.status === "pending" ? "outline" : "default"
-                  }
-                  className="text-[10px] h-5 px-1.5"
-                >
-                  {submission.status}
-                </Badge>
               </div>
             </CardHeader>
             <CardContent className="p-3 pt-2 space-y-2">
               <div className="flex items-center text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3 mr-1" />
                 <span className="truncate">
-                  {submission.propertyId?.address?.city || "Unknown Location"}
+                  {property?.address?.city || "Unknown Location"}
                 </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs mt-1 ml-auto"
+                  onClick={() => router.push(`/property/${property?._id}`)}
+                  disabled={!property?._id}
+                >
+                  <ExternalLink className="h-3 w-3 mr-1.5" />
+                  View Property
+                </Button>
               </div>
 
-              {submission.privateMessage && (
+              {/* {submission.privateMessage && (
                 <div className="bg-muted/20 p-2 rounded text-xs text-muted-foreground italic">
                   &quot;{submission.privateMessage}&quot;
                 </div>
-              )}
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full h-7 text-xs mt-1"
-                onClick={() =>
-                  router.push(`/property/${submission.propertyId?._id}`)
-                }
-                disabled={!submission.propertyId?._id}
-              >
-                <ExternalLink className="h-3 w-3 mr-1.5" />
-                View Property
-              </Button>
+              )} */}
             </CardContent>
           </Card>
         ))}
