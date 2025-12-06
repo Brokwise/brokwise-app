@@ -33,7 +33,7 @@ export const ReceivedProperties = ({
   if (error) {
     return (
       <div className="text-sm text-destructive py-2">
-        Error loading received properties.
+        Error loading received properties. {error.message}
       </div>
     );
   }

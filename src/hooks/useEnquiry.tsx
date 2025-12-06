@@ -123,7 +123,7 @@ export const useGetReceivedProperties = (
     queryKey: ["received-properties", enquiryId],
     queryFn: async () => {
       return (await api.get(`/broker/enquiry/${enquiryId}/received-properties`))
-        .data.data.properties;
+        .data.data;
     },
     enabled: !!isMyEnquiry,
   });
