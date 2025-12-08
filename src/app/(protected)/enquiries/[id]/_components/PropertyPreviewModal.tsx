@@ -389,7 +389,7 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
                           {property.rentalIncome && (
                             <DetailRow
                               label="Rental Income"
-                              value={`₹${property.rentalIncome.amount.toLocaleString("en-IN")} / ${property.rentalIncome.period}`}
+                              value={`₹${property.rentalIncome.min.toLocaleString("en-IN")} - ₹${property.rentalIncome.max.toLocaleString("en-IN")}`}
                             />
                           )}
                         </div>

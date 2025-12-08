@@ -82,8 +82,8 @@ export const AdditionalDetails = ({ property }: { property: Property }) => {
           <div>
             <p className="text-sm text-muted-foreground mb-1">Rental Income</p>
             <p className="font-semibold">
-              {formatCurrency(property.rentalIncome.amount)} /{" "}
-              {property.rentalIncome.period}
+              {formatCurrency(property.rentalIncome.min)} -{" "}
+              {formatCurrency(property.rentalIncome.max)}
             </p>
           </div>
         )}

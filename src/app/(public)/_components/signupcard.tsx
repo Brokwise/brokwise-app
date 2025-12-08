@@ -68,19 +68,13 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
   });
   const { formState, trigger } = form;
   const { isValid } = formState;
-  const createUserInDb = async (
-    user: User,
-    name: string,
-    sendWelcomeEmail: boolean = true
-  ) => {
+  const createUserInDb = async (user: User, name: string) => {
     const isFirstTimeUser =
       user.metadata.creationTime === user.metadata.lastSignInTime;
     if (isFirstTimeUser) {
       await createUser({
-        fullName: user.displayName ?? name ?? "",
         email: user.email ?? "",
         uid: user.uid ?? "",
-        sendWelcomeEmail: sendWelcomeEmail ? "true" : "false",
       });
       const userDoc = getUserDoc(user.uid);
       await setUserDoc(userDoc, {
@@ -103,7 +97,7 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         throw error;
       });
       if (isSignup) {
-        await createUserInDb(user, "", false);
+        await createUserInDb(user, "");
         await sendVerificatinLink(user);
       } else {
         if (!user.emailVerified) {

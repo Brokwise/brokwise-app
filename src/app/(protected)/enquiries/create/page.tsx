@@ -194,13 +194,8 @@ const CATEGORY_TYPE_MAP: Record<PropertyCategory, PropertyType[]> = {
     "OFFICE_SPACE",
     "OTHER_SPACE",
   ],
-  INDUSTRIAL: [
-    "INDUSTRIAL_PARK",
-    "INDUSTRIAL_LAND",
-    "WAREHOUSE",
-    "AGRICULTURAL_LAND",
-  ],
-  AGRICULTURAL: ["AGRICULTURAL_LAND"], // Assuming Agricultural maps to this type
+  INDUSTRIAL: ["INDUSTRIAL_PARK", "INDUSTRIAL_LAND", "WAREHOUSE"],
+  AGRICULTURAL: ["AGRICULTURAL_LAND"],
   RESORT: ["RESORT"],
   FARM_HOUSE: ["FARM_HOUSE", "INDIVIDUAL"],
 };

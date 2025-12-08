@@ -34,7 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { formatAddress, formatPrice } from "@/utils/helper";
 
-const getStatusBadge = (status: ListingStatus, deletingStatus?: string) => {
+const getStatusBadge = (status: ListingStatus, deletingStatus?: string | null) => {
   if (deletingStatus === "pending") {
     return (
       <Badge
@@ -102,6 +102,11 @@ const getStatusBadge = (status: ListingStatus, deletingStatus?: string) => {
       variant: "destructive",
       label: "Delisted",
       className: "bg-red-100 text-red-800 hover:bg-red-200",
+    },
+    ENQUIRY_ONLY: {
+      variant: "secondary",
+      label: "Enquiry Only",
+      className: "bg-indigo-100 text-indigo-800 hover:bg-indigo-200",
     },
   };
   const config = variants[status] || { variant: "outline", label: status };
