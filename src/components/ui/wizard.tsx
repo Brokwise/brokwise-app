@@ -30,6 +30,7 @@ interface WizardProps {
   isSubmitting?: boolean;
   canProceed?: boolean;
   isLoading?: boolean;
+  isFormValid?: boolean;
 }
 
 export const Wizard: React.FC<WizardProps> = ({
@@ -46,6 +47,7 @@ export const Wizard: React.FC<WizardProps> = ({
   isSubmitting = false,
   canProceed = true,
   isLoading = false,
+  isFormValid = true,
 }) => {
   const progress = ((currentStep + 1) / steps.length) * 100;
   const isLastStep = currentStep === steps.length - 1;
@@ -146,7 +148,12 @@ export const Wizard: React.FC<WizardProps> = ({
             <Button
               type="button"
               onClick={onSubmit}
-              disabled={isSubmitting || !canProceed || isLoading}
+              disabled={isSubmitting || isLoading}
+              className={cn(
+                !isFormValid && !isSubmitting && !isLoading && canProceed
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              )}
             >
               {isSubmitting || isLoading
                 ? "Processing..."

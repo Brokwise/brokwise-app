@@ -1426,6 +1426,8 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     },
   ];
 
+  const { formState } = form;
+
   return (
     <Form {...form}>
       <Wizard
@@ -1441,6 +1443,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
         isLoading={isLoading}
+        isFormValid={formState.isValid}
       />
     </Form>
   );

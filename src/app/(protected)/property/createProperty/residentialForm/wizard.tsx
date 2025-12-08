@@ -1292,6 +1292,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     },
   ];
 
+  const { formState } = form;
+
   return (
     <Form {...form}>
       <Wizard
@@ -1307,6 +1309,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
         isLoading={isLoading}
+        isFormValid={formState.isValid}
       />
     </Form>
   );

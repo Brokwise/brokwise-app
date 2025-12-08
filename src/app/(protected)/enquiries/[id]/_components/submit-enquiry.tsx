@@ -465,9 +465,14 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                       Cancel
                     </Button>
                     <Button
-                      type="submit"
+                      type="button"
                       onClick={handleExistingSubmit}
-                      disabled={!selectedPropertyId || isSubmittingExisting}
+                      disabled={isSubmittingExisting}
+                      className={cn(
+                        !selectedPropertyId && !isSubmittingExisting
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      )}
                     >
                       {isSubmittingExisting && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

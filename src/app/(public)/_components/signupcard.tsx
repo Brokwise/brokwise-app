@@ -63,8 +63,11 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
       };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues,
   });
+  const { formState, trigger } = form;
+  const { isValid } = formState;
   const createUserInDb = async (
     user: User,
     name: string,
@@ -299,10 +302,16 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
             />
           )}
           <Button
-            type="submit"
-            className="w-full"
+            type="button"
+            className={`w-full ${!isValid && !loading ? "opacity-50 cursor-not-allowed" : ""}`}
             size={"lg"}
             disabled={loading}
+            onClick={async () => {
+              const valid = await trigger();
+              if (valid) {
+                form.handleSubmit(handleSubmit)();
+              }
+            }}
           >
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {isSignup ? "Sign up" : "Login"}

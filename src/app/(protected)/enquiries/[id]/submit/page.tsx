@@ -499,11 +499,16 @@ export default function SubmitEnquiryPage() {
                       </div>
                       <div className="pt-6 border-t mt-4">
                         <Button
-                          type="submit"
-                          className="w-full"
+                          type="button"
+                          className={cn(
+                            "w-full",
+                            !selectedPropertyId && !isSubmittingExisting
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
+                          )}
                           size="lg"
                           onClick={handleExistingSubmit}
-                          disabled={!selectedPropertyId || isSubmittingExisting}
+                          disabled={isSubmittingExisting}
                         >
                           {isSubmittingExisting && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
