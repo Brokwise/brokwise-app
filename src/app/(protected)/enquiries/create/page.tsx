@@ -43,13 +43,13 @@ const budgetRangeSchema = z
   .object({
     min: z
       .number({
-        invalid_type_error: "Please enter a valid minimum budget.",
+        error: "Please enter a valid minimum budget.",
       })
       .min(500000, "Minimum budget must be at least ₹5 lakh.")
       .max(100000000000, "Budget cannot exceed ₹1000 crore."),
     max: z
       .number({
-        invalid_type_error: "Please enter a valid maximum budget.",
+        error: "Please enter a valid maximum budget.",
       })
       .min(500000, "Maximum budget must be at least ₹5 lakh.")
       .max(100000000000, "Budget cannot exceed ₹1000 crore."),
@@ -125,7 +125,7 @@ const createEnquirySchema = z.object({
     .optional(),
   frontRoadWidth: z
     .coerce.number({
-      invalid_type_error: "Please enter a valid road width.",
+      error: "Please enter a valid road width.",
     })
     .min(1, "Road width must be at least 1 ft.")
     .max(500, "Road width cannot exceed 500 ft.")
@@ -134,7 +134,7 @@ const createEnquirySchema = z.object({
   // Residential - Flat
   bhk: z
     .coerce.number({
-      invalid_type_error: "Please enter a valid number of bedrooms.",
+      error: "Please enter a valid number of bedrooms.",
     })
     .int("Bedrooms must be a whole number.")
     .min(1, "Number of bedrooms must be at least 1.")
@@ -142,7 +142,7 @@ const createEnquirySchema = z.object({
     .optional(),
   washrooms: z
     .coerce.number({
-      invalid_type_error: "Please enter a valid number of washrooms.",
+      error: "Please enter a valid number of washrooms.",
     })
     .int("Washrooms must be a whole number.")
     .min(1, "Number of washrooms must be at least 1.")
@@ -154,7 +154,7 @@ const createEnquirySchema = z.object({
   // Commercial - Hotel/Hostel
   rooms: z
     .coerce.number({
-      invalid_type_error: "Please enter a valid number of rooms.",
+      error: "Please enter a valid number of rooms.",
     })
     .int("Rooms must be a whole number.")
     .min(1, "Number of rooms must be at least 1.")
@@ -162,7 +162,7 @@ const createEnquirySchema = z.object({
     .optional(),
   beds: z
     .coerce.number({
-      invalid_type_error: "Please enter a valid number of beds.",
+      error: "Please enter a valid number of beds.",
     })
     .int("Beds must be a whole number.")
     .min(1, "Number of beds must be at least 1.")

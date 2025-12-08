@@ -82,7 +82,7 @@ export const residentialPropertySchema = basePropertySchema
     isPenthouse: z.boolean().optional(),
     bhk: z
       .number({
-        invalid_type_error: "Please enter a valid number of bedrooms.",
+        error: "Please enter a valid number of bedrooms.",
       })
       .int("Bedrooms must be a whole number.")
       .min(1, "Number of bedrooms must be at least 1.")
@@ -90,7 +90,7 @@ export const residentialPropertySchema = basePropertySchema
       .optional(),
     washrooms: z
       .number({
-        invalid_type_error: "Please enter a valid number of washrooms.",
+        error: "Please enter a valid number of washrooms.",
       })
       .int("Washrooms must be a whole number.")
       .min(1, "Number of washrooms must be at least 1.")
@@ -160,7 +160,7 @@ export const commercialPropertySchema = basePropertySchema
     rentalIncome: rentalIncomeSchema.optional(),
     rooms: z
       .number({
-        invalid_type_error: "Please enter a valid number of rooms.",
+        error: "Please enter a valid number of rooms.",
       })
       .int("Rooms must be a whole number.")
       .min(1, "Number of rooms must be at least 1.")
@@ -168,7 +168,7 @@ export const commercialPropertySchema = basePropertySchema
       .optional(),
     beds: z
       .number({
-        invalid_type_error: "Please enter a valid number of beds.",
+        error: "Please enter a valid number of beds.",
       })
       .int("Beds must be a whole number.")
       .min(1, "Number of beds must be at least 1.")
