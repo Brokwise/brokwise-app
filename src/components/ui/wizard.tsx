@@ -141,7 +141,16 @@ export const Wizard: React.FC<WizardProps> = ({
 
         <div className="flex gap-2">
           {!isLastStep ? (
-            <Button type="button" onClick={onNext} disabled={!canProceed}>
+            <Button
+              type="button"
+              onClick={onNext}
+              disabled={!canProceed}
+              className={cn(
+                !isFormValid && canProceed
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              )}
+            >
               Next
             </Button>
           ) : (
