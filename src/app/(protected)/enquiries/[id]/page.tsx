@@ -21,7 +21,7 @@ import {
   IndianRupee,
   DoorOpen,
   LayoutGrid,
-  ExternalLink,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,12 +39,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { ReceivedProperties } from "./_components/received-properties";
 import { AdminMessages } from "./_components/admin-messages";
+import { PropertyPreviewModal } from "./_components/PropertyPreviewModal";
 import { formatCurrencyEnquiry, getStatusColor } from "@/utils/helper";
 
 const SingleEnquiry = () => {
   const { id } = useParams();
   // const { userData } = useApp();
   const [confirmationText, setConfirmationText] = useState<string>("");
+  const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const router = useRouter();
   const { enquiry, isPending, error } = useGetEnquiryById(id as string);
   const { myEnquiries } = useGetMyEnquiries();
@@ -363,15 +366,15 @@ const SingleEnquiry = () => {
                           variant="outline"
                           size="sm"
                           className="w-full h-8 text-xs"
-                          onClick={() =>
-                            window.open(
-                              `/property/${submission.propertyId?._id}`,
-                              "_blank"
-                            )
-                          }
+                          onClick={() => {
+                            if (submission.propertyId?._id) {
+                              setPreviewPropertyId(submission.propertyId._id);
+                              setIsPreviewOpen(true);
+                            }
+                          }}
                           disabled={!submission.propertyId?._id}
                         >
-                          <ExternalLink className="h-3 w-3 mr-1.5" />
+                          
                           View Property
                         </Button>
                       </CardContent>
@@ -427,6 +430,13 @@ const SingleEnquiry = () => {
           )}
         </div>
       </div>
+
+      {/* Property Preview Modal */}
+      <PropertyPreviewModal
+        propertyId={previewPropertyId}
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+      />
     </div>
   );
 };
