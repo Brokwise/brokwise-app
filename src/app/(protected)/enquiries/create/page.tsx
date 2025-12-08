@@ -213,6 +213,7 @@ const CreateEnquiryPage = () => {
   const form = useForm<CreateEnquiryFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createEnquirySchema) as any,
+    mode: "onChange",
     defaultValues: {
       city: "",
       localities: [],
@@ -221,7 +222,8 @@ const CreateEnquiryPage = () => {
     },
   });
 
-  const { watch, setValue, control } = form;
+  const { watch, setValue, control, formState, trigger } = form;
+  const { isValid } = formState;
   const selectedCategory = watch("enquiryCategory");
   const selectedType = watch("enquiryType");
 
@@ -859,7 +861,21 @@ const CreateEnquiryPage = () => {
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={isPending}>
+              <Button
+                type="button"
+                className={`w-full ${
+                  !isValid && !isPending
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                disabled={isPending}
+                onClick={async () => {
+                  const valid = await trigger();
+                  if (valid) {
+                    form.handleSubmit(onSubmit)();
+                  }
+                }}
+              >
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create Enquiry
               </Button>
