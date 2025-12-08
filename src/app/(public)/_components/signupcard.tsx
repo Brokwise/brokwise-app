@@ -36,21 +36,10 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
   }>({});
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const formSchema = z.union([loginFormSchema, signupFormSchema]).refine(
-    (data) => {
-      if (isSignup) {
-        return (
-          data.password ===
-          (data as z.infer<typeof signupFormSchema>).confirmPassword
-        );
-      }
-      return true;
-    },
-    {
-      message: "Passwords do not match",
-      path: ["confirmPassword"],
-    }
-  );
+  const formSchema = isSignup ? signupFormSchema : loginFormSchema;
+  type FormSchemaType =
+    | z.infer<typeof signupFormSchema>
+    | z.infer<typeof loginFormSchema>;
   const defaultValues = isSignup
     ? {
         email: "",
@@ -61,7 +50,7 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         email: "",
         password: "",
       };
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     mode: "onChange",
     defaultValues,
@@ -85,7 +74,7 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
       });
     }
   };
-  const handleSubmit = async (data: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (data: FormSchemaType) => {
     try {
       setLoading(true);
 
