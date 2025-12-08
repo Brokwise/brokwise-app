@@ -7,6 +7,57 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, MapPin, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PropertyPreviewModal } from "./PropertyPreviewModal";
+import { EnquirySubmission } from "@/models/types/enquiry";
+import { Property } from "@/types/property";
+
+// Helper to check if value is a populated Property object
+const isPopulatedProperty = (value: unknown): value is Property => {
+  return value !== null && value !== undefined && typeof value === 'object' && '_id' in value;
+};
+
+// Extended submission type to handle potential API variations
+type SubmissionWithProperty = EnquirySubmission & {
+  property?: Property | string;
+};
+
+// Helper to get the property ID string from submission
+const getPropertyId = (submission: EnquirySubmission): string | null => {
+  const sub = submission as SubmissionWithProperty;
+  
+  // Debug logging to understand what's coming from API
+  console.log('Full submission keys:', Object.keys(sub));
+  console.log('Submission propertyId:', sub.propertyId, 'Type:', typeof sub.propertyId);
+  console.log('Submission property:', sub.property, 'Type:', typeof sub.property);
+  
+  // Try propertyId field first
+  if (sub.propertyId) {
+    if (typeof sub.propertyId === 'string') return sub.propertyId;
+    if (isPopulatedProperty(sub.propertyId)) return sub.propertyId._id;
+    // Check for 'id' instead of '_id'
+    if (typeof sub.propertyId === 'object' && 'id' in sub.propertyId) {
+      return (sub.propertyId as unknown as { id: string }).id;
+    }
+  }
+  
+  // Try 'property' field as fallback (API might use this name)
+  if (sub.property) {
+    if (typeof sub.property === 'string') return sub.property;
+    if (isPopulatedProperty(sub.property)) return sub.property._id;
+    if (typeof sub.property === 'object' && 'id' in sub.property) {
+      return (sub.property as unknown as { id: string }).id;
+    }
+  }
+  
+  return null;
+};
+
+// Helper to get populated property object
+const getPopulatedProperty = (submission: EnquirySubmission): Property | null => {
+  const sub = submission as SubmissionWithProperty;
+  if (isPopulatedProperty(sub.propertyId)) return sub.propertyId;
+  if (isPopulatedProperty(sub.property)) return sub.property;
+  return null;
+};
 
 export const ReceivedProperties = ({
   id,
@@ -59,59 +110,72 @@ export const ReceivedProperties = ({
       </div>
 
       <div className="space-y-3">
-        {receivedProperties.map((submission) => (
-          <Card
-            key={submission._id}
-            className="overflow-hidden transition-all hover:shadow-md"
-          >
-            <CardHeader className="p-3 bg-muted/30 pb-2">
-              <div className="flex justify-between items-start gap-2">
-                <CardTitle className="text-sm font-medium line-clamp-1 leading-tight">
-                  {submission.propertyId?.propertyTitle ||
-                    "Property Title Unavailable"}
-                </CardTitle>
-                <Badge
-                  variant={
-                    submission.status === "pending" ? "outline" : "default"
-                  }
-                  className="text-[10px] h-5 px-1.5"
-                >
-                  {submission.status}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="p-3 pt-2 space-y-2">
-              <div className="flex items-center text-xs text-muted-foreground">
-                <MapPin className="h-3 w-3 mr-1" />
-                <span className="truncate">
-                  {submission.propertyId?.address?.city || "Unknown Location"}
-                </span>
-              </div>
-
-              {submission.privateMessage && (
-                <div className="bg-muted/20 p-2 rounded text-xs text-muted-foreground italic">
-                  &quot;{submission.privateMessage}&quot;
+        {receivedProperties.map((submission) => {
+          // Debug: Log full submission to see all fields
+          console.log('=== SUBMISSION DEBUG ===');
+          console.log('Full submission object:', JSON.stringify(submission, null, 2));
+          
+          const propertyIdStr = getPropertyId(submission);
+          const property = getPopulatedProperty(submission);
+          
+          console.log('Resolved propertyIdStr:', propertyIdStr);
+          console.log('Button disabled?:', !propertyIdStr);
+          console.log('=== END DEBUG ===');
+          
+          return (
+            <Card
+              key={submission._id}
+              className="overflow-hidden transition-all hover:shadow-md"
+            >
+              <CardHeader className="p-3 bg-muted/30 pb-2">
+                <div className="flex justify-between items-start gap-2">
+                  <CardTitle className="text-sm font-medium line-clamp-1 leading-tight">
+                    {property?.propertyTitle || "View Property Details"}
+                  </CardTitle>
+                  <Badge
+                    variant={
+                      submission.status === "pending" ? "outline" : "default"
+                    }
+                    className="text-[10px] h-5 px-1.5"
+                  >
+                    {submission.status}
+                  </Badge>
                 </div>
-              )}
+              </CardHeader>
+              <CardContent className="p-3 pt-2 space-y-2">
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <MapPin className="h-3 w-3 mr-1" />
+                  <span className="truncate">
+                    {property?.address?.city || "Click to view location"}
+                  </span>
+                </div>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full h-7 text-xs mt-1"
-                onClick={() => {
-                  if (submission.propertyId?._id) {
-                    setPreviewPropertyId(submission.propertyId._id);
-                    setIsPreviewOpen(true);
-                  }
-                }}
-                disabled={!submission.propertyId?._id}
-              >
-                <Eye className="h-3 w-3 mr-1.5" />
-                View Property
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+                {submission.privateMessage && (
+                  <div className="bg-muted/20 p-2 rounded text-xs text-muted-foreground italic">
+                    &quot;{submission.privateMessage}&quot;
+                  </div>
+                )}
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full h-7 text-xs mt-1"
+                  onClick={() => {
+                    console.log('Button clicked! propertyIdStr:', propertyIdStr);
+                    if (propertyIdStr) {
+                      setPreviewPropertyId(propertyIdStr);
+                      setIsPreviewOpen(true);
+                    }
+                  }}
+                  disabled={!propertyIdStr}
+                >
+                  <Eye className="h-3 w-3 mr-1.5" />
+                  View Property {!propertyIdStr && "(No ID)"}
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Property Preview Modal */}

@@ -112,8 +112,8 @@ export interface EnquirySubmission {
   enquiryId: string;
   brokerId: string;
 
-  // Property Reference
-  propertyId: Property;
+  // Property Reference - can be populated object or just ObjectId string
+  propertyId: Property | string;
 
   // Communication
   privateMessage?: string;

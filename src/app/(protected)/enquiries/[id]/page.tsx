@@ -8,6 +8,8 @@ import {
   useGetMyEnquiries,
   useCloseEnquiry,
 } from "@/hooks/useEnquiry";
+import { EnquirySubmission } from "@/models/types/enquiry";
+import { Property } from "@/types/property";
 import {
   Loader2,
   MapPin,
@@ -40,6 +42,19 @@ import { ReceivedProperties } from "./_components/received-properties";
 import { AdminMessages } from "./_components/admin-messages";
 import { PropertyPreviewModal } from "./_components/PropertyPreviewModal";
 import { formatCurrencyEnquiry, getStatusColor, formatPrice } from "@/utils/helper";
+
+// Helper to check if propertyId is a populated Property object or just a string ID
+const isPopulatedProperty = (propertyId: Property | string | undefined | null): propertyId is Property => {
+  return propertyId !== null && propertyId !== undefined && typeof propertyId === 'object' && '_id' in propertyId;
+};
+
+// Helper to get the property ID string from either a Property object or string
+const getPropertyId = (submission: EnquirySubmission): string | null => {
+  if (!submission.propertyId) return null;
+  if (typeof submission.propertyId === 'string') return submission.propertyId;
+  if (isPopulatedProperty(submission.propertyId)) return submission.propertyId._id;
+  return null;
+};
 
 const SingleEnquiry = () => {
   const { id } = useParams();
@@ -311,72 +326,76 @@ const SingleEnquiry = () => {
 
               {enquirySubmissions && enquirySubmissions.length > 0 ? (
                 <div className="space-y-3">
-                  {enquirySubmissions.map((submission) => (
-                    <Card key={submission._id}>
-                      <CardHeader className="pb-2 p-4">
-                        <div className="flex justify-between items-start gap-2">
-                          <div className="min-w-0">
-                            <CardTitle className="text-base line-clamp-1">
-                              {submission.propertyId?.propertyTitle ||
-                                submission.propertyId?.address?.city ||
-                                "Property"}
-                            </CardTitle>
-                            <div className="flex items-center text-xs text-muted-foreground mt-1">
-                              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                              <span className="truncate">
-                                {submission.propertyId?.address?.city ||
-                                  "Unknown Location"}
-                              </span>
+                  {enquirySubmissions.map((submission) => {
+                    const propertyIdStr = getPropertyId(submission);
+                    const property = isPopulatedProperty(submission.propertyId) ? submission.propertyId : null;
+                    
+                    return (
+                      <Card key={submission._id}>
+                        <CardHeader className="pb-2 p-4">
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="min-w-0">
+                              <CardTitle className="text-base line-clamp-1">
+                                {property?.propertyTitle ||
+                                  property?.address?.city ||
+                                  "View Property Details"}
+                              </CardTitle>
+                              <div className="flex items-center text-xs text-muted-foreground mt-1">
+                                <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                                <span className="truncate">
+                                  {property?.address?.city ||
+                                    "Click to view location"}
+                                </span>
+                              </div>
                             </div>
+                            <Badge
+                              variant={
+                                submission.status === "pending"
+                                  ? "outline"
+                                  : "secondary"
+                              }
+                              className="flex-shrink-0"
+                            >
+                              {submission.status}
+                            </Badge>
                           </div>
-                          <Badge
-                            variant={
-                              submission.status === "pending"
-                                ? "outline"
-                                : "secondary"
-                            }
-                            className="flex-shrink-0"
+                        </CardHeader>
+                        <CardContent className="p-4 pt-0 space-y-3">
+                          {property?.totalPrice && (
+                            <div className="font-medium text-sm text-primary">
+                              ₹
+                              {formatPrice(property.totalPrice)}
+                            </div>
+                          )}
+
+                          {submission.privateMessage ? (
+                            <div className="bg-muted/30 p-2 rounded text-sm text-muted-foreground italic border border-dashed">
+                              &quot;{submission.privateMessage}&quot;
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground/60 italic">
+                              No message attached
+                            </p>
+                          )}
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full h-8 text-xs"
+                            onClick={() => {
+                              if (propertyIdStr) {
+                                setPreviewPropertyId(propertyIdStr);
+                                setIsPreviewOpen(true);
+                              }
+                            }}
+                            disabled={!propertyIdStr}
                           >
-                            {submission.status}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-4 pt-0 space-y-3">
-                        {submission.propertyId?.totalPrice && (
-                          <div className="font-medium text-sm text-primary">
-                            ₹
-                            {formatPrice(submission.propertyId.totalPrice)}
-                          </div>
-                        )}
-
-                        {submission.privateMessage ? (
-                          <div className="bg-muted/30 p-2 rounded text-sm text-muted-foreground italic border border-dashed">
-                            &quot;{submission.privateMessage}&quot;
-                          </div>
-                        ) : (
-                          <p className="text-xs text-muted-foreground/60 italic">
-                            No message attached
-                          </p>
-                        )}
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full h-8 text-xs"
-                          onClick={() => {
-                            if (submission.propertyId?._id) {
-                              setPreviewPropertyId(submission.propertyId._id);
-                              setIsPreviewOpen(true);
-                            }
-                          }}
-                          disabled={!submission.propertyId?._id}
-                        >
-
-                          View Property
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
+                            View Property
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               ) : null}
 
