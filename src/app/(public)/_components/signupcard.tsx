@@ -63,21 +63,18 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
       };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues,
   });
-  const createUserInDb = async (
-    user: User,
-    name: string,
-    sendWelcomeEmail: boolean = true
-  ) => {
+  const { formState, trigger } = form;
+  const { isValid } = formState;
+  const createUserInDb = async (user: User, name: string) => {
     const isFirstTimeUser =
       user.metadata.creationTime === user.metadata.lastSignInTime;
     if (isFirstTimeUser) {
       await createUser({
-        fullName: user.displayName ?? name ?? "",
         email: user.email ?? "",
         uid: user.uid ?? "",
-        sendWelcomeEmail: sendWelcomeEmail ? "true" : "false",
       });
       const userDoc = getUserDoc(user.uid);
       await setUserDoc(userDoc, {
@@ -100,7 +97,7 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         throw error;
       });
       if (isSignup) {
-        await createUserInDb(user, "", false);
+        await createUserInDb(user, "");
         await sendVerificatinLink(user);
       } else {
         if (!user.emailVerified) {
@@ -299,10 +296,16 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
             />
           )}
           <Button
-            type="submit"
-            className="w-full"
+            type="button"
+            className={`w-full ${!isValid && !loading ? "opacity-50 cursor-not-allowed" : ""}`}
             size={"lg"}
             disabled={loading}
+            onClick={async () => {
+              const valid = await trigger();
+              if (valid) {
+                form.handleSubmit(handleSubmit)();
+              }
+            }}
           >
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {isSignup ? "Sign up" : "Login"}

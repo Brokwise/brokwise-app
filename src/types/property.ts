@@ -58,7 +58,8 @@ export type ListingStatus =
   | "SOLD"
   | "RENTED"
   | "EXPIRED"
-  | "DELISTED";
+  | "DELISTED"
+  | "ENQUIRY_ONLY"; // Properties submitted directly to enquiries - not in marketplace
 
 export type PossessionStatus = "READY_TO_MOVE" | "UNDER_CONSTRUCTION";
 
@@ -70,8 +71,8 @@ export interface GeoLocation {
 }
 
 export interface RentalIncome {
-  amount: number;
-  period: string;
+  min: number;
+  max: number;
 }
 
 export interface Broker {
@@ -173,5 +174,8 @@ export interface Property {
   // Timestamps
   createdAt: string;
   updatedAt: string;
-  deletingStatus?: "pending" | "approved" | "rejected";
+  deletingStatus?: "pending" | "approved" | "rejected" | null;
+
+  // For ENQUIRY_ONLY properties - link to the enquiry it was submitted for
+  submittedForEnquiryId?: string;
 }

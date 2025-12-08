@@ -44,7 +44,6 @@ const GoogleOauthPage = () => {
         return;
       }
       await createUser({
-        fullName: user.displayName ?? "",
         email: user.email ?? "",
         uid: user.uid ?? "",
       });

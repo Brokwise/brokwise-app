@@ -1,10 +1,12 @@
+"use client";
+
 import { useGetReceivedProperties } from "@/hooks/useEnquiry";
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MapPin, ExternalLink } from "lucide-react";
+import { Loader2, MapPin, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { PropertyPreviewModal } from "./PropertyPreviewModal";
 
 export const ReceivedProperties = ({
   id,
@@ -13,7 +15,8 @@ export const ReceivedProperties = ({
   id: string;
   isMyEnquiry: boolean;
 }) => {
-  const router = useRouter();
+  const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const { receivedProperties, isPending, error } = useGetReceivedProperties(
     id as string,
@@ -95,18 +98,28 @@ export const ReceivedProperties = ({
                 variant="ghost"
                 size="sm"
                 className="w-full h-7 text-xs mt-1"
-                onClick={() =>
-                  router.push(`/property/${submission.propertyId?._id}`)
-                }
+                onClick={() => {
+                  if (submission.propertyId?._id) {
+                    setPreviewPropertyId(submission.propertyId._id);
+                    setIsPreviewOpen(true);
+                  }
+                }}
                 disabled={!submission.propertyId?._id}
               >
-                <ExternalLink className="h-3 w-3 mr-1.5" />
+                <Eye className="h-3 w-3 mr-1.5" />
                 View Property
               </Button>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {/* Property Preview Modal */}
+      <PropertyPreviewModal
+        propertyId={previewPropertyId}
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+      />
     </div>
   );
 };

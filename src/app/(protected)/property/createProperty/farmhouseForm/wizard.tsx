@@ -969,6 +969,8 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
     },
   ];
 
+  const { formState } = form;
+
   return (
     <Form {...form}>
       <Wizard
@@ -983,6 +985,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
         isLoading={isLoading}
+        isFormValid={formState.isValid}
       />
     </Form>
   );

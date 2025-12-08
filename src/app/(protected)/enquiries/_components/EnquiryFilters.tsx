@@ -15,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { sanitizeIntegerInput } from "@/utils/helper";
 
 export interface FilterState {
   search: string;
@@ -117,21 +118,23 @@ export const EnquiryFilters = ({
                   </p>
                   <div className="flex items-center gap-2">
                     <Input
-                      type="number"
-                      placeholder="Min"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="Min (₹5L)"
                       value={filters.minBudget}
                       onChange={(e) =>
-                        onFilterChange("minBudget", e.target.value)
+                        onFilterChange("minBudget", sanitizeIntegerInput(e.target.value))
                       }
                       className="h-8"
                     />
                     <span className="text-muted-foreground">-</span>
                     <Input
-                      type="number"
-                      placeholder="Max"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="Max (₹1000Cr)"
                       value={filters.maxBudget}
                       onChange={(e) =>
-                        onFilterChange("maxBudget", e.target.value)
+                        onFilterChange("maxBudget", sanitizeIntegerInput(e.target.value))
                       }
                       className="h-8"
                     />

@@ -17,7 +17,7 @@ import {
   useSubmitFreshProperty,
 } from "@/hooks/useEnquiry";
 import { cn } from "@/lib/utils";
-import { Check, Loader2, MapPin, Plus } from "lucide-react";
+import { Check, Loader2, MapPin, Plus, ExternalLink } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
@@ -26,6 +26,7 @@ import { AxiosError } from "axios";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResidentialWizard } from "@/app/(protected)/property/createProperty/residentialForm/wizard";
 import { CommercialWizard } from "@/app/(protected)/property/createProperty/commercialForm/wizard";
+import { PropertyPreviewModal } from "./PropertyPreviewModal";
 
 type View = "select" | "create" | "message";
 
@@ -45,6 +46,10 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
     any
   > | null>(null);
   const [view, setView] = useState<View>("select"); // 'select' includes 'create' wizard view when tab is 'new'
+  const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(
+    null
+  );
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const { submitPropertyToEnquiry, isPending: isSubmittingExisting } =
     useSubmitPropertyToEnquiry();
@@ -55,11 +60,13 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
   const handleExistingSubmit = async () => {
     if (!selectedPropertyId) return;
 
+    const trimmedMessage = message.trim();
+
     submitPropertyToEnquiry(
       {
         enquiryId: enquiry._id,
         propertyId: selectedPropertyId as string,
-        privateMessage: message,
+        privateMessage: trimmedMessage || undefined,
       },
       {
         onSuccess: () => {
@@ -81,12 +88,14 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
   const handleFreshPropertySubmit = async () => {
     if (!freshPropertyData) return;
 
+    const trimmedMessage = message.trim();
+
     submitFreshProperty(
       {
         enquiryId: enquiry._id,
         payload: {
           ...freshPropertyData,
-          privateMessage: message,
+          privateMessage: trimmedMessage || undefined,
         },
       },
       {
@@ -252,13 +261,18 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
             </div>
 
             <div className="">
-              <label className="text-sm font-medium mb-1.5 block">
-                Private Message (Required)
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-medium">Proposal Message</label>
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                  Optional
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-2">
+                Add a personalized note for the enquirer.
+              </p>
               <Textarea
                 placeholder="Add a note about why this property is a good fit..."
                 value={message}
-                minLength={5}
                 maxLength={1000}
                 onChange={(e) => setMessage(e.target.value)}
                 className="resize-none min-h-[120px]"
@@ -278,7 +292,7 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
               </Button>
               <Button
                 onClick={handleFreshPropertySubmit}
-                disabled={message.length < 5 || isSubmittingFresh}
+                disabled={isSubmittingFresh}
               >
                 {isSubmittingFresh && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -324,33 +338,59 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                               <div
                                 key={property._id}
                                 onClick={() =>
-                                  setSelectedPropertyId(property._id)
+                                  setSelectedPropertyId((prev) =>
+                                    prev === property._id ? null : property._id
+                                  )
                                 }
                                 className={cn(
-                                  "relative p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 hover:bg-muted/50",
+                                  "relative p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 hover:bg-muted/50 text-left",
                                   isSelected
                                     ? "border-primary bg-primary/5 ring-1 ring-primary"
                                     : "bg-card shadow-sm border-muted"
                                 )}
                               >
-                                {isSelected && (
-                                  <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
-                                    <Check className="h-3 w-3" />
-                                  </div>
-                                )}
                                 <div className="space-y-2">
-                                  <div className="flex items-start justify-between pr-6">
-                                    <h4
-                                      className="font-semibold leading-tight line-clamp-1"
-                                      title={
-                                        property.propertyTitle ||
-                                        "Untitled Property"
-                                      }
-                                    >
-                                      {property.propertyTitle ||
-                                        "Untitled Property"}
-                                    </h4>
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                      <h4
+                                        className="font-semibold leading-tight line-clamp-1"
+                                        title={
+                                          property.propertyTitle ||
+                                          "Untitled Property"
+                                        }
+                                      >
+                                        {property.propertyTitle ||
+                                          "Untitled Property"}
+                                      </h4>
+                                      <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                        <MapPin className="h-3 w-3" />
+                                        <span className="truncate">
+                                          {property.address?.city || "Unknown City"}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        variant="secondary"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-full shadow-sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setPreviewPropertyId(property._id);
+                                          setIsPreviewOpen(true);
+                                        }}
+                                        title="Quick preview"
+                                      >
+                                        <ExternalLink className="h-3.5 w-3.5" />
+                                      </Button>
+                                      {isSelected && (
+                                        <div className="bg-primary text-primary-foreground rounded-full p-1">
+                                          <Check className="h-3 w-3" />
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
+
                                   <div className="flex flex-wrap gap-2">
                                     <Badge
                                       variant="outline"
@@ -365,17 +405,26 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                                       {property.propertyCategory}
                                     </Badge>
                                   </div>
-                                  <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <MapPin className="h-3 w-3" />
-                                    <span className="truncate">
-                                      {property.address?.city || "Unknown City"}
-                                    </span>
-                                  </div>
-                                  <div className="font-medium text-sm text-primary">
-                                    ₹
-                                    {property.totalPrice?.toLocaleString(
-                                      "en-IN"
-                                    ) || "Price on Request"}
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div className="font-medium text-sm text-primary">
+                                      ₹
+                                      {property.totalPrice?.toLocaleString(
+                                        "en-IN"
+                                      ) || "Price on Request"}
+                                    </div>
+                                    <Button
+                                      variant="secondary"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full shadow-sm md:hidden"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setPreviewPropertyId(property._id);
+                                        setIsPreviewOpen(true);
+                                      }}
+                                      title="Quick preview"
+                                    >
+                                      <ExternalLink className="h-3.5 w-3.5" />
+                                    </Button>
                                   </div>
                                 </div>
                               </div>
@@ -387,17 +436,28 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                   </div>
 
                   <div className="">
-                    <label className="text-sm font-medium mb-1.5 block">
-                      Private Message
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-medium">
+                        Proposal Message
+                      </label>
+                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                        Optional
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Add a personalized note for the enquirer.
+                    </p>
                     <Textarea
                       placeholder="Add a note about why this property is a good fit..."
                       value={message}
-                      minLength={10}
+                      maxLength={1000}
                       onChange={(e) => setMessage(e.target.value)}
                       className="resize-none"
                       rows={3}
                     />
+                    <p className="text-xs text-muted-foreground text-right mt-1">
+                      {message.length}/1000
+                    </p>
                   </div>
 
                   <DialogFooter>
@@ -405,9 +465,14 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                       Cancel
                     </Button>
                     <Button
-                      type="submit"
+                      type="button"
                       onClick={handleExistingSubmit}
-                      disabled={!selectedPropertyId || isSubmittingExisting}
+                      disabled={isSubmittingExisting}
+                      className={cn(
+                        !selectedPropertyId && !isSubmittingExisting
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      )}
                     >
                       {isSubmittingExisting && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -447,6 +512,16 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
           </Tabs>
         )}
       </DialogContent>
+      <PropertyPreviewModal
+        propertyId={previewPropertyId}
+        open={isPreviewOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPreviewPropertyId(null);
+          }
+          setIsPreviewOpen(open);
+        }}
+      />
     </Dialog>
   );
 };

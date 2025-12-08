@@ -932,6 +932,8 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
     },
   ];
 
+  const { formState } = form;
+
   return (
     <Form {...form}>
       <Wizard
@@ -946,6 +948,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
         isLoading={isLoading}
+        isFormValid={formState.isValid}
       />
     </Form>
   );

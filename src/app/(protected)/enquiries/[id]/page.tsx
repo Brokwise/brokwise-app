@@ -38,12 +38,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { ReceivedProperties } from "./_components/received-properties";
 import { AdminMessages } from "./_components/admin-messages";
-import { formatCurrencyEnquiry, getStatusColor } from "@/utils/helper";
+import { PropertyPreviewModal } from "./_components/PropertyPreviewModal";
+import { formatCurrencyEnquiry, getStatusColor, formatPrice } from "@/utils/helper";
 
 const SingleEnquiry = () => {
   const { id } = useParams();
   // const { userData } = useApp();
   const [confirmationText, setConfirmationText] = useState<string>("");
+  const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const router = useRouter();
   const { enquiry, isPending, error } = useGetEnquiryById(id as string);
   const { myEnquiries } = useGetMyEnquiries();
@@ -310,26 +313,67 @@ const SingleEnquiry = () => {
                 <div className="space-y-3">
                   {enquirySubmissions.map((submission) => (
                     <Card key={submission._id}>
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-base">
-                            {submission.propertyId?.address?.city || "Property"}
-                          </CardTitle>
+                      <CardHeader className="pb-2 p-4">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="min-w-0">
+                            <CardTitle className="text-base line-clamp-1">
+                              {submission.propertyId?.propertyTitle ||
+                                submission.propertyId?.address?.city ||
+                                "Property"}
+                            </CardTitle>
+                            <div className="flex items-center text-xs text-muted-foreground mt-1">
+                              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                              <span className="truncate">
+                                {submission.propertyId?.address?.city ||
+                                  "Unknown Location"}
+                              </span>
+                            </div>
+                          </div>
                           <Badge
                             variant={
                               submission.status === "pending"
                                 ? "outline"
                                 : "secondary"
                             }
+                            className="flex-shrink-0"
                           >
                             {submission.status}
                           </Badge>
                         </div>
                       </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {submission.privateMessage || "No message"}
-                        </p>
+                      <CardContent className="p-4 pt-0 space-y-3">
+                        {submission.propertyId?.totalPrice && (
+                          <div className="font-medium text-sm text-primary">
+                            ₹
+                            {formatPrice(submission.propertyId.totalPrice)}
+                          </div>
+                        )}
+
+                        {submission.privateMessage ? (
+                          <div className="bg-muted/30 p-2 rounded text-sm text-muted-foreground italic border border-dashed">
+                            &quot;{submission.privateMessage}&quot;
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground/60 italic">
+                            No message attached
+                          </p>
+                        )}
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full h-8 text-xs"
+                          onClick={() => {
+                            if (submission.propertyId?._id) {
+                              setPreviewPropertyId(submission.propertyId._id);
+                              setIsPreviewOpen(true);
+                            }
+                          }}
+                          disabled={!submission.propertyId?._id}
+                        >
+
+                          View Property
+                        </Button>
                       </CardContent>
                     </Card>
                   ))}
@@ -372,8 +416,8 @@ const SingleEnquiry = () => {
 
           {/* Admin Messages */}
           {!isMyEnquiry &&
-          enquirySubmissions &&
-          enquirySubmissions.length === 0 ? (
+            enquirySubmissions &&
+            enquirySubmissions.length === 0 ? (
             <p>
               No submissions yet, to view admin messages please submit a
               property
@@ -383,6 +427,13 @@ const SingleEnquiry = () => {
           )}
         </div>
       </div>
+
+      {/* Property Preview Modal */}
+      <PropertyPreviewModal
+        propertyId={previewPropertyId}
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+      />
     </div>
   );
 };

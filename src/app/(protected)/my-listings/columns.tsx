@@ -32,9 +32,9 @@ import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
-import { formatAddress } from "@/utils/helper";
+import { formatAddress, formatPrice } from "@/utils/helper";
 
-const getStatusBadge = (status: ListingStatus, deletingStatus?: string) => {
+const getStatusBadge = (status: ListingStatus, deletingStatus?: string | null) => {
   if (deletingStatus === "pending") {
     return (
       <Badge
@@ -103,6 +103,11 @@ const getStatusBadge = (status: ListingStatus, deletingStatus?: string) => {
       label: "Delisted",
       className: "bg-red-100 text-red-800 hover:bg-red-200",
     },
+    ENQUIRY_ONLY: {
+      variant: "secondary",
+      label: "Enquiry Only",
+      className: "bg-indigo-100 text-indigo-800 hover:bg-indigo-200",
+    },
   };
   const config = variants[status] || { variant: "outline", label: status };
 
@@ -116,13 +121,8 @@ const getStatusBadge = (status: ListingStatus, deletingStatus?: string) => {
   );
 };
 
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(price);
-};
+// formatPrice is imported from utils
+
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);

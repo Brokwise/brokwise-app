@@ -40,9 +40,8 @@ export const Verification = () => {
             );
             const fullName = user.displayName ?? pendingName ?? "";
 
-            // Create user in database (this will also send welcome email)
+            // Create user in database
             await createUser({
-              fullName,
               email: user.email ?? "",
               uid: user.uid ?? "",
             });

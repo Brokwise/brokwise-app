@@ -116,7 +116,7 @@ export interface EnquirySubmission {
   propertyId: Property;
 
   // Communication
-  privateMessage: string;
+  privateMessage?: string;
 
   // Review Status
   status: SubmissionStatus;

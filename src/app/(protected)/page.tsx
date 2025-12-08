@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import Fuse from "fuse.js";
+import { formatIndianNumber } from "@/utils/helper";
 
 const ProtectedPage = () => {
   const { properties, isLoading, error } = useGetAllProperties();
@@ -141,7 +142,7 @@ const ProtectedPage = () => {
     } else if (price >= 100000) {
       return `₹${(price / 100000).toFixed(1)} L`;
     } else {
-      return `₹${price.toLocaleString()}`;
+      return `${formatIndianNumber(price)}`;
     }
   };
 
@@ -167,9 +168,8 @@ const ProtectedPage = () => {
 
   return (
     <div
-      className={`container mx-auto p-6 px-80 space-y-6 ${
-        view === "split" ? "h-[calc(100vh-100px)] overflow-hidden" : ""
-      }`}
+      className={`container mx-auto p-6 px-80 space-y-6 ${view === "split" ? "h-[calc(100vh-100px)] overflow-hidden" : ""
+        }`}
     >
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>

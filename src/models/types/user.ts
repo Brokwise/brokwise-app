@@ -1,8 +1,6 @@
 export type CreateUserRequest = {
-  fullName: string;
   email: string;
   uid: string;
-  sendWelcomeEmail?: string;
 };
 export type CreateUserResponse = Record<PropertyKey, never>;
 export type AddUserMetadataRequest = {

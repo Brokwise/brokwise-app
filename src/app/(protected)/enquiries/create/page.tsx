@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -34,16 +35,27 @@ import {
   PropertyType,
 } from "@/models/types/property";
 import { CreateEnquiryDTO } from "@/models/types/enquiry";
+import { parseIntegerOrUndefined, parseIntegerWithMax } from "@/utils/helper";
 
 // --- Zod Schema ---
 
 const budgetRangeSchema = z
   .object({
-    min: z.number().min(0, "Minimum budget cannot be negative"),
-    max: z.number().min(0, "Maximum budget cannot be negative"),
+    min: z
+      .number({
+        error: "Please enter a valid minimum budget.",
+      })
+      .min(500000, "Minimum budget must be at least ₹5 lakh.")
+      .max(100000000000, "Budget cannot exceed ₹1000 crore."),
+    max: z
+      .number({
+        error: "Please enter a valid maximum budget.",
+      })
+      .min(500000, "Maximum budget must be at least ₹5 lakh.")
+      .max(100000000000, "Budget cannot exceed ₹1000 crore."),
   })
   .refine((data) => data.max >= data.min, {
-    message: "Max budget must be greater than or equal to min budget",
+    message: "Max budget must be greater than or equal to min budget.",
     path: ["max"],
   });
 
@@ -81,14 +93,17 @@ const createEnquirySchema = z.object({
     .array(z.string())
     .min(1, "At least one locality is required")
     .max(10, "Maximum 10 localities allowed"),
-  enquiryCategory: z.enum([
-    "RESIDENTIAL",
-    "COMMERCIAL",
-    "INDUSTRIAL",
-    "AGRICULTURAL",
-    "RESORT",
-    "FARM_HOUSE",
-  ] as [string, ...string[]]),
+  enquiryCategory: z.enum(
+    [
+      "RESIDENTIAL",
+      "COMMERCIAL",
+      "INDUSTRIAL",
+      "AGRICULTURAL",
+      "RESORT",
+      "FARM_HOUSE",
+    ] as [string, ...string[]],
+    { error: "Please select a valid category" }
+  ),
   enquiryType: z.string().min(1, "Property Type is required"), // Narrowed down in UI based on Category
   budget: budgetRangeSchema,
   description: z
@@ -111,17 +126,51 @@ const createEnquirySchema = z.object({
       "SOUTH_WEST",
     ] as [string, ...string[]])
     .optional(),
-  frontRoadWidth: z.coerce.number().min(1).max(500).optional(),
+  frontRoadWidth: z
+    .coerce.number({
+      error: "Please enter a valid road width.",
+    })
+    .min(1, "Road width must be at least 1 ft.")
+    .max(500, "Road width cannot exceed 500 ft.")
+    .optional(),
 
   // Residential - Flat
-  bhk: z.coerce.number().int().min(1).max(20).optional(),
-  washrooms: z.coerce.number().int().min(1).max(20).optional(),
+  bhk: z
+    .coerce.number({
+      error: "Please enter a valid number of bedrooms.",
+    })
+    .int("Bedrooms must be a whole number.")
+    .min(1, "Number of bedrooms must be at least 1.")
+    .max(20, "Bedrooms cannot exceed 20.")
+    .optional(),
+  washrooms: z
+    .coerce.number({
+      error: "Please enter a valid number of washrooms.",
+    })
+    .int("Washrooms must be a whole number.")
+    .min(1, "Number of washrooms must be at least 1.")
+    .max(20, "Washrooms cannot exceed 20.")
+    .optional(),
   preferredFloor: z.string().max(20).optional(),
   society: z.string().max(100).optional(),
 
   // Commercial - Hotel/Hostel
-  rooms: z.coerce.number().int().min(1).max(1000).optional(),
-  beds: z.coerce.number().int().min(1).max(5000).optional(),
+  rooms: z
+    .coerce.number({
+      error: "Please enter a valid number of rooms.",
+    })
+    .int("Rooms must be a whole number.")
+    .min(1, "Number of rooms must be at least 1.")
+    .max(1000, "Rooms cannot exceed 1000.")
+    .optional(),
+  beds: z
+    .coerce.number({
+      error: "Please enter a valid number of beds.",
+    })
+    .int("Beds must be a whole number.")
+    .min(1, "Number of beds must be at least 1.")
+    .max(5000, "Beds cannot exceed 5000.")
+    .optional(),
   rentalIncome: rentalIncomeRangeSchema.optional(),
 
   // Industrial
@@ -145,13 +194,8 @@ const CATEGORY_TYPE_MAP: Record<PropertyCategory, PropertyType[]> = {
     "OFFICE_SPACE",
     "OTHER_SPACE",
   ],
-  INDUSTRIAL: [
-    "INDUSTRIAL_PARK",
-    "INDUSTRIAL_LAND",
-    "WAREHOUSE",
-    "AGRICULTURAL_LAND",
-  ],
-  AGRICULTURAL: ["AGRICULTURAL_LAND"], // Assuming Agricultural maps to this type
+  INDUSTRIAL: ["INDUSTRIAL_PARK", "INDUSTRIAL_LAND", "WAREHOUSE"],
+  AGRICULTURAL: ["AGRICULTURAL_LAND"],
   RESORT: ["RESORT"],
   FARM_HOUSE: ["FARM_HOUSE", "INDIVIDUAL"],
 };
@@ -164,6 +208,7 @@ const CreateEnquiryPage = () => {
   const form = useForm<CreateEnquiryFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createEnquirySchema) as any,
+    mode: "onChange",
     defaultValues: {
       city: "",
       localities: [],
@@ -172,7 +217,8 @@ const CreateEnquiryPage = () => {
     },
   });
 
-  const { watch, setValue, control } = form;
+  const { watch, setValue, control, formState, trigger } = form;
+  const { isValid } = formState;
   const selectedCategory = watch("enquiryCategory");
   const selectedType = watch("enquiryType");
 
@@ -214,10 +260,9 @@ const CreateEnquiryPage = () => {
             <FormItem>
               <FormLabel>Min Size</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
+                <NumberInput
                   {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={field.onChange}
                 />
               </FormControl>
               <FormMessage />
@@ -231,10 +276,9 @@ const CreateEnquiryPage = () => {
             <FormItem>
               <FormLabel>Max Size</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
+                <NumberInput
                   {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={field.onChange}
                 />
               </FormControl>
               <FormMessage />
@@ -371,7 +415,7 @@ const CreateEnquiryPage = () => {
                                   type="button"
                                   onClick={() => {
                                     field.onChange(
-                                      field.value.filter((l) => l !== loc)
+                                      (field.value || []).filter((l) => l !== loc)
                                     );
                                   }}
                                   className="ml-2 hover:text-destructive"
@@ -464,12 +508,10 @@ const CreateEnquiryPage = () => {
                       <FormItem>
                         <FormLabel>Min Budget</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
+                          <NumberInput
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
+                          placeholder="Minimum budget is ₹5 lakh"
+                            onChange={field.onChange}
                           />
                         </FormControl>
                         <FormMessage />
@@ -483,12 +525,10 @@ const CreateEnquiryPage = () => {
                       <FormItem>
                         <FormLabel>Max Budget</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
+                          <NumberInput
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
+                          placeholder="Maximum budget is ₹1000 crore"
+                            onChange={field.onChange}
                           />
                         </FormControl>
                         <FormMessage />
@@ -527,10 +567,15 @@ const CreateEnquiryPage = () => {
                         <FormLabel>BHK</FormLabel>
                         <FormControl>
                           <Input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="1-20"
                             {...field}
+                            value={field.value ?? ""}
                             onChange={(e) =>
-                              field.onChange(Number(e.target.value))
+                              field.onChange(
+                                parseIntegerWithMax(e.target.value, 20)
+                              )
                             }
                           />
                         </FormControl>
@@ -546,10 +591,15 @@ const CreateEnquiryPage = () => {
                         <FormLabel>Washrooms</FormLabel>
                         <FormControl>
                           <Input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="1-20"
                             {...field}
+                            value={field.value ?? ""}
                             onChange={(e) =>
-                              field.onChange(Number(e.target.value))
+                              field.onChange(
+                                parseIntegerWithMax(e.target.value, 20)
+                              )
                             }
                           />
                         </FormControl>
@@ -591,88 +641,92 @@ const CreateEnquiryPage = () => {
                 selectedType === "VILLA" ||
                 selectedType === "INDUSTRIAL_LAND" ||
                 selectedType === "AGRICULTURAL_LAND") && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={control}
-                    name="plotType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Plot Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={control}
+                      name="plotType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Plot Type</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Plot Type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="ROAD">Road</SelectItem>
+                              <SelectItem value="CORNER">Corner</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={control}
+                      name="facing"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Facing</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Facing" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {[
+                                "NORTH",
+                                "SOUTH",
+                                "EAST",
+                                "WEST",
+                                "NORTH_EAST",
+                                "NORTH_WEST",
+                                "SOUTH_EAST",
+                                "SOUTH_WEST",
+                              ].map((f) => (
+                                <SelectItem key={f} value={f}>
+                                  {f.replace("_", " ")}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={control}
+                      name="frontRoadWidth"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Front Road Width (ft)</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select Plot Type" />
-                            </SelectTrigger>
+                            <Input
+                        type="text"
+                        inputMode="numeric"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            parseIntegerOrUndefined(e.target.value)
+                          )
+                        }
+                            />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="ROAD">Road</SelectItem>
-                            <SelectItem value="CORNER">Corner</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name="facing"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Facing</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select Facing" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {[
-                              "NORTH",
-                              "SOUTH",
-                              "EAST",
-                              "WEST",
-                              "NORTH_EAST",
-                              "NORTH_WEST",
-                              "SOUTH_EAST",
-                              "SOUTH_WEST",
-                            ].map((f) => (
-                              <SelectItem key={f} value={f}>
-                                {f.replace("_", " ")}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name="frontRoadWidth"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Front Road Width (ft)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
 
               {/* Commercial (Hotel/Hostel) */}
               {(selectedType === "HOTEL" || selectedType === "HOSTEL") && (
@@ -685,10 +739,15 @@ const CreateEnquiryPage = () => {
                         <FormLabel>Rooms</FormLabel>
                         <FormControl>
                           <Input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="1-1000"
                             {...field}
+                            value={field.value ?? ""}
                             onChange={(e) =>
-                              field.onChange(Number(e.target.value))
+                              field.onChange(
+                                parseIntegerWithMax(e.target.value, 1000)
+                              )
                             }
                           />
                         </FormControl>
@@ -705,10 +764,15 @@ const CreateEnquiryPage = () => {
                           <FormLabel>Beds</FormLabel>
                           <FormControl>
                             <Input
-                              type="number"
+                              type="text"
+                              inputMode="numeric"
+                              placeholder="1-5000"
                               {...field}
+                              value={field.value ?? ""}
                               onChange={(e) =>
-                                field.onChange(Number(e.target.value))
+                                field.onChange(
+                                  parseIntegerWithMax(e.target.value, 5000)
+                                )
                               }
                             />
                           </FormControl>
@@ -792,7 +856,21 @@ const CreateEnquiryPage = () => {
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={isPending}>
+              <Button
+                type="button"
+                className={`w-full ${
+                  !isValid && !isPending
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                disabled={isPending}
+                onClick={async () => {
+                  const valid = await trigger();
+                  if (valid) {
+                    form.handleSubmit(onSubmit)();
+                  }
+                }}
+              >
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create Enquiry
               </Button>

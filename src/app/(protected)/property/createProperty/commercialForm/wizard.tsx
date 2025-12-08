@@ -29,6 +29,7 @@ import Image from "next/image";
 import { LocationPicker } from "../_components/locationPicker";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
+import { parseIntegerWithMax } from "@/utils/helper";
 
 interface CommercialWizardProps {
   onBack: () => void;
@@ -529,10 +530,14 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
                 <FormLabel>Number of Rooms</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
-                    placeholder="Enter number of rooms"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="1-1000"
                     {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(parseIntegerWithMax(e.target.value, 1000))
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -1421,6 +1426,8 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     },
   ];
 
+  const { formState } = form;
+
   return (
     <Form {...form}>
       <Wizard
@@ -1436,6 +1443,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
         isLoading={isLoading}
+        isFormValid={formState.isValid}
       />
     </Form>
   );

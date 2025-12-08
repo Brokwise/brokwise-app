@@ -12,6 +12,15 @@ export const setCookie = (
   document.cookie = `${key}=${stringValue}; expires=${expires.toUTCString()}; path=/; SameSite=Strict;`;
 };
 
+export const formatIndianNumber = (num: number | string): string => {
+  const value = Number(num);
+  if (isNaN(value)) return "0";
+
+  return new Intl.NumberFormat("en-IN", {
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
 export const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -61,4 +70,27 @@ export const getStatusColor = (status: string) => {
     default:
       return "bg-blue-100 text-blue-800 hover:bg-blue-200";
   }
+};
+
+// Sanitizes integer-like user input by stripping non-digits and leading zeros.
+export const sanitizeIntegerInput = (value: string) => {
+  if (!value) return "";
+  const digitsOnly = value.replace(/\D+/g, "");
+  return digitsOnly.replace(/^0+(?=\d)/, "");
+};
+
+// Parses sanitized input into a number, returning undefined when empty.
+export const parseIntegerOrUndefined = (value: string) => {
+  const normalized = sanitizeIntegerInput(value);
+  if (normalized === "") return undefined;
+  return Number(normalized);
+};
+
+// Parses and clamps integer input to a max value. Prevents typing beyond max.
+export const parseIntegerWithMax = (value: string, max: number) => {
+  const normalized = sanitizeIntegerInput(value);
+  if (normalized === "") return undefined;
+  const num = Number(normalized);
+  // Clamp to max value - prevents typing beyond the limit
+  return Math.min(num, max);
 };

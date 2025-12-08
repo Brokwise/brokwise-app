@@ -51,6 +51,7 @@ export const OnboardingDetails = ({
 
   const form = useForm<z.infer<typeof submitProfileDetails>>({
     resolver: zodResolver(submitProfileDetails),
+    mode: "onChange",
     defaultValues: {
       firstName:
         brokerData?.firstName || user?.displayName?.split(" ")[0] || "",
@@ -64,6 +65,8 @@ export const OnboardingDetails = ({
       reraNumber: brokerData?.reraNumber || "",
     },
   });
+  const { formState } = form;
+  const { isValid } = formState;
 
   const onSubmitProfileDetails = async (
     data: z.infer<typeof submitProfileDetails>
@@ -306,7 +309,7 @@ export const OnboardingDetails = ({
                               onValueChange={(e) => {
                                 field.onChange(parseInt(e) || 0);
                               }}
-                              value={field.value.toString()}
+                              value={field.value?.toString() ?? "0"}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select Years of Experience" />
@@ -393,9 +396,10 @@ export const OnboardingDetails = ({
             )}
             <Button
               onClick={handleNext}
-              type={step === 3 ? "submit" : "button"}
+              type="button"
               size={"lg"}
               disabled={loading}
+              className={step === 3 && !isValid && !loading ? "opacity-50 cursor-not-allowed" : ""}
             >
               {loading
                 ? isEditing
