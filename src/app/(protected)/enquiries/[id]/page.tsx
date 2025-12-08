@@ -327,9 +327,15 @@ const SingleEnquiry = () => {
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {submission.privateMessage || "No message"}
-                        </p>
+                        {submission.privateMessage ? (
+                          <p className="text-sm text-muted-foreground line-clamp-2 italic">
+                            &quot;{submission.privateMessage}&quot;
+                          </p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground/60">
+                            No message attached
+                          </p>
+                        )}
                       </CardContent>
                     </Card>
                   ))}

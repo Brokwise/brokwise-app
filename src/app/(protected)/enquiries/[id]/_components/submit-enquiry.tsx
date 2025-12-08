@@ -256,9 +256,12 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
             </div>
 
             <div className="">
-              <label className="text-sm font-medium mb-1.5 block">
-                Private Message (Optional)
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-medium">Proposal Message</label>
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                  Optional
+                </span>
+              </div>
               <Textarea
                 placeholder="Add a note about why this property is a good fit..."
                 value={message}
@@ -390,9 +393,14 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                   </div>
 
                   <div className="">
-                    <label className="text-sm font-medium mb-1.5 block">
-                      Private Message (Optional)
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-medium">
+                        Proposal Message
+                      </label>
+                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                        Optional
+                      </span>
+                    </div>
                     <Textarea
                       placeholder="Add a note about why this property is a good fit..."
                       value={message}
@@ -401,6 +409,9 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                       className="resize-none"
                       rows={3}
                     />
+                    <p className="text-xs text-muted-foreground text-right mt-1">
+                      {message.length}/1000
+                    </p>
                   </div>
 
                   <DialogFooter>

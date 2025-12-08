@@ -289,9 +289,12 @@ export default function SubmitEnquiryPage() {
             </div>
 
             <div className="flex-1 flex flex-col gap-2">
-              <label className="text-sm font-medium">
-                Private Message (Optional)
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Proposal Message</label>
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                  Optional
+                </span>
+              </div>
               <Textarea
                 placeholder="Add a note about why this property is a good fit..."
                 value={message}
@@ -428,12 +431,16 @@ export default function SubmitEnquiryPage() {
                     {/* Message Area - Right Side */}
                     <div className="w-full md:w-[400px] flex flex-col p-6 bg-muted/10">
                       <div className="flex-1 flex flex-col gap-4">
-                        <div>
-                          <h3 className="font-semibold mb-1">
-                            Proposal Message
-                          </h3>
+                        <div className="flex flex-col">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="font-semibold">Proposal Message</h3>
+                            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                              Optional
+                            </span>
+                          </div>
                           <p className="text-xs text-muted-foreground mb-4">
-                            Add a personalized note for the enquirer.
+                            Add a personalized note for the enquirer to stand
+                            out.
                           </p>
                           <Textarea
                             placeholder="Describe why this property is a perfect match..."
@@ -442,6 +449,9 @@ export default function SubmitEnquiryPage() {
                             onChange={(e) => setMessage(e.target.value)}
                             className="resize-none min-h-[200px] bg-background"
                           />
+                          <p className="text-xs text-muted-foreground text-right mt-1">
+                            {message.length}/1000
+                          </p>
                         </div>
                       </div>
                       <div className="pt-6 border-t mt-4">
