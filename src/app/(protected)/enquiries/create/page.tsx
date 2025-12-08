@@ -93,14 +93,17 @@ const createEnquirySchema = z.object({
     .array(z.string())
     .min(1, "At least one locality is required")
     .max(10, "Maximum 10 localities allowed"),
-  enquiryCategory: z.enum([
-    "RESIDENTIAL",
-    "COMMERCIAL",
-    "INDUSTRIAL",
-    "AGRICULTURAL",
-    "RESORT",
-    "FARM_HOUSE",
-  ] as [string, ...string[]]),
+  enquiryCategory: z.enum(
+    [
+      "RESIDENTIAL",
+      "COMMERCIAL",
+      "INDUSTRIAL",
+      "AGRICULTURAL",
+      "RESORT",
+      "FARM_HOUSE",
+    ] as [string, ...string[]],
+    { error: "Please select a valid category" }
+  ),
   enquiryType: z.string().min(1, "Property Type is required"), // Narrowed down in UI based on Category
   budget: budgetRangeSchema,
   description: z

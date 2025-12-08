@@ -306,7 +306,7 @@ export const OnboardingDetails = ({
                               onValueChange={(e) => {
                                 field.onChange(parseInt(e) || 0);
                               }}
-                              value={field.value.toString()}
+                              value={field.value?.toString() ?? "0"}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select Years of Experience" />
