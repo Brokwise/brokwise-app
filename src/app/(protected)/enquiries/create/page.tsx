@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -214,10 +215,9 @@ const CreateEnquiryPage = () => {
             <FormItem>
               <FormLabel>Min Size</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
+                <NumberInput
                   {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={field.onChange}
                 />
               </FormControl>
               <FormMessage />
@@ -231,10 +231,9 @@ const CreateEnquiryPage = () => {
             <FormItem>
               <FormLabel>Max Size</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
+                <NumberInput
                   {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={field.onChange}
                 />
               </FormControl>
               <FormMessage />
@@ -371,7 +370,7 @@ const CreateEnquiryPage = () => {
                                   type="button"
                                   onClick={() => {
                                     field.onChange(
-                                      field.value.filter((l) => l !== loc)
+                                      (field.value || []).filter((l) => l !== loc)
                                     );
                                   }}
                                   className="ml-2 hover:text-destructive"
@@ -464,12 +463,9 @@ const CreateEnquiryPage = () => {
                       <FormItem>
                         <FormLabel>Min Budget</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
+                          <NumberInput
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
+                            onChange={field.onChange}
                           />
                         </FormControl>
                         <FormMessage />
@@ -483,12 +479,9 @@ const CreateEnquiryPage = () => {
                       <FormItem>
                         <FormLabel>Max Budget</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
+                          <NumberInput
                             {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
+                            onChange={field.onChange}
                           />
                         </FormControl>
                         <FormMessage />
@@ -591,88 +584,88 @@ const CreateEnquiryPage = () => {
                 selectedType === "VILLA" ||
                 selectedType === "INDUSTRIAL_LAND" ||
                 selectedType === "AGRICULTURAL_LAND") && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={control}
-                    name="plotType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Plot Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={control}
+                      name="plotType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Plot Type</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Plot Type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="ROAD">Road</SelectItem>
+                              <SelectItem value="CORNER">Corner</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={control}
+                      name="facing"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Facing</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Facing" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {[
+                                "NORTH",
+                                "SOUTH",
+                                "EAST",
+                                "WEST",
+                                "NORTH_EAST",
+                                "NORTH_WEST",
+                                "SOUTH_EAST",
+                                "SOUTH_WEST",
+                              ].map((f) => (
+                                <SelectItem key={f} value={f}>
+                                  {f.replace("_", " ")}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={control}
+                      name="frontRoadWidth"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Front Road Width (ft)</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select Plot Type" />
-                            </SelectTrigger>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                            />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="ROAD">Road</SelectItem>
-                            <SelectItem value="CORNER">Corner</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name="facing"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Facing</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select Facing" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {[
-                              "NORTH",
-                              "SOUTH",
-                              "EAST",
-                              "WEST",
-                              "NORTH_EAST",
-                              "NORTH_WEST",
-                              "SOUTH_EAST",
-                              "SOUTH_WEST",
-                            ].map((f) => (
-                              <SelectItem key={f} value={f}>
-                                {f.replace("_", " ")}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name="frontRoadWidth"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Front Road Width (ft)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
 
               {/* Commercial (Hotel/Hostel) */}
               {(selectedType === "HOTEL" || selectedType === "HOSTEL") && (

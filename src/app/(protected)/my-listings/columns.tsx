@@ -32,7 +32,7 @@ import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
-import { formatAddress } from "@/utils/helper";
+import { formatAddress, formatPrice } from "@/utils/helper";
 
 const getStatusBadge = (status: ListingStatus, deletingStatus?: string) => {
   if (deletingStatus === "pending") {
@@ -116,13 +116,8 @@ const getStatusBadge = (status: ListingStatus, deletingStatus?: string) => {
   );
 };
 
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(price);
-};
+// formatPrice is imported from utils
+
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);

@@ -4,6 +4,7 @@ import { FieldValues, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select } from "@/components/ui/select";
@@ -486,11 +487,10 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
             <FormItem>
               <FormLabel>Property Size</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
+                <NumberInput
                   placeholder="Enter size"
                   {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={field.onChange}
                 />
               </FormControl>
               <FormMessage />
@@ -508,17 +508,17 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                 <div className="flex flex-wrap gap-2">
                   {(propertyType === "FLAT"
                     ? [
-                        { value: "SQ_FT", label: "Square Feet" },
-                        { value: "SQ_METER", label: "Square Meter" },
-                      ]
+                      { value: "SQ_FT", label: "Square Feet" },
+                      { value: "SQ_METER", label: "Square Meter" },
+                    ]
                     : [
-                        { value: "SQ_FT", label: "Square Feet" },
-                        { value: "SQ_YARDS", label: "Square Yards" },
-                        { value: "ACRES", label: "Acres" },
-                        { value: "BIGHA", label: "Bigha" },
-                        { value: "SQ_METER", label: "Square Meter" },
-                        { value: "HECTARE", label: "Hectare" },
-                      ]
+                      { value: "SQ_FT", label: "Square Feet" },
+                      { value: "SQ_YARDS", label: "Square Yards" },
+                      { value: "ACRES", label: "Acres" },
+                      { value: "BIGHA", label: "Bigha" },
+                      { value: "SQ_METER", label: "Square Meter" },
+                      { value: "HECTARE", label: "Hectare" },
+                    ]
                   ).map((item) => (
                     <Button
                       key={item.value}
@@ -628,11 +628,10 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
               <FormItem>
                 <FormLabel>Project Area (sq ft)</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
+                  <NumberInput
                     placeholder="Enter project area"
                     {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    onChange={field.onChange}
                   />
                 </FormControl>
                 <FormMessage />
@@ -688,11 +687,10 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
               <FormItem>
                 <FormLabel>Rate per Unit (₹)</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
+                  <NumberInput
                     placeholder="Enter rate per unit"
                     {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    onChange={field.onChange}
                   />
                 </FormControl>
                 <FormMessage />
@@ -707,12 +705,11 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
               <FormItem>
                 <FormLabel>Total Price (₹)</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
+                  <NumberInput
                     placeholder="Enter total price"
                     {...field}
                     disabled
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    onChange={field.onChange}
                   />
                 </FormControl>
                 <FormDescription>
@@ -839,8 +836,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
               {propertyType === "FLAT"
                 ? "Flat"
                 : propertyType === "VILLA"
-                ? "Villa"
-                : "Property"}{" "}
+                  ? "Villa"
+                  : "Property"}{" "}
               Amenities
             </FormLabel>
             <FormControl>

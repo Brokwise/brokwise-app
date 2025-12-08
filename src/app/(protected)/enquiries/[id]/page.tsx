@@ -40,7 +40,7 @@ import { Input } from "@/components/ui/input";
 import { ReceivedProperties } from "./_components/received-properties";
 import { AdminMessages } from "./_components/admin-messages";
 import { PropertyPreviewModal } from "./_components/PropertyPreviewModal";
-import { formatCurrencyEnquiry, getStatusColor } from "@/utils/helper";
+import { formatCurrencyEnquiry, getStatusColor, formatPrice } from "@/utils/helper";
 
 const SingleEnquiry = () => {
   const { id } = useParams();
@@ -346,9 +346,7 @@ const SingleEnquiry = () => {
                         {submission.propertyId?.totalPrice && (
                           <div className="font-medium text-sm text-primary">
                             ₹
-                            {submission.propertyId.totalPrice.toLocaleString(
-                              "en-IN"
-                            )}
+                            {formatPrice(submission.propertyId.totalPrice)}
                           </div>
                         )}
 
@@ -374,7 +372,7 @@ const SingleEnquiry = () => {
                           }}
                           disabled={!submission.propertyId?._id}
                         >
-                          
+
                           View Property
                         </Button>
                       </CardContent>
@@ -419,8 +417,8 @@ const SingleEnquiry = () => {
 
           {/* Admin Messages */}
           {!isMyEnquiry &&
-          enquirySubmissions &&
-          enquirySubmissions.length === 0 ? (
+            enquirySubmissions &&
+            enquirySubmissions.length === 0 ? (
             <p>
               No submissions yet, to view admin messages please submit a
               property

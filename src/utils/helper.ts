@@ -12,6 +12,15 @@ export const setCookie = (
   document.cookie = `${key}=${stringValue}; expires=${expires.toUTCString()}; path=/; SameSite=Strict;`;
 };
 
+export const formatIndianNumber = (num: number | string): string => {
+  const value = Number(num);
+  if (isNaN(value)) return "0";
+
+  return new Intl.NumberFormat("en-IN", {
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
 export const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
