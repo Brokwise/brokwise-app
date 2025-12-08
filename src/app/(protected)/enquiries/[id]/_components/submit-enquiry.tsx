@@ -17,7 +17,7 @@ import {
   useSubmitFreshProperty,
 } from "@/hooks/useEnquiry";
 import { cn } from "@/lib/utils";
-import { Check, Loader2, MapPin, Plus } from "lucide-react";
+import { Check, Loader2, MapPin, Plus, ExternalLink } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
@@ -332,23 +332,22 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                             return (
                               <div
                                 key={property._id}
-                                onClick={() =>
-                                  setSelectedPropertyId(property._id)
-                                }
+                                onClick={() => setSelectedPropertyId(property._id)}
                                 className={cn(
-                                  "relative p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 hover:bg-muted/50",
+                                  "relative p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 hover:bg-muted/50 text-left group",
                                   isSelected
                                     ? "border-primary bg-primary/5 ring-1 ring-primary"
                                     : "bg-card shadow-sm border-muted"
                                 )}
                               >
                                 {isSelected && (
-                                  <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
+                                  <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1 z-10">
                                     <Check className="h-3 w-3" />
                                   </div>
                                 )}
+
                                 <div className="space-y-2">
-                                  <div className="flex items-start justify-between pr-6">
+                                  <div className="flex items-start justify-between pr-2">
                                     <h4
                                       className="font-semibold leading-tight line-clamp-1"
                                       title={
@@ -380,11 +379,25 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                                       {property.address?.city || "Unknown City"}
                                     </span>
                                   </div>
-                                  <div className="font-medium text-sm text-primary">
-                                    ₹
-                                    {property.totalPrice?.toLocaleString(
-                                      "en-IN"
-                                    ) || "Price on Request"}
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div className="font-medium text-sm text-primary">
+                                      ₹
+                                      {property.totalPrice?.toLocaleString(
+                                        "en-IN"
+                                      ) || "Price on Request"}
+                                    </div>
+                                    <Button
+                                      variant="secondary"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full shadow-sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        window.location.href = `/property/${property._id}`;
+                                      }}
+                                      title="View Property"
+                                    >
+                                      <ExternalLink className="h-3.5 w-3.5" />
+                                    </Button>
                                   </div>
                                 </div>
                               </div>

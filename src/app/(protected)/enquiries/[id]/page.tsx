@@ -21,6 +21,7 @@ import {
   IndianRupee,
   DoorOpen,
   LayoutGrid,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -310,32 +311,69 @@ const SingleEnquiry = () => {
                 <div className="space-y-3">
                   {enquirySubmissions.map((submission) => (
                     <Card key={submission._id}>
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-base">
-                            {submission.propertyId?.address?.city || "Property"}
-                          </CardTitle>
+                      <CardHeader className="pb-2 p-4">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="min-w-0">
+                            <CardTitle className="text-base line-clamp-1">
+                              {submission.propertyId?.propertyTitle ||
+                                submission.propertyId?.address?.city ||
+                                "Property"}
+                            </CardTitle>
+                            <div className="flex items-center text-xs text-muted-foreground mt-1">
+                              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                              <span className="truncate">
+                                {submission.propertyId?.address?.city ||
+                                  "Unknown Location"}
+                              </span>
+                            </div>
+                          </div>
                           <Badge
                             variant={
                               submission.status === "pending"
                                 ? "outline"
                                 : "secondary"
                             }
+                            className="flex-shrink-0"
                           >
                             {submission.status}
                           </Badge>
                         </div>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="p-4 pt-0 space-y-3">
+                        {submission.propertyId?.totalPrice && (
+                          <div className="font-medium text-sm text-primary">
+                            ₹
+                            {submission.propertyId.totalPrice.toLocaleString(
+                              "en-IN"
+                            )}
+                          </div>
+                        )}
+
                         {submission.privateMessage ? (
-                          <p className="text-sm text-muted-foreground line-clamp-2 italic">
+                          <div className="bg-muted/30 p-2 rounded text-sm text-muted-foreground italic border border-dashed">
                             &quot;{submission.privateMessage}&quot;
-                          </p>
+                          </div>
                         ) : (
-                          <p className="text-xs text-muted-foreground/60">
+                          <p className="text-xs text-muted-foreground/60 italic">
                             No message attached
                           </p>
                         )}
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full h-8 text-xs"
+                          onClick={() =>
+                            window.open(
+                              `/property/${submission.propertyId?._id}`,
+                              "_blank"
+                            )
+                          }
+                          disabled={!submission.propertyId?._id}
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1.5" />
+                          View Property
+                        </Button>
                       </CardContent>
                     </Card>
                   ))}
