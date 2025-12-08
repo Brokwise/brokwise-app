@@ -58,14 +58,16 @@ export const useSubmitPropertyToEnquiry = () => {
   const { mutate, isPending, error } = useMutation<
     void,
     Error,
-    { enquiryId: string; propertyId: string; privateMessage: string }
+    { enquiryId: string; propertyId: string; privateMessage?: string }
   >({
     mutationFn: async ({ enquiryId, propertyId, privateMessage }) => {
+      const payload: Record<string, unknown> = { propertyId };
+      const trimmedMessage = privateMessage?.trim();
+      if (trimmedMessage) {
+        payload.privateMessage = trimmedMessage;
+      }
       return (
-        await api.post(`/broker/enquiry/${enquiryId}/submit`, {
-          propertyId,
-          privateMessage,
-        })
+        await api.post(`/broker/enquiry/${enquiryId}/submit`, payload)
       ).data.data;
     },
   });
@@ -77,7 +79,7 @@ export const useSubmitFreshProperty = () => {
   const { mutate, isPending, error } = useMutation<
     void,
     Error,
-    { enquiryId: string; payload: Record<string, string> }
+    { enquiryId: string; payload: Record<string, unknown> }
   >({
     mutationFn: async ({ enquiryId, payload }) => {
       return (

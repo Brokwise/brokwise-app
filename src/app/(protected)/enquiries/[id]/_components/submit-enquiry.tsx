@@ -55,11 +55,13 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
   const handleExistingSubmit = async () => {
     if (!selectedPropertyId) return;
 
+    const trimmedMessage = message.trim();
+
     submitPropertyToEnquiry(
       {
         enquiryId: enquiry._id,
         propertyId: selectedPropertyId as string,
-        privateMessage: message,
+        privateMessage: trimmedMessage || undefined,
       },
       {
         onSuccess: () => {
@@ -81,12 +83,14 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
   const handleFreshPropertySubmit = async () => {
     if (!freshPropertyData) return;
 
+    const trimmedMessage = message.trim();
+
     submitFreshProperty(
       {
         enquiryId: enquiry._id,
         payload: {
           ...freshPropertyData,
-          privateMessage: message,
+          privateMessage: trimmedMessage || undefined,
         },
       },
       {
@@ -253,12 +257,11 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
 
             <div className="">
               <label className="text-sm font-medium mb-1.5 block">
-                Private Message (Required)
+                Private Message (Optional)
               </label>
               <Textarea
                 placeholder="Add a note about why this property is a good fit..."
                 value={message}
-                minLength={5}
                 maxLength={1000}
                 onChange={(e) => setMessage(e.target.value)}
                 className="resize-none min-h-[120px]"
@@ -278,7 +281,7 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
               </Button>
               <Button
                 onClick={handleFreshPropertySubmit}
-                disabled={message.length < 5 || isSubmittingFresh}
+                disabled={isSubmittingFresh}
               >
                 {isSubmittingFresh && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -388,12 +391,12 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
 
                   <div className="">
                     <label className="text-sm font-medium mb-1.5 block">
-                      Private Message
+                      Private Message (Optional)
                     </label>
                     <Textarea
                       placeholder="Add a note about why this property is a good fit..."
                       value={message}
-                      minLength={10}
+                      maxLength={1000}
                       onChange={(e) => setMessage(e.target.value)}
                       className="resize-none"
                       rows={3}

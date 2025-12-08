@@ -83,11 +83,13 @@ export default function SubmitEnquiryPage() {
   const handleExistingSubmit = async () => {
     if (!selectedPropertyId) return;
 
+    const trimmedMessage = message.trim();
+
     submitPropertyToEnquiry(
       {
         enquiryId: enquiry._id,
         propertyId: selectedPropertyId as string,
-        privateMessage: message,
+        privateMessage: trimmedMessage || undefined,
       },
       {
         onSuccess: () => {
@@ -109,12 +111,14 @@ export default function SubmitEnquiryPage() {
   const handleFreshPropertySubmit = async () => {
     if (!freshPropertyData) return;
 
+    const trimmedMessage = message.trim();
+
     submitFreshProperty(
       {
         enquiryId: enquiry._id,
         payload: {
           ...freshPropertyData,
-          privateMessage: message,
+          privateMessage: trimmedMessage || undefined,
         },
       },
       {
@@ -286,12 +290,11 @@ export default function SubmitEnquiryPage() {
 
             <div className="flex-1 flex flex-col gap-2">
               <label className="text-sm font-medium">
-                Private Message (Required)
+                Private Message (Optional)
               </label>
               <Textarea
                 placeholder="Add a note about why this property is a good fit..."
                 value={message}
-                minLength={5}
                 maxLength={1000}
                 onChange={(e) => setMessage(e.target.value)}
                 className="resize-none flex-1 min-h-[200px]"
@@ -311,7 +314,7 @@ export default function SubmitEnquiryPage() {
               </Button>
               <Button
                 onClick={handleFreshPropertySubmit}
-                disabled={message.length < 5 || isSubmittingFresh}
+                disabled={isSubmittingFresh}
                 size="lg"
               >
                 {isSubmittingFresh && (
@@ -435,7 +438,7 @@ export default function SubmitEnquiryPage() {
                           <Textarea
                             placeholder="Describe why this property is a perfect match..."
                             value={message}
-                            minLength={10}
+                            maxLength={1000}
                             onChange={(e) => setMessage(e.target.value)}
                             className="resize-none min-h-[200px] bg-background"
                           />
