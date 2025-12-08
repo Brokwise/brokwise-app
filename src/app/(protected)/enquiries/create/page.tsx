@@ -41,11 +41,21 @@ import { parseIntegerOrUndefined, parseIntegerWithMax } from "@/utils/helper";
 
 const budgetRangeSchema = z
   .object({
-    min: z.number().min(0, "Minimum budget cannot be negative"),
-    max: z.number().min(0, "Maximum budget cannot be negative"),
+    min: z
+      .number({
+        invalid_type_error: "Please enter a valid minimum budget.",
+      })
+      .min(500000, "Minimum budget must be at least ₹5 lakh.")
+      .max(100000000000, "Budget cannot exceed ₹1000 crore."),
+    max: z
+      .number({
+        invalid_type_error: "Please enter a valid maximum budget.",
+      })
+      .min(500000, "Maximum budget must be at least ₹5 lakh.")
+      .max(100000000000, "Budget cannot exceed ₹1000 crore."),
   })
   .refine((data) => data.max >= data.min, {
-    message: "Max budget must be greater than or equal to min budget",
+    message: "Max budget must be greater than or equal to min budget.",
     path: ["max"],
   });
 
