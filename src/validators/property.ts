@@ -80,8 +80,22 @@ export const residentialPropertySchema = basePropertySchema
 
     // Flat specific
     isPenthouse: z.boolean().optional(),
-    bhk: z.number().min(1).optional(),
-    washrooms: z.number().min(1).optional(),
+    bhk: z
+      .number({
+        invalid_type_error: "Please enter a valid number of bedrooms.",
+      })
+      .int("Bedrooms must be a whole number.")
+      .min(1, "Number of bedrooms must be at least 1.")
+      .max(20, "Bedrooms cannot exceed 20.")
+      .optional(),
+    washrooms: z
+      .number({
+        invalid_type_error: "Please enter a valid number of washrooms.",
+      })
+      .int("Washrooms must be a whole number.")
+      .min(1, "Number of washrooms must be at least 1.")
+      .max(20, "Washrooms cannot exceed 20.")
+      .optional(),
     society: z.string().optional(),
     projectArea: z.number().min(0).optional(),
     possessionDate: z.union([z.string(), z.date()]).optional(),
@@ -144,8 +158,22 @@ export const commercialPropertySchema = basePropertySchema
     ]),
     floor: z.string().optional(),
     rentalIncome: rentalIncomeSchema.optional(),
-    rooms: z.number().min(1).optional(), // Hotel
-    beds: z.number().min(1).optional(), // Hostel
+    rooms: z
+      .number({
+        invalid_type_error: "Please enter a valid number of rooms.",
+      })
+      .int("Rooms must be a whole number.")
+      .min(1, "Number of rooms must be at least 1.")
+      .max(1000, "Rooms cannot exceed 1000.")
+      .optional(),
+    beds: z
+      .number({
+        invalid_type_error: "Please enter a valid number of beds.",
+      })
+      .int("Beds must be a whole number.")
+      .min(1, "Number of beds must be at least 1.")
+      .max(5000, "Beds cannot exceed 5000.")
+      .optional(),
     facing: FacingEnum.optional(),
     plotType: PlotTypeEnum.optional(),
     frontRoadWidth: z.number().min(0).optional(),
