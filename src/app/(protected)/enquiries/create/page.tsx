@@ -35,7 +35,7 @@ import {
   PropertyType,
 } from "@/models/types/property";
 import { CreateEnquiryDTO } from "@/models/types/enquiry";
-import { parseIntegerOrUndefined } from "@/utils/helper";
+import { parseIntegerOrUndefined, parseIntegerWithMax } from "@/utils/helper";
 
 // --- Zod Schema ---
 
@@ -557,15 +557,16 @@ const CreateEnquiryPage = () => {
                         <FormLabel>BHK</FormLabel>
                         <FormControl>
                           <Input
-                          type="text"
-                          inputMode="numeric"
-                          {...field}
-                          value={field.value ?? ""}
-                          onChange={(e) =>
-                            field.onChange(
-                              parseIntegerOrUndefined(e.target.value)
-                            )
-                          }
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="1-20"
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                parseIntegerWithMax(e.target.value, 20)
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -580,15 +581,16 @@ const CreateEnquiryPage = () => {
                         <FormLabel>Washrooms</FormLabel>
                         <FormControl>
                           <Input
-                          type="text"
-                          inputMode="numeric"
-                          {...field}
-                          value={field.value ?? ""}
-                          onChange={(e) =>
-                            field.onChange(
-                              parseIntegerOrUndefined(e.target.value)
-                            )
-                          }
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="1-20"
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                parseIntegerWithMax(e.target.value, 20)
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -727,15 +729,16 @@ const CreateEnquiryPage = () => {
                         <FormLabel>Rooms</FormLabel>
                         <FormControl>
                           <Input
-                        type="text"
-                        inputMode="numeric"
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) =>
-                          field.onChange(
-                            parseIntegerOrUndefined(e.target.value)
-                          )
-                        }
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="1-1000"
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                parseIntegerWithMax(e.target.value, 1000)
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -751,15 +754,16 @@ const CreateEnquiryPage = () => {
                           <FormLabel>Beds</FormLabel>
                           <FormControl>
                             <Input
-                            type="text"
-                            inputMode="numeric"
-                            {...field}
-                            value={field.value ?? ""}
-                            onChange={(e) =>
-                              field.onChange(
-                                parseIntegerOrUndefined(e.target.value)
-                              )
-                            }
+                              type="text"
+                              inputMode="numeric"
+                              placeholder="1-5000"
+                              {...field}
+                              value={field.value ?? ""}
+                              onChange={(e) =>
+                                field.onChange(
+                                  parseIntegerWithMax(e.target.value, 5000)
+                                )
+                              }
                             />
                           </FormControl>
                           <FormMessage />

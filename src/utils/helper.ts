@@ -85,3 +85,12 @@ export const parseIntegerOrUndefined = (value: string) => {
   if (normalized === "") return undefined;
   return Number(normalized);
 };
+
+// Parses and clamps integer input to a max value. Prevents typing beyond max.
+export const parseIntegerWithMax = (value: string, max: number) => {
+  const normalized = sanitizeIntegerInput(value);
+  if (normalized === "") return undefined;
+  const num = Number(normalized);
+  // Clamp to max value - prevents typing beyond the limit
+  return Math.min(num, max);
+};
