@@ -29,7 +29,12 @@ export const useAddProperty = () => {
   return { addProperty, isLoading, error };
 };
 
-export const useGetProperty = (id: string) => {
+export const useGetProperty = (
+  id: string,
+  options?: {
+    enabled?: boolean;
+  }
+) => {
   const api = useAxios();
   const {
     data: property,
@@ -40,6 +45,7 @@ export const useGetProperty = (id: string) => {
     queryFn: async () => {
       return (await api.get(`/property/details/${id}`)).data.data;
     },
+    enabled: options?.enabled ?? true,
   });
   return { property, isLoading, error };
 };

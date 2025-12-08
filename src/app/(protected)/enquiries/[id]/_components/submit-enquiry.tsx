@@ -26,6 +26,7 @@ import { AxiosError } from "axios";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResidentialWizard } from "@/app/(protected)/property/createProperty/residentialForm/wizard";
 import { CommercialWizard } from "@/app/(protected)/property/createProperty/commercialForm/wizard";
+import { PropertyPreviewModal } from "./PropertyPreviewModal";
 
 type View = "select" | "create" | "message";
 
@@ -45,6 +46,10 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
     any
   > | null>(null);
   const [view, setView] = useState<View>("select"); // 'select' includes 'create' wizard view when tab is 'new'
+  const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(
+    null
+  );
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const { submitPropertyToEnquiry, isPending: isSubmittingExisting } =
     useSubmitPropertyToEnquiry();
@@ -332,33 +337,60 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                             return (
                               <div
                                 key={property._id}
-                                onClick={() => setSelectedPropertyId(property._id)}
+                                onClick={() =>
+                                  setSelectedPropertyId((prev) =>
+                                    prev === property._id ? null : property._id
+                                  )
+                                }
                                 className={cn(
-                                  "relative p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 hover:bg-muted/50 text-left group",
+                                  "relative p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 hover:bg-muted/50 text-left",
                                   isSelected
                                     ? "border-primary bg-primary/5 ring-1 ring-primary"
                                     : "bg-card shadow-sm border-muted"
                                 )}
                               >
-                                {isSelected && (
-                                  <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1 z-10">
-                                    <Check className="h-3 w-3" />
-                                  </div>
-                                )}
-
                                 <div className="space-y-2">
-                                  <div className="flex items-start justify-between pr-2">
-                                    <h4
-                                      className="font-semibold leading-tight line-clamp-1"
-                                      title={
-                                        property.propertyTitle ||
-                                        "Untitled Property"
-                                      }
-                                    >
-                                      {property.propertyTitle ||
-                                        "Untitled Property"}
-                                    </h4>
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                      <h4
+                                        className="font-semibold leading-tight line-clamp-1"
+                                        title={
+                                          property.propertyTitle ||
+                                          "Untitled Property"
+                                        }
+                                      >
+                                        {property.propertyTitle ||
+                                          "Untitled Property"}
+                                      </h4>
+                                      <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                        <MapPin className="h-3 w-3" />
+                                        <span className="truncate">
+                                          {property.address?.city || "Unknown City"}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        variant="secondary"
+                                        size="icon"
+                                        className="h-8 w-8 rounded-full shadow-sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setPreviewPropertyId(property._id);
+                                          setIsPreviewOpen(true);
+                                        }}
+                                        title="Quick preview"
+                                      >
+                                        <ExternalLink className="h-3.5 w-3.5" />
+                                      </Button>
+                                      {isSelected && (
+                                        <div className="bg-primary text-primary-foreground rounded-full p-1">
+                                          <Check className="h-3 w-3" />
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
+
                                   <div className="flex flex-wrap gap-2">
                                     <Badge
                                       variant="outline"
@@ -373,12 +405,6 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                                       {property.propertyCategory}
                                     </Badge>
                                   </div>
-                                  <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <MapPin className="h-3 w-3" />
-                                    <span className="truncate">
-                                      {property.address?.city || "Unknown City"}
-                                    </span>
-                                  </div>
                                   <div className="flex items-center justify-between gap-3">
                                     <div className="font-medium text-sm text-primary">
                                       ₹
@@ -389,12 +415,13 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                                     <Button
                                       variant="secondary"
                                       size="icon"
-                                      className="h-8 w-8 rounded-full shadow-sm"
+                                      className="h-8 w-8 rounded-full shadow-sm md:hidden"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        window.location.href = `/property/${property._id}`;
+                                        setPreviewPropertyId(property._id);
+                                        setIsPreviewOpen(true);
                                       }}
-                                      title="View Property"
+                                      title="Quick preview"
                                     >
                                       <ExternalLink className="h-3.5 w-3.5" />
                                     </Button>
@@ -480,6 +507,16 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
           </Tabs>
         )}
       </DialogContent>
+      <PropertyPreviewModal
+        propertyId={previewPropertyId}
+        open={isPreviewOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPreviewPropertyId(null);
+          }
+          setIsPreviewOpen(open);
+        }}
+      />
     </Dialog>
   );
 };
