@@ -71,3 +71,17 @@ export const getStatusColor = (status: string) => {
       return "bg-blue-100 text-blue-800 hover:bg-blue-200";
   }
 };
+
+// Sanitizes integer-like user input by stripping non-digits and leading zeros.
+export const sanitizeIntegerInput = (value: string) => {
+  if (!value) return "";
+  const digitsOnly = value.replace(/\D+/g, "");
+  return digitsOnly.replace(/^0+(?=\d)/, "");
+};
+
+// Parses sanitized input into a number, returning undefined when empty.
+export const parseIntegerOrUndefined = (value: string) => {
+  const normalized = sanitizeIntegerInput(value);
+  if (normalized === "") return undefined;
+  return Number(normalized);
+};

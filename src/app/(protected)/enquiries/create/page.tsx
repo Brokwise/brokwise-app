@@ -35,6 +35,7 @@ import {
   PropertyType,
 } from "@/models/types/property";
 import { CreateEnquiryDTO } from "@/models/types/enquiry";
+import { parseIntegerOrUndefined } from "@/utils/helper";
 
 // --- Zod Schema ---
 
@@ -112,17 +113,51 @@ const createEnquirySchema = z.object({
       "SOUTH_WEST",
     ] as [string, ...string[]])
     .optional(),
-  frontRoadWidth: z.coerce.number().min(1).max(500).optional(),
+  frontRoadWidth: z
+    .coerce.number({
+      invalid_type_error: "Please enter a valid road width.",
+    })
+    .min(1, "Road width must be at least 1 ft.")
+    .max(500, "Road width cannot exceed 500 ft.")
+    .optional(),
 
   // Residential - Flat
-  bhk: z.coerce.number().int().min(1).max(20).optional(),
-  washrooms: z.coerce.number().int().min(1).max(20).optional(),
+  bhk: z
+    .coerce.number({
+      invalid_type_error: "Please enter a valid number of bedrooms.",
+    })
+    .int("Bedrooms must be a whole number.")
+    .min(1, "Number of bedrooms must be at least 1.")
+    .max(20, "Bedrooms cannot exceed 20.")
+    .optional(),
+  washrooms: z
+    .coerce.number({
+      invalid_type_error: "Please enter a valid number of washrooms.",
+    })
+    .int("Washrooms must be a whole number.")
+    .min(1, "Number of washrooms must be at least 1.")
+    .max(20, "Washrooms cannot exceed 20.")
+    .optional(),
   preferredFloor: z.string().max(20).optional(),
   society: z.string().max(100).optional(),
 
   // Commercial - Hotel/Hostel
-  rooms: z.coerce.number().int().min(1).max(1000).optional(),
-  beds: z.coerce.number().int().min(1).max(5000).optional(),
+  rooms: z
+    .coerce.number({
+      invalid_type_error: "Please enter a valid number of rooms.",
+    })
+    .int("Rooms must be a whole number.")
+    .min(1, "Number of rooms must be at least 1.")
+    .max(1000, "Rooms cannot exceed 1000.")
+    .optional(),
+  beds: z
+    .coerce.number({
+      invalid_type_error: "Please enter a valid number of beds.",
+    })
+    .int("Beds must be a whole number.")
+    .min(1, "Number of beds must be at least 1.")
+    .max(5000, "Beds cannot exceed 5000.")
+    .optional(),
   rentalIncome: rentalIncomeRangeSchema.optional(),
 
   // Industrial
@@ -465,6 +500,7 @@ const CreateEnquiryPage = () => {
                         <FormControl>
                           <NumberInput
                             {...field}
+                          placeholder="Minimum budget is ₹5 lakh"
                             onChange={field.onChange}
                           />
                         </FormControl>
@@ -481,6 +517,7 @@ const CreateEnquiryPage = () => {
                         <FormControl>
                           <NumberInput
                             {...field}
+                          placeholder="Maximum budget is ₹1000 crore"
                             onChange={field.onChange}
                           />
                         </FormControl>
@@ -520,11 +557,15 @@ const CreateEnquiryPage = () => {
                         <FormLabel>BHK</FormLabel>
                         <FormControl>
                           <Input
-                            type="number"
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
+                          type="text"
+                          inputMode="numeric"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              parseIntegerOrUndefined(e.target.value)
+                            )
+                          }
                           />
                         </FormControl>
                         <FormMessage />
@@ -539,11 +580,15 @@ const CreateEnquiryPage = () => {
                         <FormLabel>Washrooms</FormLabel>
                         <FormControl>
                           <Input
-                            type="number"
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
+                          type="text"
+                          inputMode="numeric"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              parseIntegerOrUndefined(e.target.value)
+                            )
+                          }
                           />
                         </FormControl>
                         <FormMessage />
@@ -653,11 +698,15 @@ const CreateEnquiryPage = () => {
                           <FormLabel>Front Road Width (ft)</FormLabel>
                           <FormControl>
                             <Input
-                              type="number"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
+                        type="text"
+                        inputMode="numeric"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            parseIntegerOrUndefined(e.target.value)
+                          )
+                        }
                             />
                           </FormControl>
                           <FormMessage />
@@ -678,11 +727,15 @@ const CreateEnquiryPage = () => {
                         <FormLabel>Rooms</FormLabel>
                         <FormControl>
                           <Input
-                            type="number"
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
+                        type="text"
+                        inputMode="numeric"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            parseIntegerOrUndefined(e.target.value)
+                          )
+                        }
                           />
                         </FormControl>
                         <FormMessage />
@@ -698,11 +751,15 @@ const CreateEnquiryPage = () => {
                           <FormLabel>Beds</FormLabel>
                           <FormControl>
                             <Input
-                              type="number"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
+                            type="text"
+                            inputMode="numeric"
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                parseIntegerOrUndefined(e.target.value)
+                              )
+                            }
                             />
                           </FormControl>
                           <FormMessage />
