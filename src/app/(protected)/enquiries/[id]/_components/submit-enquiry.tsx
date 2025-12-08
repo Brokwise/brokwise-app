@@ -262,6 +262,9 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                   Optional
                 </span>
               </div>
+              <p className="text-xs text-muted-foreground mb-2">
+                Add a personalized note for the enquirer.
+              </p>
               <Textarea
                 placeholder="Add a note about why this property is a good fit..."
                 value={message}
@@ -401,6 +404,9 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                         Optional
                       </span>
                     </div>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Add a personalized note for the enquirer.
+                    </p>
                     <Textarea
                       placeholder="Add a note about why this property is a good fit..."
                       value={message}

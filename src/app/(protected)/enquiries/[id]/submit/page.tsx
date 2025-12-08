@@ -289,12 +289,15 @@ export default function SubmitEnquiryPage() {
             </div>
 
             <div className="flex-1 flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Proposal Message</label>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-semibold text-sm">Proposal Message</h3>
                 <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
                   Optional
                 </span>
               </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Add a personalized note for the enquirer to stand out.
+              </p>
               <Textarea
                 placeholder="Add a note about why this property is a good fit..."
                 value={message}
