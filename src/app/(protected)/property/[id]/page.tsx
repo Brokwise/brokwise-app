@@ -34,6 +34,7 @@ import { formatCurrency, formatAddress } from "@/utils/helper";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { AxiosError } from "axios";
 
 const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
@@ -53,7 +54,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
 
   if (error || !property) {
     // Check if it's a 403 Forbidden error
-    const is403 = (error as any)?.response?.status === 403;
+    const is403 = (error as AxiosError)?.response?.status === 403;
     
     if (is403) {
       return (
