@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { formatCurrency, formatAddress } from "@/utils/helper";
 import { format } from "date-fns";
+import { AxiosError } from "axios";
 
 type PropertyPreviewModalProps = {
   propertyId: string | null;
@@ -118,7 +119,7 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
               </div>
             ) : error || !property ? (
               <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-                {(error as any)?.response?.status === 403 ? (
+                {(error as AxiosError)?.response?.status === 403 ? (
                   <>
                     <div className="rounded-full bg-destructive/10 p-4 mb-3">
                       <ShieldX className="h-8 w-8 text-destructive" />
