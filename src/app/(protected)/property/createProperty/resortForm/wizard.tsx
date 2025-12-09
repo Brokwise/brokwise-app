@@ -4,8 +4,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PincodeInput } from "@/components/ui/pincode-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PROPERTY_LIMITS, parseRoadWidthInput } from "@/utils/helper";
 
 import {
   Form,
@@ -181,6 +183,9 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
     if (isValid) {
       setCompletedSteps((prev) => new Set([...Array.from(prev), currentStep]));
       setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+    } else {
+      // Show feedback when validation fails
+      toast.error("Please fill in all required fields before proceeding.");
     }
   };
 
@@ -198,6 +203,9 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
     const isValid = await form.trigger();
     if (isValid) {
       form.handleSubmit(onSubmit)();
+    } else {
+      // Show feedback when validation fails
+      toast.error("Please complete all required fields before submitting.");
     }
   };
 
@@ -224,6 +232,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
   const handleLocationSelect = (details: {
     coordinates: [number, number];
     placeName: string;
+    pincode?: string;
     context?: { id: string; text: string }[];
   }) => {
     form.setValue("location.coordinates", details.coordinates, {
@@ -233,6 +242,11 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
       shouldValidate: true,
     });
 
+    // Use the extracted pincode directly if available
+    if (details.pincode) {
+      form.setValue("address.pincode", details.pincode, { shouldValidate: true });
+    }
+
     if (details.context) {
       details.context.forEach((item: { id: string; text: string }) => {
         if (item.id.startsWith("region")) {
@@ -241,8 +255,12 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
         if (item.id.startsWith("place")) {
           form.setValue("address.city", item.text, { shouldValidate: true });
         }
-        if (item.id.startsWith("postcode")) {
-          form.setValue("address.pincode", item.text, { shouldValidate: true });
+        // Fallback: if pincode wasn't directly provided, try from context
+        if (!details.pincode && item.id.startsWith("postcode")) {
+          const numericPincode = item.text.replace(/\D/g, "").slice(0, 6);
+          if (numericPincode.length === 6) {
+            form.setValue("address.pincode", numericPincode, { shouldValidate: true });
+          }
         }
       });
     }
@@ -290,7 +308,11 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
               <FormItem>
                 <FormLabel>Pincode</FormLabel>
                 <FormControl>
-                  <Input placeholder="Pincode" {...field} />
+                  <PincodeInput
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Enter 6-digit pincode"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -575,14 +597,15 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
             <FormLabel>Front Road Width (in feet)</FormLabel>
             <FormControl>
               <Input
-                type="number"
-                placeholder="Enter road width"
-                {...field}
-                onChange={(e) => field.onChange(Number(e.target.value))}
+                type="text"
+                inputMode="numeric"
+                placeholder={`Enter road width (max ${PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)`}
+                value={field.value ?? ""}
+                onChange={(e) => field.onChange(parseRoadWidthInput(e.target.value))}
               />
             </FormControl>
             <FormDescription>
-              Width of the main access road to the resort
+              Width of the main access road to the resort (max {PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -948,8 +971,6 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
     },
   ];
 
-  const { formState } = form;
-
   return (
     <Form {...form}>
       <Wizard
@@ -965,7 +986,6 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
         isLoading={isLoading}
-        isFormValid={formState.isValid}
       />
     </Form>
   );
