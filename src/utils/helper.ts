@@ -94,3 +94,26 @@ export const parseIntegerWithMax = (value: string, max: number) => {
   // Clamp to max value - prevents typing beyond the limit
   return Math.min(num, max);
 };
+
+// Constants for property form validations
+export const PROPERTY_LIMITS = {
+  PINCODE_LENGTH: 6,
+  MAX_FLOOR: 20,
+  MAX_FRONT_ROAD_WIDTH: 300,
+} as const;
+
+// Parse floor input with max validation (200)
+export const parseFloorInput = (value: string) => {
+  return parseIntegerWithMax(value, PROPERTY_LIMITS.MAX_FLOOR);
+};
+
+// Parse front road width with max validation (300 feet)
+export const parseRoadWidthInput = (value: string) => {
+  return parseIntegerWithMax(value, PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH);
+};
+
+// Sanitize and limit pincode to 6 numeric digits
+export const sanitizePincode = (value: string) => {
+  if (!value) return "";
+  return value.replace(/\D/g, "").slice(0, PROPERTY_LIMITS.PINCODE_LENGTH);
+};

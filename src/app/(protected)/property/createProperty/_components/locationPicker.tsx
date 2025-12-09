@@ -26,6 +26,7 @@ interface LocationPickerProps {
   onLocationSelect?: (details: {
     coordinates: [number, number];
     placeName: string;
+    pincode?: string;
     context?: { id: string; text: string }[];
   }) => void;
   className?: string;
@@ -83,17 +84,53 @@ export const LocationPicker = ({
     return () => clearTimeout(timeoutId);
   }, [searchQuery, token]);
 
+  // Helper function to extract pincode from Mapbox context or place_name
+  const extractPincode = React.useCallback(
+    (context?: { id: string; text: string }[], placeName?: string): string | undefined => {
+      // First, try to find pincode in context
+      if (context) {
+        for (const item of context) {
+          if (item.id.startsWith("postcode")) {
+            // Extract only numeric digits and ensure it's 6 characters for Indian pincodes
+            const numericPincode = item.text.replace(/\D/g, "");
+            if (numericPincode.length === 6) {
+              return numericPincode;
+            }
+            // If it's a partial match, still return it
+            if (numericPincode.length > 0) {
+              return numericPincode.slice(0, 6);
+            }
+          }
+        }
+      }
+      
+      // Fallback: try to extract 6-digit pincode from place_name
+      if (placeName) {
+        const pincodeMatch = placeName.match(/\b(\d{6})\b/);
+        if (pincodeMatch) {
+          return pincodeMatch[1];
+        }
+      }
+      
+      return undefined;
+    },
+    []
+  );
+
   const reverseGeocode = React.useCallback(
     async (lng: number, lat: number) => {
       try {
         const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&limit=1`
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&limit=1&types=address,postcode,place,locality`
         );
         const data = await response.json();
         if (data.features && data.features.length > 0) {
+          const feature = data.features[0];
+          const pincode = extractPincode(feature.context, feature.place_name);
           return {
-            place_name: data.features[0].place_name,
-            context: data.features[0].context,
+            place_name: feature.place_name,
+            context: feature.context,
+            pincode,
           };
         }
       } catch (error) {
@@ -101,7 +138,7 @@ export const LocationPicker = ({
       }
       return null;
     },
-    [token]
+    [token, extractPincode]
   );
 
   // Initialize Mapbox
@@ -170,6 +207,7 @@ export const LocationPicker = ({
           onLocationSelect({
             coordinates: [lng, lat],
             placeName: result.place_name,
+            pincode: result.pincode,
             context: result.context,
           });
         }
@@ -209,9 +247,11 @@ export const LocationPicker = ({
     onChange([lng, lat]);
 
     if (onLocationSelect) {
+      const pincode = extractPincode(result.context, result.place_name);
       onLocationSelect({
         coordinates: [lng, lat],
         placeName: result.place_name,
+        pincode,
         context: result.context,
       });
     }
