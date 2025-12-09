@@ -23,6 +23,7 @@ import {
   Building2,
   Ruler,
   Home,
+  ShieldX,
 } from "lucide-react";
 
 import { format } from "date-fns";
@@ -33,6 +34,7 @@ import { formatCurrency, formatAddress } from "@/utils/helper";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { AxiosError } from "axios";
 
 const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
@@ -51,6 +53,33 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   }
 
   if (error || !property) {
+    // Check if it's a 403 Forbidden error
+    const is403 = (error as AxiosError)?.response?.status === 403;
+    
+    if (is403) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <Card className="max-w-md text-center">
+            <CardHeader className="pb-4">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+                <ShieldX className="h-8 w-8 text-destructive" />
+              </div>
+              <CardTitle className="text-xl">Access Restricted</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">
+                You don&apos;t have permission to view this property. This property may be private or you may not be associated with it.
+              </p>
+              <Button className="w-full" onClick={() => router.back()}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Go Back
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Card className="max-w-md">

@@ -33,11 +33,13 @@ import {
   Dumbbell,
   TreePine,
   Shield,
+  ShieldX,
   Wifi,
   Wind,
 } from "lucide-react";
 import { formatCurrency, formatAddress } from "@/utils/helper";
 import { format } from "date-fns";
+import { AxiosError } from "axios";
 
 type PropertyPreviewModalProps = {
   propertyId: string | null;
@@ -116,13 +118,29 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
                 <p className="text-sm">Loading property details...</p>
               </div>
             ) : error || !property ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="rounded-full bg-destructive/10 p-4 mb-3">
-                  <Building2 className="h-8 w-8 text-destructive" />
-                </div>
-                <p className="text-sm text-destructive font-medium">
-                  {error?.message || "Unable to load property details"}
-                </p>
+              <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+                {(error as AxiosError)?.response?.status === 403 ? (
+                  <>
+                    <div className="rounded-full bg-destructive/10 p-4 mb-3">
+                      <ShieldX className="h-8 w-8 text-destructive" />
+                    </div>
+                    <p className="text-base font-semibold text-foreground mb-1">
+                      Access Restricted
+                    </p>
+                    <p className="text-sm text-muted-foreground max-w-xs">
+                      You don&apos;t have permission to view this property.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="rounded-full bg-destructive/10 p-4 mb-3">
+                      <Building2 className="h-8 w-8 text-destructive" />
+                    </div>
+                    <p className="text-sm text-destructive font-medium">
+                      {error?.message || "Unable to load property details"}
+                    </p>
+                  </>
+                )}
               </div>
             ) : (
               <>

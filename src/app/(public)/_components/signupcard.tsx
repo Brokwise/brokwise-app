@@ -137,23 +137,23 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
     switch (error.code) {
       case "auth/invalid-password":
       case "auth/wrong-password":
-        setInputError({
-          ...inputError,
+        setInputError((prev) => ({
+          ...prev,
           password: "Incorrect email or password.",
-        });
+        }));
         break;
       case "auth/email-already-exists":
       case "auth/email-already-in-use":
-        setInputError({
-          ...inputError,
+        setInputError((prev) => ({
+          ...prev,
           email: "Email already in use.",
-        });
+        }));
         break;
       case "auth/invalid-email":
-        setInputError({
-          ...inputError,
+        setInputError((prev) => ({
+          ...prev,
           email: "Invalid email address.",
-        });
+        }));
         break;
       case "auth/too-many-requests":
         toast.error("Too many failed requests. Please try again later.");
@@ -170,22 +170,22 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
       case "auth/invalid-login-credentials":
       case "auth/invalid-credentials":
       case "auth/invalid-credential":
-        setInputError({
-          ...inputError,
+        setInputError((prev) => ({
+          ...prev,
           password: "Incorrect email or password.",
-        });
+        }));
         break;
       case "auth/invalid-email":
-        setInputError({
-          ...inputError,
+        setInputError((prev) => ({
+          ...prev,
           email: "Invalid email address.",
-        });
+        }));
         break;
       case "auth/user-not-found":
-        setInputError({
-          ...inputError,
+        setInputError((prev) => ({
+          ...prev,
           email: "User not found.",
-        });
+        }));
         break;
       case "auth/too-many-requests":
         toast.error("Too many failed requests. Please try again later.");
@@ -239,10 +239,24 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
                     type="email"
                     placeholder="Enter your email address"
                     {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      if (inputError.email) {
+                        setInputError((prev) => ({
+                          ...prev,
+                          email: undefined,
+                        }));
+                      }
+                    }}
                   />
                 </FormControl>
 
                 <FormMessage />
+                {inputError.email && (
+                  <p className="text-sm font-medium text-destructive">
+                    {inputError.email}
+                  </p>
+                )}
               </FormItem>
             )}
           />
@@ -257,10 +271,24 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
                     type="password"
                     placeholder="Enter your password"
                     {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      if (inputError.password) {
+                        setInputError((prev) => ({
+                          ...prev,
+                          password: undefined,
+                        }));
+                      }
+                    }}
                   />
                 </FormControl>
 
                 <FormMessage />
+                {inputError.password && (
+                  <p className="text-sm font-medium text-destructive">
+                    {inputError.password}
+                  </p>
+                )}
               </FormItem>
             )}
           />
@@ -276,10 +304,24 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
                       type="password"
                       placeholder="Confirm your password"
                       {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        if (inputError.confirmPassword) {
+                          setInputError((prev) => ({
+                            ...prev,
+                            confirmPassword: undefined,
+                          }));
+                        }
+                      }}
                     />
                   </FormControl>
 
                   <FormMessage />
+                  {inputError.confirmPassword && (
+                    <p className="text-sm font-medium text-destructive">
+                      {inputError.confirmPassword}
+                    </p>
+                  )}
                 </FormItem>
               )}
             />
