@@ -36,11 +36,17 @@ import { cn } from "@/lib/utils";
 interface IndustrialWizardProps {
   onBack: () => void;
   initialData?: Partial<IndustrialPropertyFormData> & { _id?: string };
+  onSubmit?: (data: IndustrialPropertyFormData) => void;
+  onSaveDraft?: (data: IndustrialPropertyFormData) => void;
+  submitLabel?: string;
 }
 
 export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
   onBack,
   initialData,
+  onSubmit: onSubmitProp,
+  onSaveDraft: onSaveDraftProp,
+  submitLabel,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -89,7 +95,11 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
   }, [size, rate, form]);
 
   const onSubmit = (data: IndustrialPropertyFormData) => {
-    addProperty(data);
+    if (onSubmitProp) {
+      onSubmitProp(data);
+    } else {
+      addProperty(data);
+    }
   };
 
   const handleFileUpload = async (
@@ -221,6 +231,12 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
 
   const handleSaveDraft = async () => {
     const data = form.getValues();
+
+    if (onSaveDraftProp) {
+      onSaveDraftProp(data);
+      return;
+    }
+
     const payload = { ...data, _id: draftId };
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1034,6 +1050,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
         onStepClick={handleStepClick}
         onCancel={onBack}
         onSubmit={handleSubmit}
+        submitLabel={submitLabel}
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}

@@ -26,14 +26,19 @@ import {
 import { signInWithEmailAndPassword, User } from "firebase/auth";
 import { createUser } from "@/models/api/user";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Building2Icon, Loader2, User2 } from "lucide-react";
 import Image from "next/image";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
   const [inputError, setInputError] = useState<{
     email?: string;
     password?: string;
     confirmPassword?: string;
   }>({});
+  const [accountType, setAccountType] = useState<"broker" | "company">(
+    "broker"
+  );
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const formSchema = isSignup ? signupFormSchema : loginFormSchema;
@@ -61,17 +66,26 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
     const isFirstTimeUser =
       user.metadata.creationTime === user.metadata.lastSignInTime;
     if (isFirstTimeUser) {
-      await createUser({
-        email: user.email ?? "",
-        uid: user.uid ?? "",
-      });
+      if (accountType === "broker") {
+        await createUser({
+          email: user.email ?? "",
+          uid: user.uid ?? "",
+        });
+      }
+      // For company, we skip backend creation until profile completion
+
       const userDoc = getUserDoc(user.uid);
       await setUserDoc(userDoc, {
         email: user.email ?? "",
         uid: user.uid ?? "",
         firstName: user.displayName ?? name ?? "",
         lastName: "",
+        userType: accountType,
       });
+
+      if (accountType === "company") {
+        localStorage.setItem("userType", "company");
+      }
     }
   };
   const handleSubmit = async (data: FormSchemaType) => {
@@ -208,8 +222,15 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
       );
 
+      const state = encodeURIComponent(
+        JSON.stringify({
+          isSignup,
+          accountType: isSignup ? accountType : undefined,
+        })
+      );
+
       window.open(
-        `https://accounts.google.com/o/oauth2/auth?client_id=${Config.googleOauthClientId}&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${isSignup}`,
+        `https://accounts.google.com/o/oauth2/auth?client_id=${Config.googleOauthClientId}&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${state}`,
         "_self"
       );
     } catch (error) {
@@ -226,6 +247,24 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
   return (
     <div>
       {" "}
+      {isSignup && (
+        <Tabs
+          defaultValue="broker"
+          onValueChange={(val) => setAccountType(val as "broker" | "company")}
+          className="w-full mb-6"
+        >
+          <TabsList className="flex items-center justify-center">
+            <TabsTrigger className="w-1/2" value="broker">
+              <User2 className="mr-1" size={18} />
+              Broker
+            </TabsTrigger>
+            <TabsTrigger value="company" className="w-1/2">
+              <Building2Icon size={18} className="mr-1" />
+              <span>Company</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
           <FormField
@@ -286,7 +325,9 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
           )}
           <Button
             type="button"
-            className={`w-full ${!isValid && !loading ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`w-full ${
+              !isValid && !loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
             size={"lg"}
             disabled={loading}
             onClick={async () => {
@@ -316,6 +357,7 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         size={"lg"}
         variant="outline"
         className="w-full"
+        type="button"
       >
         <Image src="/icons/google.svg" alt="google" width={24} height={24} />
         <span>Google</span>

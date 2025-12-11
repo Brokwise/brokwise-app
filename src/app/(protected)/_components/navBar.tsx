@@ -17,11 +17,97 @@ import {
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { useApp } from "@/context/AppContext";
 
 const NavBar = () => {
   const router = useRouter();
   const pathname = usePathname();
-  console.log(pathname);
+  const { companyData } = useApp();
+
+  // If user is a company, show simplified navbar
+  if (companyData) {
+    return (
+      <div
+        id="navHeader"
+        className="w-full h-[4rem] flex justify-between items-center px-4xl"
+      >
+        <div>
+          <h1 className="font-instrument-serif text-2xl">Brokwise</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <Tabs
+            defaultValue="brokers"
+            className=""
+            onValueChange={(value) => {
+              if (value === "brokers") router.push("/brokers");
+              if (value === "properties") router.push("/company-properties");
+              if (value === "enquiries") router.push("/company-enquiries");
+              if (value === "listProperty")
+                router.push("/property/createProperty");
+            }}
+            value={
+              pathname.includes("/brokers")
+                ? "brokers"
+                : pathname.includes("/company-properties")
+                ? "properties"
+                : pathname.includes("/company-enquiries")
+                ? "enquiries"
+                : pathname.includes("/property/createProperty")
+                ? "listProperty"
+                : "none"
+            }
+          >
+            <TabsList className="bg-transparent">
+              <TabsTrigger
+                className={cn(
+                  "cursor-pointer",
+                  pathname.includes("/brokers") && "bg-primary text-white"
+                )}
+                value="brokers"
+              >
+                Brokers
+              </TabsTrigger>
+              <TabsTrigger
+                className={cn(
+                  "cursor-pointer",
+                  pathname.includes("/company-properties") &&
+                    "bg-primary text-white"
+                )}
+                value="properties"
+              >
+                Properties
+              </TabsTrigger>
+              <TabsTrigger
+                className={cn(
+                  "cursor-pointer",
+                  pathname.includes("/company-enquiries") &&
+                    "bg-primary text-white"
+                )}
+                value="enquiries"
+              >
+                Enquiries
+              </TabsTrigger>
+              <TabsTrigger
+                className={cn(
+                  "cursor-pointer",
+                  pathname.includes("/property/createProperty") &&
+                    "bg-primary text-white"
+                )}
+                value="listProperty"
+              >
+                List Property
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        <div className="flex gap-md">
+          {/* <Notifications /> Company might need notifications later, but for now strict "only brokers" */}
+          <UserAvatar />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       id="navHeader"

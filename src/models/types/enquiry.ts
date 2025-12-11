@@ -10,7 +10,7 @@ import { Property } from "@/types/property";
 
 // === ENUMS ===
 export type EnquiryStatus = "active" | "closed" | "expired";
-export type EnquirySource = "broker" | "admin";
+export type EnquirySource = "broker" | "admin" | "company";
 export type SubmissionStatus = "pending" | "approved" | "rejected";
 export type MessageThreadType = "enquirer_admin" | "submitter_admin";
 

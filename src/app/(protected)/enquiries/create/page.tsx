@@ -30,12 +30,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCreateEnquiry } from "@/hooks/useEnquiry";
-import {
-  PropertyCategory,
-  PropertyType,
-} from "@/models/types/property";
+import { useCreateCompanyEnquiry } from "@/hooks/useCompany";
+import { PropertyCategory, PropertyType } from "@/models/types/property";
 import { CreateEnquiryDTO } from "@/models/types/enquiry";
 import { parseIntegerOrUndefined, parseIntegerWithMax } from "@/utils/helper";
+import { useApp } from "@/context/AppContext";
 
 // --- Zod Schema ---
 
@@ -126,8 +125,8 @@ const createEnquirySchema = z.object({
       "SOUTH_WEST",
     ] as [string, ...string[]])
     .optional(),
-  frontRoadWidth: z
-    .coerce.number({
+  frontRoadWidth: z.coerce
+    .number({
       error: "Please enter a valid road width.",
     })
     .min(1, "Road width must be at least 1 ft.")
@@ -135,16 +134,16 @@ const createEnquirySchema = z.object({
     .optional(),
 
   // Residential - Flat
-  bhk: z
-    .coerce.number({
+  bhk: z.coerce
+    .number({
       error: "Please enter a valid number of bedrooms.",
     })
     .int("Bedrooms must be a whole number.")
     .min(1, "Number of bedrooms must be at least 1.")
     .max(20, "Bedrooms cannot exceed 20.")
     .optional(),
-  washrooms: z
-    .coerce.number({
+  washrooms: z.coerce
+    .number({
       error: "Please enter a valid number of washrooms.",
     })
     .int("Washrooms must be a whole number.")
@@ -155,16 +154,16 @@ const createEnquirySchema = z.object({
   society: z.string().max(100).optional(),
 
   // Commercial - Hotel/Hostel
-  rooms: z
-    .coerce.number({
+  rooms: z.coerce
+    .number({
       error: "Please enter a valid number of rooms.",
     })
     .int("Rooms must be a whole number.")
     .min(1, "Number of rooms must be at least 1.")
     .max(1000, "Rooms cannot exceed 1000.")
     .optional(),
-  beds: z
-    .coerce.number({
+  beds: z.coerce
+    .number({
       error: "Please enter a valid number of beds.",
     })
     .int("Beds must be a whole number.")
@@ -202,7 +201,12 @@ const CATEGORY_TYPE_MAP: Record<PropertyCategory, PropertyType[]> = {
 
 const CreateEnquiryPage = () => {
   const router = useRouter();
-  const { createEnquiry, isPending } = useCreateEnquiry();
+  const { companyData } = useApp();
+  const { createEnquiry, isPending: isBrokerPending } = useCreateEnquiry();
+  const { createEnquiry: createCompanyEnquiry, isPending: isCompanyPending } =
+    useCreateCompanyEnquiry();
+
+  const isPending = companyData ? isCompanyPending : isBrokerPending;
   const [localityInput, setLocalityInput] = useState("");
 
   const form = useForm<CreateEnquiryFormValues>({
@@ -229,18 +233,35 @@ const CreateEnquiryPage = () => {
 
   const onSubmit = (data: CreateEnquiryFormValues) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    createEnquiry(data as unknown as CreateEnquiryDTO, {
-      onSuccess: () => {
-        toast.success("Enquiry created successfully!");
-        router.push("/my-enquiries");
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onError: (error: any) => {
-        toast.error(
-          error.response?.data?.message || "Failed to create enquiry"
-        );
-      },
-    });
+    const payload = data as unknown as CreateEnquiryDTO;
+
+    if (companyData) {
+      createCompanyEnquiry(payload, {
+        onSuccess: () => {
+          toast.success("Enquiry created successfully!");
+          router.push("/company-enquiries");
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onError: (error: any) => {
+          toast.error(
+            error.response?.data?.message || "Failed to create enquiry"
+          );
+        },
+      });
+    } else {
+      createEnquiry(payload, {
+        onSuccess: () => {
+          toast.success("Enquiry created successfully!");
+          router.push("/my-enquiries");
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onError: (error: any) => {
+          toast.error(
+            error.response?.data?.message || "Failed to create enquiry"
+          );
+        },
+      });
+    }
   };
 
   const availableTypes = selectedCategory
@@ -260,10 +281,7 @@ const CreateEnquiryPage = () => {
             <FormItem>
               <FormLabel>Min Size</FormLabel>
               <FormControl>
-                <NumberInput
-                  {...field}
-                  onChange={field.onChange}
-                />
+                <NumberInput {...field} onChange={field.onChange} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -276,10 +294,7 @@ const CreateEnquiryPage = () => {
             <FormItem>
               <FormLabel>Max Size</FormLabel>
               <FormControl>
-                <NumberInput
-                  {...field}
-                  onChange={field.onChange}
-                />
+                <NumberInput {...field} onChange={field.onChange} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -415,7 +430,9 @@ const CreateEnquiryPage = () => {
                                   type="button"
                                   onClick={() => {
                                     field.onChange(
-                                      (field.value || []).filter((l) => l !== loc)
+                                      (field.value || []).filter(
+                                        (l) => l !== loc
+                                      )
                                     );
                                   }}
                                   className="ml-2 hover:text-destructive"
@@ -510,7 +527,7 @@ const CreateEnquiryPage = () => {
                         <FormControl>
                           <NumberInput
                             {...field}
-                          placeholder="Minimum budget is ₹5 lakh"
+                            placeholder="Minimum budget is ₹5 lakh"
                             onChange={field.onChange}
                           />
                         </FormControl>
@@ -527,7 +544,7 @@ const CreateEnquiryPage = () => {
                         <FormControl>
                           <NumberInput
                             {...field}
-                          placeholder="Maximum budget is ₹1000 crore"
+                            placeholder="Maximum budget is ₹1000 crore"
                             onChange={field.onChange}
                           />
                         </FormControl>
@@ -641,92 +658,92 @@ const CreateEnquiryPage = () => {
                 selectedType === "VILLA" ||
                 selectedType === "INDUSTRIAL_LAND" ||
                 selectedType === "AGRICULTURAL_LAND") && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={control}
-                      name="plotType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Plot Type</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select Plot Type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="ROAD">Road</SelectItem>
-                              <SelectItem value="CORNER">Corner</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={control}
-                      name="facing"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Facing</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select Facing" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {[
-                                "NORTH",
-                                "SOUTH",
-                                "EAST",
-                                "WEST",
-                                "NORTH_EAST",
-                                "NORTH_WEST",
-                                "SOUTH_EAST",
-                                "SOUTH_WEST",
-                              ].map((f) => (
-                                <SelectItem key={f} value={f}>
-                                  {f.replace("_", " ")}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={control}
-                      name="frontRoadWidth"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Front Road Width (ft)</FormLabel>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={control}
+                    name="plotType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Plot Type</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
-                            <Input
-                        type="text"
-                        inputMode="numeric"
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) =>
-                          field.onChange(
-                            parseIntegerOrUndefined(e.target.value)
-                          )
-                        }
-                            />
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Plot Type" />
+                            </SelectTrigger>
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
+                          <SelectContent>
+                            <SelectItem value="ROAD">Road</SelectItem>
+                            <SelectItem value="CORNER">Corner</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={control}
+                    name="facing"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Facing</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Facing" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {[
+                              "NORTH",
+                              "SOUTH",
+                              "EAST",
+                              "WEST",
+                              "NORTH_EAST",
+                              "NORTH_WEST",
+                              "SOUTH_EAST",
+                              "SOUTH_WEST",
+                            ].map((f) => (
+                              <SelectItem key={f} value={f}>
+                                {f.replace("_", " ")}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={control}
+                    name="frontRoadWidth"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Front Road Width (ft)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                parseIntegerOrUndefined(e.target.value)
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
 
               {/* Commercial (Hotel/Hostel) */}
               {(selectedType === "HOTEL" || selectedType === "HOSTEL") && (
@@ -859,9 +876,7 @@ const CreateEnquiryPage = () => {
               <Button
                 type="button"
                 className={`w-full ${
-                  !isValid && !isPending
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
+                  !isValid && !isPending ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 disabled={isPending}
                 onClick={async () => {

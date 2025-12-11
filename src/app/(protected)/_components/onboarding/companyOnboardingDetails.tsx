@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { submitProfileDetails } from "@/validators/onboarding";
+import { createCompanyFormSchema } from "@/validators/company";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,22 +14,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { submitUserDetails, updateProfileDetails } from "@/models/api/user";
+import { createCompany, updateCompanyProfile } from "@/models/api/company";
 import { useApp } from "@/context/AppContext";
 import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
 import { firebaseAuth } from "@/config/firebase";
 import { toast } from "sonner";
 import { logError } from "@/utils/errors";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-export const OnboardingDetails = ({
+export const CompanyOnboardingDetails = ({
   isEditing = false,
   onCancel,
 }: {
@@ -39,90 +32,72 @@ export const OnboardingDetails = ({
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
-  const { brokerData, setBrokerData } = useApp();
+  const { companyData, setCompanyData } = useApp();
   const [user] = useAuthState(firebaseAuth);
   const [signOut] = useSignOut(firebaseAuth);
 
   const stepFields = {
-    1: ["firstName", "lastName", "mobile"],
-    2: ["companyName", "gstin", "yearsOfExperience"],
-    3: ["city", "officeAddress", "reraNumber"],
+    1: ["name", "mobile", "city"],
+    2: ["gstin", "noOfEmployees", "officeAddress"],
   };
 
-  const form = useForm<z.infer<typeof submitProfileDetails>>({
-    resolver: zodResolver(submitProfileDetails),
+  const form = useForm<z.infer<typeof createCompanyFormSchema>>({
+    resolver: zodResolver(createCompanyFormSchema),
     mode: "onChange",
     defaultValues: {
-      firstName:
-        brokerData?.firstName || user?.displayName?.split(" ")[0] || "",
-      lastName: brokerData?.lastName || user?.displayName?.split(" ")[1] || "",
-      mobile: brokerData?.mobile || user?.phoneNumber || "",
-      companyName: brokerData?.companyName || "",
-      gstin: brokerData?.gstin || "",
-      yearsOfExperience: brokerData?.yearsOfExperience || 0,
-      city: brokerData?.city || "",
-      officeAddress: brokerData?.officeAddress || "",
-      reraNumber: brokerData?.reraNumber || "",
+      name: companyData?.name || "",
+      mobile: companyData?.mobile || user?.phoneNumber || "",
+      city: companyData?.city || "",
+      gstin: companyData?.gstin || "",
+      noOfEmployees: companyData?.noOfEmployees || 0,
+      officeAddress: companyData?.officeAddress || "",
     },
   });
   const { formState } = form;
   const { isValid } = formState;
 
   const onSubmitProfileDetails = async (
-    data: z.infer<typeof submitProfileDetails>
+    data: z.infer<typeof createCompanyFormSchema>
   ) => {
-    if (!user || !brokerData) {
-      toast.error("User or broker data not found");
+    if (!user) {
+      toast.error("User not found");
       return;
     }
 
     try {
       setLoading(true);
 
-      if (isEditing) {
-        await updateProfileDetails({
-          _id: brokerData._id,
+      if (isEditing && companyData) {
+        await updateCompanyProfile({
+          _id: companyData._id,
           ...data,
         });
 
-        // Update broker data in context
-        setBrokerData({
-          ...brokerData,
+        // Update company data in context
+        setCompanyData({
+          ...companyData,
           ...data,
         });
 
         toast.success("Profile updated successfully!");
         if (onCancel) onCancel();
       } else {
-        await submitUserDetails({
+        const newCompany = await createCompany({
           uid: user.uid,
-          firstName: data.firstName,
-          lastName: data.lastName,
           email: user.email || "",
-          _id: brokerData._id,
-          mobile: data.mobile,
-          companyName: data.companyName,
-          gstin: data.gstin,
-          yearsOfExperience: data.yearsOfExperience,
-          city: data.city,
-          officeAddress: data.officeAddress,
-          reraNumber: data.reraNumber,
+          ...data,
         });
 
-        // Update broker data in context
-        setBrokerData({
-          ...brokerData,
-          ...data,
-          status: "pending",
-        });
+        // Update company data in context
+        setCompanyData(newCompany.data);
 
         toast.success(
-          "Profile details submitted successfully! Your account is now pending approval."
+          "Company profile submitted successfully! Your account is now pending approval."
         );
       }
     } catch (error) {
       logError({
-        description: "Error submitting profile details",
+        description: "Error submitting company profile details",
         error: error as Error,
         slackChannel: "frontend-errors",
       });
@@ -151,12 +126,12 @@ export const OnboardingDetails = ({
     e.preventDefault();
     const fields = stepFields[
       step as keyof typeof stepFields
-    ] as (keyof z.infer<typeof submitProfileDetails>)[];
+    ] as (keyof z.infer<typeof createCompanyFormSchema>)[];
     const isStepValid = await form.trigger(fields);
 
     if (!isStepValid) return;
 
-    if (step === 3) {
+    if (step === 2) {
       onSubmitProfileDetails(form.getValues());
     } else {
       setDirection(1);
@@ -191,7 +166,7 @@ export const OnboardingDetails = ({
             {isEditing ? "Update your" : "Let's setup your"}
             <span className="text-primary font-instrument-serif italic">
               {" "}
-              profile
+              company profile
             </span>
           </h1>
           <div className="grid grid-cols-1">
@@ -210,23 +185,10 @@ export const OnboardingDetails = ({
                   <>
                     <FormField
                       control={form.control}
-                      name="firstName"
+                      name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
+                          <FormLabel>Company Name</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -242,7 +204,6 @@ export const OnboardingDetails = ({
                           <FormLabel>Mobile Number</FormLabel>
                           <FormControl>
                             <Input
-                              className=""
                               {...field}
                               type="tel"
                               maxLength={10}
@@ -258,83 +219,6 @@ export const OnboardingDetails = ({
                         </FormItem>
                       )}
                     />
-                  </>
-                )}
-
-                {step === 2 && (
-                  <>
-                    <FormField
-                      control={form.control}
-                      name="companyName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Company Name (Optional)</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="gstin"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>GSTIN (Optional)</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="yearsOfExperience"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Years of Experience (Required)</FormLabel>
-                          <FormControl>
-                            {/* <Input
-                              {...field}
-                              type="number"
-                              min="0"
-                              onChange={(e) =>
-                                field.onChange(parseInt(e.target.value) || 0)
-                              }
-                            /> */}
-                            <Select
-                              {...field}
-                              onValueChange={(e) => {
-                                field.onChange(parseInt(e) || 0);
-                              }}
-                              value={field.value?.toString() ?? "0"}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select Years of Experience" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {[...Array(21)].map((_, index) => (
-                                  <SelectItem
-                                    key={index}
-                                    value={index.toString()}
-                                  >
-                                    {index}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </>
-                )}
-
-                {step === 3 && (
-                  <>
                     <FormField
                       control={form.control}
                       name="city"
@@ -343,6 +227,44 @@ export const OnboardingDetails = ({
                           <FormLabel>City</FormLabel>
                           <FormControl>
                             <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
+                {step === 2 && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="gstin"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>GSTIN</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="noOfEmployees"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Number of Employees</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="number"
+                              min="0"
+                              onChange={(e) =>
+                                field.onChange(parseInt(e.target.value) || 0)
+                              }
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -361,26 +283,13 @@ export const OnboardingDetails = ({
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="reraNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>RERA Number (Optional)</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                   </>
                 )}
               </motion.div>
             </AnimatePresence>
           </div>
 
-          <div className="flex justify-between mt-4 pt-4  z-10 relative">
+          <div className="flex justify-between mt-4 pt-4 z-10 relative">
             {step > 1 ? (
               <Button
                 variant={"outline"}
@@ -400,7 +309,7 @@ export const OnboardingDetails = ({
               size={"lg"}
               disabled={loading}
               className={
-                step === 3 && !isValid && !loading
+                step === 2 && !isValid && !loading
                   ? "opacity-50 cursor-not-allowed"
                   : ""
               }
@@ -409,12 +318,12 @@ export const OnboardingDetails = ({
                 ? isEditing
                   ? "Updating..."
                   : "Submitting..."
-                : step === 3
+                : step === 2
                 ? isEditing
                   ? "Update"
                   : "Submit"
                 : "Next"}
-              {step < 3 && !loading && <ArrowRight className="ml-2 h-4 w-4" />}
+              {step < 2 && !loading && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </div>
         </form>

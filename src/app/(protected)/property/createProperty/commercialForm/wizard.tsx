@@ -22,7 +22,11 @@ import {
   CommercialPropertyFormData,
 } from "@/validators/property";
 import { useAddProperty, useSavePropertyAsDraft } from "@/hooks/useProperty";
-import { uploadFileToFirebase, generateFilePath, convertImageToWebP } from "@/utils/upload";
+import {
+  uploadFileToFirebase,
+  generateFilePath,
+  convertImageToWebP,
+} from "@/utils/upload";
 import { Loader2, Wand2Icon } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -35,6 +39,7 @@ interface CommercialWizardProps {
   onBack: () => void;
   initialData?: Partial<CommercialPropertyFormData> & { _id?: string };
   onSubmit?: (data: CommercialPropertyFormData) => void;
+  onSaveDraft?: (data: CommercialPropertyFormData) => void;
   submitLabel?: string;
 }
 
@@ -42,6 +47,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   onBack,
   initialData,
   onSubmit: onSubmitProp,
+  onSaveDraft: onSaveDraftProp,
   submitLabel,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -111,7 +117,10 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
         const convertedFile = await convertImageToWebP(file);
-        const path = generateFilePath(convertedFile.name, `property-${fieldName}`);
+        const path = generateFilePath(
+          convertedFile.name,
+          `property-${fieldName}`
+        );
         return await uploadFileToFirebase(convertedFile, path);
       });
 
@@ -248,6 +257,12 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
 
   const handleSaveDraft = async () => {
     const data = form.getValues();
+
+    if (onSaveDraftProp) {
+      onSaveDraftProp(data);
+      return;
+    }
+
     const payload = { ...data, _id: draftId };
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

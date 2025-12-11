@@ -74,6 +74,7 @@ interface ResidentialWizardProps {
   onBack: () => void;
   initialData?: Partial<ResidentialPropertyFormData> & { _id?: string };
   onSubmit?: (data: ResidentialPropertyFormData) => void;
+  onSaveDraft?: (data: ResidentialPropertyFormData) => void;
   submitLabel?: string;
 }
 
@@ -124,6 +125,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   onBack,
   initialData,
   onSubmit: onSubmitProp,
+  onSaveDraft: onSaveDraftProp,
   submitLabel,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -307,6 +309,12 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
 
   const handleSaveDraft = async () => {
     const data = form.getValues();
+
+    if (onSaveDraftProp) {
+      onSaveDraftProp(data);
+      return;
+    }
+
     const payload = { ...data, _id: draftId };
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -508,17 +516,17 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                 <div className="flex flex-wrap gap-2">
                   {(propertyType === "FLAT"
                     ? [
-                      { value: "SQ_FT", label: "Square Feet" },
-                      { value: "SQ_METER", label: "Square Meter" },
-                    ]
+                        { value: "SQ_FT", label: "Square Feet" },
+                        { value: "SQ_METER", label: "Square Meter" },
+                      ]
                     : [
-                      { value: "SQ_FT", label: "Square Feet" },
-                      { value: "SQ_YARDS", label: "Square Yards" },
-                      { value: "ACRES", label: "Acres" },
-                      { value: "BIGHA", label: "Bigha" },
-                      { value: "SQ_METER", label: "Square Meter" },
-                      { value: "HECTARE", label: "Hectare" },
-                    ]
+                        { value: "SQ_FT", label: "Square Feet" },
+                        { value: "SQ_YARDS", label: "Square Yards" },
+                        { value: "ACRES", label: "Acres" },
+                        { value: "BIGHA", label: "Bigha" },
+                        { value: "SQ_METER", label: "Square Meter" },
+                        { value: "HECTARE", label: "Hectare" },
+                      ]
                   ).map((item) => (
                     <Button
                       key={item.value}
@@ -836,8 +844,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
               {propertyType === "FLAT"
                 ? "Flat"
                 : propertyType === "VILLA"
-                  ? "Villa"
-                  : "Property"}{" "}
+                ? "Villa"
+                : "Property"}{" "}
               Amenities
             </FormLabel>
             <FormControl>

@@ -1,12 +1,13 @@
 "use client";
 import { firebaseAuth } from "@/config/firebase";
 import { setCookie } from "@/utils/helper";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
 import pkg from "../../../../package.json";
 import { Verification } from "@/app/(protected)/_components/verification";
 import { OnboardingDetails } from "@/app/(protected)/_components/onboarding/onboardingDetails";
+import { CompanyOnboardingDetails } from "@/app/(protected)/_components/onboarding/companyOnboardingDetails";
 import { StatusDisplay } from "@/app/(protected)/_components/statusDisplay";
 import { useApp } from "@/context/AppContext";
 
@@ -18,9 +19,16 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   const [user, loading, error] = useAuthState(firebaseAuth);
   const [signOut] = useSignOut(firebaseAuth);
   const router = useRouter();
-  const { brokerData, brokerDataLoading } = useApp();
+  const pathname = usePathname();
+  const {
+    brokerData,
+    brokerDataLoading,
+    companyData,
+    companyDataLoading,
+    userData,
+  } = useApp();
   const [isEditing, setIsEditing] = useState(false);
-  console.log("brokerData", brokerData);
+
   useEffect(() => {
     (async () => {
       try {
@@ -79,7 +87,28 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
     })();
   }, [user, loading, error, signOut, router]);
 
-  if (loading || !user || brokerDataLoading) {
+  // Route restriction for Company
+  useEffect(() => {
+    if (companyData && companyData.status === "approved") {
+      const allowedPaths = [
+        "/brokers",
+        "/profile",
+        "/company-properties",
+        "/company-enquiries",
+        "/enquiries/create",
+        "/property",
+      ];
+      const isAllowed = allowedPaths.some(
+        (path) => pathname === path || pathname.startsWith(`${path}/`)
+      );
+
+      if (!isAllowed) {
+        router.replace("/brokers");
+      }
+    }
+  }, [companyData, pathname, router]);
+
+  if (loading || !user || brokerDataLoading || companyDataLoading) {
     return <h1>Loading...</h1>;
   }
 
@@ -89,6 +118,56 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
 
   if (!user.emailVerified) {
     return <Verification />;
+  }
+
+  // Check company status
+  if (companyData) {
+    if (isEditing) {
+      return (
+        <WaveBackground>
+          <CompanyOnboardingDetails
+            isEditing={true}
+            onCancel={() => setIsEditing(false)}
+          />
+        </WaveBackground>
+      );
+    }
+    switch (companyData.status) {
+      case "incomplete":
+        return (
+          <WaveBackground>
+            <CompanyOnboardingDetails />
+          </WaveBackground>
+        );
+      case "pending":
+        return <StatusDisplay onEdit={() => setIsEditing(true)} />;
+      case "blacklisted":
+        return <StatusDisplay />;
+      case "approved":
+        // For approved users, show the main app
+        // The useEffect above handles redirection if they are on wrong page.
+        // But we must render children so the router can actually switch to /brokers
+        // However, if we are on /properties (default /), we show children which is Properties page.
+        // We want to avoid flash of content.
+        // But since useEffect runs after render, there might be a flash.
+        // We can return null if path is not allowed.
+        const allowedPaths = [
+          "/brokers",
+          "/profile",
+          "/company-properties",
+          "/company-enquiries",
+          "/property",
+          "/enquiries/create",
+        ];
+        const isAllowed = allowedPaths.some(
+          (path) => pathname === path || pathname.startsWith(`${path}/`)
+        );
+        if (!isAllowed) return null; // Or a loader
+
+        return children;
+      default:
+        return <StatusDisplay />;
+    }
   }
 
   // Check broker status and render appropriate component
@@ -116,10 +195,34 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
         return <StatusDisplay />;
       case "approved":
         // For approved users, show the main app
-        break;
+        break; // falls through to children at end of function, but wait, if companyData was null and we are here
       default:
         return <StatusDisplay />;
     }
+    // If broker is approved, we break from switch and go to return children
+    // But we need to make sure we don't return children if we returned above.
+    // The switch returns for other statuses. For approved it breaks.
+  }
+
+  // If we have brokerData approved, we fall through.
+  if (brokerData?.status === "approved") return children;
+
+  // If no data found, check userType from Firestore
+  if (userData?.userType === "company") {
+    return (
+      <WaveBackground>
+        <CompanyOnboardingDetails />
+      </WaveBackground>
+    );
+  }
+
+  // Default fallback to Broker Onboarding if no profile and not identified as company
+  if (!brokerData && !companyData) {
+    return (
+      <WaveBackground>
+        <OnboardingDetails />
+      </WaveBackground>
+    );
   }
 
   return children;
