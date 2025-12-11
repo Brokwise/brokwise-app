@@ -161,7 +161,7 @@ export const useCreateCompanyProperty = () => {
   } = useMutation<
     unknown,
     AxiosError<{ message: string }>,
-    PropertyFormData & { brokerId: string }
+    PropertyFormData & { brokerId?: string }
   >({
     mutationFn: async (property) => {
       return (await api.post("/company/properties/create", property)).data.data;
@@ -187,7 +187,7 @@ export const useSaveCompanyPropertyDraft = () => {
   const { mutateAsync, isPending, error } = useMutation<
     Property,
     AxiosError<{ message: string }>,
-    PropertyFormData & { brokerId: string }
+    PropertyFormData & { brokerId?: string }
   >({
     mutationFn: async (property) => {
       return (await api.post(`/company/properties/draft`, property)).data.data;

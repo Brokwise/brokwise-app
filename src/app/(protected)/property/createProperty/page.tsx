@@ -1,23 +1,34 @@
 "use client";
 import {
-  useGetCompanyBrokers,
   useGetCompanyProperties,
   useCreateCompanyProperty,
   useSaveCompanyPropertyDraft,
 } from "@/hooks/useCompany";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Loader2, Edit } from "lucide-react";
+
 import { PropertyFormData } from "@/validators/property";
+import { useApp } from "@/context/AppContext";
+import { Property, PropertyCategory } from "@/types/property";
+import { useState } from "react";
+import { useGetMyListings } from "@/hooks/useProperty";
+import { ResortWizard } from "./resortForm/wizard";
+import { FarmHouseWizard } from "./farmhouseForm/wizard";
+import { AgriculturalWizard } from "./agriculturalForm/wizard";
+import { IndustrialWizard } from "./industrialForm/wizard";
+import { CommercialWizard } from "./commercialForm/wizard";
+import { ResidentialWizard } from "./residentialForm/wizard";
+import { H2 } from "@/components/text/h2";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { propertyCategories } from "@/constants";
+import { H1 } from "@/components/text/h1";
 
 const CreateProperty = () => {
   const [selectedCategory, setSelectedCategory] =
     useState<PropertyCategory | null>(null);
   const [selectedDraft, setSelectedDraft] = useState<Property | null>(null);
-  const [selectedBrokerId, setSelectedBrokerId] = useState<string | null>(null);
   const { companyData } = useApp();
 
-  const { data: brokers } = useGetCompanyBrokers("approved");
   const { addProperty: createCompanyProperty } = useCreateCompanyProperty();
   const { savePropertyAsDraft: saveCompanyPropertyDraft } =
     useSaveCompanyPropertyDraft();
@@ -28,7 +39,7 @@ const CreateProperty = () => {
 
   const { data: companyPropertiesData, isLoading: isCompanyLoading } =
     useGetCompanyProperties(
-      { listingStatus: "DRAFT", brokerId: selectedBrokerId || undefined },
+      { listingStatus: "DRAFT" },
       { enabled: !!companyData }
     );
 
@@ -38,19 +49,12 @@ const CreateProperty = () => {
     ? companyPropertiesData?.properties || []
     : myListings?.filter((p) => p.listingStatus === "DRAFT") || [];
 
-  const handleBrokerSelect = (brokerId: string) => {
-    setSelectedBrokerId(brokerId);
-  };
-
   const handleCategorySelect = (category: PropertyCategory) => {
     setSelectedCategory(category);
     setSelectedDraft(null);
   };
 
   const handleDraftSelect = (draft: Property) => {
-    if (companyData && draft.listedBy) {
-      setSelectedBrokerId(draft.listedBy);
-    }
     setSelectedCategory(draft.propertyCategory);
     setSelectedDraft(draft);
   };
@@ -58,31 +62,14 @@ const CreateProperty = () => {
   const handleBack = () => {
     setSelectedCategory(null);
     setSelectedDraft(null);
-    if (companyData) {
-      // Only reset broker if we are going back from category selection
-      // But actually, the back button is on the wizard page (showing form).
-      // So clicking back takes us to Category selection.
-      // If we want to go back to Broker selection, we need another Back button or reset here.
-      // Let's decide: If we are in category selection (selectedCategory is null), back resets broker?
-      // No, UI shows "Back to Categories" when form is shown.
-      // If categories are shown, we might want a "Back to Brokers" button if broker is selected.
-    }
-  };
-
-  const handleResetBroker = () => {
-    setSelectedBrokerId(null);
-    setSelectedCategory(null);
-    setSelectedDraft(null);
   };
 
   const handleCompanySubmit = (data: PropertyFormData) => {
-    if (!selectedBrokerId) return;
-    createCompanyProperty({ ...data, brokerId: selectedBrokerId });
+    createCompanyProperty({ ...data });
   };
 
   const handleCompanySaveDraft = (data: PropertyFormData) => {
-    if (!selectedBrokerId) return;
-    saveCompanyPropertyDraft({ ...data, brokerId: selectedBrokerId });
+    saveCompanyPropertyDraft({ ...data });
   };
 
   const renderCategoryForm = () => {
@@ -112,54 +99,12 @@ const CreateProperty = () => {
     }
   };
 
-  if (companyData && !selectedBrokerId) {
-    return (
-      <main className="container mx-auto p-6 space-y-6 px-4 md:px-80">
-        <H2 text="Select Broker" />
-        <p className="text-muted-foreground">
-          Select the broker you are creating this property for.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {brokers?.map((broker) => (
-            <Card
-              key={broker._id}
-              onClick={() => handleBrokerSelect(broker._id)}
-              className="cursor-pointer hover:border-primary transition-all hover:shadow-md"
-            >
-              <CardContent className="flex items-center gap-4 p-6">
-                <Avatar className="h-12 w-12">
-                  <AvatarFallback>
-                    {broker.firstName[0]}
-                    {broker.lastName[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="font-semibold">
-                    {broker.firstName} {broker.lastName}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {broker.email}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main className="container mx-auto p-6 space-y-6 px-4 md:px-80">
       {!selectedCategory ? (
         <>
           <div className="flex items-center justify-between">
             <H2 text="Create Property" />
-            {companyData && (
-              <Button variant="outline" onClick={handleResetBroker}>
-                Change Broker
-              </Button>
-            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -184,20 +129,13 @@ const CreateProperty = () => {
             ))}
           </div>
 
-          {/* Drafts Section */}
           {isLoading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : drafts.length > 0 ? (
             <div className="space-y-4 pt-8 border-t">
-              <H2
-                text={
-                  companyData
-                    ? "Continue Drafting (Selected Broker)"
-                    : "Continue Drafting"
-                }
-              />
+              <H2 text="Continue Drafting" />
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {drafts.map((draft) => (
                   <Card key={draft._id} className="overflow-hidden">
