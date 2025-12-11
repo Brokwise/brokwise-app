@@ -79,7 +79,7 @@ const SingleEnquiry = () => {
   const router = useRouter();
   const { enquiry, isPending, error } = useGetEnquiryById(id as string);
   const { myEnquiries } = useGetMyEnquiries();
-
+  console.log("Broker Data", brokerData);
   const { enquirySubmissions } = useGetEnquirySubmissions(id as string);
   const { closeEnquiry, isPending: isPendingCloseEnquiry } = useCloseEnquiry();
   const isMyEnquiry =
@@ -423,8 +423,10 @@ const SingleEnquiry = () => {
                   className="w-full"
                   size="lg"
                   disabled={
-                    typeof brokerData?.companyId === "object" &&
-                    brokerData?.companyId?._id == enquiry.createdBy
+                    (typeof brokerData?.companyId === "object" &&
+                      brokerData?.companyId?._id == enquiry.createdBy) ||
+                    (typeof brokerData?.companyId === "object" &&
+                      enquiry.createdByCompanyId === brokerData?.companyId._id)
                   }
                 >
                   Submit Proposal
@@ -458,7 +460,13 @@ const SingleEnquiry = () => {
 
           {/* Admin Messages */}
           {typeof brokerData?.companyId === "object" &&
-          brokerData?.companyId?._id == enquiry.createdBy ? (
+          enquiry.createdByCompanyId === brokerData?.companyId._id ? (
+            <h1>
+              Someone from your company has raised this enquiry, so you can't
+              submit the property
+            </h1>
+          ) : typeof brokerData?.companyId === "object" &&
+            brokerData?.companyId?._id == enquiry.createdBy ? (
             <>Your company has listed this</>
           ) : !isMyEnquiry &&
             enquirySubmissions &&

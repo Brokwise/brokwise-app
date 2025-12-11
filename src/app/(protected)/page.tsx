@@ -40,8 +40,10 @@ import { Label } from "@/components/ui/label";
 import Fuse from "fuse.js";
 import { formatIndianNumber } from "@/utils/helper";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useApp } from "@/context/AppContext";
 
 const ProtectedPage = () => {
+  const { userData } = useApp();
   const { properties, isLoading, error } = useGetAllProperties();
   const [view, setView] = useState<"grid" | "map" | "split">("grid");
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
@@ -231,17 +233,19 @@ const ProtectedPage = () => {
         </div>
       </div>
 
-      <Tabs
-        value={sourceFilter}
-        onValueChange={setSourceFilter}
-        className="w-full"
-      >
-        <TabsList className="grid w-full grid-cols-3 max-w-[400px]">
-          <TabsTrigger value="ALL">All</TabsTrigger>
-          <TabsTrigger value="BROKER">Broker Listed</TabsTrigger>
-          <TabsTrigger value="COMPANY">Company Listed</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {userData?.userType === "company" && (
+        <Tabs
+          value={sourceFilter}
+          onValueChange={setSourceFilter}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-3 max-w-[400px]">
+            <TabsTrigger value="ALL">All</TabsTrigger>
+            <TabsTrigger value="BROKER">Broker Listed</TabsTrigger>
+            <TabsTrigger value="COMPANY">Company Listed</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
 
       {/* Search and Filters Bar */}
       <div className="bg-card p-4 rounded-lg border shadow-sm flex gap-4 items-center flex-col sm:flex-row">

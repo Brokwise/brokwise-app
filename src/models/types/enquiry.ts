@@ -92,6 +92,8 @@ export interface Enquiry {
   forwardedTo: string[];
   submissionCount: number;
 
+  createdByCompanyId?: string;
+
   createdAt: string;
   updatedAt: string;
 }
