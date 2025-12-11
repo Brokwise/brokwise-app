@@ -154,9 +154,9 @@ export const columns: ColumnDef<Property>[] = [
       return (
         <div className="flex flex-col text-sm">
           <span className="font-medium">
-            {broker.firstName} {broker.lastName}
+            {broker?.firstName} {broker?.lastName}
           </span>
-          <span className="text-xs text-muted-foreground">{broker.email}</span>
+          <span className="text-xs text-muted-foreground">{broker?.email}</span>
         </div>
       );
     },
@@ -385,19 +385,19 @@ function ActionCell({ property }: { property: Property }) {
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <span className="text-muted-foreground">Name:</span>{" "}
-                  {property.listedBy.firstName} {property.listedBy.lastName}
+                  {property.listedBy?.firstName} {property.listedBy?.lastName}
                 </div>
                 <div>
                   <span className="text-muted-foreground">Email:</span>{" "}
-                  {property.listedBy.email}
+                  {property.listedBy?.email}
                 </div>
                 <div>
                   <span className="text-muted-foreground">Mobile:</span>{" "}
-                  {property.listedBy.mobile}
+                  {property.listedBy?.mobile}
                 </div>
                 <div>
                   <span className="text-muted-foreground">Broker ID:</span>{" "}
-                  {property.listedBy.brokerId}
+                  {property.listedBy?.brokerId}
                 </div>
               </div>
             </div>

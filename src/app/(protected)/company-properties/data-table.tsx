@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -45,6 +45,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Search,
   Filter,
@@ -76,9 +77,26 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [listingType, setListingType] = useState("all");
+
+  const filteredData = useMemo(() => {
+    if (listingType === "broker") {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return data.filter(
+        (item: any) => item.listedBy !== null && item.listedBy !== undefined
+      );
+    }
+    if (listingType === "company") {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return data.filter(
+        (item: any) => item.listedBy === null || item.listedBy === undefined
+      );
+    }
+    return data;
+  }, [data, listingType]);
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -132,12 +150,26 @@ export function DataTable<TData, TValue>({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          <div className="flex justify-between">Company Properties</div>
-        </CardTitle>
-        <CardDescription>
-          View all properties listed by brokers in your company
-        </CardDescription>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle>Company Properties</CardTitle>
+            <CardDescription>
+              View all properties listed by brokers and company
+            </CardDescription>
+          </div>
+          <Tabs
+            defaultValue="all"
+            value={listingType}
+            onValueChange={setListingType}
+            className="w-[400px]"
+          >
+            <TabsList className="w-full flex ">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="broker">Broker Listed</TabsTrigger>
+              <TabsTrigger value="company">Company Listed</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-4 mb-6">
