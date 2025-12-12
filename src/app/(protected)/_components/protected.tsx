@@ -13,7 +13,7 @@ import { useApp } from "@/context/AppContext";
 
 import { logError } from "@/utils/errors";
 import WaveBackground from "@/components/ui/waveBackground";
-// import WorkspaceUI from "@/components/ui/test";
+import { Loader, Loader2 } from "lucide-react";
 
 export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   const [user, loading, error] = useAuthState(firebaseAuth);
@@ -109,7 +109,11 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   }, [companyData, pathname, router]);
 
   if (loading || !user || brokerDataLoading || companyDataLoading) {
-    return <h1>Loading...</h1>;
+    return (
+      <div className="h-screen w-full flex justify-center items-center">
+        <Loader2 className="animate-spin h-10 w-10" />
+      </div>
+    );
   }
 
   if (error) {
