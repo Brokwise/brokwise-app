@@ -347,10 +347,10 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
           <Link href="/forgot-password">Forgot Password?</Link>
         </div>
       )}
-      <div className="flex items-center gap-2 flex-col w-full relative">
-        <div className="w-1/4 h-[1px] bg-gray-200 absolute top-1/2 left-0"></div>
+      <div className="flex items-center gap-2 my-5 flex-col w-full relative">
+        <div className="w-1/4 h-[1px] bg-slate-400 dark:bg-slate-600 absolute top-1/2 left-0"></div>
         <span className="text-gray-500 z-10">Or continue with</span>
-        <div className="w-1/4 h-[1px] bg-gray-200 absolute top-1/2 right-0"></div>
+        <div className="w-1/4 h-[1px] bg-slate-400 dark:bg-slate-600  absolute top-1/2 right-0"></div>
       </div>
       <Button
         onClick={handleGoogleSignUp}
