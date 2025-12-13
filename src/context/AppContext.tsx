@@ -5,12 +5,15 @@ import { onSnapshot } from "firebase/firestore";
 import { createContext, useContext, useEffect, useState } from "react";
 import { logError } from "@/utils/errors";
 import { getBrokerDetails } from "@/models/api/user";
+import { getCompanyDetails } from "@/models/api/company";
 import type { GetBrokerDetailsResponse } from "@/models/types/user";
+import { Company } from "@/models/types/company";
 
 export interface UserData {
   email: string;
   fullName: string;
   uid: string;
+  userType?: "broker" | "company";
 }
 
 export type BrokerData = GetBrokerDetailsResponse["data"];
@@ -21,6 +24,9 @@ interface AppContext {
   brokerData: BrokerData | null;
   brokerDataLoading: boolean;
   setBrokerData: (brokerData: BrokerData | null) => void;
+  companyData: Company | null;
+  companyDataLoading: boolean;
+  setCompanyData: (companyData: Company | null) => void;
 }
 const Context = createContext<AppContext | null>(null);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -31,6 +37,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [userDataloading, setUserDataloading] = useState(false);
   const [brokerData, setBrokerData] = useState<BrokerData | null>(null);
   const [brokerDataLoading, setBrokerDataLoading] = useState(false);
+  const [companyData, setCompanyData] = useState<Company | null>(null);
+  const [companyDataLoading, setCompanyDataLoading] = useState(false);
 
   useEffect(() => {
     if (userData) {
@@ -85,7 +93,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [user?.uid, userLoading]);
 
-  // Fetch broker data
+  // Fetch broker and company data
   useEffect(() => {
     if (!user?.uid || userLoading) {
       return;
@@ -97,18 +105,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         const response = await getBrokerDetails({ uid: user.uid });
         setBrokerData(response.data);
       } catch (err) {
-        logError({
-          description: "Error fetching broker data",
-          error: err as Error,
-          slackChannel: "frontend-errors",
-        });
+        // Only log real errors, not 404s if user might be a company
+        // But for now we don't know distinction, so we might get 404.
+        // We'll treat it as null result.
         setBrokerData(null);
       } finally {
         setBrokerDataLoading(false);
       }
     };
 
+    const fetchCompanyData = async () => {
+      try {
+        setCompanyDataLoading(true);
+        const response = await getCompanyDetails({ uid: user.uid });
+        setCompanyData(response.data);
+      } catch (err) {
+        setCompanyData(null);
+      } finally {
+        setCompanyDataLoading(false);
+      }
+    };
+
     fetchBrokerData();
+    fetchCompanyData();
   }, [user?.uid, userLoading]);
 
   return (
@@ -120,6 +139,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         brokerData,
         brokerDataLoading,
         setBrokerData,
+        companyData,
+        companyDataLoading,
+        setCompanyData,
       }}
     >
       <main>{children}</main>

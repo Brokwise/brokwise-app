@@ -61,7 +61,8 @@ export type ListingStatus =
   | "RENTED"
   | "EXPIRED"
   | "DELISTED"
-  | "ENQUIRY_ONLY"; // Properties submitted directly to enquiries - not in marketplace
+  | "ENQUIRY_ONLY"
+  | "DELETED_BY_COMPANY";
 
 export type PossessionStatus = "READY_TO_MOVE" | "UNDER_CONSTRUCTION";
 
@@ -169,7 +170,6 @@ export interface Property {
   updatedAt: string;
   deletingStatus?: "pending" | "approved" | "rejected" | null;
 
-  // For ENQUIRY_ONLY properties - link to the enquiry it was submitted for
   submittedForEnquiryId?: string;
 }
 export interface PropertyDeleteRequest {

@@ -7,15 +7,34 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSignOut } from "react-firebase-hooks/auth";
 import { firebaseAuth } from "@/config/firebase";
-export const StatusDisplay = ({ onEdit }: { onEdit?: () => void }) => {
-  const { brokerData } = useApp();
+import { Broker } from "@/stores/authStore";
+import { Company } from "@/models/types/company";
+
+interface StatusDisplayProps {
+  onEdit?: () => void;
+  data?: Broker | Company;
+  type?: "broker" | "company";
+}
+
+export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
+  const { brokerData, companyData } = useApp();
   const [signOut] = useSignOut(firebaseAuth);
-  if (!brokerData) {
+
+  const activeData = data || brokerData || companyData;
+  const activeType =
+    type ||
+    (activeData
+      ? "firstName" in activeData
+        ? "broker"
+        : "company"
+      : undefined);
+
+  if (!activeData || !activeType) {
     return <div>Loading...</div>;
   }
 
   const getStatusIcon = () => {
-    switch (brokerData.status) {
+    switch (activeData.status) {
       case "approved":
         return <CheckCircle className="h-6 w-6 text-green-500" />;
       case "pending":
@@ -28,7 +47,7 @@ export const StatusDisplay = ({ onEdit }: { onEdit?: () => void }) => {
   };
 
   const getStatusColor = () => {
-    switch (brokerData.status) {
+    switch (activeData.status) {
       case "approved":
         return "border border-green-100 text-green-800 dark:border-green-900 dark:text-green-100 bg-transparent";
       case "pending":
@@ -41,11 +60,18 @@ export const StatusDisplay = ({ onEdit }: { onEdit?: () => void }) => {
   };
 
   const getStatusMessage = () => {
-    switch (brokerData.status) {
+    const isCompany = activeType === "company";
+    switch (activeData.status) {
       case "approved":
         return {
           title: "Account Approved!",
-          message: `Congratulations! Your broker account has been approved. Your broker ID is ${brokerData.brokerId}.`,
+          message: `Congratulations! Your ${
+            isCompany ? "company" : "broker"
+          } account has been approved.${
+            !isCompany && "brokerId" in activeData
+              ? ` Your broker ID is ${activeData.brokerId}.`
+              : ""
+          }`,
         };
       case "pending":
         return {
@@ -68,6 +94,9 @@ export const StatusDisplay = ({ onEdit }: { onEdit?: () => void }) => {
   };
 
   const statusInfo = getStatusMessage();
+  const isCompany = activeType === "company";
+  const broker = activeData as Broker;
+  const company = activeData as Company;
 
   return (
     <div className="flex justify-center items-center min-h-screen p-4">
@@ -84,8 +113,8 @@ export const StatusDisplay = ({ onEdit }: { onEdit?: () => void }) => {
           <div className="flex justify-center mb-4">{getStatusIcon()}</div>
           <CardTitle className="text-2xl">{statusInfo.title}</CardTitle>
           <Badge className={cn(getStatusColor(), "w-fit mx-auto")}>
-            {brokerData.status.charAt(0).toUpperCase() +
-              brokerData.status.slice(1)}
+            {activeData.status.charAt(0).toUpperCase() +
+              activeData.status.slice(1)}
           </Badge>
         </CardHeader>
         <CardContent className="text-center space-y-4 relative">
@@ -96,35 +125,59 @@ export const StatusDisplay = ({ onEdit }: { onEdit?: () => void }) => {
           <div className="mt-6 p-4 rounded-lg">
             <h3 className="font-semibold mb-2">Your Details</h3>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <strong>Name:</strong> {brokerData.firstName}{" "}
-                {brokerData.lastName}
-              </div>
-              <div>
-                <strong>Email:</strong> {brokerData.email}
-              </div>
-              <div>
-                <strong>Mobile:</strong> {brokerData.mobile}
-              </div>
-              <div>
-                <strong>Company:</strong> {brokerData.companyName}
-              </div>
-              <div>
-                <strong>City:</strong> {brokerData.city}
-              </div>
-              <div>
-                <strong>Experience:</strong> {brokerData.yearsOfExperience}{" "}
-                years
-              </div>
-              {brokerData.brokerId && (
-                <div>
-                  <strong>Broker ID:</strong> {brokerData.brokerId}
-                </div>
+              {isCompany ? (
+                <>
+                  <div>
+                    <strong>Company Name:</strong> {company.name}
+                  </div>
+                  <div>
+                    <strong>Email:</strong> {company.email}
+                  </div>
+                  <div>
+                    <strong>Mobile:</strong> {company.mobile}
+                  </div>
+                  <div>
+                    <strong>GSTIN:</strong> {company.gstin}
+                  </div>
+                  <div>
+                    <strong>City:</strong> {company.city}
+                  </div>
+                  <div>
+                    <strong>Employees:</strong> {company.noOfEmployees}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <strong>Name:</strong> {broker.firstName} {broker.lastName}
+                  </div>
+                  <div>
+                    <strong>Email:</strong> {broker.email}
+                  </div>
+                  <div>
+                    <strong>Mobile:</strong> {broker.mobile}
+                  </div>
+                  <div>
+                    <strong>Company:</strong> {broker.companyName}
+                  </div>
+                  <div>
+                    <strong>City:</strong> {broker.city}
+                  </div>
+                  <div>
+                    <strong>Experience:</strong> {broker.yearsOfExperience}{" "}
+                    years
+                  </div>
+                  {broker.brokerId && (
+                    <div>
+                      <strong>Broker ID:</strong> {broker.brokerId}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
 
-          {brokerData.status === "pending" && onEdit && (
+          {activeData.status === "pending" && onEdit && (
             <Button onClick={onEdit} className="w-full mt-4">
               Edit Details
             </Button>

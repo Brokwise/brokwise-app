@@ -8,6 +8,7 @@ export interface Notification {
   userId: string;
   read: boolean;
   createdAt: string;
+  relatedTo: "PROPERTY" | "BROKER" | "ADMIN" | "FORM" | "ENQUIRY" | "COMPANY";
 }
 
 export const useNotification = () => {

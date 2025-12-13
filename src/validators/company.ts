@@ -1,0 +1,61 @@
+import { z } from "zod";
+
+export const createCompanyFormSchema = z.object({
+  name: z
+    .string()
+    .min(3, { message: "Name must be at least 3 characters" })
+    .max(128),
+  gstin: z
+    .string()
+    .min(15, { message: "GSTIN must be at least 15 characters" }),
+  officeAddress: z
+    .string()
+    .min(3, { message: "Address must be at least 3 characters" }),
+  mobile: z.string().min(10, { message: "Mobile must be at least 10 digits" }),
+  noOfEmployees: z
+    .number()
+    .min(0, { message: "Number of employees must be positive" }),
+  city: z.string().min(3, { message: "City must be at least 3 characters" }),
+});
+
+export const updateCompanyProfileSchema = z.object({
+  name: z
+    .string()
+    .min(3, { message: "Name must be at least 3 characters long" })
+    .optional()
+    .or(z.literal("")),
+  mobile: z
+    .string()
+    .min(10, { message: "Mobile number must be at least 10 digits long" })
+    .optional()
+    .or(z.literal("")),
+  gstin: z
+    .string()
+    .min(15, { message: "GSTIN must be at least 15 characters long" })
+    .optional()
+    .or(z.literal("")),
+  city: z
+    .string()
+    .min(3, { message: "City must be at least 3 characters long" })
+    .optional()
+    .or(z.literal("")),
+  officeAddress: z
+    .string()
+    .min(3, { message: "Office address must be at least 3 characters long" })
+    .optional()
+    .or(z.literal("")),
+  noOfEmployees: z.number().min(0).optional(),
+});
+
+export const addBrokerSchema = z.object({
+  email: z.string().email(),
+  firstName: z
+    .string()
+    .min(3, { message: "First name must be at least 3 characters long" }),
+  lastName: z
+    .string()
+    .min(3, { message: "Last name must be at least 3 characters long" }),
+  mobile: z
+    .string()
+    .min(10, { message: "Mobile number must be at least 10 digits long" }),
+});

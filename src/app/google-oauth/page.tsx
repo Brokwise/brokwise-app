@@ -36,32 +36,46 @@ const GoogleOauthPage = () => {
     },
     [router]
   );
-  const createUserInDb = useCallback(async (user: User) => {
-    try {
-      const userDocRef = getUserDoc(user.uid);
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-        return;
+
+  const createUserInDb = useCallback(
+    async (user: User, accountType?: "broker" | "company") => {
+      try {
+        const userDocRef = getUserDoc(user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          return;
+        }
+
+        if (accountType !== "company") {
+          await createUser({
+            email: user.email ?? "",
+            uid: user.uid ?? "",
+          });
+        }
+
+        await setUserDoc(userDocRef, {
+          uid: user.uid ?? "",
+          firstName: user.displayName ?? "",
+          lastName: "",
+          email: user.email ?? "",
+          userType: accountType ?? "broker",
+        });
+
+        if (accountType === "company") {
+          localStorage.setItem("userType", "company");
+        }
+      } catch (error) {
+        logError({
+          error: error as Error,
+          slackChannel: "frontend-errors",
+          description: "Failed to create user in db",
+        });
+        toast.error("Failed to create user in db");
       }
-      await createUser({
-        email: user.email ?? "",
-        uid: user.uid ?? "",
-      });
-      await setUserDoc(userDocRef, {
-        uid: user.uid ?? "",
-        firstName: user.displayName ?? "",
-        lastName: "",
-        email: user.email ?? "",
-      });
-    } catch (error) {
-      logError({
-        error: error as Error,
-        slackChannel: "frontend-errors",
-        description: "Failed to create user in db",
-      });
-      toast.error("Failed to create user in db");
-    }
-  }, []);
+    },
+    []
+  );
+
   const sendVerificationLink = useCallback(async (user: User) => {
     try {
       if (user?.emailVerified) {
@@ -90,12 +104,13 @@ const GoogleOauthPage = () => {
       }
     }
   }, []);
+
   const verifyGoogleUser = useCallback(
-    async (accessToken: string) => {
+    async (accessToken: string, accountType?: "broker" | "company") => {
       try {
         const credential = GoogleAuthProvider.credential(null, accessToken);
         const { user } = await signInWithCredential(firebaseAuth, credential);
-        await createUserInDb(user);
+        await createUserInDb(user, accountType);
         await sendVerificationLink(user);
       } catch (error) {
         logError({
@@ -113,6 +128,23 @@ const GoogleOauthPage = () => {
     try {
       const params = new URLSearchParams(window.location.hash.slice(1));
       const accessToken = params.get("access_token");
+      const stateParam = params.get("state");
+
+      let accountType: "broker" | "company" | undefined = "broker";
+
+      if (stateParam) {
+        try {
+          const state = JSON.parse(decodeURIComponent(stateParam));
+          accountType = state.accountType;
+        } catch (e) {
+          // fallback to raw string check if legacy or simple string
+          if (stateParam === "true" || stateParam === "false") {
+            // legacy behavior, assume broker
+            accountType = "broker";
+          }
+        }
+      }
+
       if (!accessToken) {
         setMessage("Invalid Crendentials! Please try again.");
         redirectUser({
@@ -122,7 +154,7 @@ const GoogleOauthPage = () => {
         });
         return;
       }
-      await verifyGoogleUser(accessToken);
+      await verifyGoogleUser(accessToken, accountType);
 
       setTimeout(() => {
         redirectUser({
@@ -140,6 +172,7 @@ const GoogleOauthPage = () => {
       setMessage("Something went wrong");
     }
   }, [redirectUser, verifyGoogleUser]);
+
   useEffect(() => {
     login();
   }, [login]);

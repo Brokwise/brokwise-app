@@ -6,7 +6,7 @@ import Signupcard from "../_components/signupcard";
 
 const CreateAccountPage = () => {
   return (
-    <main className="flex flex-col  px-[10rem] justify-center gap-4xl">
+    <main className="flex flex-col px-[3rem] lg:px-[10rem] justify-center gap-2xl lg:gap-4xl">
       <h1 className="font-instrument-serif text-4xl">Welcome to Brokwise</h1>
       <p>Create your account and continue your journey with us</p>
       <Signupcard isSignup={true} />

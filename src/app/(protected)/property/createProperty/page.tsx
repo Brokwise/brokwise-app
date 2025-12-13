@@ -1,27 +1,53 @@
 "use client";
-import { H1 } from "@/components/text/h1";
-import { Card, CardTitle, CardHeader, CardContent } from "@/components/ui/card";
-import React, { useState } from "react";
-import { ResidentialWizard } from "./residentialForm/wizard";
-import { CommercialWizard } from "./commercialForm/wizard";
-import { IndustrialWizard } from "./industrialForm/wizard";
-import { AgriculturalWizard } from "./agriculturalForm/wizard";
+import {
+  useGetCompanyProperties,
+  useCreateCompanyProperty,
+  useSaveCompanyPropertyDraft,
+} from "@/hooks/useCompany";
+import { Loader2, Edit } from "lucide-react";
+
+import { PropertyFormData } from "@/validators/property";
+import { useApp } from "@/context/AppContext";
+import { Property, PropertyCategory } from "@/types/property";
+import { useState } from "react";
+import { useGetMyListings } from "@/hooks/useProperty";
 import { ResortWizard } from "./resortForm/wizard";
 import { FarmHouseWizard } from "./farmhouseForm/wizard";
-import { Button } from "@/components/ui/button";
-import { Property, PropertyCategory } from "@/types/property";
-import { propertyCategories } from "@/constants";
+import { AgriculturalWizard } from "./agriculturalForm/wizard";
+import { IndustrialWizard } from "./industrialForm/wizard";
+import { CommercialWizard } from "./commercialForm/wizard";
+import { ResidentialWizard } from "./residentialForm/wizard";
 import { H2 } from "@/components/text/h2";
-import { useGetMyListings } from "@/hooks/useProperty";
-import { Loader2, Edit } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { propertyCategories } from "@/constants";
+import { H1 } from "@/components/text/h1";
 
 const CreateProperty = () => {
   const [selectedCategory, setSelectedCategory] =
     useState<PropertyCategory | null>(null);
   const [selectedDraft, setSelectedDraft] = useState<Property | null>(null);
-  const { myListings, isLoading } = useGetMyListings();
+  const { companyData } = useApp();
 
-  const drafts = myListings?.filter((p) => p.listingStatus === "DRAFT") || [];
+  const { addProperty: createCompanyProperty } = useCreateCompanyProperty();
+  const { savePropertyAsDraft: saveCompanyPropertyDraft } =
+    useSaveCompanyPropertyDraft();
+
+  const { myListings, isLoading: isBrokerLoading } = useGetMyListings({
+    enabled: !companyData,
+  });
+
+  const { data: companyPropertiesData, isLoading: isCompanyLoading } =
+    useGetCompanyProperties(
+      { listingStatus: "DRAFT" },
+      { enabled: !!companyData }
+    );
+
+  const isLoading = companyData ? isCompanyLoading : isBrokerLoading;
+
+  const drafts = companyData
+    ? companyPropertiesData?.properties || []
+    : myListings?.filter((p) => p.listingStatus === "DRAFT") || [];
 
   const handleCategorySelect = (category: PropertyCategory) => {
     setSelectedCategory(category);
@@ -38,11 +64,21 @@ const CreateProperty = () => {
     setSelectedDraft(null);
   };
 
+  const handleCompanySubmit = (data: PropertyFormData) => {
+    createCompanyProperty({ ...data });
+  };
+
+  const handleCompanySaveDraft = (data: PropertyFormData) => {
+    saveCompanyPropertyDraft({ ...data });
+  };
+
   const renderCategoryForm = () => {
     const props = {
       onBack: handleBack,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       initialData: selectedDraft ? (selectedDraft as any) : undefined,
+      onSubmit: companyData ? handleCompanySubmit : undefined,
+      onSaveDraft: companyData ? handleCompanySaveDraft : undefined,
     };
 
     switch (selectedCategory) {
@@ -64,10 +100,13 @@ const CreateProperty = () => {
   };
 
   return (
-    <main className="container mx-auto p-6 space-y-6 px-80">
+    <main className="container mx-auto p-6 space-y-6 px-4 md:px-28 xl:px-80">
       {!selectedCategory ? (
         <>
-          <H2 text="Create Property" />
+          <div className="flex items-center justify-between">
+            <H2 text="Create Property" />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {propertyCategories.map((category) => (
               <Card
@@ -90,7 +129,6 @@ const CreateProperty = () => {
             ))}
           </div>
 
-          {/* Drafts Section */}
           {isLoading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
