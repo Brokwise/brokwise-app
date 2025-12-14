@@ -38,11 +38,17 @@ import { cn } from "@/lib/utils";
 interface AgriculturalWizardProps {
   onBack: () => void;
   initialData?: Partial<AgriculturalPropertyFormData> & { _id?: string };
+  onSubmit?: (data: AgriculturalPropertyFormData) => void;
+  onSaveDraft?: (data: AgriculturalPropertyFormData) => void;
+  submitLabel?: string;
 }
 
 export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
   onBack,
   initialData,
+  onSubmit: onSubmitProp,
+  onSaveDraft: onSaveDraftProp,
+  submitLabel,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -90,7 +96,11 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
   }, [size, rate, form]);
 
   const onSubmit = (data: AgriculturalPropertyFormData) => {
-    addProperty(data);
+    if (onSubmitProp) {
+      onSubmitProp(data);
+    } else {
+      addProperty(data);
+    }
   };
 
   const handleFileUpload = async (
@@ -200,6 +210,12 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
 
   const handleSaveDraft = async () => {
     const data = form.getValues();
+
+    if (onSaveDraftProp) {
+      onSaveDraftProp(data);
+      return;
+    }
+
     const payload = { ...data, _id: draftId };
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -986,6 +1002,7 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
         onStepClick={handleStepClick}
         onCancel={onBack}
         onSubmit={handleSubmit}
+        submitLabel={submitLabel}
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}

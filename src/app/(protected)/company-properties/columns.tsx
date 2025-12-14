@@ -23,49 +23,16 @@ import {
   MapPin,
   MoreHorizontal,
   Eye,
-  Pencil,
   Trash2,
 } from "lucide-react";
-import { useRequestDeleteProperty } from "@/hooks/useProperty";
+import { useSoftDeleteCompanyProperty } from "@/hooks/useCompany";
 import Image from "next/image";
-import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { formatAddress, formatPrice } from "@/utils/helper";
 
-const getStatusBadge = (
-  status: ListingStatus,
-  deletingStatus?: string | null
-) => {
-  if (deletingStatus === "pending") {
-    return (
-      <Badge
-        variant="destructive"
-        className="bg-orange-100 text-orange-800 hover:bg-orange-200 border-orange-200"
-      >
-        Deletion Pending
-      </Badge>
-    );
-  }
-  if (deletingStatus === "approved") {
-    return (
-      <Badge variant="destructive" className="bg-red-600 hover:bg-red-700">
-        Deletion Approved
-      </Badge>
-    );
-  }
-  if (deletingStatus === "rejected") {
-    return (
-      <Badge
-        variant="destructive"
-        className="bg-red-100 text-red-800 hover:bg-red-200"
-      >
-        Deletion Rejected
-      </Badge>
-    );
-  }
-
+const getStatusBadge = (status: ListingStatus) => {
   const variants: Record<
     ListingStatus,
     {
@@ -113,7 +80,7 @@ const getStatusBadge = (
     },
     DELETED_BY_COMPANY: {
       variant: "destructive",
-      label: "Delisted",
+      label: "Deleted By Company",
       className: "bg-red-100 text-red-800 hover:bg-red-200",
     },
   };
@@ -128,8 +95,6 @@ const getStatusBadge = (
     </Badge>
   );
 };
-
-// formatPrice is imported from utils
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -178,6 +143,22 @@ export const columns: ColumnDef<Property>[] = [
     cell: ({ row }) => (
       <div className="font-mono text-xs">{row.getValue("propertyId")}</div>
     ),
+  },
+  {
+    accessorKey: "listedBy",
+    header: "Broker",
+    cell: ({ row }) => {
+      const broker = row.original.listedBy;
+      if (!broker) return <span className="text-muted-foreground">-</span>;
+      return (
+        <div className="flex flex-col text-sm">
+          <span className="font-medium">
+            {broker?.firstName} {broker?.lastName}
+          </span>
+          <span className="text-xs text-muted-foreground">{broker?.email}</span>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "category_type",
@@ -245,10 +226,7 @@ export const columns: ColumnDef<Property>[] = [
     accessorKey: "listingStatus",
     header: "Status",
     cell: ({ row }) => {
-      return getStatusBadge(
-        row.getValue("listingStatus"),
-        row.original.deletingStatus
-      );
+      return getStatusBadge(row.getValue("listingStatus"));
     },
     filterFn: (row, id, value) => {
       return value === "all" || row.getValue(id) === value;
@@ -285,15 +263,16 @@ export const columns: ColumnDef<Property>[] = [
 ];
 
 function ActionCell({ property }: { property: Property }) {
-  const { requestDelete, isPending: isDeleting } = useRequestDeleteProperty();
+  const { softDeleteProperty, isPending: isDeleting } =
+    useSoftDeleteCompanyProperty();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [deleteReason, setDeleteReason] = useState("");
 
   const handleDelete = () => {
-    if (deleteReason.length < 10) return;
+    if (deleteReason.length < 3) return;
 
-    requestDelete(
+    softDeleteProperty(
       { propertyId: property._id, reason: deleteReason },
       {
         onSuccess: () => {
@@ -405,29 +384,26 @@ function ActionCell({ property }: { property: Property }) {
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <span className="text-muted-foreground">Name:</span>{" "}
-                  {property.listedBy.firstName} {property.listedBy.lastName}
+                  {property.listedBy?.firstName} {property.listedBy?.lastName}
                 </div>
                 <div>
                   <span className="text-muted-foreground">Email:</span>{" "}
-                  {property.listedBy.email}
+                  {property.listedBy?.email}
                 </div>
                 <div>
                   <span className="text-muted-foreground">Mobile:</span>{" "}
-                  {property.listedBy.mobile}
+                  {property.listedBy?.mobile}
                 </div>
                 <div>
                   <span className="text-muted-foreground">Broker ID:</span>{" "}
-                  {property.listedBy.brokerId}
+                  {property.listedBy?.brokerId}
                 </div>
               </div>
             </div>
             <div className="border-t pt-4 mt-2">
               <h4 className="font-semibold mb-2">Status</h4>
               <div className="flex items-center gap-4">
-                {getStatusBadge(
-                  property.listingStatus,
-                  property.deletingStatus
-                )}
+                {getStatusBadge(property.listingStatus)}
                 <div className="text-xs text-muted-foreground">
                   Created: {formatDate(property.createdAt)}
                 </div>
@@ -440,30 +416,30 @@ function ActionCell({ property }: { property: Property }) {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Request Property Deletion</DialogTitle>
+            <DialogTitle>Soft Delete Property</DialogTitle>
             <DialogDescription>
-              Please provide a reason for deleting property{" "}
-              <span className="font-semibold">{property.propertyId}</span>. This
-              request will be sent to the admin for approval.
+              Are you sure you want to delete property{" "}
+              <span className="font-semibold">{property.propertyId}</span>? This
+              will mark it as deleted by company.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="reason">Reason (min 10 characters)</Label>
+              <Label htmlFor="reason">Reason (min 3 characters)</Label>
               <Textarea
                 id="reason"
                 placeholder="Enter reason for deletion..."
                 value={deleteReason}
                 onChange={(e) => setDeleteReason(e.target.value)}
                 className={
-                  deleteReason.length > 0 && deleteReason.length < 10
+                  deleteReason.length > 0 && deleteReason.length < 3
                     ? "border-red-500"
                     : ""
                 }
               />
-              {deleteReason.length > 0 && deleteReason.length < 10 && (
+              {deleteReason.length > 0 && deleteReason.length < 3 && (
                 <p className="text-xs text-red-500">
-                  Reason must be at least 10 characters.
+                  Reason must be at least 3 characters.
                 </p>
               )}
             </div>
@@ -478,9 +454,9 @@ function ActionCell({ property }: { property: Property }) {
             <Button
               variant="destructive"
               onClick={handleDelete}
-              disabled={isDeleting || deleteReason.length < 10}
+              disabled={isDeleting || deleteReason.length < 3}
             >
-              {isDeleting ? "Submitting..." : "Submit Request"}
+              {isDeleting ? "Deleting..." : "Delete Property"}
             </Button>
           </div>
         </DialogContent>
@@ -499,21 +475,13 @@ function ActionCell({ property }: { property: Property }) {
             <Eye className="mr-2 h-4 w-4" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href={`/property/edit/${property._id}`}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit
-            </Link>
-          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setShowDeleteDialog(true)}
             className="text-red-600 focus:text-red-600"
-            disabled={property.deletingStatus === "pending"}
+            disabled={property.listingStatus === "DELETED_BY_COMPANY"}
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            {property.deletingStatus === "pending"
-              ? "Deletion Pending"
-              : "Delete"}
+            Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

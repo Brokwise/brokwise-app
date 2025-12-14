@@ -1,7 +1,8 @@
 "use client";
-import Link from "next/link";
+
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+
 import {
   useGetEnquiryById,
   useGetEnquirySubmissions,
@@ -41,31 +42,43 @@ import { Input } from "@/components/ui/input";
 import { ReceivedProperties } from "./_components/received-properties";
 import { AdminMessages } from "./_components/admin-messages";
 import { PropertyPreviewModal } from "./_components/PropertyPreviewModal";
-import { formatCurrencyEnquiry, getStatusColor, formatPrice } from "@/utils/helper";
+import {
+  formatCurrencyEnquiry,
+  getStatusColor,
+  formatPrice,
+} from "@/utils/helper";
+import { useApp } from "@/context/AppContext";
 
-// Helper to check if propertyId is a populated Property object or just a string ID
-const isPopulatedProperty = (propertyId: Property | string | undefined | null): propertyId is Property => {
-  return propertyId !== null && propertyId !== undefined && typeof propertyId === 'object' && '_id' in propertyId;
+const isPopulatedProperty = (
+  propertyId: Property | string | undefined | null
+): propertyId is Property => {
+  return (
+    propertyId !== null &&
+    propertyId !== undefined &&
+    typeof propertyId === "object" &&
+    "_id" in propertyId
+  );
 };
 
-// Helper to get the property ID string from either a Property object or string
 const getPropertyId = (submission: EnquirySubmission): string | null => {
   if (!submission.propertyId) return null;
-  if (typeof submission.propertyId === 'string') return submission.propertyId;
-  if (isPopulatedProperty(submission.propertyId)) return submission.propertyId._id;
+  if (typeof submission.propertyId === "string") return submission.propertyId;
+  if (isPopulatedProperty(submission.propertyId))
+    return submission.propertyId._id;
   return null;
 };
 
 const SingleEnquiry = () => {
   const { id } = useParams();
-  // const { userData } = useApp();
+  const { brokerData } = useApp();
   const [confirmationText, setConfirmationText] = useState<string>("");
-  const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(null);
+  const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(
+    null
+  );
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const router = useRouter();
   const { enquiry, isPending, error } = useGetEnquiryById(id as string);
   const { myEnquiries } = useGetMyEnquiries();
-
   const { enquirySubmissions } = useGetEnquirySubmissions(id as string);
   const { closeEnquiry, isPending: isPendingCloseEnquiry } = useCloseEnquiry();
   const isMyEnquiry =
@@ -328,8 +341,10 @@ const SingleEnquiry = () => {
                 <div className="space-y-3">
                   {enquirySubmissions.map((submission) => {
                     const propertyIdStr = getPropertyId(submission);
-                    const property = isPopulatedProperty(submission.propertyId) ? submission.propertyId : null;
-                    
+                    const property = isPopulatedProperty(submission.propertyId)
+                      ? submission.propertyId
+                      : null;
+
                     return (
                       <Card key={submission._id}>
                         <CardHeader className="pb-2 p-4">
@@ -363,8 +378,7 @@ const SingleEnquiry = () => {
                         <CardContent className="p-4 pt-0 space-y-3">
                           {property?.totalPrice && (
                             <div className="font-medium text-sm text-primary">
-                              ₹
-                              {formatPrice(property.totalPrice)}
+                              ₹{formatPrice(property.totalPrice)}
                             </div>
                           )}
 
@@ -401,11 +415,19 @@ const SingleEnquiry = () => {
 
               {/* Action to Submit */}
               <div className="pt-2">
-                <Link href={`/enquiries/${enquiry._id}/submit`}>
-                  <Button className="w-full" size="lg">
-                    Submit Proposal
-                  </Button>
-                </Link>
+                <Button
+                  onClick={() => {
+                    router.push(`/enquiries/${enquiry._id}/submit`);
+                  }}
+                  className="w-full"
+                  size="lg"
+                  disabled={
+                    typeof brokerData?.companyId === "object" &&
+                    enquiry.createdByCompanyId === brokerData?.companyId._id
+                  }
+                >
+                  Submit Proposal
+                </Button>
               </div>
             </div>
           )}
@@ -434,7 +456,13 @@ const SingleEnquiry = () => {
           </Card>
 
           {/* Admin Messages */}
-          {!isMyEnquiry &&
+          {typeof brokerData?.companyId === "object" &&
+          enquiry.createdByCompanyId === brokerData?.companyId._id ? (
+            <p>
+              Someone from your company has raised this enquiry, so you
+              can&apos;t submit a property.
+            </p>
+          ) : !isMyEnquiry &&
             enquirySubmissions &&
             enquirySubmissions.length === 0 ? (
             <p>

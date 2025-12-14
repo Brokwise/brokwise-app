@@ -65,7 +65,7 @@ export const useGetAllProperties = () => {
   return { properties, isLoading, error };
 };
 
-export const useGetMyListings = () => {
+export const useGetMyListings = (options?: { enabled?: boolean }) => {
   const api = useAxios();
   const {
     data: myListings,
@@ -77,6 +77,7 @@ export const useGetMyListings = () => {
       return (await api.get("/property/broker/properties")).data.data
         .properties;
     },
+    enabled: options?.enabled ?? true,
   });
   return { myListings, isLoading, error };
 };

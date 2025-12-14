@@ -23,30 +23,22 @@ export const Verification = () => {
   const { setUserData } = useApp();
   useEffect(() => {
     const onFocus = async () => {
-      // Reload token to get latest verification status
       await user?.reload();
-
-      // If email is now verified, create user account in database
       if (user?.emailVerified) {
         try {
-          // Check if user already exists in database
           const userDocRef = getUserDoc(user.uid);
           const userDoc = await getDoc(userDocRef);
 
           if (!userDoc.exists()) {
-            // Get the stored name from localStorage
             const pendingName = localStorage.getItem(
               `pendingUserName_${user.uid}`
             );
             const fullName = user.displayName ?? pendingName ?? "";
-
-            // Create user in database
             await createUser({
               email: user.email ?? "",
               uid: user.uid ?? "",
             });
 
-            // Create Firestore document
             await setUserDoc(userDocRef, {
               email: user.email ?? "",
               uid: user.uid ?? "",
@@ -54,7 +46,6 @@ export const Verification = () => {
               lastName: "",
             });
 
-            // Clean up localStorage
             localStorage.removeItem(`pendingUserName_${user.uid}`);
 
             console.log("User account created successfully after verification");

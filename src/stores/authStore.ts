@@ -20,4 +20,5 @@ export interface Broker {
   companyId?: string;
   createdAt: string;
   brokerId: string;
+  userType?: "broker" | "company";
 }

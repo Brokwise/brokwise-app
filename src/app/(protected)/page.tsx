@@ -39,8 +39,11 @@ import {
 import { Label } from "@/components/ui/label";
 import Fuse from "fuse.js";
 import { formatIndianNumber } from "@/utils/helper";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useApp } from "@/context/AppContext";
 
 const ProtectedPage = () => {
+  const { userData } = useApp();
   const { properties, isLoading, error } = useGetAllProperties();
   const [view, setView] = useState<"grid" | "map" | "split">("grid");
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
@@ -50,6 +53,7 @@ const ProtectedPage = () => {
   // Filter States
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
+  const [sourceFilter, setSourceFilter] = useState<string>("ALL");
   const [priceRange, setPriceRange] = useState<number[]>([0, 100000000]);
   const [bhkFilter, setBhkFilter] = useState<string>("ALL");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -98,6 +102,12 @@ const ProtectedPage = () => {
     }
 
     return baseProperties.filter((property) => {
+      // Source Filter
+      const matchesSource =
+        sourceFilter === "ALL" ||
+        (sourceFilter === "BROKER" && property.listedBy) ||
+        (sourceFilter === "COMPANY" && !property.listedBy);
+
       // Category Filter
       const matchesCategory =
         categoryFilter === "ALL" ||
@@ -117,12 +127,17 @@ const ProtectedPage = () => {
           : property.bhk === Number(bhkFilter));
 
       return (
-        matchesCategory && matchesMinPrice && matchesMaxPrice && matchesBhk
+        matchesSource &&
+        matchesCategory &&
+        matchesMinPrice &&
+        matchesMaxPrice &&
+        matchesBhk
       );
     });
   }, [
     properties,
     debouncedSearchQuery,
+    sourceFilter,
     categoryFilter,
     debouncedPriceRange,
     bhkFilter,
@@ -132,6 +147,7 @@ const ProtectedPage = () => {
   const clearFilters = () => {
     setSearchQuery("");
     setCategoryFilter("ALL");
+    setSourceFilter("ALL");
     setPriceRange([0, maxPropertyPrice]);
     setBhkFilter("ALL");
   };
@@ -149,6 +165,7 @@ const ProtectedPage = () => {
   const hasActiveFilters =
     categoryFilter !== "ALL" ||
     bhkFilter !== "ALL" ||
+    sourceFilter !== "ALL" ||
     priceRange[0] !== 0 ||
     priceRange[1] !== maxPropertyPrice;
 
@@ -168,8 +185,9 @@ const ProtectedPage = () => {
 
   return (
     <div
-      className={`container mx-auto p-6 px-80 space-y-6 ${view === "split" ? "h-[calc(100vh-100px)] overflow-hidden" : ""
-        }`}
+      className={`container mx-auto p-6 px-80 space-y-6 ${
+        view === "split" ? "h-[calc(100vh-100px)] overflow-hidden" : ""
+      }`}
     >
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
@@ -214,6 +232,20 @@ const ProtectedPage = () => {
           </Button>
         </div>
       </div>
+
+      {userData?.userType === "company" && (
+        <Tabs
+          value={sourceFilter}
+          onValueChange={setSourceFilter}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-3 max-w-[400px]">
+            <TabsTrigger value="ALL">All</TabsTrigger>
+            <TabsTrigger value="BROKER">Broker Listed</TabsTrigger>
+            <TabsTrigger value="COMPANY">Company Listed</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
 
       {/* Search and Filters Bar */}
       <div className="bg-card p-4 rounded-lg border shadow-sm flex gap-4 items-center flex-col sm:flex-row">

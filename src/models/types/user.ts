@@ -1,3 +1,5 @@
+import { Company } from "./company";
+
 export type CreateUserRequest = {
   email: string;
   uid: string;
@@ -70,7 +72,7 @@ export type GetBrokerDetailsResponse = {
     officeAddress: string;
     reraNumber: string;
     status: "approved" | "pending" | "incomplete" | "blacklisted";
-    companyId?: string;
+    companyId?: string | Company;
     createdAt: string;
     brokerId: string;
   };
