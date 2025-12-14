@@ -423,10 +423,8 @@ const SingleEnquiry = () => {
                   className="w-full"
                   size="lg"
                   disabled={
-                    (typeof brokerData?.companyId === "object" &&
-                      brokerData?.companyId?._id == enquiry.createdBy) ||
-                    (typeof brokerData?.companyId === "object" &&
-                      enquiry.createdByCompanyId === brokerData?.companyId._id)
+                    typeof brokerData?.companyId === "object" &&
+                    enquiry.createdByCompanyId === brokerData?.companyId._id
                   }
                 >
                   Submit Proposal
@@ -461,13 +459,10 @@ const SingleEnquiry = () => {
           {/* Admin Messages */}
           {typeof brokerData?.companyId === "object" &&
           enquiry.createdByCompanyId === brokerData?.companyId._id ? (
-            <h1>
-              Someone from your company has raised this enquiry, so you can't
-              submit the property
-            </h1>
-          ) : typeof brokerData?.companyId === "object" &&
-            brokerData?.companyId?._id == enquiry.createdBy ? (
-            <>Your company has listed this</>
+            <p>
+              Someone from your company has raised this enquiry, so you
+              can&apos;t submit a property.
+            </p>
           ) : !isMyEnquiry &&
             enquirySubmissions &&
             enquirySubmissions.length === 0 ? (
