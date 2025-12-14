@@ -83,6 +83,7 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
   const [accountType, setAccountType] = useState<AccountType>("broker");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const scrollAreaRef = React.useRef<HTMLDivElement | null>(null);
 
   // 1. Form Setup
   const formSchema = mode === "signup" ? signupFormSchema : loginFormSchema;
@@ -106,6 +107,12 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
   React.useEffect(() => {
     reset();
   }, [mode, reset]);
+
+  // Keep the header position stable by ensuring the scrollable area resets on mode switch
+  React.useEffect(() => {
+    // Use 'auto' to avoid invalid ScrollBehavior values; we just want to reset position.
+    scrollAreaRef.current?.scrollTo({ top: 0, behavior: "auto" });
+  }, [mode]);
 
   // 2. Logic Functions (Adapted from existing code)
 
@@ -251,6 +258,7 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
           src="/images/login.jpg"
           alt="Architecture"
           fill
+          sizes="(min-width: 1024px) 50vw, 100vw"
           className="object-cover opacity-70"
           priority
         />
@@ -258,7 +266,7 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
         
         {/* Glassmorphism Testimonial Card */}
         <div className="absolute bottom-0 left-0 p-10 w-full z-10">
-          <div className="max-w-lg backdrop-blur-xl bg-black/30 border border-white/10 shadow-2xl rounded-2xl p-8">
+          <div className="max-w-lg backdrop-blur-md bg-black/20 border border-white/10 shadow-2xl rounded-2xl p-8">
             <h2 className="text-3xl font-instrument-serif text-white leading-snug mb-6">
               &ldquo;The future of real estate brokerage is here. Seamless, efficient, and professional.&rdquo;
             </h2>
@@ -277,32 +285,31 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
 
       {/* Right Side - Auth Form (Scrollable) */}
       <div 
-        className="flex-1 h-full overflow-y-auto relative bg-zinc-950"
+        className="flex-1 h-full overflow-hidden relative bg-zinc-950"
         style={{
           background: "radial-gradient(ellipse at top right, #18181b 0%, #09090b 50%, #09090b 100%)"
         }}
       >
-        <div className="min-h-full flex flex-col justify-center items-center p-6 py-12 lg:p-16">
-          <div className="w-full max-w-md space-y-8">
-            {/* Header */}
+        <div className="h-full w-full flex flex-col items-center px-6 lg:px-16">
+          {/* Fixed header area (prevents the Brokwise title from jumping when mode changes) */}
+          <div className="w-full max-w-md shrink-0 pt-10 lg:pt-14">
             <div className="text-center space-y-3">
               <h1 className="text-5xl lg:text-6xl font-instrument-serif text-white tracking-tight">
                 Brokwise
               </h1>
               <p className="text-zinc-400 text-base">
-                {mode === "login" 
-                  ? "Welcome back, please login to your account." 
+                {mode === "login"
+                  ? "Welcome back, please login to your account."
                   : "Create your account to get started."}
               </p>
             </div>
 
-            {/* Main Tabs - Login/Signup Toggle */}
-            <div className="flex p-1.5 bg-zinc-800/80 rounded-full relative border border-zinc-700/50">
-              <div 
+            <div className="mt-8 flex p-1.5 bg-zinc-800/80 rounded-full relative border border-zinc-700/50">
+              <div
                 className="absolute h-[calc(100%-12px)] top-1.5 bottom-1.5 rounded-full bg-zinc-900 border border-zinc-700 shadow-lg transition-all duration-300 ease-in-out"
                 style={{
-                  width: 'calc(50% - 6px)',
-                  left: mode === "login" ? '6px' : 'calc(50%)' 
+                  width: "calc(50% - 6px)",
+                  left: mode === "login" ? "6px" : "calc(50%)",
                 }}
               />
               <button
@@ -322,8 +329,13 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                 Sign Up
               </button>
             </div>
+          </div>
 
-            {/* Auth Content */}
+          {/* Scrollable content area (scrollbar hidden) */}
+          <div
+            ref={scrollAreaRef}
+            className="w-full max-w-md flex-1 overflow-y-auto pt-8 pb-8 scrollbar-hide"
+          >
             <AnimatePresence mode="wait">
               <motion.div
                 key={mode}
@@ -333,7 +345,6 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                 transition={{ duration: 0.25, ease: "easeOut" }}
                 className="space-y-6"
               >
-                {/* Account Type Selection Cards (Signup Only) */}
                 {mode === "signup" && (
                   <div className="grid grid-cols-2 gap-4">
                     <AccountTypeCard
@@ -355,7 +366,6 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                   </div>
                 )}
 
-                {/* Form */}
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                     <FormField
@@ -365,18 +375,18 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                         <FormItem>
                           <FormLabel className="text-zinc-300 font-medium">Email</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="name@example.com" 
-                              type="email" 
-                              {...field} 
-                              className="h-12 bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20" 
+                            <Input
+                              placeholder="name@example.com"
+                              type="email"
+                              {...field}
+                              className="h-11 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20"
                             />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="password"
@@ -384,11 +394,11 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                         <FormItem>
                           <FormLabel className="text-zinc-300 font-medium">Password</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="••••••••" 
-                              type="password" 
-                              {...field} 
-                              className="h-12 bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20" 
+                            <Input
+                              placeholder="••••••••"
+                              type="password"
+                              {...field}
+                              className="h-11 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20"
                             />
                           </FormControl>
                           <FormMessage />
@@ -404,11 +414,11 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                           <FormItem>
                             <FormLabel className="text-zinc-300 font-medium">Confirm Password</FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="••••••••" 
-                                type="password" 
-                                {...field} 
-                                className="h-12 bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20" 
+                              <Input
+                                placeholder="••••••••"
+                                type="password"
+                                {...field}
+                                className="h-11 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20"
                               />
                             </FormControl>
                             <FormMessage />
@@ -419,7 +429,7 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
 
                     {mode === "login" && (
                       <div className="flex justify-end">
-                        <Link 
+                        <Link
                           href="/forgot-password"
                           className="text-sm text-primary hover:text-primary/80 hover:underline font-medium transition-colors"
                         >
@@ -428,9 +438,9 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                       </div>
                     )}
 
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 text-base font-semibold mt-2" 
+                    <Button
+                      type="submit"
+                      className="w-full h-11 text-base font-semibold mt-2"
                       disabled={loading}
                     >
                       {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
@@ -440,10 +450,9 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                   </form>
                 </Form>
 
-                {/* Divider */}
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-zinc-700" />
+                    <span className="w-full border-t border-white/10" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-zinc-950 px-3 text-zinc-500 font-medium">
@@ -452,11 +461,10 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                   </div>
                 </div>
 
-                {/* Google Button */}
                 <Button
                   variant="outline"
                   type="button"
-                  className="w-full h-12 font-semibold bg-zinc-800/50 border-zinc-700 text-white hover:bg-zinc-700/50 hover:border-zinc-600 hover:text-white transition-all"
+                  className="w-full h-11 font-semibold bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 hover:text-white transition-all"
                   onClick={handleGoogleAuth}
                 >
                   <Image src="/icons/google.svg" alt="Google" width={20} height={20} className="mr-3" />
@@ -464,19 +472,19 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                 </Button>
               </motion.div>
             </AnimatePresence>
+          </div>
 
-            {/* Bottom Link */}
-            <div className="text-center text-sm text-zinc-500 pt-4 pb-8">
-              <p>
-                {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
-                <button 
-                  onClick={() => setMode(mode === "login" ? "signup" : "login")}
-                  className="font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
-                >
-                  {mode === "login" ? "Sign Up" : "Login"}
-                </button>
-              </p>
-            </div>
+          {/* Bottom link pinned outside the scroll area */}
+          <div className="w-full max-w-md shrink-0 text-center text-sm text-zinc-500 pb-8">
+            <p>
+              {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
+              <button
+                onClick={() => setMode(mode === "login" ? "signup" : "login")}
+                className="font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
+              >
+                {mode === "login" ? "Sign Up" : "Login"}
+              </button>
+            </p>
           </div>
         </div>
       </div>
