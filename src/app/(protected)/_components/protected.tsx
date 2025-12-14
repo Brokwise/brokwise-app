@@ -13,7 +13,7 @@ import { useApp } from "@/context/AppContext";
 
 import { logError } from "@/utils/errors";
 import WaveBackground from "@/components/ui/waveBackground";
-import { Loader, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   const [user, loading, error] = useAuthState(firebaseAuth);

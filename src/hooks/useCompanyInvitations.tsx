@@ -34,7 +34,7 @@ export const useAcceptCompanyInvitation = () => {
       // Invalidate broker profile as well since status changed
       queryClient.invalidateQueries({ queryKey: ["brokerDetails"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to accept invitation");
     },
   });
@@ -51,7 +51,7 @@ export const useRejectCompanyInvitation = () => {
       toast.success("Invitation rejected");
       queryClient.invalidateQueries({ queryKey: ["companyInvitations"] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to reject invitation");
     },
   });

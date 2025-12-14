@@ -8,7 +8,6 @@ import {
   UpdateCompanyProfileResponse,
 } from "../types/company";
 import { ApiFunction } from "../types";
-import { BrokerStatus } from "@/stores/authStore";
 import {
   AddBrokerRequest,
   AddBrokerResponse,

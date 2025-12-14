@@ -136,7 +136,7 @@ const GoogleOauthPage = () => {
         try {
           const state = JSON.parse(decodeURIComponent(stateParam));
           accountType = state.accountType;
-        } catch (e) {
+        } catch {
           // fallback to raw string check if legacy or simple string
           if (stateParam === "true" || stateParam === "false") {
             // legacy behavior, assume broker

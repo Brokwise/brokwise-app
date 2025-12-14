@@ -68,7 +68,7 @@ interface AccountTypeCardProps {
   description: string;
 }
 
-const AccountTypeCard = ({ type, selected, onSelect, icon, title, description }: AccountTypeCardProps) => (
+const AccountTypeCard = ({ selected, onSelect, icon, title, description }: AccountTypeCardProps) => (
   <button
     type="button"
     onClick={onSelect}

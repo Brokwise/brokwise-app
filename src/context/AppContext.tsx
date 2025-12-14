@@ -104,7 +104,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setBrokerDataLoading(true);
         const response = await getBrokerDetails({ uid: user.uid });
         setBrokerData(response.data);
-      } catch (err) {
+      } catch {
         // Only log real errors, not 404s if user might be a company
         // But for now we don't know distinction, so we might get 404.
         // We'll treat it as null result.
@@ -119,7 +119,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setCompanyDataLoading(true);
         const response = await getCompanyDetails({ uid: user.uid });
         setCompanyData(response.data);
-      } catch (err) {
+      } catch {
         setCompanyData(null);
       } finally {
         setCompanyDataLoading(false);

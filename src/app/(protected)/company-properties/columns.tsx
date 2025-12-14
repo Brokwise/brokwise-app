@@ -24,7 +24,6 @@ import {
   MoreHorizontal,
   Eye,
   Trash2,
-  User,
 } from "lucide-react";
 import { useSoftDeleteCompanyProperty } from "@/hooks/useCompany";
 import Image from "next/image";

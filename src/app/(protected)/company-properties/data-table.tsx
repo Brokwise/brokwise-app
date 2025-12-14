@@ -81,15 +81,13 @@ export function DataTable<TData, TValue>({
 
   const filteredData = useMemo(() => {
     if (listingType === "broker") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return data.filter(
-        (item: any) => item.listedBy !== null && item.listedBy !== undefined
+        (item) => (item as TData & { listedBy?: unknown }).listedBy !== null && (item as TData & { listedBy?: unknown }).listedBy !== undefined
       );
     }
     if (listingType === "company") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return data.filter(
-        (item: any) => item.listedBy === null || item.listedBy === undefined
+        (item) => (item as TData & { listedBy?: unknown }).listedBy === null || (item as TData & { listedBy?: unknown }).listedBy === undefined
       );
     }
     return data;

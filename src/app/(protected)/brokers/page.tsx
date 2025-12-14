@@ -62,7 +62,7 @@ const BrokersPage = () => {
         <div>
           <h1 className="text-3xl font-bold font-instrument-serif">Brokers</h1>
           <p className="text-muted-foreground mt-2">
-            Manage your company's brokers
+            Manage your company&apos;s brokers
           </p>
         </div>
         <AddBrokerDialog onSuccess={fetchBrokers} />
