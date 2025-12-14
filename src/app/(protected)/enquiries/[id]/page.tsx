@@ -79,7 +79,6 @@ const SingleEnquiry = () => {
   const router = useRouter();
   const { enquiry, isPending, error } = useGetEnquiryById(id as string);
   const { myEnquiries } = useGetMyEnquiries();
-  console.log("Broker Data", brokerData);
   const { enquirySubmissions } = useGetEnquirySubmissions(id as string);
   const { closeEnquiry, isPending: isPendingCloseEnquiry } = useCloseEnquiry();
   const isMyEnquiry =

@@ -144,9 +144,9 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
           </WaveBackground>
         );
       case "pending":
-        return <StatusDisplay onEdit={() => setIsEditing(true)} />;
+        return <StatusDisplay data={companyData} type="company" onEdit={() => setIsEditing(true)} />;
       case "blacklisted":
-        return <StatusDisplay />;
+        return <StatusDisplay data={companyData} type="company" />;
       case "approved":
         // For approved users, show the main app
         // The useEffect above handles redirection if they are on wrong page.

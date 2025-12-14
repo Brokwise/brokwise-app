@@ -36,11 +36,17 @@ import { cn } from "@/lib/utils";
 interface ResortWizardProps {
   onBack: () => void;
   initialData?: Partial<ResortPropertyFormData> & { _id?: string };
+  onSubmit?: (data: ResortPropertyFormData) => void;
+  onSaveDraft?: (data: ResortPropertyFormData) => void;
+  submitLabel?: string;
 }
 
 export const ResortWizard: React.FC<ResortWizardProps> = ({
   onBack,
   initialData,
+  onSubmit: onSubmitProp,
+  onSaveDraft: onSaveDraftProp,
+  submitLabel,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -88,7 +94,11 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
   }, [size, rate, form]);
 
   const onSubmit = (data: ResortPropertyFormData) => {
-    addProperty(data);
+    if (onSubmitProp) {
+      onSubmitProp(data);
+    } else {
+      addProperty(data);
+    }
   };
 
   const handleFileUpload = async (
@@ -193,6 +203,12 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
 
   const handleSaveDraft = async () => {
     const data = form.getValues();
+
+    if (onSaveDraftProp) {
+      onSaveDraftProp(data);
+      return;
+    }
+
     const payload = { ...data, _id: draftId };
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -944,6 +960,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
         onStepClick={handleStepClick}
         onCancel={onBack}
         onSubmit={handleSubmit}
+        submitLabel={submitLabel}
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}

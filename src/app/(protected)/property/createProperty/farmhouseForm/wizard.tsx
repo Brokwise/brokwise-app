@@ -36,11 +36,17 @@ import { cn } from "@/lib/utils";
 interface FarmHouseWizardProps {
   onBack: () => void;
   initialData?: Partial<FarmHousePropertyFormData> & { _id?: string };
+  onSubmit?: (data: FarmHousePropertyFormData) => void;
+  onSaveDraft?: (data: FarmHousePropertyFormData) => void;
+  submitLabel?: string;
 }
 
 export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
   onBack,
   initialData,
+  onSubmit: onSubmitProp,
+  onSaveDraft: onSaveDraftProp,
+  submitLabel,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -88,7 +94,11 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
   }, [size, rate, form]);
 
   const onSubmit = (data: FarmHousePropertyFormData) => {
-    addProperty(data);
+    if (onSubmitProp) {
+      onSubmitProp(data);
+    } else {
+      addProperty(data);
+    }
   };
 
   const handleFileUpload = async (
@@ -194,6 +204,12 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
 
   const handleSaveDraft = async () => {
     const data = form.getValues();
+
+    if (onSaveDraftProp) {
+      onSaveDraftProp(data);
+      return;
+    }
+
     const payload = { ...data, _id: draftId };
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -981,6 +997,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
         onStepClick={handleStepClick}
         onCancel={onBack}
         onSubmit={handleSubmit}
+        submitLabel={submitLabel}
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
