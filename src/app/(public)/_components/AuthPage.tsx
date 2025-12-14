@@ -56,7 +56,7 @@ const AccountTypeCard = ({ type, selected, onSelect, icon, title, description }:
     type="button"
     onClick={onSelect}
     className={`
-      relative flex flex-col items-center justify-center p-5 rounded-xl border-2 transition-all duration-200
+      relative flex flex-col items-center justify-center p-5 rounded-xl border-2 transition-all duration-200 w-full
       ${selected 
         ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2 ring-offset-zinc-950" 
         : "border-zinc-700 bg-zinc-800/50 hover:border-zinc-600 hover:bg-zinc-800"
@@ -244,9 +244,9 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
   // --- Render ---
 
   return (
-    <div className="flex min-h-screen w-full font-host-grotesk">
-      {/* Left Side - Image & Value Prop */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-black">
+    <div className="flex h-dvh w-full font-host-grotesk overflow-hidden bg-zinc-950">
+      {/* Left Side - Image & Value Prop (Fixed) */}
+      <div className="hidden lg:flex lg:w-1/2 h-full relative overflow-hidden bg-black">
         <Image
           src="/images/login.jpg"
           alt="Architecture"
@@ -275,133 +275,114 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
         </div>
       </div>
 
-      {/* Right Side - Auth Form */}
+      {/* Right Side - Auth Form (Scrollable) */}
       <div 
-        className="flex-1 flex flex-col justify-center items-center p-6 lg:p-16 relative"
+        className="flex-1 h-full overflow-y-auto relative bg-zinc-950"
         style={{
           background: "radial-gradient(ellipse at top right, #18181b 0%, #09090b 50%, #09090b 100%)"
         }}
       >
-        <div className="w-full max-w-md space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-3">
-            <h1 className="text-5xl lg:text-6xl font-instrument-serif text-white tracking-tight">
-              Brokwise
-            </h1>
-            <p className="text-zinc-400 text-base">
-              {mode === "login" 
-                ? "Welcome back, please login to your account." 
-                : "Create your account to get started."}
-            </p>
-          </div>
+        <div className="min-h-full flex flex-col justify-center items-center p-6 py-12 lg:p-16">
+          <div className="w-full max-w-md space-y-8">
+            {/* Header */}
+            <div className="text-center space-y-3">
+              <h1 className="text-5xl lg:text-6xl font-instrument-serif text-white tracking-tight">
+                Brokwise
+              </h1>
+              <p className="text-zinc-400 text-base">
+                {mode === "login" 
+                  ? "Welcome back, please login to your account." 
+                  : "Create your account to get started."}
+              </p>
+            </div>
 
-          {/* Main Tabs - Login/Signup Toggle */}
-          <div className="flex p-1.5 bg-zinc-800/80 rounded-full relative border border-zinc-700/50">
-            <div 
-              className="absolute h-[calc(100%-12px)] top-1.5 bottom-1.5 rounded-full bg-zinc-900 border border-zinc-700 shadow-lg transition-all duration-300 ease-in-out"
-              style={{
-                width: 'calc(50% - 6px)',
-                left: mode === "login" ? '6px' : 'calc(50%)' 
-              }}
-            />
-            <button
-              onClick={() => setMode("login")}
-              className={`flex-1 relative z-10 py-3 text-sm font-semibold transition-colors duration-200 rounded-full ${
-                mode === "login" ? "text-white" : "text-zinc-500 hover:text-zinc-300"
-              }`}
-            >
-              Login
-            </button>
-            <button
-              onClick={() => setMode("signup")}
-              className={`flex-1 relative z-10 py-3 text-sm font-semibold transition-colors duration-200 rounded-full ${
-                mode === "signup" ? "text-white" : "text-zinc-500 hover:text-zinc-300"
-              }`}
-            >
-              Sign Up
-            </button>
-          </div>
+            {/* Main Tabs - Login/Signup Toggle */}
+            <div className="flex p-1.5 bg-zinc-800/80 rounded-full relative border border-zinc-700/50">
+              <div 
+                className="absolute h-[calc(100%-12px)] top-1.5 bottom-1.5 rounded-full bg-zinc-900 border border-zinc-700 shadow-lg transition-all duration-300 ease-in-out"
+                style={{
+                  width: 'calc(50% - 6px)',
+                  left: mode === "login" ? '6px' : 'calc(50%)' 
+                }}
+              />
+              <button
+                onClick={() => setMode("login")}
+                className={`flex-1 relative z-10 py-3 text-sm font-semibold transition-colors duration-200 rounded-full ${
+                  mode === "login" ? "text-white" : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                Login
+              </button>
+              <button
+                onClick={() => setMode("signup")}
+                className={`flex-1 relative z-10 py-3 text-sm font-semibold transition-colors duration-200 rounded-full ${
+                  mode === "signup" ? "text-white" : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                Sign Up
+              </button>
+            </div>
 
-          {/* Auth Content */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={mode}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="space-y-6"
-            >
-              {/* Account Type Selection Cards (Signup Only) */}
-              {mode === "signup" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <AccountTypeCard
-                    type="broker"
-                    selected={accountType === "broker"}
-                    onSelect={() => setAccountType("broker")}
-                    icon={<User2 size={24} />}
-                    title="Broker"
-                    description="Individual agent"
-                  />
-                  <AccountTypeCard
-                    type="company"
-                    selected={accountType === "company"}
-                    onSelect={() => setAccountType("company")}
-                    icon={<Building2 size={24} />}
-                    title="Company"
-                    description="Brokerage firm"
-                  />
-                </div>
-              )}
+            {/* Auth Content */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={mode}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="space-y-6"
+              >
+                {/* Account Type Selection Cards (Signup Only) */}
+                {mode === "signup" && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <AccountTypeCard
+                      type="broker"
+                      selected={accountType === "broker"}
+                      onSelect={() => setAccountType("broker")}
+                      icon={<User2 size={24} />}
+                      title="Broker"
+                      description="Individual agent"
+                    />
+                    <AccountTypeCard
+                      type="company"
+                      selected={accountType === "company"}
+                      onSelect={() => setAccountType("company")}
+                      icon={<Building2 size={24} />}
+                      title="Company"
+                      description="Brokerage firm"
+                    />
+                  </div>
+                )}
 
-              {/* Form */}
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-zinc-300 font-medium">Email</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="name@example.com" 
-                            type="email" 
-                            {...field} 
-                            className="h-12 bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-zinc-300 font-medium">Password</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="••••••••" 
-                            type="password" 
-                            {...field} 
-                            className="h-12 bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {mode === "signup" && (
+                {/* Form */}
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                     <FormField
                       control={form.control}
-                      name="confirmPassword"
+                      name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-zinc-300 font-medium">Confirm Password</FormLabel>
+                          <FormLabel className="text-zinc-300 font-medium">Email</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="name@example.com" 
+                              type="email" 
+                              {...field} 
+                              className="h-12 bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20" 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-zinc-300 font-medium">Password</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="••••••••" 
@@ -414,67 +395,88 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                         </FormItem>
                       )}
                     />
-                  )}
 
-                  {mode === "login" && (
-                    <div className="flex justify-end">
-                      <Link 
-                        href="/forgot-password"
-                        className="text-sm text-primary hover:text-primary/80 hover:underline font-medium transition-colors"
-                      >
-                        Forgot Password?
-                      </Link>
-                    </div>
-                  )}
+                    {mode === "signup" && (
+                      <FormField
+                        control={form.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-zinc-300 font-medium">Confirm Password</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="••••••••" 
+                                type="password" 
+                                {...field} 
+                                className="h-12 bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20" 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
-                  <Button 
-                    type="submit" 
-                    className="w-full h-12 text-base font-semibold mt-2" 
-                    disabled={loading}
-                  >
-                    {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                    {mode === "login" ? "Sign In" : "Create Account"}
-                    {!loading && <ArrowRight className="ml-2 h-5 w-5" />}
-                  </Button>
-                </form>
-              </Form>
+                    {mode === "login" && (
+                      <div className="flex justify-end">
+                        <Link 
+                          href="/forgot-password"
+                          className="text-sm text-primary hover:text-primary/80 hover:underline font-medium transition-colors"
+                        >
+                          Forgot Password?
+                        </Link>
+                      </div>
+                    )}
 
-              {/* Divider */}
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-zinc-700" />
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 text-base font-semibold mt-2" 
+                      disabled={loading}
+                    >
+                      {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                      {mode === "login" ? "Sign In" : "Create Account"}
+                      {!loading && <ArrowRight className="ml-2 h-5 w-5" />}
+                    </Button>
+                  </form>
+                </Form>
+
+                {/* Divider */}
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-zinc-700" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-zinc-950 px-3 text-zinc-500 font-medium">
+                      Or continue with
+                    </span>
+                  </div>
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-zinc-950 px-3 text-zinc-500 font-medium">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
 
-              {/* Google Button */}
-              <Button
-                variant="outline"
-                type="button"
-                className="w-full h-12 font-semibold bg-zinc-800/50 border-zinc-700 text-white hover:bg-zinc-700/50 hover:border-zinc-600 hover:text-white transition-all"
-                onClick={handleGoogleAuth}
-              >
-                <Image src="/icons/google.svg" alt="Google" width={20} height={20} className="mr-3" />
-                Continue with Google
-              </Button>
-            </motion.div>
-          </AnimatePresence>
+                {/* Google Button */}
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="w-full h-12 font-semibold bg-zinc-800/50 border-zinc-700 text-white hover:bg-zinc-700/50 hover:border-zinc-600 hover:text-white transition-all"
+                  onClick={handleGoogleAuth}
+                >
+                  <Image src="/icons/google.svg" alt="Google" width={20} height={20} className="mr-3" />
+                  Continue with Google
+                </Button>
+              </motion.div>
+            </AnimatePresence>
 
-          {/* Bottom Link */}
-          <div className="text-center text-sm text-zinc-500 pt-4">
-            <p>
-              {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
-              <button 
-                onClick={() => setMode(mode === "login" ? "signup" : "login")}
-                className="font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
-              >
-                {mode === "login" ? "Sign Up" : "Login"}
-              </button>
-            </p>
+            {/* Bottom Link */}
+            <div className="text-center text-sm text-zinc-500 pt-4 pb-8">
+              <p>
+                {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
+                <button 
+                  onClick={() => setMode(mode === "login" ? "signup" : "login")}
+                  className="font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
+                >
+                  {mode === "login" ? "Sign Up" : "Login"}
+                </button>
+              </p>
+            </div>
           </div>
         </div>
       </div>
