@@ -40,6 +40,21 @@ import { logError } from "@/utils/errors";
 type AuthMode = "login" | "signup";
 type AccountType = "broker" | "company";
 
+// --- Configuration ---
+
+const contentConfig = {
+  broker: {
+    image: "/images/login.jpg",
+    quote: "The future of real estate brokerage is here. Seamless, efficient, and professional.",
+    role: "Empowering Brokers",
+  },
+  company: {
+    image: "/images/propertyCategory/commercial.jpg",
+    quote: "Scale your brokerage firm with powerful management tools and real-time insights.",
+    role: "Empowering Companies",
+  },
+};
+
 // --- Account Type Card Component ---
 
 interface AccountTypeCardProps {
@@ -113,6 +128,11 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
     // Use 'auto' to avoid invalid ScrollBehavior values; we just want to reset position.
     scrollAreaRef.current?.scrollTo({ top: 0, behavior: "auto" });
   }, [mode]);
+
+  // Determine active content based on mode and account type
+  const activeContent = mode === "signup" && accountType === "company" 
+    ? contentConfig.company 
+    : contentConfig.broker;
 
   // 2. Logic Functions (Adapted from existing code)
 
@@ -254,31 +274,52 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
     <div className="flex h-dvh w-full font-host-grotesk overflow-hidden bg-zinc-950">
       {/* Left Side - Image & Value Prop (Fixed) */}
       <div className="hidden lg:flex lg:w-1/2 h-full relative overflow-hidden bg-black">
-        <Image
-          src="/images/login.jpg"
-          alt="Architecture"
-          fill
-          sizes="(min-width: 1024px) 50vw, 100vw"
-          className="object-cover opacity-70"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeContent.image}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="absolute inset-0"
+          >
+            <Image
+              src={activeContent.image}
+              alt="Architecture"
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover opacity-70"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
+          </motion.div>
+        </AnimatePresence>
         
         {/* Glassmorphism Testimonial Card */}
         <div className="absolute bottom-0 left-0 p-10 w-full z-10">
           <div className="max-w-lg backdrop-blur-md bg-black/20 border border-white/10 shadow-2xl rounded-2xl p-8">
-            <h2 className="text-3xl font-instrument-serif text-white leading-snug mb-6">
-              &ldquo;The future of real estate brokerage is here. Seamless, efficient, and professional.&rdquo;
-            </h2>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-lg">
-                B
-              </div>
-              <div>
-                <p className="text-white font-semibold">Brokwise Team</p>
-                <p className="text-zinc-400 text-sm">Empowering Brokers & Companies</p>
-              </div>
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeContent.quote}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h2 className="text-3xl font-instrument-serif text-white leading-snug mb-6">
+                  &ldquo;{activeContent.quote}&rdquo;
+                </h2>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-lg">
+                    B
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold">Brokwise Team</p>
+                    <p className="text-zinc-400 text-sm">{activeContent.role}</p>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>
