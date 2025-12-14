@@ -28,7 +28,18 @@ import { createUser } from "@/models/api/user";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
+import "@/i18n";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
+  const { t, i18n } = useTranslation();
   const [inputError, setInputError] = useState<{
     email?: string;
     password?: string;
@@ -116,9 +127,7 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
       };
       await sendEmailVerification(user, actionCodeSettings);
       localStorage.setItem("lastVerification", Date.now().toString());
-      toast.success(
-        "Verification email sent! Check your inbox and spam folder."
-      );
+      toast.success(t("verification_email_sent"));
     } catch (error) {
       console.error("Email verification error:", error);
       const firebaseError = error as FirebaseError;
@@ -128,7 +137,7 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         slackChannel: "frontend-errors",
       });
       if (firebaseError.code === "auth/network-request-failed") {
-        toast.error("Network error. Please check your connection.");
+        toast.error(t("network_error"));
       }
     }
   };
@@ -139,27 +148,27 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
       case "auth/wrong-password":
         setInputError((prev) => ({
           ...prev,
-          password: "Incorrect email or password.",
+          password: t("incorrect_email_password"),
         }));
         break;
       case "auth/email-already-exists":
       case "auth/email-already-in-use":
         setInputError((prev) => ({
           ...prev,
-          email: "Email already in use.",
+          email: t("email_in_use"),
         }));
         break;
       case "auth/invalid-email":
         setInputError((prev) => ({
           ...prev,
-          email: "Invalid email address.",
+          email: t("invalid_email"),
         }));
         break;
       case "auth/too-many-requests":
-        toast.error("Too many failed requests. Please try again later.");
+        toast.error(t("too_many_requests"));
         break;
       default:
-        toast.error("Failed to create your account. Please try again.");
+        toast.error(t("failed_create_account"));
     }
   };
 
@@ -172,32 +181,32 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
       case "auth/invalid-credential":
         setInputError((prev) => ({
           ...prev,
-          password: "Incorrect email or password.",
+          password: t("incorrect_email_password"),
         }));
         break;
       case "auth/invalid-email":
         setInputError((prev) => ({
           ...prev,
-          email: "Invalid email address.",
+          email: t("invalid_email"),
         }));
         break;
       case "auth/user-not-found":
         setInputError((prev) => ({
           ...prev,
-          email: "User not found.",
+          email: t("user_not_found"),
         }));
         break;
       case "auth/too-many-requests":
-        toast.error("Too many failed requests. Please try again later.");
+        toast.error(t("too_many_requests"));
         break;
       default:
-        toast.error("Sign in failed. Please try again.");
+        toast.error(t("signin_failed"));
     }
   };
   const handleGoogleSignUp = () => {
     try {
       if (!Config.googleOauthClientId) {
-        toast.error("Google OAuth is not configured. Please contact support.");
+        toast.error(t("google_oauth_not_configured"));
         return;
       }
 
@@ -219,13 +228,26 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         slackChannel: "frontend-errors",
       });
       console.error(error);
-      toast.error("Google authentication failed, Something went wrong");
+      toast.error(t("google_auth_failed"));
     }
   };
 
   return (
     <div>
-      {" "}
+      <div className="flex justify-end mb-4">
+        <Select
+          onValueChange={(value) => i18n.changeLanguage(value)}
+          defaultValue={i18n.language}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select Language" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="hi">हिंदी (Hindi)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
           <FormField
@@ -233,11 +255,11 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email Address</FormLabel>
+                <FormLabel>{t("email_label")}</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
-                    placeholder="Enter your email address"
+                    placeholder={t("email_placeholder")}
                     {...field}
                     onChange={(e) => {
                       field.onChange(e);
@@ -265,11 +287,11 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>{t("password_label")}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder={t("password_placeholder")}
                     {...field}
                     onChange={(e) => {
                       field.onChange(e);
@@ -298,11 +320,11 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>{t("confirm_password_label")}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Confirm your password"
+                      placeholder={t("confirm_password_placeholder")}
                       {...field}
                       onChange={(e) => {
                         field.onChange(e);
@@ -328,7 +350,9 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
           )}
           <Button
             type="button"
-            className={`w-full ${!isValid && !loading ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`w-full ${
+              !isValid && !loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
             size={"lg"}
             disabled={loading}
             onClick={async () => {
@@ -339,18 +363,18 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
             }}
           >
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {isSignup ? "Sign up" : "Login"}
+            {isSignup ? t("signup_button") : t("login_button")}
           </Button>
         </form>
       </Form>
       {!isSignup && (
         <div className="text-right">
-          <Link href="/forgot-password">Forgot Password?</Link>
+          <Link href="/forgot-password">{t("forgot_password")}</Link>
         </div>
       )}
       <div className="flex items-center gap-2 flex-col w-full relative">
         <div className="w-1/4 h-[1px] bg-gray-200 absolute top-1/2 left-0"></div>
-        <span className="text-gray-500 z-10">Or continue with</span>
+        <span className="text-gray-500 z-10">{t("or_continue_with")}</span>
         <div className="w-1/4 h-[1px] bg-gray-200 absolute top-1/2 right-0"></div>
       </div>
       <Button
@@ -360,7 +384,7 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         className="w-full"
       >
         <Image src="/icons/google.svg" alt="google" width={24} height={24} />
-        <span>Google</span>
+        <span>{t("google_button")}</span>
       </Button>
     </div>
   );

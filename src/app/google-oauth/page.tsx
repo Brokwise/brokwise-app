@@ -65,6 +65,7 @@ const GoogleOauthPage = () => {
           localStorage.setItem("userType", "company");
         }
       } catch (error) {
+        console.log(error);
         logError({
           error: error as Error,
           slackChannel: "frontend-errors",

@@ -10,13 +10,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   sendEmailVerification,
-  User 
+  User,
 } from "firebase/auth";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import "@/i18n";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +30,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { loginFormSchema, signupFormSchema } from "@/validators/onboarding";
 import { Config } from "@/config";
@@ -40,23 +49,6 @@ import { logError } from "@/utils/errors";
 type AuthMode = "login" | "signup";
 type AccountType = "broker" | "company";
 
-// --- Configuration ---
-
-const contentConfig = {
-  broker: {
-    image: "/images/login.jpg",
-    alt: "Professional broker reviewing real estate documents",
-    quote: "The future of real estate brokerage is here. Seamless, efficient, and professional.",
-    role: "Empowering Brokers",
-  },
-  company: {
-    image: "/images/propertyCategory/commercial.jpg",
-    alt: "Modern commercial real estate building",
-    quote: "Scale your brokerage firm with powerful management tools and real-time insights.",
-    role: "Empowering Companies",
-  },
-};
-
 // --- Account Type Card Component ---
 
 interface AccountTypeCardProps {
@@ -68,15 +60,22 @@ interface AccountTypeCardProps {
   description: string;
 }
 
-const AccountTypeCard = ({ selected, onSelect, icon, title, description }: AccountTypeCardProps) => (
+const AccountTypeCard = ({
+  selected,
+  onSelect,
+  icon,
+  title,
+  description,
+}: AccountTypeCardProps) => (
   <button
     type="button"
     onClick={onSelect}
     className={`
       relative flex flex-col items-center justify-center p-5 rounded-xl border-2 transition-all duration-200 w-full
-      ${selected 
-        ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2 ring-offset-zinc-950" 
-        : "border-zinc-700 bg-zinc-800/50 hover:border-zinc-600 hover:bg-zinc-800"
+      ${
+        selected
+          ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2 ring-offset-zinc-950"
+          : "border-zinc-700 bg-zinc-800/50 hover:border-zinc-600 hover:bg-zinc-800"
       }
     `}
   >
@@ -85,27 +84,57 @@ const AccountTypeCard = ({ selected, onSelect, icon, title, description }: Accou
         <Check size={12} className="text-white" />
       </div>
     )}
-    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${selected ? "bg-primary/20 text-primary" : "bg-zinc-700 text-zinc-400"}`}>
+    <div
+      className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
+        selected ? "bg-primary/20 text-primary" : "bg-zinc-700 text-zinc-400"
+      }`}
+    >
       {icon}
     </div>
-    <p className={`font-semibold ${selected ? "text-white" : "text-zinc-300"}`}>{title}</p>
+    <p className={`font-semibold ${selected ? "text-white" : "text-zinc-300"}`}>
+      {title}
+    </p>
     <p className="text-xs text-zinc-500 mt-1">{description}</p>
   </button>
 );
 
 // --- AuthPage Component ---
 
-export default function AuthPage({ initialMode = "login" }: { initialMode?: AuthMode }) {
+export default function AuthPage({
+  initialMode = "login",
+}: {
+  initialMode?: AuthMode;
+}) {
+  const { t, i18n } = useTranslation();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [accountType, setAccountType] = useState<AccountType>("broker");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const scrollAreaRef = React.useRef<HTMLDivElement | null>(null);
 
+  const contentConfig = useMemo(() => {
+    return {
+      broker: {
+        image: "/images/login.jpg",
+        alt: "Professional broker reviewing real estate documents",
+        quote: t("broker_quote"),
+        role: t("broker_role"),
+      },
+      company: {
+        image: "/images/propertyCategory/commercial.jpg",
+        alt: "Modern commercial real estate building",
+        quote: t("company_quote"),
+        role: t("company_role"),
+      },
+    };
+  }, [t]);
+
   // 1. Form Setup
   const formSchema = mode === "signup" ? signupFormSchema : loginFormSchema;
-  type FormSchemaType = z.infer<typeof signupFormSchema> | z.infer<typeof loginFormSchema>;
-  
+  type FormSchemaType =
+    | z.infer<typeof signupFormSchema>
+    | z.infer<typeof loginFormSchema>;
+
   const defaultValues = {
     email: "",
     password: "",
@@ -135,21 +164,23 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
   React.useEffect(() => {
     const img = new window.Image();
     img.src = contentConfig.company.image;
-  }, []);
+  }, [contentConfig.company.image]);
 
   // Determine active content based on mode and account type
-  const activeContent = useMemo(() => 
-    mode === "signup" && accountType === "company" 
-      ? contentConfig.company 
-      : contentConfig.broker,
-    [mode, accountType]
+  const activeContent = useMemo(
+    () =>
+      mode === "signup" && accountType === "company"
+        ? contentConfig.company
+        : contentConfig.broker,
+    [mode, accountType, contentConfig]
   );
 
   // 2. Logic Functions (Adapted from existing code)
 
   const createUserInDb = async (user: User, name: string) => {
-    const isFirstTimeUser = user.metadata.creationTime === user.metadata.lastSignInTime;
-    
+    const isFirstTimeUser =
+      user.metadata.creationTime === user.metadata.lastSignInTime;
+
     if (isFirstTimeUser) {
       if (accountType === "broker") {
         await createUser({
@@ -176,15 +207,15 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
   const sendVerificatinLink = async (user: User) => {
     try {
       if (user.emailVerified) return;
-      
+
       const actionCodeSettings = {
         url: `${window.location.origin}/app`,
         handleCodeInApp: false,
       };
-      
+
       await sendEmailVerification(user, actionCodeSettings);
       localStorage.setItem("lastVerification", Date.now().toString());
-      toast.success("Verification email sent! Check your inbox.");
+      toast.success(t("verification_email_sent"));
     } catch (error) {
       console.error("Email verification error:", error);
       const firebaseError = error as FirebaseError;
@@ -194,7 +225,7 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
         slackChannel: "frontend-errors",
       });
       if (firebaseError.code === "auth/network-request-failed") {
-        toast.error("Network error. Please check your connection.");
+        toast.error(t("network_error"));
       }
     }
   };
@@ -202,24 +233,33 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
   const handleAuthError = (error: FirebaseError) => {
     const errorCode = error.code;
     let errorMessage = "An error occurred. Please try again.";
-    
+
     if (mode === "signup") {
-        if (errorCode === "auth/email-already-in-use") errorMessage = "Email already in use.";
-        else if (errorCode === "auth/invalid-email") errorMessage = "Invalid email address.";
+      if (errorCode === "auth/email-already-in-use")
+        errorMessage = t("email_in_use");
+      else if (errorCode === "auth/invalid-email")
+        errorMessage = t("invalid_email");
     } else {
-        if (["auth/wrong-password", "auth/user-not-found", "auth/invalid-credential"].includes(errorCode)) {
-            errorMessage = "Incorrect email or password.";
-        }
+      if (
+        [
+          "auth/wrong-password",
+          "auth/user-not-found",
+          "auth/invalid-credential",
+        ].includes(errorCode)
+      ) {
+        errorMessage = t("incorrect_email_password");
+      }
     }
 
-    if (errorCode === "auth/too-many-requests") errorMessage = "Too many failed requests. Try again later.";
-    
+    if (errorCode === "auth/too-many-requests")
+      errorMessage = t("too_many_requests");
+
     toast.error(errorMessage);
-    
+
     if (errorMessage.includes("Email") || errorMessage.includes("User")) {
-        form.setError("email", { message: errorMessage });
+      form.setError("email", { message: errorMessage });
     } else if (errorMessage.includes("password")) {
-        form.setError("password", { message: errorMessage });
+      form.setError("password", { message: errorMessage });
     }
   };
 
@@ -227,11 +267,10 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
     try {
       setLoading(true);
       const { email, password } = data;
-      
+
       const { user } = await (mode === "signup"
         ? createUserWithEmailAndPassword(firebaseAuth, email, password)
-        : signInWithEmailAndPassword(firebaseAuth, email, password)
-      );
+        : signInWithEmailAndPassword(firebaseAuth, email, password));
 
       if (mode === "signup") {
         await createUserInDb(user, "");
@@ -241,8 +280,12 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
           await sendVerificatinLink(user);
         }
       }
-      
-      toast.success(mode === "signup" ? "Account created successfully!" : "Logged in successfully!");
+
+      toast.success(
+        mode === "signup"
+          ? t("account_created_success")
+          : t("logged_in_success")
+      );
       router.push("/");
     } catch (err) {
       handleAuthError(err as FirebaseError);
@@ -254,16 +297,22 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
   const handleGoogleAuth = () => {
     try {
       if (!Config.googleOauthClientId) {
-        toast.error("Google OAuth configuration missing.");
+        toast.error(t("google_oauth_not_configured"));
         return;
       }
 
-      const redirectUri = encodeURIComponent(`${Config.frontendUrl}/google-oauth`);
-      const scope = encodeURIComponent("https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile");
-      const state = encodeURIComponent(JSON.stringify({
-        isSignup: mode === "signup",
-        accountType: mode === "signup" ? accountType : undefined,
-      }));
+      const redirectUri = encodeURIComponent(
+        `${Config.frontendUrl}/google-oauth`
+      );
+      const scope = encodeURIComponent(
+        "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
+      );
+      const state = encodeURIComponent(
+        JSON.stringify({
+          isSignup: mode === "signup",
+          accountType: mode === "signup" ? accountType : undefined,
+        })
+      );
 
       window.open(
         `https://accounts.google.com/o/oauth2/auth?client_id=${Config.googleOauthClientId}&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${state}`,
@@ -275,7 +324,7 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
         error: error as Error,
         slackChannel: "frontend-errors",
       });
-      toast.error("Google authentication failed.");
+      toast.error(t("google_auth_failed"));
     }
   };
 
@@ -305,7 +354,7 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
           </motion.div>
         </AnimatePresence>
-        
+
         {/* Glassmorphism Testimonial Card */}
         <div className="absolute bottom-0 left-0 p-10 w-full z-10">
           <div className="max-w-lg backdrop-blur-md bg-black/20 border border-white/10 shadow-2xl rounded-2xl p-8">
@@ -326,7 +375,9 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                   </div>
                   <div>
                     <p className="text-white font-semibold">Brokwise Team</p>
-                    <p className="text-zinc-400 text-sm">{activeContent.role}</p>
+                    <p className="text-zinc-400 text-sm">
+                      {activeContent.role}
+                    </p>
                   </div>
                 </div>
               </motion.div>
@@ -336,23 +387,38 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
       </div>
 
       {/* Right Side - Auth Form (Scrollable) */}
-      <div 
+      <div
         className="flex-1 h-full overflow-hidden relative bg-zinc-950"
         style={{
-          background: "radial-gradient(ellipse at top right, #18181b 0%, #09090b 50%, #09090b 100%)"
+          background:
+            "radial-gradient(ellipse at top right, #18181b 0%, #09090b 50%, #09090b 100%)",
         }}
       >
         <div className="h-full w-full flex flex-col items-center px-6 lg:px-16">
           {/* Fixed header area (prevents the Brokwise title from jumping when mode changes) */}
-          <div className="w-full max-w-md shrink-0 pt-10 lg:pt-14">
+          <div className="w-full max-w-md shrink-0 pt-7 lg:pt-10">
+            <div className="flex justify-end mb-4 absolute top-2 right-2">
+              <Select
+                onValueChange={(value) => i18n.changeLanguage(value)}
+                defaultValue={i18n.language}
+              >
+                <SelectTrigger className="w-[180px] text-white border-zinc-700 bg-zinc-800/50">
+                  <SelectValue placeholder={t("select_language")} />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 text-white border-zinc-700">
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="hi">हिंदी (Hindi)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="text-center space-y-3">
               <h1 className="text-5xl lg:text-6xl font-instrument-serif text-white tracking-tight">
                 Brokwise
               </h1>
               <p className="text-zinc-400 text-base">
                 {mode === "login"
-                  ? "Welcome back, please login to your account."
-                  : "Create your account to get started."}
+                  ? t("welcome_back_login")
+                  : t("create_account_start")}
               </p>
             </div>
 
@@ -367,18 +433,22 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
               <button
                 onClick={() => setMode("login")}
                 className={`flex-1 relative z-10 py-3 text-sm font-semibold transition-colors duration-200 rounded-full ${
-                  mode === "login" ? "text-white" : "text-zinc-500 hover:text-zinc-300"
+                  mode === "login"
+                    ? "text-white"
+                    : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                Login
+                {t("toggle_login")}
               </button>
               <button
                 onClick={() => setMode("signup")}
                 className={`flex-1 relative z-10 py-3 text-sm font-semibold transition-colors duration-200 rounded-full ${
-                  mode === "signup" ? "text-white" : "text-zinc-500 hover:text-zinc-300"
+                  mode === "signup"
+                    ? "text-white"
+                    : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                Sign Up
+                {t("toggle_signup")}
               </button>
             </div>
           </div>
@@ -386,7 +456,7 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
           {/* Scrollable content area (scrollbar hidden) */}
           <div
             ref={scrollAreaRef}
-            className="w-full max-w-md flex-1 overflow-y-auto pt-8 pb-8 scrollbar-hide"
+            className="w-full max-w-md flex-1 overflow-y-auto pt-8 pb-8 scrollbar-hide px-2"
           >
             <AnimatePresence mode="wait">
               <motion.div
@@ -404,28 +474,33 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                       selected={accountType === "broker"}
                       onSelect={() => setAccountType("broker")}
                       icon={<User2 size={24} />}
-                      title="Broker"
-                      description="Individual agent"
+                      title={t("account_type_broker")}
+                      description={t("account_type_broker_desc")}
                     />
                     <AccountTypeCard
                       type="company"
                       selected={accountType === "company"}
                       onSelect={() => setAccountType("company")}
                       icon={<Building2 size={24} />}
-                      title="Company"
-                      description="Brokerage firm"
+                      title={t("account_type_company")}
+                      description={t("account_type_company_desc")}
                     />
                   </div>
                 )}
 
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-5"
+                  >
                     <FormField
                       control={form.control}
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-zinc-300 font-medium">Email</FormLabel>
+                          <FormLabel className="text-zinc-300 font-medium">
+                            {t("email_label")}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               placeholder="name@example.com"
@@ -444,7 +519,9 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-zinc-300 font-medium">Password</FormLabel>
+                          <FormLabel className="text-zinc-300 font-medium">
+                            {t("password_label")}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               placeholder="••••••••"
@@ -464,7 +541,9 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                         name="confirmPassword"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-zinc-300 font-medium">Confirm Password</FormLabel>
+                            <FormLabel className="text-zinc-300 font-medium">
+                              {t("confirm_password_label")}
+                            </FormLabel>
                             <FormControl>
                               <Input
                                 placeholder="••••••••"
@@ -485,7 +564,7 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                           href="/forgot-password"
                           className="text-sm text-primary hover:text-primary/80 hover:underline font-medium transition-colors"
                         >
-                          Forgot Password?
+                          {t("forgot_password")}
                         </Link>
                       </div>
                     )}
@@ -495,8 +574,12 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                       className="w-full h-11 text-base font-semibold mt-2"
                       disabled={loading}
                     >
-                      {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                      {mode === "login" ? "Sign In" : "Create Account"}
+                      {loading && (
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      )}
+                      {mode === "login"
+                        ? t("signin_button")
+                        : t("create_account_button")}
                       {!loading && <ArrowRight className="ml-2 h-5 w-5" />}
                     </Button>
                   </form>
@@ -507,8 +590,8 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                     <span className="w-full border-t border-white/10" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-zinc-950 px-3 text-zinc-500 font-medium">
-                      Or continue with
+                    <span className="bg-zinc-950 px-3 text-zinc-500 font-medium text-xs">
+                      {t("or_continue_with")}
                     </span>
                   </div>
                 </div>
@@ -519,8 +602,14 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
                   className="w-full h-11 font-semibold bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 hover:text-white transition-all"
                   onClick={handleGoogleAuth}
                 >
-                  <Image src="/icons/google.svg" alt="Google" width={20} height={20} className="mr-3" />
-                  Continue with Google
+                  <Image
+                    src="/icons/google.svg"
+                    alt="Google"
+                    width={20}
+                    height={20}
+                    className="mr-3"
+                  />
+                  {t("continue_with_google")}
                 </Button>
               </motion.div>
             </AnimatePresence>
@@ -529,12 +618,14 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
           {/* Bottom link pinned outside the scroll area */}
           <div className="w-full max-w-md shrink-0 text-center text-sm text-zinc-500 pb-8">
             <p>
-              {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
+              {mode === "login"
+                ? t("dont_have_account")
+                : t("already_have_account")}{" "}
               <button
                 onClick={() => setMode(mode === "login" ? "signup" : "login")}
                 className="font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
               >
-                {mode === "login" ? "Sign Up" : "Login"}
+                {mode === "login" ? t("toggle_signup") : t("toggle_login")}
               </button>
             </p>
           </div>
