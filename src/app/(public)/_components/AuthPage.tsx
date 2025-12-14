@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -45,11 +45,13 @@ type AccountType = "broker" | "company";
 const contentConfig = {
   broker: {
     image: "/images/login.jpg",
+    alt: "Professional broker reviewing real estate documents",
     quote: "The future of real estate brokerage is here. Seamless, efficient, and professional.",
     role: "Empowering Brokers",
   },
   company: {
     image: "/images/propertyCategory/commercial.jpg",
+    alt: "Modern commercial real estate building",
     quote: "Scale your brokerage firm with powerful management tools and real-time insights.",
     role: "Empowering Companies",
   },
@@ -129,10 +131,19 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
     scrollAreaRef.current?.scrollTo({ top: 0, behavior: "auto" });
   }, [mode]);
 
+  // Preload company image to avoid flash when switching account types
+  React.useEffect(() => {
+    const img = new window.Image();
+    img.src = contentConfig.company.image;
+  }, []);
+
   // Determine active content based on mode and account type
-  const activeContent = mode === "signup" && accountType === "company" 
-    ? contentConfig.company 
-    : contentConfig.broker;
+  const activeContent = useMemo(() => 
+    mode === "signup" && accountType === "company" 
+      ? contentConfig.company 
+      : contentConfig.broker,
+    [mode, accountType]
+  );
 
   // 2. Logic Functions (Adapted from existing code)
 
@@ -285,7 +296,7 @@ export default function AuthPage({ initialMode = "login" }: { initialMode?: Auth
           >
             <Image
               src={activeContent.image}
-              alt="Architecture"
+              alt={activeContent.alt}
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
               className="object-cover opacity-70"
