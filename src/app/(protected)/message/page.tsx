@@ -11,6 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ArrowLeft, MessageSquarePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import EmojiPicker from "emoji-picker-react";
 
 const MessagePage = () => {
   const { conversations, isLoadingConversations } = useGetConversations();
