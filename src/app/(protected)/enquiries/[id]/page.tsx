@@ -415,9 +415,6 @@ const SingleEnquiry = () => {
 
               {/* Action to Submit */}
               <div className="pt-2">
-                {/* #region agent log */}
-                {(() => { fetch('http://127.0.0.1:7243/ingest/74a3d101-b7fd-403a-89dd-737126f73d10',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:418',message:'Button disabled check values',data:{brokerData_exists:!!brokerData,brokerData_companyId:brokerData?.companyId,companyId_type:typeof brokerData?.companyId,companyId_isNull:brokerData?.companyId === null,enquiry_createdByCompanyId:enquiry?.createdByCompanyId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C'})}).catch(()=>{}); return null; })()}
-                {/* #endregion */}
                 <Button
                   onClick={() => {
                     router.push(`/enquiries/${enquiry._id}/submit`);
