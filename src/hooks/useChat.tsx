@@ -117,7 +117,15 @@ export const useSendMessage = () => {
   } = useMutation<
     Message,
     AxiosError<{ message: string }>,
-    { conversationId: string; content: string }
+    {
+      conversationId: string;
+      content?: string;
+      type?: "text" | "image" | "file";
+      mediaUrl?: string;
+      mediaType?: string;
+      fileName?: string;
+      fileSize?: number;
+    }
   >({
     mutationFn: async (data) => {
       return (await api.post(`${prefix}/conversation/sendMessage`, data)).data

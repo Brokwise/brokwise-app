@@ -1,6 +1,11 @@
 export interface Message {
   _id: string;
-  content: string;
+  content?: string;
+  type: "text" | "image" | "file";
+  mediaUrl?: string;
+  mediaType?: string;
+  fileName?: string;
+  fileSize?: number;
   read: boolean;
   isEdited: boolean;
   isDeleted: boolean;

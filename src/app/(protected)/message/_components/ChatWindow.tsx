@@ -45,8 +45,15 @@ export const ChatWindow = ({
     );
   }
 
-  const handleSend = (content: string) => {
-    sendMessage({ conversationId, content });
+  const handleSend = (data: {
+    content?: string;
+    type?: "text" | "image" | "file";
+    mediaUrl?: string;
+    mediaType?: string;
+    fileName?: string;
+    fileSize?: number;
+  }) => {
+    sendMessage({ conversationId, ...data });
   };
 
   const messages = conversationDetails?.messages || [];
