@@ -91,6 +91,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (companyData && companyData.status === "approved") {
       const allowedPaths = [
+        "/message",
         "/company-brokers",
         "/profile",
         "/company-properties",
@@ -169,6 +170,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
           "/company-enquiries",
           "/property",
           "/enquiries/create",
+          "/message",
         ];
         const isAllowed = allowedPaths.some(
           (path) => pathname === path || pathname.startsWith(`${path}/`)
