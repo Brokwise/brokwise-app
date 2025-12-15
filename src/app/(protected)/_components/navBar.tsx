@@ -39,14 +39,14 @@ const NavBar = () => {
             defaultValue="brokers"
             className=""
             onValueChange={(value) => {
-              if (value === "brokers") router.push("/brokers");
+              if (value === "brokers") router.push("/company-brokers");
               if (value === "properties") router.push("/company-properties");
               if (value === "enquiries") router.push("/company-enquiries");
               if (value === "listProperty")
                 router.push("/property/createProperty");
             }}
             value={
-              pathname.includes("/brokers")
+              pathname.includes("/company-brokers")
                 ? "brokers"
                 : pathname.includes("/company-properties")
                 ? "properties"
@@ -61,7 +61,8 @@ const NavBar = () => {
               <TabsTrigger
                 className={cn(
                   "cursor-pointer",
-                  pathname.includes("/brokers") && "bg-primary text-white"
+                  pathname.includes("/company-brokers") &&
+                    "bg-primary text-white"
                 )}
                 value="brokers"
               >

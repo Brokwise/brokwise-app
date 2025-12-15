@@ -53,6 +53,10 @@ export interface CompanyEnquiriesResponse {
     totalPages: number;
   };
 }
+export interface GetBrokerDetails {
+  properties: Property[];
+  enquiries: Enquiry[];
+}
 
 export const useGetCompanyProperties = (
   filters?: GetCompanyPropertiesDTO,
@@ -263,4 +267,15 @@ export const useHardDeleteCompanyEnquiry = () => {
     },
   });
   return { hardDeleteCompanyEnquiry: mutate, isPending, error };
+};
+
+export const useGetBrokerDetails = (id: string) => {
+  const api = useAxios();
+  const { data, isLoading, error } = useQuery<GetBrokerDetails>({
+    queryKey: ["brokerDetaills", id],
+    queryFn: async () => {
+      return (await api.get(`/company/brokerDetails?brokerId=${id}`)).data.data;
+    },
+  });
+  return { data, isLoading, error };
 };

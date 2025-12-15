@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import Link from "next/link";
 
 export const BrokersList = ({
   brokers,
@@ -73,7 +74,9 @@ export const BrokersList = ({
           {brokers.map((broker) => (
             <TableRow key={broker._id}>
               <TableCell className="font-medium">
-                {broker.firstName} {broker.lastName}
+                <Link href={`company-brokers/${broker._id}`}>
+                  {broker.firstName} {broker.lastName}
+                </Link>
               </TableCell>
               <TableCell>{broker.email}</TableCell>
               <TableCell>{broker.mobile}</TableCell>

@@ -91,19 +91,20 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (companyData && companyData.status === "approved") {
       const allowedPaths = [
-        "/brokers",
+        "/company-brokers",
         "/profile",
         "/company-properties",
         "/company-enquiries",
         "/enquiries/create",
         "/property",
+        "/company-brokers/",
       ];
       const isAllowed = allowedPaths.some(
         (path) => pathname === path || pathname.startsWith(`${path}/`)
       );
 
       if (!isAllowed) {
-        router.replace("/brokers");
+        router.replace("/company-brokers");
       }
     }
   }, [companyData, pathname, router]);
@@ -144,7 +145,13 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
           </WaveBackground>
         );
       case "pending":
-        return <StatusDisplay data={companyData} type="company" onEdit={() => setIsEditing(true)} />;
+        return (
+          <StatusDisplay
+            data={companyData}
+            type="company"
+            onEdit={() => setIsEditing(true)}
+          />
+        );
       case "blacklisted":
         return <StatusDisplay data={companyData} type="company" />;
       case "approved":
@@ -156,7 +163,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
         // But since useEffect runs after render, there might be a flash.
         // We can return null if path is not allowed.
         const allowedPaths = [
-          "/brokers",
+          "/company-brokers",
           "/profile",
           "/company-properties",
           "/company-enquiries",
