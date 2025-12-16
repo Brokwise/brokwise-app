@@ -45,5 +45,7 @@
   "continue_with_google": "Continue with Google",
   "account_created_success": "Account created successfully!",
   "logged_in_success": "Logged in successfully!",
-  "select_language": "Select Language"
+  "select_language": "Select Language",
+  "password_min_length": "Password must be at least 8 characters long",
+  "passwords_do_not_match": "Passwords do not match"
 }

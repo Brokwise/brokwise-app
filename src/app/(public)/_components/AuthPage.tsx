@@ -38,7 +38,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { loginFormSchema, signupFormSchema } from "@/validators/onboarding";
+import {
+  loginFormSchema,
+  signupFormSchema,
+  getLoginFormSchema,
+  getSignupFormSchema,
+} from "@/validators/onboarding";
 import { Config } from "@/config";
 import { firebaseAuth, getUserDoc, setUserDoc } from "@/config/firebase";
 import { createUser } from "@/models/api/user";
@@ -111,6 +116,15 @@ export default function AuthPage({
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const scrollAreaRef = React.useRef<HTMLDivElement | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   const contentConfig = useMemo(() => {
     return {
@@ -130,7 +144,10 @@ export default function AuthPage({
   }, [t]);
 
   // 1. Form Setup
-  const formSchema = mode === "signup" ? signupFormSchema : loginFormSchema;
+  const formSchema = useMemo(
+    () => (mode === "signup" ? getSignupFormSchema(t) : getLoginFormSchema(t)),
+    [mode, t, i18n.language]
+  );
   type FormSchemaType =
     | z.infer<typeof signupFormSchema>
     | z.infer<typeof loginFormSchema>;

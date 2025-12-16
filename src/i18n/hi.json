@@ -45,5 +45,7 @@
     "continue_with_google": "Google के साथ जारी रखें",
     "account_created_success": "खाता सफलतापूर्वक बनाया गया!",
     "logged_in_success": "सफलतापूर्वक लॉगिन किया गया!",
-    "select_language": "भाषा चुनें"
+    "select_language": "भाषा चुनें",
+    "password_min_length": "पासवर्ड कम से कम 8 अक्षर लंबा होना चाहिए",
+    "passwords_do_not_match": "पासवर्ड मेल नहीं खाते"
   }
