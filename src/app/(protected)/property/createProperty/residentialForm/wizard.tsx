@@ -134,7 +134,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { addProperty, addPropertyAsync, isLoading } = useAddProperty();
+  const { addPropertyAsync, isLoading } = useAddProperty();
   const { savePropertyAsDraft, isPending: isSavingDraft } =
     useSavePropertyAsDraft();
   const [draftId, setDraftId] = useState<string | undefined>(initialData?._id);
