@@ -157,6 +157,9 @@ const GoogleOauthPage = () => {
       }
       await verifyGoogleUser(accessToken, accountType);
 
+      // Clear forgot password rate limit state on successful login
+      localStorage.removeItem("brokwise_password_reset_attempts");
+
       setTimeout(() => {
         redirectUser({
           isError: false,

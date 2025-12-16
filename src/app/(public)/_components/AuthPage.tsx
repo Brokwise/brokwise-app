@@ -294,6 +294,9 @@ export default function AuthPage({
         }
       }
 
+      // Clear forgot password rate limit state on successful login
+      localStorage.removeItem("brokwise_password_reset_attempts");
+
       toast.success(
         mode === "signup"
           ? t("account_created_success")
