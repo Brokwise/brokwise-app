@@ -18,7 +18,7 @@ import {
 } from "firebase/auth";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import "@/i18n";
+import { detectLanguage, changeLanguage } from "@/i18n";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,15 +116,11 @@ export default function AuthPage({
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const scrollAreaRef = React.useRef<HTMLDivElement | null>(null);
-  const [mounted, setMounted] = useState(false);
 
+  // Detect saved language preference after hydration to avoid SSR mismatch
   React.useEffect(() => {
-    setMounted(true);
+    detectLanguage();
   }, []);
-
-  if (!mounted) {
-    return null;
-  }
 
   const contentConfig = useMemo(() => {
     return {
@@ -416,7 +412,7 @@ export default function AuthPage({
           <div className="w-full max-w-md shrink-0 pt-7 lg:pt-10">
             <div className="flex justify-end mb-4 absolute top-2 right-2">
               <Select
-                onValueChange={(value) => i18n.changeLanguage(value)}
+                onValueChange={(value) => changeLanguage(value)}
                 value={i18n.resolvedLanguage || i18n.language?.split("-")[0] || "en"}
               >
                 <SelectTrigger className="w-[180px] text-white border-zinc-700 bg-zinc-800/50">
