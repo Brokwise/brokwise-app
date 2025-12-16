@@ -417,7 +417,9 @@ export default function ForgotPasswordPage() {
                                 <Mail className="absolute left-3 top-3 h-5 w-5 text-zinc-500" />
                                 <Input
                                   placeholder="name@example.com"
-                                  type="email"
+                                  type="text"
+                                  autoComplete="email"
+                                  inputMode="email"
                                   {...field}
                                   className="pl-10 h-11 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20"
                                 />
