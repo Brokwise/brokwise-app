@@ -4,6 +4,7 @@ import "../globals.css";
 import { QueryClientProviderWrapper } from "@/providers/queryClientProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/providers/themeProvider";
+import { PostHogProvider } from "./providers";
 
 const hostGrotesk = localFont({
   src: "../../public/fonts/HostGrotesk-VariableFont_wght.ttf",
@@ -31,10 +32,12 @@ export default function RootLayout({
       <body
         className={`${hostGrotesk.variable} ${instrumentSerif.variable} antialiased`}
       >
-        <Providers>
-          <QueryClientProviderWrapper>{children}</QueryClientProviderWrapper>
-        </Providers>
-        <Toaster />
+        <PostHogProvider>
+          <Providers>
+            <QueryClientProviderWrapper>{children}</QueryClientProviderWrapper>
+          </Providers>
+          <Toaster />
+        </PostHogProvider>
       </body>
     </html>
   );
