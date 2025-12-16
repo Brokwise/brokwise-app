@@ -242,7 +242,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         form.reset();
         setCompletedSteps(new Set());
         setCurrentStep(0);
-        router.replace("/my-listings");
+        router.replace("/property/createProperty/success");
       } catch (error) {
         console.error("Error submitting form:", error);
       } finally {
