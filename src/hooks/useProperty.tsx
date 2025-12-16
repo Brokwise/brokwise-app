@@ -9,6 +9,7 @@ export const useAddProperty = () => {
   const api = useAxios();
   const {
     mutate: addProperty,
+    mutateAsync,
     isPending: isLoading,
     error,
   } = useMutation<unknown, AxiosError<{ message: string }>, PropertyFormData>({
@@ -26,7 +27,7 @@ export const useAddProperty = () => {
       toast.error(errorMessage);
     },
   });
-  return { addProperty, isLoading, error };
+  return { addProperty, addPropertyAsync: mutateAsync, isLoading, error };
 };
 
 export const useGetProperty = (
