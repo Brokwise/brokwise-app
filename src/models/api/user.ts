@@ -12,6 +12,19 @@ import {
 } from "../types/user";
 import { ApiFunction } from "../types";
 
+// Check if a user exists by email (unprotected endpoint)
+export const checkUserExistsByEmail = async (
+  email: string
+): Promise<{ exists: boolean }> => {
+  // Backend returns { success: true, data: { exists: boolean } }
+  const response = await customFetch<{ success: boolean; data: { exists: boolean } }, object>({
+    method: "GET",
+    path: `/broker/checkEmail?email=${encodeURIComponent(email)}`,
+    isProtected: false,
+  });
+  return response.data;
+};
+
 export const createUser: ApiFunction<
   CreateUserResponse,
   CreateUserRequest
@@ -43,26 +56,26 @@ export const submitUserDetails: ApiFunction<
   officeAddress,
   reraNumber,
 }) => {
-  return await customFetch({
-    method: "POST",
-    path: "/broker/submitProfileDetails",
-    body: {
-      uid,
-      firstName,
-      lastName,
-      email,
-      _id,
-      mobile,
-      companyName,
-      gstin,
-      yearsOfExperience,
-      city,
-      officeAddress,
-      reraNumber,
-    },
-    isProtected: true,
-  });
-};
+    return await customFetch({
+      method: "POST",
+      path: "/broker/submitProfileDetails",
+      body: {
+        uid,
+        firstName,
+        lastName,
+        email,
+        _id,
+        mobile,
+        companyName,
+        gstin,
+        yearsOfExperience,
+        city,
+        officeAddress,
+        reraNumber,
+      },
+      isProtected: true,
+    });
+  };
 
 export const updateProfileDetails: ApiFunction<
   UpdateProfileDetailsResponse,

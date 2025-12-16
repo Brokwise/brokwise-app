@@ -10,6 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { toast } from "sonner";
+import { checkUserExistsByEmail } from "@/models/api/user";
 import { useTranslation } from "react-i18next";
 import { detectLanguage, changeLanguage } from "@/i18n";
 
@@ -60,7 +61,7 @@ const getRateLimitState = (): RateLimitState => {
   if (typeof window === "undefined") {
     return { attempts: [], lastAttemptTime: 0 };
   }
-  
+
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -106,10 +107,10 @@ export default function ForgotPasswordPage() {
   const updateRateLimitDisplay = useCallback(() => {
     const state = getRateLimitState();
     const validAttempts = getAttemptsInLastHour(state.attempts);
-    
+
     // Update attempts remaining
     setAttemptsRemaining(MAX_ATTEMPTS_PER_HOUR - validAttempts.length);
-    
+
     // Calculate cooldown if needed
     if (state.lastAttemptTime > 0 && validAttempts.length > 0) {
       const cooldownDuration = getCooldownSeconds(validAttempts.length);
@@ -197,12 +198,12 @@ export default function ForgotPasswordPage() {
       if (attemptsRemaining <= 0) {
         toast.error(
           t("max_attempts_reached") ||
-            "Maximum attempts reached. Please try again in an hour."
+          "Maximum attempts reached. Please try again in an hour."
         );
       } else {
         toast.error(
           t("please_wait_cooldown") ||
-            `Please wait ${cooldownRemaining} seconds before trying again.`
+          `Please wait ${cooldownRemaining} seconds before trying again.`
         );
       }
       return;
@@ -210,6 +211,26 @@ export default function ForgotPasswordPage() {
 
     try {
       setLoading(true);
+
+      // First check if user exists in our database via API
+      // NOTE: This requires the backend /broker/checkEmail endpoint to be implemented
+      try {
+        const { exists } = await checkUserExistsByEmail(data.email);
+        if (!exists) {
+          recordAttempt();
+          setPageState("user_not_found");
+          return;
+        }
+      } catch (apiError) {
+        // Backend endpoint not available - fall back to Firebase
+        // TODO: Implement /broker/checkEmail endpoint on backend to prevent emails to non-existent users
+        console.warn(
+          "[Password Reset] /broker/checkEmail endpoint not available. Falling back to Firebase behavior.",
+          apiError
+        );
+      }
+
+      // User exists, send password reset email
       await sendPasswordResetEmail(firebaseAuth, data.email);
 
       // Record this attempt after success
@@ -249,7 +270,7 @@ export default function ForgotPasswordPage() {
       if (attemptsRemaining <= 0) {
         toast.error(
           t("max_attempts_reached") ||
-            "Maximum attempts reached. Please try again in an hour."
+          "Maximum attempts reached. Please try again in an hour."
         );
       } else if (cooldownRemaining > 0) {
         toast.error(
@@ -351,17 +372,17 @@ export default function ForgotPasswordPage() {
                 {pageState === "email_sent"
                   ? t("check_email") || "Check your email"
                   : pageState === "user_not_found"
-                  ? t("account_not_found") || "Account Not Found"
-                  : t("forgot_password_title") || "Forgot Password?"}
+                    ? t("account_not_found") || "Account Not Found"
+                    : t("forgot_password_title") || "Forgot Password?"}
               </h1>
               <p className="text-zinc-400 text-base">
                 {pageState === "email_sent"
                   ? t("reset_link_sent_desc") ||
-                    "We have sent a password reset link to your email address."
+                  "We have sent a password reset link to your email address."
                   : pageState === "user_not_found"
-                  ? t("account_not_found_desc") ||
+                    ? t("account_not_found_desc") ||
                     "We couldn't find an account with this email address."
-                  : t("forgot_password_desc") ||
+                    : t("forgot_password_desc") ||
                     "Enter your email address and we'll send you a link to reset your password."}
               </p>
             </div>
