@@ -68,5 +68,9 @@
   "please_wait": "Please wait",
   "wait": "Wait",
   "attempts_remaining": "Attempts remaining",
-  "resend_in": "Resend in"
+  "resend_in": "Resend in",
+  "account_not_found": "Account Not Found",
+  "account_not_found_desc": "We couldn't find an account with this email address.",
+  "no_account_with_email": "No account exists with",
+  "create_account_suggestion": "Would you like to create a new account instead?"
 }

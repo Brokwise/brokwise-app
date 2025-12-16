@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, ArrowLeft, ArrowRight, Mail, Clock } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, Mail, Clock, UserX } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { sendPasswordResetEmail } from "firebase/auth";
@@ -88,10 +88,12 @@ const getCooldownSeconds = (attemptCount: number): number => {
   return COOLDOWN_TIERS[tierIndex];
 };
 
+type PageState = "form" | "email_sent" | "user_not_found";
+
 export default function ForgotPasswordPage() {
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
+  const [pageState, setPageState] = useState<PageState>("form");
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
   const [attemptsRemaining, setAttemptsRemaining] = useState(MAX_ATTEMPTS_PER_HOUR);
 
@@ -213,7 +215,7 @@ export default function ForgotPasswordPage() {
       // Record this attempt after success
       recordAttempt();
 
-      setEmailSent(true);
+      setPageState("email_sent");
       toast.success(
         t("password_reset_email_sent") || "Password reset email sent!"
       );
@@ -224,13 +226,9 @@ export default function ForgotPasswordPage() {
         t("generic_error") || "An error occurred. Please try again.";
 
       if (firebaseError.code === "auth/user-not-found") {
-        // For security, don't reveal if email exists or not
-        // Still show success message but don't actually send
+        // Show user not found state with option to create account
         recordAttempt();
-        setEmailSent(true);
-        toast.success(
-          t("password_reset_email_sent") || "Password reset email sent!"
-        );
+        setPageState("user_not_found");
         return;
       } else if (firebaseError.code === "auth/invalid-email") {
         errorMessage = t("invalid_email") || "Invalid email address.";
@@ -350,14 +348,19 @@ export default function ForgotPasswordPage() {
 
             <div className="text-left space-y-3 mb-8">
               <h1 className="text-4xl lg:text-5xl font-instrument-serif text-white tracking-tight">
-                {emailSent
+                {pageState === "email_sent"
                   ? t("check_email") || "Check your email"
+                  : pageState === "user_not_found"
+                  ? t("account_not_found") || "Account Not Found"
                   : t("forgot_password_title") || "Forgot Password?"}
               </h1>
               <p className="text-zinc-400 text-base">
-                {emailSent
+                {pageState === "email_sent"
                   ? t("reset_link_sent_desc") ||
                     "We have sent a password reset link to your email address."
+                  : pageState === "user_not_found"
+                  ? t("account_not_found_desc") ||
+                    "We couldn't find an account with this email address."
                   : t("forgot_password_desc") ||
                     "Enter your email address and we'll send you a link to reset your password."}
               </p>
@@ -367,7 +370,7 @@ export default function ForgotPasswordPage() {
           {/* Form Content */}
           <div className="w-full max-w-md flex-1 overflow-y-auto pb-8 scrollbar-hide">
             <AnimatePresence mode="wait">
-              {!emailSent ? (
+              {pageState === "form" && (
                 <motion.div
                   key="form"
                   initial={{ opacity: 0, y: 15 }}
@@ -445,7 +448,9 @@ export default function ForgotPasswordPage() {
                     </form>
                   </Form>
                 </motion.div>
-              ) : (
+              )}
+
+              {pageState === "email_sent" && (
                 <motion.div
                   key="success"
                   initial={{ opacity: 0, y: 15 }}
@@ -469,7 +474,7 @@ export default function ForgotPasswordPage() {
                     <Button
                       variant="outline"
                       className="w-full border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800"
-                      onClick={() => setEmailSent(false)}
+                      onClick={() => setPageState("form")}
                     >
                       {t("try_another_email") || "Try another email"}
                     </Button>
@@ -515,6 +520,58 @@ export default function ForgotPasswordPage() {
                         </span>
                       </p>
                     )}
+                  </div>
+                </motion.div>
+              )}
+
+              {pageState === "user_not_found" && (
+                <motion.div
+                  key="not-found"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="space-y-6"
+                >
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-6 flex flex-col items-center text-center">
+                    <div className="w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center mb-4">
+                      <UserX className="h-6 w-6 text-amber-500" />
+                    </div>
+                    <p className="text-zinc-300 mb-2">
+                      {t("no_account_with_email") || "No account exists with"}{" "}
+                      <span className="text-white font-medium">
+                        {form.getValues("email")}
+                      </span>
+                    </p>
+                    <p className="text-zinc-500 text-sm mb-6">
+                      {t("create_account_suggestion") || "Would you like to create a new account instead?"}
+                    </p>
+                    <div className="w-full space-y-3">
+                      <Link href="/create-account" className="block w-full">
+                        <Button className="w-full h-11 text-base font-semibold">
+                          {t("create_account_button") || "Create Account"}
+                          <ArrowRight className="ml-2 h-5 w-5" />
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="outline"
+                        className="w-full border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800"
+                        onClick={() => setPageState("form")}
+                      >
+                        {t("try_another_email") || "Try another email"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="text-zinc-500 text-sm">
+                      {t("already_have_account") || "Already have an account?"}{" "}
+                      <Link
+                        href="/login"
+                        className="text-primary hover:underline font-medium"
+                      >
+                        {t("toggle_login") || "Login"}
+                      </Link>
+                    </p>
                   </div>
                 </motion.div>
               )}
