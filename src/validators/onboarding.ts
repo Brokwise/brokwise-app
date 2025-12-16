@@ -22,7 +22,7 @@ export const submitProfileDetails = z.object({
     .optional()
     .or(z.literal("")),
   yearsOfExperience: z
-    .number()
+    .number({ message: "Please select years of experience" })
     .min(0, { message: "Years of experience must be >= 0" }),
   city: z
     .string()
@@ -40,6 +40,15 @@ export const loginFormSchema = z.object({
     .string()
     .min(8, { message: "Password must be at least 8 characters long" }),
 });
+
+export const getLoginFormSchema = (t: (key: string) => string) =>
+  z.object({
+    email: z.string().email({ message: t("invalid_email") }),
+    password: z
+      .string()
+      .min(8, { message: t("password_min_length") }),
+  });
+
 export const signupFormSchema = z
   .object({
     email: z.string().email({ message: "Invalid email address" }),
@@ -54,3 +63,19 @@ export const signupFormSchema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
+
+export const getSignupFormSchema = (t: (key: string) => string) =>
+  z
+    .object({
+      email: z.string().email({ message: t("invalid_email") }),
+      password: z
+        .string()
+        .min(8, { message: t("password_min_length") }),
+      confirmPassword: z
+        .string()
+        .min(8, { message: t("password_min_length") }),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t("passwords_do_not_match"),
+      path: ["confirmPassword"],
+    });

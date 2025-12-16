@@ -18,7 +18,7 @@ import {
 } from "firebase/auth";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import "@/i18n";
+import { detectLanguage, changeLanguage } from "@/i18n";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +38,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { loginFormSchema, signupFormSchema } from "@/validators/onboarding";
+import {
+  loginFormSchema,
+  signupFormSchema,
+  getLoginFormSchema,
+  getSignupFormSchema,
+} from "@/validators/onboarding";
 import { Config } from "@/config";
 import { firebaseAuth, getUserDoc, setUserDoc } from "@/config/firebase";
 import { createUser } from "@/models/api/user";
@@ -112,6 +117,11 @@ export default function AuthPage({
   const router = useRouter();
   const scrollAreaRef = React.useRef<HTMLDivElement | null>(null);
 
+  // Detect saved language preference after hydration to avoid SSR mismatch
+  React.useEffect(() => {
+    detectLanguage();
+  }, []);
+
   const contentConfig = useMemo(() => {
     return {
       broker: {
@@ -130,7 +140,10 @@ export default function AuthPage({
   }, [t]);
 
   // 1. Form Setup
-  const formSchema = mode === "signup" ? signupFormSchema : loginFormSchema;
+  const formSchema = useMemo(
+    () => (mode === "signup" ? getSignupFormSchema(t) : getLoginFormSchema(t)),
+    [mode, t, i18n.language]
+  );
   type FormSchemaType =
     | z.infer<typeof signupFormSchema>
     | z.infer<typeof loginFormSchema>;
@@ -281,6 +294,9 @@ export default function AuthPage({
         }
       }
 
+      // Clear forgot password rate limit state on successful login
+      localStorage.removeItem("brokwise_password_reset_attempts");
+
       toast.success(
         mode === "signup"
           ? t("account_created_success")
@@ -399,8 +415,8 @@ export default function AuthPage({
           <div className="w-full max-w-md shrink-0 pt-7 lg:pt-10">
             <div className="flex justify-end mb-4 absolute top-2 right-2">
               <Select
-                onValueChange={(value) => i18n.changeLanguage(value)}
-                defaultValue={i18n.language}
+                onValueChange={(value) => changeLanguage(value)}
+                value={i18n.resolvedLanguage || i18n.language?.split("-")[0] || "en"}
               >
                 <SelectTrigger className="w-[180px] text-white border-zinc-700 bg-zinc-800/50">
                   <SelectValue placeholder={t("select_language")} />

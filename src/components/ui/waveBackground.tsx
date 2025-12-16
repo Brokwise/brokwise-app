@@ -1,13 +1,10 @@
 "use client";
-import { useTheme } from "next-themes";
 import React from "react";
 import { motion } from "framer-motion";
 
 const WaveBackground = ({ children }: { children: React.ReactNode }) => {
-  const { theme } = useTheme();
-
   return (
-    <div className={`${theme === "dark" ? "dark" : ""} w-full`}>
+    <div className="w-full">
       <div className="relative w-full h-screen bg-white dark:bg-black overflow-hidden font-sans transition-colors duration-700">
         <div>
           <div className="relative z-10 flex flex-col h-full items-center justify-center gap-6">
