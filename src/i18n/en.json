@@ -47,5 +47,18 @@
   "logged_in_success": "Logged in successfully!",
   "select_language": "Select Language",
   "password_min_length": "Password must be at least 8 characters long",
-  "passwords_do_not_match": "Passwords do not match"
+  "passwords_do_not_match": "Passwords do not match",
+  "password_reset_email_sent": "Password reset email sent!",
+  "generic_error": "An error occurred. Please try again.",
+  "forgot_password_quote": "Recover your account access securely.",
+  "back_to_login": "Back to Login",
+  "check_email": "Check your email",
+  "forgot_password_title": "Forgot Password?",
+  "reset_link_sent_desc": "We have sent a password reset link to your email address.",
+  "forgot_password_desc": "Enter your email address and we'll send you a link to reset your password.",
+  "send_reset_link": "Send Reset Link",
+  "email_sent_to": "We sent an email to",
+  "try_another_email": "Try another email",
+  "didnt_receive_email": "Didn't receive the email?",
+  "click_to_resend": "Click to resend"
 }
