@@ -150,6 +150,14 @@ export default function ForgotPasswordPage() {
     },
   });
 
+  // Re-trigger validation when language changes to update error messages
+  useEffect(() => {
+    // Only re-trigger if there are existing errors
+    if (Object.keys(form.formState.errors).length > 0) {
+      form.trigger();
+    }
+  }, [t, form]);
+
   const canSendEmail = (): boolean => {
     const state = getRateLimitState();
     const validAttempts = getAttemptsInLastHour(state.attempts);
