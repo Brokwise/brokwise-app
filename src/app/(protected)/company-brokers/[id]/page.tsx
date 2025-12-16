@@ -12,10 +12,11 @@ import { Button } from "@/components/ui/button";
 const SingleBrokerPage = () => {
   const { id } = useParams();
   const router = useRouter();
+  const { data, error, isLoading } = useGetBrokerDetails(id as string);
+  
   if (!id) {
     return null;
   }
-  const { data, error, isLoading } = useGetBrokerDetails(id as string);
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center">

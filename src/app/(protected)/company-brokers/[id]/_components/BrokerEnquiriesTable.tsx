@@ -60,13 +60,16 @@ export function BrokerEnquiriesTable({ data }: BrokerEnquiriesTableProps) {
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   // Transform data to satisfy CompanyEnquiry type (adding minimal creator object if missing)
-  const transformedData: CompanyEnquiry[] = data.map((item) => ({
-    ...item,
-    creator: (item as any).creator || {
-      _id: item.createdBy,
-      email: "Unknown", // Placeholder if missing
-    },
-  }));
+  const transformedData: CompanyEnquiry[] = data.map((item) => {
+    const itemWithCreator = item as Enquiry & { creator?: CompanyEnquiry['creator'] };
+    return {
+      ...item,
+      creator: itemWithCreator.creator || {
+        _id: item.createdBy,
+        email: "Unknown", // Placeholder if missing
+      },
+    };
+  });
 
   const table = useReactTable({
     data: transformedData,
