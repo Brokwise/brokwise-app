@@ -60,5 +60,12 @@
     "email_sent_to": "हमने ईमेल भेजा है",
     "try_another_email": "दूसरा ईमेल आज़माएं",
     "didnt_receive_email": "ईमेल नहीं मिला?",
-    "click_to_resend": "पुनः भेजने के लिए क्लिक करें"
+    "click_to_resend": "पुनः भेजने के लिए क्लिक करें",
+    "max_attempts_reached": "अधिकतम प्रयास पूरे हो गए। कृपया एक घंटे बाद पुनः प्रयास करें।",
+    "max_attempts_reached_short": "बाद में पुनः प्रयास करें",
+    "please_wait_cooldown": "कृपया पुनः प्रयास करने से पहले प्रतीक्षा करें।",
+    "please_wait": "कृपया प्रतीक्षा करें",
+    "wait": "प्रतीक्षा करें",
+    "attempts_remaining": "शेष प्रयास",
+    "resend_in": "पुनः भेजें"
   }

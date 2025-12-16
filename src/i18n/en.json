@@ -60,5 +60,12 @@
   "email_sent_to": "We sent an email to",
   "try_another_email": "Try another email",
   "didnt_receive_email": "Didn't receive the email?",
-  "click_to_resend": "Click to resend"
+  "click_to_resend": "Click to resend",
+  "max_attempts_reached": "Maximum attempts reached. Please try again in an hour.",
+  "max_attempts_reached_short": "Try again later",
+  "please_wait_cooldown": "Please wait before trying again.",
+  "please_wait": "Please wait",
+  "wait": "Wait",
+  "attempts_remaining": "Attempts remaining",
+  "resend_in": "Resend in"
 }
