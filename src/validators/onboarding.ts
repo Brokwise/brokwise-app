@@ -22,7 +22,7 @@ export const submitProfileDetails = z.object({
     .optional()
     .or(z.literal("")),
   yearsOfExperience: z
-    .number()
+    .number({ message: "Please select years of experience" })
     .min(0, { message: "Years of experience must be >= 0" }),
   city: z
     .string()

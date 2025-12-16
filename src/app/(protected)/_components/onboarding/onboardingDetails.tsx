@@ -11,6 +11,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+
+// Required field indicator component
+const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
+  <span className="flex items-center gap-1">
+    {children}
+    <span className="text-red-500">*</span>
+  </span>
+);
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -59,7 +67,7 @@ export const OnboardingDetails = ({
       mobile: brokerData?.mobile || user?.phoneNumber || "",
       companyName: brokerData?.companyName || "",
       gstin: brokerData?.gstin || "",
-      yearsOfExperience: brokerData?.yearsOfExperience || 0,
+      yearsOfExperience: brokerData?.yearsOfExperience ?? undefined,
       city: brokerData?.city || "",
       officeAddress: brokerData?.officeAddress || "",
       reraNumber: brokerData?.reraNumber || "",
@@ -213,7 +221,9 @@ export const OnboardingDetails = ({
                       name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>First Name</FormLabel>
+                          <FormLabel>
+                            <RequiredLabel>First Name</RequiredLabel>
+                          </FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -226,7 +236,9 @@ export const OnboardingDetails = ({
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Last Name</FormLabel>
+                          <FormLabel>
+                            <RequiredLabel>Last Name</RequiredLabel>
+                          </FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -239,10 +251,11 @@ export const OnboardingDetails = ({
                       name="mobile"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Mobile Number</FormLabel>
+                          <FormLabel>
+                            <RequiredLabel>Mobile Number</RequiredLabel>
+                          </FormLabel>
                           <FormControl>
                             <Input
-                              className=""
                               {...field}
                               type="tel"
                               maxLength={10}
@@ -268,7 +281,9 @@ export const OnboardingDetails = ({
                       name="companyName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Company Name (Optional)</FormLabel>
+                          <FormLabel className="text-zinc-400">
+                            Company Name <span className="text-zinc-500">(Optional)</span>
+                          </FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -281,7 +296,9 @@ export const OnboardingDetails = ({
                       name="gstin"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>GSTIN (Optional)</FormLabel>
+                          <FormLabel className="text-zinc-400">
+                            GSTIN <span className="text-zinc-500">(Optional)</span>
+                          </FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -294,22 +311,16 @@ export const OnboardingDetails = ({
                       name="yearsOfExperience"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Years of Experience (Required)</FormLabel>
+                          <FormLabel>
+                            <RequiredLabel>Years of Experience</RequiredLabel>
+                          </FormLabel>
                           <FormControl>
-                            {/* <Input
-                              {...field}
-                              type="number"
-                              min="0"
-                              onChange={(e) =>
-                                field.onChange(parseInt(e.target.value) || 0)
-                              }
-                            /> */}
                             <Select
                               {...field}
                               onValueChange={(e) => {
-                                field.onChange(parseInt(e) || 0);
+                                field.onChange(parseInt(e));
                               }}
-                              value={field.value?.toString() ?? "0"}
+                              value={field.value !== undefined ? field.value.toString() : undefined}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select Years of Experience" />
@@ -320,7 +331,7 @@ export const OnboardingDetails = ({
                                     key={index}
                                     value={index.toString()}
                                   >
-                                    {index}
+                                    {index} {index === 1 ? "year" : "years"}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -410,10 +421,10 @@ export const OnboardingDetails = ({
                   ? "Updating..."
                   : "Submitting..."
                 : step === 3
-                ? isEditing
-                  ? "Update"
-                  : "Submit"
-                : "Next"}
+                  ? isEditing
+                    ? "Update"
+                    : "Submit"
+                  : "Next"}
               {step < 3 && !loading && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </div>
