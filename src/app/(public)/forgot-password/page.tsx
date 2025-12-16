@@ -457,11 +457,14 @@ export default function ForgotPasswordPage() {
                     <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-4">
                       <Mail className="h-6 w-6 text-primary" />
                     </div>
-                    <p className="text-zinc-300 mb-6">
+                    <p className="text-zinc-300 mb-4">
                       {t("email_sent_to") || "We sent an email to"}{" "}
                       <span className="text-white font-medium">
                         {form.getValues("email")}
                       </span>
+                    </p>
+                    <p className="text-zinc-500 text-sm mb-6">
+                      {t("check_spam_folder") || "Can't find it? Check your spam or junk folder."}
                     </p>
                     <Button
                       variant="outline"

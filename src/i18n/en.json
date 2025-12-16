@@ -58,6 +58,7 @@
   "forgot_password_desc": "Enter your email address and we'll send you a link to reset your password.",
   "send_reset_link": "Send Reset Link",
   "email_sent_to": "We sent an email to",
+  "check_spam_folder": "Can't find it? Check your spam or junk folder.",
   "try_another_email": "Try another email",
   "didnt_receive_email": "Didn't receive the email?",
   "click_to_resend": "Click to resend",
