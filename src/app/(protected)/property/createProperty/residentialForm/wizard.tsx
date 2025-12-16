@@ -1,5 +1,6 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { FieldValues, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -131,7 +132,9 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  const { addProperty, isLoading } = useAddProperty();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { addProperty, addPropertyAsync, isLoading } = useAddProperty();
   const { savePropertyAsDraft, isPending: isSavingDraft } =
     useSavePropertyAsDraft();
   const [draftId, setDraftId] = useState<string | undefined>(initialData?._id);
@@ -229,13 +232,30 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     }
   };
 
-  const onSubmit = (data: ResidentialPropertyFormData) => {
+  const onSubmit = async (data: ResidentialPropertyFormData) => {
     if (onSubmitProp) {
       onSubmitProp(data);
     } else {
-      addProperty(data);
+      try {
+        setIsSubmitting(true);
+        await addPropertyAsync(data);
+        form.reset();
+        setCompletedSteps(new Set());
+        setCurrentStep(0);
+        router.replace("/my-listings");
+      } catch (error) {
+        console.error("Error submitting form:", error);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
+
+  useEffect(() => {
+    if (currentStep === 4 && !propertyType) {
+      setCurrentStep(0);
+    }
+  }, [currentStep, propertyType]);
 
   const validateCurrentStep = async (): Promise<boolean> => {
     const stepValidations: { [key: number]: string[] } = {
@@ -537,17 +557,17 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                 <div className="flex flex-wrap gap-2">
                   {(propertyType === "FLAT"
                     ? [
-                        { value: "SQ_FT", label: "Square Feet" },
-                        { value: "SQ_METER", label: "Square Meter" },
-                      ]
+                      { value: "SQ_FT", label: "Square Feet" },
+                      { value: "SQ_METER", label: "Square Meter" },
+                    ]
                     : [
-                        { value: "SQ_FT", label: "Square Feet" },
-                        { value: "SQ_YARDS", label: "Square Yards" },
-                        { value: "ACRES", label: "Acres" },
-                        { value: "BIGHA", label: "Bigha" },
-                        { value: "SQ_METER", label: "Square Meter" },
-                        { value: "HECTARE", label: "Hectare" },
-                      ]
+                      { value: "SQ_FT", label: "Square Feet" },
+                      { value: "SQ_YARDS", label: "Square Yards" },
+                      { value: "ACRES", label: "Acres" },
+                      { value: "BIGHA", label: "Bigha" },
+                      { value: "SQ_METER", label: "Square Meter" },
+                      { value: "HECTARE", label: "Hectare" },
+                    ]
                   ).map((item) => (
                     <Button
                       key={item.value}
@@ -865,8 +885,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
               {propertyType === "FLAT"
                 ? "Flat"
                 : propertyType === "VILLA"
-                ? "Villa"
-                : "Property"}{" "}
+                  ? "Villa"
+                  : "Property"}{" "}
               Amenities
             </FormLabel>
             <FormControl>
@@ -1336,6 +1356,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
         isLoading={isLoading}
+        isSubmitting={isSubmitting}
       />
     </Form>
   );
