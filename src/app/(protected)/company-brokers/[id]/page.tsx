@@ -13,7 +13,7 @@ const SingleBrokerPage = () => {
   const { id } = useParams();
   const router = useRouter();
   const { data, error, isLoading } = useGetBrokerDetails(id as string);
-  
+
   if (!id) {
     return null;
   }
