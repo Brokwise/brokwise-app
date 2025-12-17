@@ -44,6 +44,7 @@ const NavBar = () => {
               if (value === "enquiries") router.push("/company-enquiries");
               if (value === "listProperty")
                 router.push("/property/createProperty");
+              if (value === "message") router.push("/message");
             }}
             value={
               pathname.includes("/company-brokers")
@@ -54,6 +55,8 @@ const NavBar = () => {
                 ? "enquiries"
                 : pathname.includes("/property/createProperty")
                 ? "listProperty"
+                : pathname.includes("/message")
+                ? "message"
                 : "none"
             }
           >
@@ -67,6 +70,15 @@ const NavBar = () => {
                 value="brokers"
               >
                 Brokers
+              </TabsTrigger>
+              <TabsTrigger
+                className={cn(
+                  "cursor-pointer",
+                  pathname.includes("/message") && "bg-primary text-white"
+                )}
+                value="message"
+              >
+                Messages
               </TabsTrigger>
               <TabsTrigger
                 className={cn(
@@ -118,7 +130,21 @@ const NavBar = () => {
         <h1 className="font-instrument-serif">Brokwise</h1>
       </div>
       <div className="flex items-center gap-4">
-        <Tabs defaultValue="properties" className="" value={pathname}>
+        <Tabs
+          defaultValue="properties"
+          className=""
+          value={
+            pathname === "/"
+              ? "/"
+              : pathname.includes("/enquiries")
+              ? "/enquiries"
+              : pathname.includes("/property/createProperty")
+              ? "listProperty"
+              : pathname.includes("/message")
+              ? "message"
+              : "none"
+          }
+        >
           <TabsList className="bg-transparent">
             <TabsTrigger
               onClick={() => {
@@ -131,6 +157,18 @@ const NavBar = () => {
               value="/"
             >
               Properties
+            </TabsTrigger>
+            <TabsTrigger
+              onClick={() => {
+                router.push("/message");
+              }}
+              className={cn(
+                "cursor-pointer",
+                pathname.includes("/message") && "bg-primary text-white"
+              )}
+              value="message"
+            >
+              Messages
             </TabsTrigger>
             <TabsTrigger
               onClick={() => {
