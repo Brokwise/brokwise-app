@@ -142,7 +142,7 @@ export default function AuthPage({
   // 1. Form Setup
   const formSchema = useMemo(
     () => (mode === "signup" ? getSignupFormSchema(t) : getLoginFormSchema(t)),
-    [mode, t, i18n.language]
+    [mode, t]
   );
   type FormSchemaType =
     | z.infer<typeof signupFormSchema>

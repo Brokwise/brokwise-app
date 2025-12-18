@@ -11,7 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ArrowLeft, MessageSquarePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import EmojiPicker from "emoji-picker-react";
+import { Conversation } from "@/models/types/chat";
 
 const MessagePage = () => {
   const { conversations, isLoadingConversations } = useGetConversations();
@@ -57,7 +57,7 @@ const MessagePage = () => {
     (c) => c._id === selectedConversationId
   );
 
-  const getPartnerDetails = (conv: any) => {
+  const getPartnerDetails = (conv: Conversation) => {
     // If I am broker/company, partner is adminId
     // If adminId is populated object
     if (conv?.adminId && typeof conv.adminId === "object") {
@@ -111,7 +111,6 @@ const MessagePage = () => {
                 conversations={conversations || []}
                 selectedId={selectedConversationId || undefined}
                 onSelect={setSelectedConversationId}
-                currentUser={userData}
               />
             )}
             {!isLoadingConversations &&

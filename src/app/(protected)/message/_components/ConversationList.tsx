@@ -8,14 +8,12 @@ interface ConversationListProps {
   conversations: Conversation[];
   selectedId?: string;
   onSelect: (id: string) => void;
-  currentUser: UserData | null;
 }
 
 export const ConversationList = ({
   conversations,
   selectedId,
   onSelect,
-  currentUser,
 }: ConversationListProps) => {
   return (
     <div className="flex flex-col gap-2 p-4">

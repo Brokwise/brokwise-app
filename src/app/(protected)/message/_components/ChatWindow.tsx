@@ -18,7 +18,6 @@ export const ChatWindow = ({
   const { conversationDetails, isLoadingDetails, errorDetails } =
     useGetConversationDetails(conversationId);
   const { sendMessage, isSendingMessage } = useSendMessage();
-  const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {

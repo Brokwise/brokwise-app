@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { Message } from "@/models/types/chat";
 import { format } from "date-fns";
 import { FileIcon, ExternalLink } from "lucide-react";
+import Image from "next/image";
 
 interface MessageBubbleProps {
   message: Message;
@@ -14,12 +15,14 @@ export const MessageBubble = ({ message, isMe }: MessageBubbleProps) => {
       return (
         <div className="space-y-1">
           <div className="relative overflow-hidden rounded-md">
-            {/* Using regular img tag for now to avoid Next.js Image configuration issues with external domains if not configured */}
-            <img
+            <Image
               src={message.mediaUrl}
               alt="Sent image"
+              width={300}
+              height={300}
               className="max-w-full max-h-[300px] object-cover rounded-md"
               loading="lazy"
+              unoptimized={!message.mediaUrl.includes('firebasestorage')}
             />
           </div>
           {message.content && (
