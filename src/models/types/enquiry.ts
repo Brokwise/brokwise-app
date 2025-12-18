@@ -44,9 +44,11 @@ export interface Enquiry {
   enquiryCategory: PropertyCategory;
   enquiryType: PropertyType;
 
-  // Location (broker chooses city, not limited to own city)
-  city: string;
-  localities: string[];
+  // Location (schema updated: address replaces city + localities)
+  address: string;
+  // Legacy fields (kept for backward compatibility with older records)
+  city?: string;
+  localities?: string[];
 
   // Budget Range
   budget: BudgetRange;
@@ -186,8 +188,7 @@ export interface MarketplaceFilters {
 }
 
 export interface CreateEnquiryDTO {
-  city: string;
-  localities: string[];
+  address: string;
   enquiryCategory: PropertyCategory;
   enquiryType: PropertyType;
   budget: BudgetRange;

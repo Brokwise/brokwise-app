@@ -30,6 +30,7 @@ import { AxiosError } from "axios";
 import { ResidentialWizard } from "@/app/(protected)/property/createProperty/residentialForm/wizard";
 import { CommercialWizard } from "@/app/(protected)/property/createProperty/commercialForm/wizard";
 import { PropertyPreviewModal } from "../_components/PropertyPreviewModal";
+import { formatEnquiryLocation } from "@/utils/helper";
 
 type View = "select" | "create" | "message";
 
@@ -254,7 +255,9 @@ export default function SubmitEnquiryPage() {
               {enquiry.enquiryType}
             </span>{" "}
             in{" "}
-            <span className="font-medium text-foreground">{enquiry.city}</span>
+            <span className="font-medium text-foreground">
+              {formatEnquiryLocation(enquiry) || "—"}
+            </span>
           </p>
         </div>
       </div>
@@ -375,7 +378,9 @@ export default function SubmitEnquiryPage() {
                                   key={property._id}
                                   onClick={() =>
                                     setSelectedPropertyId((prev) =>
-                                      prev === property._id ? null : property._id
+                                      prev === property._id
+                                        ? null
+                                        : property._id
                                     )
                                   }
                                   className={cn(
@@ -401,7 +406,8 @@ export default function SubmitEnquiryPage() {
                                         <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                                           <MapPin className="h-3 w-3" />
                                           <span className="truncate">
-                                            {property.address?.city || "Unknown City"}
+                                            {property.address?.city ||
+                                              "Unknown City"}
                                           </span>
                                         </div>
                                       </div>

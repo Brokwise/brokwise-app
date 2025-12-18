@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
+import { formatEnquiryLocation } from "@/utils/helper";
 
 interface EnquiryCardProps {
   enquiry: Enquiry | MarketplaceEnquiry;
@@ -26,6 +27,7 @@ interface EnquiryCardProps {
 
 export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
   const router = useRouter();
+  const locationTitle = formatEnquiryLocation(enquiry);
   const formatCurrency = (amount: number) => {
     if (amount >= 10000000) {
       return `${(amount / 10000000).toFixed(2)} Cr`;
@@ -94,13 +96,8 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <MapPin className="w-3 h-3" /> Location
             </p>
-            <p
-              className="font-medium line-clamp-1"
-              title={enquiry.localities.join(", ")}
-            >
-              {enquiry.localities[0]}
-              {enquiry.localities.length > 1 &&
-                ` +${enquiry.localities.length - 1} more`}
+            <p className="font-medium line-clamp-1" title={locationTitle}>
+              {locationTitle || "—"}
             </p>
           </div>
         </div>

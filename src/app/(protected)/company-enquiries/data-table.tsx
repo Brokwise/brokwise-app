@@ -97,12 +97,11 @@ export function DataTable<TData, TValue>({
         creator.name ||
         `${creator.firstName || ""} ${creator.lastName || ""}`.trim();
 
-      const localityString = enquiry.localities?.join(" ") || "";
+      const addressString = (enquiry.address || "").toString();
 
       return (
         enquiry.enquiryId?.toLowerCase().includes(search) ||
-        enquiry.city?.toLowerCase().includes(search) ||
-        localityString.toLowerCase().includes(search) ||
+        addressString.toLowerCase().includes(search) ||
         enquiry.enquiryCategory?.toLowerCase().includes(search) ||
         enquiry.enquiryType?.toLowerCase().includes(search) ||
         creatorName.toLowerCase().includes(search) ||

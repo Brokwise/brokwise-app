@@ -45,7 +45,10 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { columns, CompanyEnquiry } from "@/app/(protected)/company-enquiries/columns";
+import {
+  columns,
+  CompanyEnquiry,
+} from "@/app/(protected)/company-enquiries/columns";
 import { Enquiry } from "@/models/types/enquiry";
 
 interface BrokerEnquiriesTableProps {
@@ -61,7 +64,9 @@ export function BrokerEnquiriesTable({ data }: BrokerEnquiriesTableProps) {
 
   // Transform data to satisfy CompanyEnquiry type (adding minimal creator object if missing)
   const transformedData: CompanyEnquiry[] = data.map((item) => {
-    const itemWithCreator = item as Enquiry & { creator?: CompanyEnquiry['creator'] };
+    const itemWithCreator = item as Enquiry & {
+      creator?: CompanyEnquiry["creator"];
+    };
     return {
       ...item,
       creator: itemWithCreator.creator || {
@@ -85,13 +90,12 @@ export function BrokerEnquiriesTable({ data }: BrokerEnquiriesTableProps) {
     globalFilterFn: (row, columnId, filterValue) => {
       const search = filterValue.toLowerCase();
       const enquiry = row.original;
-      
-      const localityString = enquiry.localities?.join(" ") || "";
+
+      const addressString = (enquiry.address || "").toString();
 
       return (
         enquiry.enquiryId?.toLowerCase().includes(search) ||
-        enquiry.city?.toLowerCase().includes(search) ||
-        localityString.toLowerCase().includes(search) ||
+        addressString.toLowerCase().includes(search) ||
         enquiry.enquiryCategory?.toLowerCase().includes(search) ||
         enquiry.enquiryType?.toLowerCase().includes(search)
       );
@@ -189,9 +193,7 @@ export function BrokerEnquiriesTable({ data }: BrokerEnquiriesTableProps) {
             }}
           >
             <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue
-                placeholder={table.getState().pagination.pageSize}
-              />
+              <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
               {[10, 20, 30, 40, 50, 100].map((pageSize) => (
@@ -299,6 +301,3 @@ export function BrokerEnquiriesTable({ data }: BrokerEnquiriesTableProps) {
     </div>
   );
 }
-
-
-

@@ -7,6 +7,7 @@ import Fuse from "fuse.js";
 import { Loader2, Inbox, Plus, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { getCityFromAddress } from "@/utils/helper";
 const EnquiryPage = () => {
   const { marketPlaceEnquiries, isPending, error } =
     useGetMarketPlaceEnquiries();
@@ -25,7 +26,9 @@ const EnquiryPage = () => {
   const availableCities = useMemo(() => {
     if (!marketPlaceEnquiries) return [];
     const cities = new Set(
-      marketPlaceEnquiries.map((e) => e.city.toLowerCase())
+      marketPlaceEnquiries
+        .map((e) => getCityFromAddress(e.address).toLowerCase())
+        .filter(Boolean)
     );
     return Array.from(cities);
   }, [marketPlaceEnquiries]);
@@ -45,7 +48,9 @@ const EnquiryPage = () => {
     }
     if (filters.city && filters.city !== "all") {
       result = result.filter(
-        (e) => e.city.toLowerCase() === filters.city.toLowerCase()
+        (e) =>
+          getCityFromAddress(e.address).toLowerCase() ===
+          filters.city.toLowerCase()
       );
     }
 
@@ -79,8 +84,7 @@ const EnquiryPage = () => {
         keys: [
           "enquiryId",
           "description",
-          "localities",
-          "city",
+          "address",
           // Add weight to certain fields if needed
         ],
         threshold: 0.3, // Lower is stricter
@@ -161,8 +165,8 @@ const EnquiryPage = () => {
           <Inbox className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
           <h3 className="text-lg font-medium">No enquiries found</h3>
           <p className="text-muted-foreground max-w-sm mx-auto mt-2">
-            We couldn&apos;t find any enquiries matching your filters. Try adjusting
-            your search terms.
+            We couldn&apos;t find any enquiries matching your filters. Try
+            adjusting your search terms.
           </p>
           <button
             onClick={handleClearFilters}

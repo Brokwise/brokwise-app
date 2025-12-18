@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { X, Plus, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import {
   Form,
@@ -27,16 +27,65 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
+import { Slider } from "@/components/ui/slider";
 import { useCreateEnquiry } from "@/hooks/useEnquiry";
 import { useCreateCompanyEnquiry } from "@/hooks/useCompany";
 import { PropertyCategory, PropertyType } from "@/models/types/property";
 import { CreateEnquiryDTO } from "@/models/types/enquiry";
-import { parseIntegerOrUndefined, parseIntegerWithMax } from "@/utils/helper";
+import {
+  parseIntegerOrUndefined,
+  parseIntegerWithMax,
+  sanitizeIntegerInput,
+} from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
 
-// --- Zod Schema ---
+const BUDGET_MIN = 500000; // ₹5 lakh
+const BUDGET_MAX = 10000000000; // ₹1000 crore
+
+// Discrete steps so the slider is usable across a huge range.
+const BUDGET_OPTIONS: number[] = [
+  // Lakhs
+  500000, 1000000, 1500000, 2000000, 2500000, 3000000, 4000000, 5000000,
+  6000000, 7500000, 9000000,
+  // Crores
+  10000000, 12500000, 15000000, 17500000, 20000000, 25000000, 30000000,
+  40000000, 50000000, 60000000, 75000000, 100000000, 125000000, 150000000,
+  200000000, 250000000, 300000000, 400000000, 500000000, 600000000, 750000000,
+  1000000000, 1250000000, 1500000000, 2000000000, 2500000000, 3000000000,
+  4000000000, 5000000000, 6000000000, 7500000000, 10000000000,
+];
+
+const formatBudgetLabel = (amount: number) => {
+  if (amount >= 10000000) {
+    const cr = amount / 10000000;
+    const crText = Number.isInteger(cr)
+      ? String(cr)
+      : cr < 10
+      ? cr.toFixed(2)
+      : cr.toFixed(1);
+    return `₹${crText}Cr`;
+  }
+  const l = amount / 100000;
+  const lText = Number.isInteger(l) ? String(l) : l.toFixed(1);
+  return `₹${lText}L`;
+};
+
+const findNearestBudgetIndex = (value: number) => {
+  const exact = BUDGET_OPTIONS.indexOf(value);
+  if (exact !== -1) return exact;
+  let bestIdx = 0;
+  let bestDiff = Infinity;
+  for (let i = 0; i < BUDGET_OPTIONS.length; i++) {
+    const diff = Math.abs(BUDGET_OPTIONS[i] - value);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestIdx = i;
+    }
+  }
+  return bestIdx;
+};
 
 const budgetRangeSchema = z
   .object({
@@ -45,13 +94,13 @@ const budgetRangeSchema = z
         error: "Please enter a valid minimum budget.",
       })
       .min(500000, "Minimum budget must be at least ₹5 lakh.")
-      .max(100000000000, "Budget cannot exceed ₹1000 crore."),
+      .max(BUDGET_MAX, "Budget cannot exceed ₹1000 crore."),
     max: z
       .number({
         error: "Please enter a valid maximum budget.",
       })
       .min(500000, "Maximum budget must be at least ₹5 lakh.")
-      .max(100000000000, "Budget cannot exceed ₹1000 crore."),
+      .max(BUDGET_MAX, "Budget cannot exceed ₹1000 crore."),
   })
   .refine((data) => data.max >= data.min, {
     message: "Max budget must be greater than or equal to min budget.",
@@ -87,11 +136,10 @@ const rentalIncomeRangeSchema = z
   });
 
 const createEnquirySchema = z.object({
-  city: z.string().min(1, "City is required"),
-  localities: z
-    .array(z.string())
-    .min(1, "At least one locality is required")
-    .max(10, "Maximum 10 localities allowed"),
+  address: z.string().min(3),
+  addressPlaceId: z
+    .string()
+    .min(1, "Please select an address from suggestions"),
   enquiryCategory: z.enum(
     [
       "RESIDENTIAL",
@@ -207,16 +255,15 @@ const CreateEnquiryPage = () => {
     useCreateCompanyEnquiry();
 
   const isPending = companyData ? isCompanyPending : isBrokerPending;
-  const [localityInput, setLocalityInput] = useState("");
 
   const form = useForm<CreateEnquiryFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createEnquirySchema) as any,
     mode: "onChange",
     defaultValues: {
-      city: "",
-      localities: [],
-      budget: { min: 0, max: 0 },
+      address: "",
+      addressPlaceId: "",
+      budget: { min: BUDGET_MIN, max: BUDGET_MAX },
       description: "",
     },
   });
@@ -232,8 +279,12 @@ const CreateEnquiryPage = () => {
   }, [selectedCategory, setValue]);
 
   const onSubmit = (data: CreateEnquiryFormValues) => {
+    // We only send the final address string today; placeId is used to enforce "selected from suggestions"
+    // and can be stored later if backend supports it.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { addressPlaceId, ...rest } = data;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const payload = data as unknown as CreateEnquiryDTO;
+    const payload = rest as unknown as CreateEnquiryDTO;
 
     if (companyData) {
       createCompanyEnquiry(payload, {
@@ -348,6 +399,40 @@ const CreateEnquiryPage = () => {
               <div className="space-y-4">
                 <FormField
                   control={control}
+                  name="addressPlaceId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Address <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <AddressAutocomplete
+                          valueLabel={watch("address")}
+                          valueId={field.value}
+                          disabled={isPending}
+                          onSelect={(item) => {
+                            setValue("address", item.place_name, {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            });
+                            field.onChange(item.id);
+                          }}
+                          onClear={() => {
+                            setValue("address", "", {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            });
+                            field.onChange("");
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* <FormField
+                  control={control}
                   name="city"
                   render={({ field }) => (
                     <FormItem>
@@ -360,9 +445,9 @@ const CreateEnquiryPage = () => {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
 
-                <FormField
+                {/* <FormField
                   control={control}
                   name="localities"
                   render={({ field }) => (
@@ -447,7 +532,7 @@ const CreateEnquiryPage = () => {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
               </div>
 
               {/* --- Category & Type --- */}
@@ -517,42 +602,164 @@ const CreateEnquiryPage = () => {
               {/* --- Budget --- */}
               <div className="space-y-4 border p-4 rounded-md">
                 <h3 className="font-medium">Budget Range</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={control}
-                    name="budget.min"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Min Budget</FormLabel>
-                        <FormControl>
-                          <NumberInput
-                            {...field}
-                            placeholder="Minimum budget is ₹5 lakh"
-                            onChange={field.onChange}
+                {(() => {
+                  const currentMin = watch("budget.min");
+                  const currentMax = watch("budget.max");
+                  const minIdx = findNearestBudgetIndex(currentMin);
+                  const maxIdx = findNearestBudgetIndex(currentMax);
+                  const safeMinIdx = Math.min(minIdx, maxIdx);
+                  const safeMaxIdx = Math.max(minIdx, maxIdx);
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <p className="text-sm text-muted-foreground">
+                            Min Budget
+                          </p>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="Min (₹5L)"
+                            value={String(currentMin ?? BUDGET_MIN)}
+                            onChange={(e) => {
+                              const raw = sanitizeIntegerInput(e.target.value);
+                              if (raw === "") return;
+                              // Allow typing freely; clamp/fix on blur.
+                              const nextMin = Math.min(Number(raw), BUDGET_MAX);
+                              setValue("budget.min", nextMin, {
+                                shouldDirty: true,
+                                shouldValidate: false,
+                              });
+                            }}
+                            onBlur={() => {
+                              const minVal = watch("budget.min");
+                              const maxVal = watch("budget.max");
+                              const clampedMin = Math.max(
+                                BUDGET_MIN,
+                                Math.min(minVal ?? BUDGET_MIN, BUDGET_MAX)
+                              );
+                              const clampedMax = Math.max(
+                                clampedMin,
+                                Math.min(maxVal ?? clampedMin, BUDGET_MAX)
+                              );
+                              setValue("budget.min", clampedMin, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              });
+                              setValue("budget.max", clampedMax, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              });
+                              void trigger(["budget.min", "budget.max"]);
+                            }}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name="budget.max"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Max Budget</FormLabel>
-                        <FormControl>
-                          <NumberInput
-                            {...field}
-                            placeholder="Maximum budget is ₹1000 crore"
-                            onChange={field.onChange}
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="text-sm text-muted-foreground">
+                            Max Budget
+                          </p>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="Max (₹1000Cr)"
+                            value={String(currentMax ?? BUDGET_MAX)}
+                            onChange={(e) => {
+                              const raw = sanitizeIntegerInput(e.target.value);
+                              if (raw === "") return;
+                              // Allow typing freely; clamp/fix on blur.
+                              const nextMax = Math.min(Number(raw), BUDGET_MAX);
+                              setValue("budget.max", nextMax, {
+                                shouldDirty: true,
+                                shouldValidate: false,
+                              });
+                            }}
+                            onBlur={() => {
+                              const minVal = watch("budget.min");
+                              const maxVal = watch("budget.max");
+                              const clampedMin = Math.max(
+                                BUDGET_MIN,
+                                Math.min(minVal ?? BUDGET_MIN, BUDGET_MAX)
+                              );
+                              const clampedMax = Math.max(
+                                clampedMin,
+                                Math.min(maxVal ?? clampedMin, BUDGET_MAX)
+                              );
+                              setValue("budget.min", clampedMin, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              });
+                              setValue("budget.max", clampedMax, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              });
+                              void trigger(["budget.min", "budget.max"]);
+                            }}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="rounded-md bg-muted px-2 py-1 font-medium">
+                            {formatBudgetLabel(currentMin ?? BUDGET_MIN)}
+                          </span>
+                          <span className="rounded-md bg-muted px-2 py-1 font-medium">
+                            {formatBudgetLabel(currentMax ?? BUDGET_MAX)}
+                          </span>
+                        </div>
+
+                        <Slider
+                          value={[safeMinIdx, safeMaxIdx]}
+                          min={0}
+                          max={BUDGET_OPTIONS.length - 1}
+                          step={1}
+                          onValueChange={(vals) => {
+                            const a = vals?.[0] ?? 0;
+                            const b = vals?.[1] ?? 0;
+                            const nextMinIdx = Math.min(a, b);
+                            const nextMaxIdx = Math.max(a, b);
+                            const nextMin = BUDGET_OPTIONS[nextMinIdx];
+                            const nextMax = BUDGET_OPTIONS[nextMaxIdx];
+                            setValue("budget.min", nextMin, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                            setValue("budget.max", nextMax, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                          }}
+                          onValueCommit={() =>
+                            void trigger(["budget.min", "budget.max"])
+                          }
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={control}
+                          name="budget.min"
+                          render={() => (
+                            <FormItem>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={control}
+                          name="budget.max"
+                          render={() => (
+                            <FormItem>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* --- Conditional Fields --- */}

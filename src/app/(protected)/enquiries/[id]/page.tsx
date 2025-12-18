@@ -46,6 +46,7 @@ import {
   formatCurrencyEnquiry,
   getStatusColor,
   formatPrice,
+  formatEnquiryLocation,
 } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
 
@@ -173,12 +174,15 @@ const SingleEnquiry = () => {
               </span>
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              {enquiry.enquiryType} Enquiry in {enquiry.city}
+              {enquiry.enquiryType} Enquiry{" "}
+              {formatEnquiryLocation(enquiry)
+                ? `in ${formatEnquiryLocation(enquiry)}`
+                : ""}
             </h1>
           </div>
           <div className="flex items-center text-muted-foreground text-sm">
             <MapPin className="h-4 w-4 mr-1.5 text-primary/70" />
-            {enquiry.localities.join(", ")}
+            {formatEnquiryLocation(enquiry) || "—"}
           </div>
         </div>
 
@@ -447,7 +451,7 @@ const SingleEnquiry = () => {
               {detailRow("Category", enquiry.enquiryCategory)}
               {detailRow("Type", enquiry.enquiryType)}
               <Separator className="my-3" />
-              {detailRow("City", enquiry.city)}
+              {detailRow("Address", formatEnquiryLocation(enquiry) || "—")}
               {detailRow("Source", enquiry.source)}
               {detailRow(
                 "Created",

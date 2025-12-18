@@ -66,9 +66,8 @@ export const useSubmitPropertyToEnquiry = () => {
       if (trimmedMessage) {
         payload.privateMessage = trimmedMessage;
       }
-      return (
-        await api.post(`/broker/enquiry/${enquiryId}/submit`, payload)
-      ).data.data;
+      return (await api.post(`/broker/enquiry/${enquiryId}/submit`, payload))
+        .data.data;
     },
   });
   return { submitPropertyToEnquiry: mutate, isPending, error };

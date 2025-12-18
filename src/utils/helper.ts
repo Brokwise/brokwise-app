@@ -49,6 +49,33 @@ export const formatAddress = (address: Address | string | undefined) => {
   return parts.join(", ");
 };
 
+export const formatEnquiryLocation = (enquiry: {
+  address?: string;
+  city?: string;
+  localities?: string[];
+}) => {
+  const address = formatAddress(enquiry.address);
+  if (address) return address;
+  const localities = Array.isArray(enquiry.localities)
+    ? enquiry.localities
+    : [];
+  if (localities.length > 0) return localities.join(", ");
+  return enquiry.city ?? "";
+};
+
+export const getCityFromAddress = (address?: string) => {
+  const formatted = formatAddress(address);
+  if (!formatted) return "";
+  const parts = formatted
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  // Mapbox `place_name` is commonly: "Locality, City, State..., Country"
+  if (parts.length >= 4) return parts[1];
+  return parts[0] ?? "";
+};
+
 export const formatCurrencyEnquiry = (amount: number) => {
   if (amount >= 10000000) {
     return `${(amount / 10000000).toFixed(2)} Cr`;

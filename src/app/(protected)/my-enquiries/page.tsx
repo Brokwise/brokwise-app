@@ -1,19 +1,12 @@
 "use client";
 
 import React from "react";
-import {
-  useGetMyEnquiries,
-} from "@/hooks/useEnquiry";
+import { useGetMyEnquiries } from "@/hooks/useEnquiry";
 import { EnquiryCard } from "@/app/(protected)/enquiries/_components/EnquiryCard";
 import { Loader2, Plus, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const MyEnquiriesPage = () => {
   const router = useRouter();
@@ -93,8 +86,8 @@ const MyEnquiriesPage = () => {
           <Inbox className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
           <h3 className="text-lg font-medium">No enquiries yet</h3>
           <p className="text-muted-foreground max-w-sm mx-auto mt-2">
-            You haven&apos;t created any enquiries yet. Start by creating one to find
-            properties.
+            You haven&apos;t created any enquiries yet. Start by creating one to
+            find properties.
           </p>
           <Button
             variant="outline"

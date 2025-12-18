@@ -56,7 +56,7 @@ export const EnquiryFilters = ({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by ID, Locality, or Description..."
+            placeholder="Search by ID, Address, or Description..."
             value={filters.search}
             onChange={(e) => onFilterChange("search", e.target.value)}
             className="pl-9 bg-background"
@@ -123,7 +123,10 @@ export const EnquiryFilters = ({
                       placeholder="Min (₹5L)"
                       value={filters.minBudget}
                       onChange={(e) =>
-                        onFilterChange("minBudget", sanitizeIntegerInput(e.target.value))
+                        onFilterChange(
+                          "minBudget",
+                          sanitizeIntegerInput(e.target.value)
+                        )
                       }
                       className="h-8"
                     />
@@ -134,7 +137,10 @@ export const EnquiryFilters = ({
                       placeholder="Max (₹1000Cr)"
                       value={filters.maxBudget}
                       onChange={(e) =>
-                        onFilterChange("maxBudget", sanitizeIntegerInput(e.target.value))
+                        onFilterChange(
+                          "maxBudget",
+                          sanitizeIntegerInput(e.target.value)
+                        )
                       }
                       className="h-8"
                     />
