@@ -14,11 +14,12 @@ export const MessageBubble = ({ message, isMe }: MessageBubbleProps) => {
     if (message.type === "image" && message.mediaUrl) {
       return (
         <div className="space-y-1">
-          <div className="relative overflow-hidden rounded-md max-w-[300px]">
+          <div className="relative overflow-hidden rounded-md">
+            {/* Using regular img tag for now to avoid Next.js Image configuration issues with external domains if not configured */}
             <Image
+              width={100}
               src={message.mediaUrl}
               alt="Sent image"
-              width={300}
               height={300}
               className="w-auto h-auto max-w-full max-h-[300px] object-contain rounded-md"
               loading="lazy"
@@ -67,9 +68,7 @@ export const MessageBubble = ({ message, isMe }: MessageBubbleProps) => {
   };
 
   return (
-    <div
-      className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}
-    >
+    <div className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
       <div
         className={cn(
           "max-w-[75%] rounded-lg px-4 py-2 text-sm",

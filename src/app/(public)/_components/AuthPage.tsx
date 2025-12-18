@@ -416,7 +416,9 @@ export default function AuthPage({
             <div className="flex justify-end mb-4 absolute top-2 right-2">
               <Select
                 onValueChange={(value) => changeLanguage(value)}
-                value={i18n.resolvedLanguage || i18n.language?.split("-")[0] || "en"}
+                value={
+                  i18n.resolvedLanguage || i18n.language?.split("-")[0] || "en"
+                }
               >
                 <SelectTrigger className="w-[180px] text-white border-zinc-700 bg-zinc-800/50">
                   <SelectValue placeholder={t("select_language")} />
