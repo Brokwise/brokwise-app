@@ -179,3 +179,10 @@ export interface Property {
 
   submittedForEnquiryId?: string;
 }
+
+export interface PaginatedPropertyResponse {
+  properties: Property[];
+  total: number;
+  page: number;
+  totalPages: number;
+}

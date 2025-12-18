@@ -21,6 +21,7 @@ interface PropertyCardProps {
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
+  console.log(property);
   return (
     <Card className="overflow-hidden group hover:shadow-xl transition-all duration-300 border-border/50 bg-card flex flex-col h-full">
       {/* Image Section */}
@@ -31,8 +32,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         >
           <Image
             src={
-              property.featuredMedia &&
-              property.featuredMedia.includes("firebasestorage.googleapis.com")
+              (property.featuredMedia &&
+                property.featuredMedia.includes(
+                  "firebasestorage.googleapis.com"
+                )) ||
+              property.featuredMedia.includes("picsum.photos")
                 ? property.featuredMedia
                 : "/images/placeholder.webp"
             }

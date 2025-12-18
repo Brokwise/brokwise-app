@@ -1,9 +1,18 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import useAxios from "./useAxios";
 import { PropertyFormData } from "@/validators/property";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
-import { Property, ListingStatus } from "@/types/property";
+import {
+  Property,
+  ListingStatus,
+  PaginatedPropertyResponse,
+} from "@/types/property";
 
 export const useAddProperty = () => {
   const api = useAxios();
@@ -51,19 +60,27 @@ export const useGetProperty = (
   return { property, isLoading, error };
 };
 
-export const useGetAllProperties = () => {
+export const useGetAllProperties = (page = 1, limit = 1000) => {
   const api = useAxios();
-  const {
-    data: properties,
+  const { data, isLoading, error } = useQuery<PaginatedPropertyResponse>({
+    queryKey: ["properties", page, limit],
+    queryFn: async () => {
+      return (await api.get(`/property/list?page=${page}&limit=${limit}`)).data
+        .data;
+    },
+    placeholderData: keepPreviousData,
+  });
+
+  return {
+    properties: data?.properties || [],
+    pagination: {
+      total: data?.total || 0,
+      page: data?.page || 1,
+      totalPages: data?.totalPages || 1,
+    },
     isLoading,
     error,
-  } = useQuery<Property[]>({
-    queryKey: ["properties"],
-    queryFn: async () => {
-      return (await api.get("/property/list")).data.data.properties;
-    },
-  });
-  return { properties, isLoading, error };
+  };
 };
 
 export const useGetMyListings = (options?: { enabled?: boolean }) => {

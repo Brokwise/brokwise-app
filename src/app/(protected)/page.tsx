@@ -41,10 +41,24 @@ import Fuse from "fuse.js";
 import { formatIndianNumber } from "@/utils/helper";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApp } from "@/context/AppContext";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 const ProtectedPage = () => {
   const { userData } = useApp();
-  const { properties, isLoading, error } = useGetAllProperties();
+  const [currentPage, setCurrentPage] = useState(1);
+  const { properties, pagination, isLoading, error } = useGetAllProperties(
+    currentPage,
+    12
+  );
+  const { totalPages } = pagination;
   const [view, setView] = useState<"grid" | "map" | "split">("grid");
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
     null
@@ -169,6 +183,125 @@ const ProtectedPage = () => {
     priceRange[0] !== 0 ||
     priceRange[1] !== maxPropertyPrice;
 
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const items = [];
+    const maxVisiblePages = 5;
+
+    // Previous Button
+    items.push(
+      <PaginationItem key="prev">
+        <PaginationPrevious
+          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          className={
+            currentPage === 1
+              ? "pointer-events-none opacity-50"
+              : "cursor-pointer"
+          }
+        />
+      </PaginationItem>
+    );
+
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              isActive={currentPage === i}
+              onClick={() => setCurrentPage(i)}
+              className="cursor-pointer"
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    } else {
+      // First Page
+      items.push(
+        <PaginationItem key={1}>
+          <PaginationLink
+            isActive={currentPage === 1}
+            onClick={() => setCurrentPage(1)}
+            className="cursor-pointer"
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+
+      // Ellipsis start
+      if (currentPage > 3) {
+        items.push(
+          <PaginationItem key="ellipsis-start">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      // Current and neighbors
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              isActive={currentPage === i}
+              onClick={() => setCurrentPage(i)}
+              className="cursor-pointer"
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+
+      // Ellipsis end
+      if (currentPage < totalPages - 2) {
+        items.push(
+          <PaginationItem key="ellipsis-end">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      // Last Page
+      items.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink
+            isActive={currentPage === totalPages}
+            onClick={() => setCurrentPage(totalPages)}
+            className="cursor-pointer"
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    // Next Button
+    items.push(
+      <PaginationItem key="next">
+        <PaginationNext
+          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          className={
+            currentPage === totalPages
+              ? "pointer-events-none opacity-50"
+              : "cursor-pointer"
+          }
+        />
+      </PaginationItem>
+    );
+
+    return (
+      <Pagination className="mt-8 pb-8">
+        <PaginationContent>{items}</PaginationContent>
+      </Pagination>
+    );
+  };
+
   if (error) {
     return (
       <div className="container mx-auto p-6">
@@ -185,7 +318,7 @@ const ProtectedPage = () => {
 
   return (
     <div
-      className={`container mx-auto p-6 px-80 space-y-6 ${
+      className={`mx-auto p-6 lg:px-80 space-y-6 ${
         view === "split" ? "h-[calc(100vh-100px)] overflow-hidden" : ""
       }`}
     >
@@ -342,7 +475,6 @@ const ProtectedPage = () => {
                   variant="outline"
                   onClick={() => {
                     clearFilters();
-                    // setIsFilterOpen(false); // Optional: close on clear? Usually keep open to re-select.
                   }}
                   disabled={!hasActiveFilters && searchQuery === ""}
                 >
@@ -395,10 +527,14 @@ const ProtectedPage = () => {
             properties={filteredProperties}
             onSelectProperty={setSelectedPropertyId}
           />
+          {/* Overlay Pagination on Map */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 p-2 rounded-lg shadow-lg">
+            {renderPagination()}
+          </div>
         </div>
       ) : view === "split" ? (
         <div className="flex h-full gap-6">
-          <div className="w-1/2 h-full">
+          <div className="w-1/2 h-full flex flex-col">
             {selectedProperty ? (
               <div className="h-[calc(100vh-200px)] border rounded-lg overflow-hidden">
                 <PropertyDetails
@@ -407,25 +543,29 @@ const ProtectedPage = () => {
                 />
               </div>
             ) : (
-              <ScrollArea className="h-[calc(100vh-200px)]">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pr-4 pb-4">
-                  {filteredProperties.length > 0 ? (
-                    filteredProperties.map((property) => (
-                      <PropertyCard key={property._id} property={property} />
-                    ))
-                  ) : (
-                    <div className="col-span-full text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-                      <h3 className="text-lg font-semibold">
-                        No properties found
-                      </h3>
-                      <p className="text-muted-foreground">
-                        Try adjusting your filters to find what you&apos;re
-                        looking for.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
+              <div className="flex-1 min-h-0 flex flex-col">
+                <ScrollArea className="flex-1">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pr-4 pb-4">
+                    {filteredProperties.length > 0 ? (
+                      filteredProperties.map((property) => (
+                        <PropertyCard key={property._id} property={property} />
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center py-12 bg-muted/20 rounded-lg border border-dashed">
+                        <h3 className="text-lg font-semibold">
+                          No properties found
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Try adjusting your filters to find what you&apos;re
+                          looking for.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+                {/* Pagination below ScrollArea in Split View */}
+                <div className="mt-4">{renderPagination()}</div>
+              </div>
             )}
           </div>
           <div className="w-1/2 h-full">
@@ -436,20 +576,24 @@ const ProtectedPage = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProperties.length > 0 ? (
-            filteredProperties.map((property) => (
-              <PropertyCard key={property._id} property={property} />
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-              <h3 className="text-lg font-semibold">No properties found</h3>
-              <p className="text-muted-foreground">
-                Try adjusting your filters to find what you&apos;re looking for.
-              </p>
-            </div>
-          )}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProperties.length > 0 ? (
+              filteredProperties.map((property) => (
+                <PropertyCard key={property._id} property={property} />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12 bg-muted/20 rounded-lg border border-dashed">
+                <h3 className="text-lg font-semibold">No properties found</h3>
+                <p className="text-muted-foreground">
+                  Try adjusting your filters to find what you&apos;re looking
+                  for.
+                </p>
+              </div>
+            )}
+          </div>
+          {renderPagination()}
+        </>
       )}
     </div>
   );

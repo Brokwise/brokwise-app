@@ -172,10 +172,18 @@ export interface Property {
 
   submittedForEnquiryId?: string;
 }
+
 export interface PropertyDeleteRequest {
   propertyId: string;
   reason: string;
   status: "pending" | "approved" | "rejected";
   brokerName: string;
   brokerId: string;
+}
+
+export interface PaginatedPropertyResponse {
+  properties: Property[];
+  total: number;
+  page: number;
+  totalPages: number;
 }

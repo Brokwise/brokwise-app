@@ -12,7 +12,11 @@ const nextConfig = {
             },
             {
                 protocol:"https",
-                hostname:'google.com'
+                hostname:'picsum.photos'
+            },
+            {
+                protocol:"https",
+                hostname:'gooogle.com"'
             }
         ]
     }
