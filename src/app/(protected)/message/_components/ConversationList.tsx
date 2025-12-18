@@ -2,7 +2,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Conversation } from "@/models/types/chat";
 import { format } from "date-fns";
-import { UserData } from "@/context/AppContext";
 
 interface ConversationListProps {
   conversations: Conversation[];

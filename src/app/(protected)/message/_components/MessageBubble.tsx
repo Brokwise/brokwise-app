@@ -14,15 +14,15 @@ export const MessageBubble = ({ message, isMe }: MessageBubbleProps) => {
     if (message.type === "image" && message.mediaUrl) {
       return (
         <div className="space-y-1">
-          <div className="relative overflow-hidden rounded-md">
+          <div className="relative overflow-hidden rounded-md max-w-[300px]">
             <Image
               src={message.mediaUrl}
               alt="Sent image"
               width={300}
               height={300}
-              className="max-w-full max-h-[300px] object-cover rounded-md"
+              className="w-auto h-auto max-w-full max-h-[300px] object-contain rounded-md"
               loading="lazy"
-              unoptimized={!message.mediaUrl.includes('firebasestorage')}
+              unoptimized
             />
           </div>
           {message.content && (

@@ -24,12 +24,12 @@ const WaveBackground = ({ children }: { children: React.ReactNode }) => {
             <div
               className="absolute bottom-[-35%] right-[-10%] w-[130%] h-[60%] rounded-[100%] blur-[130px]
                         bg-purple-200 dark:bg-blue-900/80 transition-colors duration-700
-                        animate-wave-slower delay-[-5s]"
+                        animate-wave-slower [animation-delay:-5s]"
             />
             <div
               className="absolute bottom-[-40%] right-[10%] w-[90%] h-[50%] rounded-[100%] blur-[120px]
                         bg-blue-300/60 dark:bg-blue-600/50 transition-colors duration-700
-                        animate-wave-pulse delay-[-2s]"
+                        animate-wave-pulse [animation-delay:-2s]"
             />
             <div
               className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.05] z-[1]"
