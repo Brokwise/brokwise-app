@@ -46,7 +46,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { formatAddress } from "@/utils/helper";
-import { columns } from "@/app/(protected)/company-properties/columns";
+import { columns } from "@/app/(protected)/(company)/company-properties/columns";
 import { Property } from "@/types/property";
 
 interface BrokerPropertiesTableProps {
@@ -184,9 +184,7 @@ export function BrokerPropertiesTable({ data }: BrokerPropertiesTableProps) {
             }}
           >
             <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue
-                placeholder={table.getState().pagination.pageSize}
-              />
+              <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
               {[10, 20, 30, 40, 50, 100].map((pageSize) => (
@@ -294,6 +292,3 @@ export function BrokerPropertiesTable({ data }: BrokerPropertiesTableProps) {
     </div>
   );
 }
-
-
-

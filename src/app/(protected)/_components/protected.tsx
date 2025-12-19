@@ -93,6 +93,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
       const allowedPaths = [
         "/message",
         "/company-brokers",
+        "/company-dashboard",
         "/profile",
         "/company-properties",
         "/company-enquiries",
@@ -105,7 +106,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
       );
 
       if (!isAllowed) {
-        router.replace("/company-brokers");
+        router.replace("/company-dashboard");
       }
     }
   }, [companyData, pathname, router]);
@@ -168,6 +169,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
           "/profile",
           "/company-properties",
           "/company-enquiries",
+          "/company-dashboard",
           "/property",
           "/enquiries/create",
           "/message",

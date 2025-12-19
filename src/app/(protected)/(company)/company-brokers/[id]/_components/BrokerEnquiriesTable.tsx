@@ -48,7 +48,7 @@ import {
 import {
   columns,
   CompanyEnquiry,
-} from "@/app/(protected)/company-enquiries/columns";
+} from "@/app/(protected)/(company)/company-enquiries/columns";
 import { Enquiry } from "@/models/types/enquiry";
 
 interface BrokerEnquiriesTableProps {

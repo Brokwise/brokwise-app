@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { useGetProperty } from "@/hooks/useProperty";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -24,6 +24,7 @@ import {
   Ruler,
   Home,
   ShieldX,
+  Download,
 } from "lucide-react";
 
 import { format } from "date-fns";
@@ -36,11 +37,117 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { AxiosError } from "axios";
+import { toast } from "sonner";
 
 const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
   const router = useRouter();
   const { property, isLoading, error } = useGetProperty(id);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [exportedOnLabel, setExportedOnLabel] = useState<string>("");
+  const pdfRef = useRef<HTMLDivElement | null>(null);
+
+  const handleExportPdf = useCallback(async () => {
+    if (!property) return;
+    if (!pdfRef.current) return;
+
+    try {
+      setIsExportingPdf(true);
+      setExportedOnLabel(format(new Date(), "PPP p"));
+
+      // Ensure latest layout is painted before capture.
+      await new Promise((r) => setTimeout(r, 75));
+
+      // Wait for images inside the PDF layout to load (best-effort, with timeout).
+      const waitForImages = async (root: HTMLElement, timeoutMs = 2000) => {
+        const imgs = Array.from(root.querySelectorAll("img"));
+        const pending = imgs.filter((img) => !img.complete);
+        if (!pending.length) return;
+
+        await Promise.race([
+          Promise.all(
+            pending.map(
+              (img) =>
+                new Promise<void>((resolve) => {
+                  const done = () => {
+                    img.removeEventListener("load", done);
+                    img.removeEventListener("error", done);
+                    resolve();
+                  };
+                  img.addEventListener("load", done);
+                  img.addEventListener("error", done);
+                })
+            )
+          ),
+          new Promise<void>((resolve) => setTimeout(resolve, timeoutMs)),
+        ]);
+      };
+
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
+
+      const element = pdfRef.current;
+      await waitForImages(element, 2500);
+      await new Promise((r) => setTimeout(r, 50));
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        imageTimeout: 2500,
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(
+        imgData,
+        "PNG",
+        0,
+        position,
+        pdfWidth,
+        imgHeight,
+        undefined,
+        "FAST"
+      );
+      heightLeft -= pdfHeight;
+
+      while (heightLeft > 0) {
+        position = position - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(
+          imgData,
+          "PNG",
+          0,
+          position,
+          pdfWidth,
+          imgHeight,
+          undefined,
+          "FAST"
+        );
+        heightLeft -= pdfHeight;
+      }
+
+      const safeId = (property.propertyId || property._id || "property")
+        .toString()
+        .replace(/[^a-zA-Z0-9_-]/g, "_");
+      pdf.save(`Brokwise_Property_${safeId}.pdf`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to export PDF. Please try again.");
+    } finally {
+      setIsExportingPdf(false);
+    }
+  }, [property]);
 
   if (isLoading) {
     return (
@@ -56,7 +163,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   if (error || !property) {
     // Check if it's a 403 Forbidden error
     const is403 = (error as AxiosError)?.response?.status === 403;
-    
+
     if (is403) {
       return (
         <div className="flex items-center justify-center min-h-screen">
@@ -69,7 +176,8 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                You don&apos;t have permission to view this property. This property may be private or you may not be associated with it.
+                You don&apos;t have permission to view this property. This
+                property may be private or you may not be associated with it.
               </p>
               <Button className="w-full" onClick={() => router.back()}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -102,6 +210,11 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
     ...(property.featuredMedia ? [property.featuredMedia] : []),
     ...property.images,
   ];
+  const pdfImageUrls = allImages.filter(
+    (m) => !!m && !m.toLowerCase().endsWith(".mp4")
+  );
+  const pdfCoverImage = pdfImageUrls[0] || "/images/placeholder.webp";
+  const pdfThumbImages = pdfImageUrls.slice(1, 7);
 
   return (
     <main className="container mx-auto py-8 px-4 max-w-7xl space-y-8">
@@ -120,6 +233,19 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
             </h1>
           </div>
         </div>
+
+        <Button
+          onClick={handleExportPdf}
+          disabled={isExportingPdf}
+          className="w-full sm:w-auto"
+        >
+          {isExportingPdf ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4 mr-2" />
+          )}
+          Export as PDF
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -409,6 +535,261 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
               )}
             </CardContent>
           </Card>
+        </div>
+      </div>
+
+      {/* Hidden PDF layout (captured via html2canvas) */}
+      <div className="fixed left-[-10000px] top-0 w-[794px] bg-white text-black">
+        <div
+          ref={pdfRef}
+          className="relative p-10 bg-white rounded-2xl border shadow-sm overflow-hidden"
+        >
+          {/* Top accent */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-neutral-900 via-neutral-500 to-transparent"
+          />
+
+          {/* Watermark layer (behind content) */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-around"
+          >
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="select-none text-[96px] font-semibold tracking-widest uppercase"
+                style={{
+                  opacity: 0.06,
+                  transform: "rotate(-28deg)",
+                  color: "#000000",
+                }}
+              >
+                Brokwise
+              </div>
+            ))}
+          </div>
+
+          {/* Content layer */}
+          <div className="relative z-10 space-y-6">
+            <div className="flex items-start justify-between gap-6 border-b pb-4">
+              <div>
+                <div className="text-2xl font-bold">Brokwise</div>
+                <div className="text-sm text-neutral-600">Property Details</div>
+              </div>
+              <div className="text-right text-sm text-neutral-700">
+                <div>
+                  <span className="font-semibold">Property ID:</span>{" "}
+                  {property.propertyId || property._id}
+                </div>
+                <div>
+                  <span className="font-semibold">Exported on:</span>{" "}
+                  {exportedOnLabel}
+                </div>
+              </div>
+            </div>
+
+            {/* Photos */}
+            {pdfImageUrls.length > 0 ? (
+              <div className="rounded-xl border p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-sm font-semibold">Photos</div>
+                  <div className="text-xs text-neutral-600">
+                    {pdfImageUrls.length} image
+                    {pdfImageUrls.length === 1 ? "" : "s"}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 auto-rows-[108px]">
+                  {/* Hero */}
+                  <div className="col-span-2 row-span-2 rounded-xl overflow-hidden border bg-neutral-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={pdfCoverImage}
+                      alt="Property cover"
+                      crossOrigin="anonymous"
+                      referrerPolicy="no-referrer"
+                      loading="eager"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "/images/placeholder.webp";
+                      }}
+                    />
+                  </div>
+
+                  {pdfThumbImages.slice(0, 4).map((url, idx) => (
+                    <div
+                      key={`${url}-${idx}`}
+                      className="rounded-xl overflow-hidden border bg-neutral-100"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={url}
+                        alt={`Property photo ${idx + 2}`}
+                        crossOrigin="anonymous"
+                        referrerPolicy="no-referrer"
+                        loading="eager"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "/images/placeholder.webp";
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {pdfThumbImages.length > 4 && (
+                  <div className="mt-3 text-xs text-neutral-600">
+                    + {pdfThumbImages.length - 4} more photo
+                    {pdfThumbImages.length - 4 === 1 ? "" : "s"} not shown
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-xl border p-4">
+                <div className="text-sm font-semibold mb-1">Photos</div>
+                <div className="text-sm text-neutral-700">
+                  No images available
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-md border p-4">
+                <div className="text-sm font-semibold mb-2">Overview</div>
+                <div className="text-sm">
+                  <div>
+                    <span className="font-semibold">Category:</span>{" "}
+                    {property.propertyCategory}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Type:</span>{" "}
+                    {property.propertyType?.replace(/_/g, " ")}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Size:</span>{" "}
+                    {property.size
+                      ? `${property.size} ${property.sizeUnit || ""}`
+                      : "N/A"}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Status:</span>{" "}
+                    {property.listingStatus?.replace(/_/g, " ")}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-md border p-4">
+                <div className="text-sm font-semibold mb-2">Pricing</div>
+                <div className="text-sm">
+                  <div>
+                    <span className="font-semibold">Total Price:</span>{" "}
+                    {formatCurrency(property.totalPrice)}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Rate:</span>{" "}
+                    {formatCurrency(property.rate)} /{" "}
+                    {property.sizeUnit?.toLowerCase().replace("_", " ")}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Negotiable:</span>{" "}
+                    {property.isPriceNegotiable ? "Yes" : "No"}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-md border p-4">
+              <div className="text-sm font-semibold mb-2">Address</div>
+              <div className="text-sm text-neutral-800">
+                {formatAddress(property.address)}
+              </div>
+            </div>
+
+            <div className="rounded-md border p-4">
+              <div className="text-sm font-semibold mb-2">Description</div>
+              <div className="text-sm whitespace-pre-wrap text-neutral-800">
+                {property.description || "N/A"}
+              </div>
+            </div>
+
+            {(property.amenities?.length || property.localities?.length) && (
+              <div className="grid grid-cols-2 gap-4">
+                {property.amenities?.length ? (
+                  <div className="rounded-md border p-4">
+                    <div className="text-sm font-semibold mb-2">Amenities</div>
+                    <ul className="text-sm list-disc pl-5 space-y-1">
+                      {property.amenities.map((a, idx) => (
+                        <li key={idx}>{a}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <div className="rounded-md border p-4">
+                    <div className="text-sm font-semibold mb-2">Amenities</div>
+                    <div className="text-sm text-neutral-700">N/A</div>
+                  </div>
+                )}
+
+                {property.localities?.length ? (
+                  <div className="rounded-md border p-4">
+                    <div className="text-sm font-semibold mb-2">
+                      Nearby Localities
+                    </div>
+                    <ul className="text-sm list-disc pl-5 space-y-1">
+                      {property.localities.map((l, idx) => (
+                        <li key={idx}>{l}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <div className="rounded-md border p-4">
+                    <div className="text-sm font-semibold mb-2">
+                      Nearby Localities
+                    </div>
+                    <div className="text-sm text-neutral-700">N/A</div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {(property.floorPlans?.length ||
+              property.jamabandiUrl ||
+              property.khasraPlanUrl) && (
+              <div className="rounded-md border p-4">
+                <div className="text-sm font-semibold mb-2">Documents</div>
+                <div className="text-sm space-y-1">
+                  {property.floorPlans?.map((plan, idx) => (
+                    <div key={idx}>
+                      <span className="font-semibold">
+                        Floor Plan {idx + 1}:
+                      </span>{" "}
+                      {plan}
+                    </div>
+                  ))}
+                  {property.jamabandiUrl && (
+                    <div>
+                      <span className="font-semibold">Jamabandi:</span>{" "}
+                      {property.jamabandiUrl}
+                    </div>
+                  )}
+                  {property.khasraPlanUrl && (
+                    <div>
+                      <span className="font-semibold">Khasra Plan:</span>{" "}
+                      {property.khasraPlanUrl}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between text-xs text-neutral-600 border-t pt-4">
+              <div>Created: {format(new Date(property.createdAt), "PPP")}</div>
+              <div>
+                Last Updated: {format(new Date(property.updatedAt), "PPP")}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
