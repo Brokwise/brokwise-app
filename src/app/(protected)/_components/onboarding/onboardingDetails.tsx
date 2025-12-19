@@ -47,7 +47,7 @@ export const OnboardingDetails = ({
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
-  const { brokerData, setBrokerData } = useApp();
+  const { brokerData, setBrokerData, brokerDataLoading } = useApp();
   const [user] = useAuthState(firebaseAuth);
   const [signOut] = useSignOut(firebaseAuth);
 
@@ -79,6 +79,8 @@ export const OnboardingDetails = ({
   const onSubmitProfileDetails = async (
     data: z.infer<typeof submitProfileDetails>
   ) => {
+    console.log(user);
+    console.log(brokerData);
     if (!user || !brokerData) {
       toast.error("User or broker data not found");
       return;
@@ -282,7 +284,8 @@ export const OnboardingDetails = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-zinc-400">
-                            Company Name <span className="text-zinc-500">(Optional)</span>
+                            Company Name{" "}
+                            <span className="text-zinc-500">(Optional)</span>
                           </FormLabel>
                           <FormControl>
                             <Input {...field} />
@@ -297,7 +300,8 @@ export const OnboardingDetails = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-zinc-400">
-                            GSTIN <span className="text-zinc-500">(Optional)</span>
+                            GSTIN{" "}
+                            <span className="text-zinc-500">(Optional)</span>
                           </FormLabel>
                           <FormControl>
                             <Input {...field} />
@@ -320,7 +324,11 @@ export const OnboardingDetails = ({
                               onValueChange={(e) => {
                                 field.onChange(parseInt(e));
                               }}
-                              value={field.value !== undefined ? field.value.toString() : undefined}
+                              value={
+                                field.value !== undefined
+                                  ? field.value.toString()
+                                  : undefined
+                              }
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select Years of Experience" />
@@ -421,10 +429,10 @@ export const OnboardingDetails = ({
                   ? "Updating..."
                   : "Submitting..."
                 : step === 3
-                  ? isEditing
-                    ? "Update"
-                    : "Submit"
-                  : "Next"}
+                ? isEditing
+                  ? "Update"
+                  : "Submit"
+                : "Next"}
               {step < 3 && !loading && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </div>

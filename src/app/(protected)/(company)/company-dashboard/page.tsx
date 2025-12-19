@@ -21,6 +21,7 @@ import { RecentActivityFeed } from "./_components/RecentActivity";
 import { PropertyValueAnalyticsCard } from "./_components/PropertyValueAnalytics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
+import { useQueryClient, useIsFetching } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Building2,
@@ -33,7 +34,18 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 export default function CompanyDashboard() {
+  const queryClient = useQueryClient();
+  const isFetching = useIsFetching({
+    predicate: (query) =>
+      Array.isArray(query.queryKey) &&
+      typeof query.queryKey[0] === "string" &&
+      query.queryKey[0].startsWith("company-"),
+  });
+
   const [brokerTimeFrame, setBrokerTimeFrame] = useState<TimeFrame>("MONTH");
   const [trendsTimeFrame, setTrendsTimeFrame] = useState<TimeFrame>("MONTH");
 
@@ -54,6 +66,116 @@ export default function CompanyDashboard() {
     useGetRecentActivity(15);
   const { data: propertyValueAnalytics, isLoading: isLoadingValueAnalytics } =
     useGetPropertyValueAnalytics();
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({
+      predicate: (query) =>
+        Array.isArray(query.queryKey) &&
+        typeof query.queryKey[0] === "string" &&
+        query.queryKey[0].startsWith("company-"),
+    });
+  };
+
+  const handleExport = () => {
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFontSize(20);
+    doc.text("Company Dashboard Report", 14, 22);
+
+    // Date
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+
+    let yPos = 40;
+
+    // Overview Section
+    if (dashboardStats) {
+      doc.setFontSize(14);
+      doc.text("Overview Stats", 14, yPos);
+      yPos += 10;
+
+      const statsData = [
+        ["Total Brokers", dashboardStats.overview.totalBrokers],
+        ["Active Brokers", dashboardStats.overview.activeBrokers],
+        ["Total Properties", dashboardStats.overview.totalProperties],
+        ["Active Properties", dashboardStats.overview.activeProperties],
+        ["Total Enquiries", dashboardStats.overview.totalEnquiries],
+        ["Active Enquiries", dashboardStats.overview.activeEnquiries],
+      ];
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Metric", "Value"]],
+        body: statsData,
+        theme: "striped",
+        headStyles: { fillColor: [66, 66, 66] },
+      });
+
+      // @ts-ignore
+      yPos = doc.lastAutoTable.finalY + 20;
+    }
+
+    // Broker Performance Section
+    if (brokerPerformance && brokerPerformance.brokers.length > 0) {
+      doc.setFontSize(14);
+      doc.text("Broker Performance", 14, yPos);
+      yPos += 10;
+
+      const brokerData = brokerPerformance.brokers.map((broker) => [
+        broker.brokerName,
+        broker.totalProperties,
+        broker.soldProperties,
+        broker.totalEnquiries,
+        broker.status,
+      ]);
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [
+          ["Broker Name", "Total Properties", "Sold", "Enquiries", "Status"],
+        ],
+        body: brokerData,
+        theme: "striped",
+        headStyles: { fillColor: [66, 66, 66] },
+      });
+
+      // @ts-ignore
+      yPos = doc.lastAutoTable.finalY + 20;
+    }
+
+    // Recent Activity Section
+    if (recentActivity && recentActivity.length > 0) {
+      // Check if we need a new page
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.text("Recent Activity", 14, yPos);
+      yPos += 10;
+
+      const activityData = recentActivity.map((activity) => [
+        activity.type === "property" ? "Property" : "Enquiry",
+        activity.status,
+        new Date(activity.createdAt).toLocaleDateString(),
+        activity.type === "property"
+          ? activity.propertyType || "-"
+          : activity.enquiryType || "-",
+      ]);
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Type", "Status", "Date", "Details"]],
+        body: activityData,
+        theme: "striped",
+        headStyles: { fillColor: [66, 66, 66] },
+      });
+    }
+
+    doc.save(`company-dashboard-${new Date().toISOString().split("T")[0]}.pdf`);
+  };
 
   return (
     <div className="min-h-screen bg-background/50">
@@ -78,22 +200,25 @@ export default function CompanyDashboard() {
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-2"
           >
-            <div className="hidden sm:flex items-center gap-2 bg-background border rounded-md px-3 py-1.5 shadow-sm">
-              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">
-                Last 30 Days
-              </span>
-            </div>
             <Button
               variant="outline"
               size="sm"
               className="hidden sm:flex gap-2"
+              onClick={handleExport}
             >
               <Download className="h-4 w-4" />
               Export
             </Button>
-            <Button variant="outline" size="icon" className="h-9 w-9">
-              <RefreshCcw className="h-4 w-4" />
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+              onClick={handleRefresh}
+              disabled={isFetching > 0}
+            >
+              <RefreshCcw
+                className={`h-4 w-4 ${isFetching > 0 ? "animate-spin" : ""}`}
+              />
             </Button>
           </motion.div>
         </div>

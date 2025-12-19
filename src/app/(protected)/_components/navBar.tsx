@@ -26,6 +26,15 @@ const NavBar = () => {
 
   // If user is a company, show simplified navbar
   if (companyData) {
+    const navLinks = [
+      { href: "/company-brokers", label: "Brokers" },
+      { href: "/company-dashboard", label: "Dashboard" },
+      { href: "/message", label: "Messages" },
+      { href: "/company-properties", label: "Properties" },
+      { href: "/company-enquiries", label: "Enquiries" },
+      { href: "/property/createProperty", label: "List Property" },
+    ];
+
     return (
       <div
         id="navHeader"
@@ -34,84 +43,21 @@ const NavBar = () => {
         <div>
           <h1 className="font-instrument-serif text-2xl">Brokwise</h1>
         </div>
-        <div className="flex items-center gap-4">
-          <Tabs
-            defaultValue="brokers"
-            className=""
-            onValueChange={(value) => {
-              if (value === "brokers") router.push("/company-brokers");
-              if (value === "properties") router.push("/company-properties");
-              if (value === "enquiries") router.push("/company-enquiries");
-              if (value === "listProperty")
-                router.push("/property/createProperty");
-              if (value === "message") router.push("/message");
-            }}
-            value={
-              pathname.includes("/company-brokers")
-                ? "brokers"
-                : pathname.includes("/company-properties")
-                ? "properties"
-                : pathname.includes("/company-enquiries")
-                ? "enquiries"
-                : pathname.includes("/property/createProperty")
-                ? "listProperty"
-                : pathname.includes("/message")
-                ? "message"
-                : "none"
-            }
-          >
-            <TabsList className="bg-transparent">
-              <TabsTrigger
-                className={cn(
-                  "cursor-pointer",
-                  pathname.includes("/company-brokers") &&
-                    "bg-primary text-white"
-                )}
-                value="brokers"
-              >
-                Brokers
-              </TabsTrigger>
-              <TabsTrigger
-                className={cn(
-                  "cursor-pointer",
-                  pathname.includes("/message") && "bg-primary text-white"
-                )}
-                value="message"
-              >
-                Messages
-              </TabsTrigger>
-              <TabsTrigger
-                className={cn(
-                  "cursor-pointer",
-                  pathname.includes("/company-properties") &&
-                    "bg-primary text-white"
-                )}
-                value="properties"
-              >
-                Properties
-              </TabsTrigger>
-              <TabsTrigger
-                className={cn(
-                  "cursor-pointer",
-                  pathname.includes("/company-enquiries") &&
-                    "bg-primary text-white"
-                )}
-                value="enquiries"
-              >
-                Enquiries
-              </TabsTrigger>
-              <TabsTrigger
-                className={cn(
-                  "cursor-pointer",
-                  pathname.includes("/property/createProperty") &&
-                    "bg-primary text-white"
-                )}
-                value="listProperty"
-              >
-                List Property
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+        <div className="flex items-center gap-2">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                "px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                pathname.includes(link.href)
+                  ? "bg-primary text-white"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
         <div className="flex gap-md">
           {/* <Notifications /> Company might need notifications later, but for now strict "only brokers" */}
