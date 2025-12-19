@@ -59,9 +59,6 @@ export type UpdateCompanyProfileResponse = {
 
 export type AddBrokerRequest = {
   email: string;
-  firstName: string;
-  lastName: string;
-  mobile: string;
 };
 
 export type AddBrokerResponse = {

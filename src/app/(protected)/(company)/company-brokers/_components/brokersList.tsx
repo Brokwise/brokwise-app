@@ -46,7 +46,7 @@ export const BrokersList = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "approved":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100";
+        return "bg-green-50 text-green-800 dark:bg-green-900/50 dark:text-green-200";
       case "pending":
         return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100";
       case "incomplete":
@@ -66,7 +66,8 @@ export const BrokersList = ({
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Mobile</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>Broker Status</TableHead>
+            <TableHead>Invite Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -88,6 +89,19 @@ export const BrokersList = ({
                   {broker.status.charAt(0).toUpperCase() +
                     broker.status.slice(1)}
                 </Badge>
+              </TableCell>
+              <TableCell>
+                {broker.invitationStatus ? (
+                  <Badge
+                    variant="outline"
+                    className={getStatusColor(broker.invitationStatus)}
+                  >
+                    {broker.invitationStatus.charAt(0).toUpperCase() +
+                      broker.invitationStatus.slice(1)}
+                  </Badge>
+                ) : (
+                  <div>-</div>
+                )}
               </TableCell>
               <TableCell className="text-right">
                 <AlertDialog>

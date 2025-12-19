@@ -49,13 +49,4 @@ export const updateCompanyProfileSchema = z.object({
 
 export const addBrokerSchema = z.object({
   email: z.string().email(),
-  firstName: z
-    .string()
-    .min(3, { message: "First name must be at least 3 characters long" }),
-  lastName: z
-    .string()
-    .min(3, { message: "Last name must be at least 3 characters long" }),
-  mobile: z
-    .string()
-    .min(10, { message: "Mobile number must be at least 10 digits long" }),
 });
