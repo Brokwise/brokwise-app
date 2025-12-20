@@ -290,7 +290,8 @@ const CreateEnquiryPage = () => {
       createCompanyEnquiry(payload, {
         onSuccess: () => {
           toast.success("Enquiry created successfully!");
-          router.push("/company-enquiries");
+          form.reset();
+          router.replace("/enquiries/create/success");
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
@@ -303,7 +304,8 @@ const CreateEnquiryPage = () => {
       createEnquiry(payload, {
         onSuccess: () => {
           toast.success("Enquiry created successfully!");
-          router.push("/my-enquiries");
+          form.reset();
+          router.replace("/enquiries/create/success");
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
