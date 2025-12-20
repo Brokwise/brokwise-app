@@ -343,12 +343,13 @@ export const OnboardingDetails = ({
                                 <SelectValue placeholder="Select Years of Experience" />
                               </SelectTrigger>
                               <SelectContent>
-                                {[...Array(21)].map((_, index) => (
+                                {[...Array(16)].map((_, index) => (
                                   <SelectItem
                                     key={index}
                                     value={index.toString()}
                                   >
-                                    {index} {index === 1 ? "year" : "years"}
+                                    {index === 15 ? "15+" : index}{" "}
+                                    {index === 1 ? "year" : "years"}
                                   </SelectItem>
                                 ))}
                               </SelectContent>

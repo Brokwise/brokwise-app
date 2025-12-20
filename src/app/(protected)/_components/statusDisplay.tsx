@@ -164,7 +164,10 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
                     <strong>City:</strong> {broker.city}
                   </div>
                   <div>
-                    <strong>Experience:</strong> {broker.yearsOfExperience}{" "}
+                    <strong>Experience:</strong>{" "}
+                    {broker.yearsOfExperience === 15
+                      ? "15+"
+                      : broker.yearsOfExperience}{" "}
                     years
                   </div>
                   {broker.brokerId && (
