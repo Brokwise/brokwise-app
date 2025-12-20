@@ -41,6 +41,7 @@ interface ResortWizardProps {
   onSubmit?: (data: ResortPropertyFormData) => void;
   onSaveDraft?: (data: ResortPropertyFormData) => void;
   submitLabel?: string;
+  externalIsLoading?: boolean;
 }
 
 export const ResortWizard: React.FC<ResortWizardProps> = ({
@@ -49,6 +50,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
   onSubmit: onSubmitProp,
   onSaveDraft: onSaveDraftProp,
   submitLabel,
+  externalIsLoading,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -985,7 +987,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
-        isLoading={isLoading}
+        isLoading={externalIsLoading ?? isLoading}
       />
     </Form>
   );

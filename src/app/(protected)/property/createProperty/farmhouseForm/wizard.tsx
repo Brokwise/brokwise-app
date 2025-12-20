@@ -41,6 +41,7 @@ interface FarmHouseWizardProps {
   onSubmit?: (data: FarmHousePropertyFormData) => void;
   onSaveDraft?: (data: FarmHousePropertyFormData) => void;
   submitLabel?: string;
+  externalIsLoading?: boolean;
 }
 
 export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
@@ -49,6 +50,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
   onSubmit: onSubmitProp,
   onSaveDraft: onSaveDraftProp,
   submitLabel,
+  externalIsLoading,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -1022,7 +1024,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
-        isLoading={isLoading}
+        isLoading={externalIsLoading ?? isLoading}
       />
     </Form>
   );

@@ -31,7 +31,10 @@ const CreateProperty = () => {
   const { companyData } = useApp();
   const router = useRouter();
 
-  const { addPropertyAsync: createCompanyPropertyAsync } = useCreateCompanyProperty();
+  const {
+    addPropertyAsync: createCompanyPropertyAsync,
+    isLoading: isCreatingCompanyProperty,
+  } = useCreateCompanyProperty();
   const { savePropertyAsDraft: saveCompanyPropertyDraft } =
     useSaveCompanyPropertyDraft();
 
@@ -90,6 +93,7 @@ const CreateProperty = () => {
       initialData: selectedDraft ? (selectedDraft as any) : undefined,
       onSubmit: companyData ? handleCompanySubmit : undefined,
       onSaveDraft: companyData ? handleCompanySaveDraft : undefined,
+      externalIsLoading: companyData ? isCreatingCompanyProperty : undefined,
     };
 
     switch (selectedCategory) {

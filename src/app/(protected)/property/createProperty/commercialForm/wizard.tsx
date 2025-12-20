@@ -43,6 +43,7 @@ interface CommercialWizardProps {
   onSubmit?: (data: CommercialPropertyFormData) => void;
   onSaveDraft?: (data: CommercialPropertyFormData) => void;
   submitLabel?: string;
+  externalIsLoading?: boolean;
 }
 
 export const CommercialWizard: React.FC<CommercialWizardProps> = ({
@@ -51,6 +52,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   onSubmit: onSubmitProp,
   onSaveDraft: onSaveDraftProp,
   submitLabel,
+  externalIsLoading,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -1479,7 +1481,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
-        isLoading={isLoading}
+        isLoading={externalIsLoading ?? isLoading}
       />
     </Form>
   );

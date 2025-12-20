@@ -41,6 +41,7 @@ interface IndustrialWizardProps {
   onSubmit?: (data: IndustrialPropertyFormData) => void;
   onSaveDraft?: (data: IndustrialPropertyFormData) => void;
   submitLabel?: string;
+  externalIsLoading?: boolean;
 }
 
 export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
@@ -49,6 +50,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
   onSubmit: onSubmitProp,
   onSaveDraft: onSaveDraftProp,
   submitLabel,
+  externalIsLoading,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -1075,7 +1077,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
-        isLoading={isLoading}
+        isLoading={externalIsLoading ?? isLoading}
       />
     </Form>
   );

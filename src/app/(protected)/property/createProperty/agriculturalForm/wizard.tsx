@@ -41,6 +41,7 @@ interface AgriculturalWizardProps {
   onSubmit?: (data: AgriculturalPropertyFormData) => void;
   onSaveDraft?: (data: AgriculturalPropertyFormData) => void;
   submitLabel?: string;
+  externalIsLoading?: boolean;
 }
 
 export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
@@ -49,6 +50,7 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
   onSubmit: onSubmitProp,
   onSaveDraft: onSaveDraftProp,
   submitLabel,
+  externalIsLoading,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -1006,7 +1008,7 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
-        isLoading={isLoading}
+        isLoading={externalIsLoading ?? isLoading}
       />
     </Form>
   );
