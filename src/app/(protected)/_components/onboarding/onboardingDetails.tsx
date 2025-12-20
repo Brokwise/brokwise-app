@@ -304,7 +304,16 @@ export const OnboardingDetails = ({
                             <span className="text-zinc-500">(Optional)</span>
                           </FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input
+                              {...field}
+                              maxLength={15}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                  .toUpperCase()
+                                  .slice(0, 15);
+                                field.onChange(value);
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

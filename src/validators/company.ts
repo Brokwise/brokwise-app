@@ -7,7 +7,7 @@ export const createCompanyFormSchema = z.object({
     .max(128),
   gstin: z
     .string()
-    .min(15, { message: "GSTIN must be at least 15 characters" }),
+    .length(15, { message: "GSTIN must be exactly 15 characters" }),
   officeAddress: z
     .string()
     .min(3, { message: "Address must be at least 3 characters" }),
@@ -31,7 +31,7 @@ export const updateCompanyProfileSchema = z.object({
     .or(z.literal("")),
   gstin: z
     .string()
-    .min(15, { message: "GSTIN must be at least 15 characters long" })
+    .length(15, { message: "GSTIN must be exactly 15 characters" })
     .optional()
     .or(z.literal("")),
   city: z

@@ -18,7 +18,7 @@ export const submitProfileDetails = z.object({
     .or(z.literal("")),
   gstin: z
     .string()
-    .min(15, { message: "GSTIN must be at least 15 characters long" })
+    .length(15, { message: "GSTIN must be exactly 15 characters" })
     .optional()
     .or(z.literal("")),
   yearsOfExperience: z
