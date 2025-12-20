@@ -5,6 +5,7 @@ import {
   useSaveCompanyPropertyDraft,
 } from "@/hooks/useCompany";
 import { Loader2, Edit } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { PropertyFormData } from "@/validators/property";
 import { useApp } from "@/context/AppContext";
@@ -28,8 +29,9 @@ const CreateProperty = () => {
     useState<PropertyCategory | null>(null);
   const [selectedDraft, setSelectedDraft] = useState<Property | null>(null);
   const { companyData } = useApp();
+  const router = useRouter();
 
-  const { addProperty: createCompanyProperty } = useCreateCompanyProperty();
+  const { addPropertyAsync: createCompanyPropertyAsync } = useCreateCompanyProperty();
   const { savePropertyAsDraft: saveCompanyPropertyDraft } =
     useSaveCompanyPropertyDraft();
 
@@ -64,8 +66,17 @@ const CreateProperty = () => {
     setSelectedDraft(null);
   };
 
-  const handleCompanySubmit = (data: PropertyFormData) => {
-    createCompanyProperty({ ...data });
+  const handleCompanySubmit = async (data: PropertyFormData) => {
+    try {
+      await createCompanyPropertyAsync({ ...data });
+      // Reset state and navigate to success page after successful submission
+      setSelectedCategory(null);
+      setSelectedDraft(null);
+      router.replace("/property/createProperty/success");
+    } catch (error) {
+      // Error is already handled by the hook's onError callback
+      console.error("Error creating property:", error);
+    }
   };
 
   const handleCompanySaveDraft = (data: PropertyFormData) => {
