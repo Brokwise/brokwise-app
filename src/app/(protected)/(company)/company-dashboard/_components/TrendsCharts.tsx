@@ -22,8 +22,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  LineChart,
-  Line,
 } from "recharts";
 import { motion } from "framer-motion";
 import {

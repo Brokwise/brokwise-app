@@ -47,7 +47,7 @@ export const OnboardingDetails = ({
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
-  const { brokerData, setBrokerData, brokerDataLoading } = useApp();
+  const { brokerData, setBrokerData } = useApp();
   const [user] = useAuthState(firebaseAuth);
   const [signOut] = useSignOut(firebaseAuth);
 

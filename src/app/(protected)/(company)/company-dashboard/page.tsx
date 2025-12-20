@@ -28,7 +28,6 @@ import {
   MessageSquare,
   Users,
   IndianRupee,
-  Calendar as CalendarIcon,
   Download,
   RefreshCcw,
 } from "lucide-react";
@@ -112,7 +111,7 @@ export default function CompanyDashboard() {
         headStyles: { fillColor: [66, 66, 66] },
       });
 
-      // @ts-ignore
+      // @ts-expect-error - jsPDF autotable types are incomplete
       yPos = doc.lastAutoTable.finalY + 20;
     }
 
@@ -140,7 +139,7 @@ export default function CompanyDashboard() {
         headStyles: { fillColor: [66, 66, 66] },
       });
 
-      // @ts-ignore
+      // @ts-expect-error - jsPDF autotable types are incomplete
       yPos = doc.lastAutoTable.finalY + 20;
     }
 
@@ -191,7 +190,7 @@ export default function CompanyDashboard() {
               Dashboard
             </h1>
             <p className="text-muted-foreground text-sm">
-              Overview of your company's performance and key metrics
+              Overview of your company&apos;s performance and key metrics
             </p>
           </motion.div>
 
