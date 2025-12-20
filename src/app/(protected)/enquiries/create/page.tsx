@@ -28,7 +28,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
+import {
+  AddressAutocomplete,
+  type AddressSuggestion,
+} from "@/components/ui/address-autocomplete";
 import { Slider } from "@/components/ui/slider";
 import { useCreateEnquiry } from "@/hooks/useEnquiry";
 import { useCreateCompanyEnquiry } from "@/hooks/useCompany";
@@ -70,6 +73,40 @@ const formatBudgetLabel = (amount: number) => {
   const l = amount / 100000;
   const lText = Number.isInteger(l) ? String(l) : l.toFixed(1);
   return `₹${lText}L`;
+};
+
+const clampText = (value: string, maxLen: number) =>
+  value.length > maxLen ? value.slice(0, maxLen) : value;
+
+const deriveCityAndLocalities = (item: AddressSuggestion): {
+  city: string;
+  localities: string[];
+} => {
+  const ctx = item.context ?? [];
+  const pickCtx = (prefixes: string[]) =>
+    ctx.find((c) => prefixes.some((p) => c.id.startsWith(p)))?.text?.trim() ??
+    "";
+
+  const parts = item.place_name
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  const cityFromCtx = pickCtx(["place"]);
+  const localityFromCtx = pickCtx(["locality", "neighborhood"]);
+
+  // Mapbox place_name usually ends with: "... , City(place), State(region), Country"
+  const fallbackCity =
+    (parts.length >= 3 ? parts[parts.length - 3] : "") || parts[1] || parts[0] || "";
+  const fallbackLocality = (parts.length >= 4 ? parts[parts.length - 4] : "") || "";
+
+  const cityRaw = cityFromCtx || fallbackCity;
+  const localityRaw = localityFromCtx || fallbackLocality || cityRaw;
+
+  const city = clampText(cityRaw || "Unknown", 50);
+  const localities = [clampText(localityRaw || city, 100)];
+
+  return { city, localities };
 };
 
 const findNearestBudgetIndex = (value: number) => {
@@ -140,6 +177,12 @@ const createEnquirySchema = z.object({
   addressPlaceId: z
     .string()
     .min(1, "Please select an address from suggestions"),
+  // Required for company enquiries (backend expects these); safe to include for brokers too.
+  city: z.string().min(2, "City is required").max(50, "City is too long"),
+  localities: z
+    .array(z.string().min(2).max(100))
+    .min(1, "At least one locality is required")
+    .max(10, "Maximum 10 localities allowed"),
   enquiryCategory: z.enum(
     [
       "RESIDENTIAL",
@@ -263,6 +306,8 @@ const CreateEnquiryPage = () => {
     defaultValues: {
       address: "",
       addressPlaceId: "",
+      city: "",
+      localities: [],
       budget: { min: BUDGET_MIN, max: BUDGET_MAX },
       description: "",
     },
@@ -290,7 +335,8 @@ const CreateEnquiryPage = () => {
       createCompanyEnquiry(payload, {
         onSuccess: () => {
           toast.success("Enquiry created successfully!");
-          router.push("/company-enquiries");
+          form.reset();
+          router.replace("/enquiries/create/success");
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
@@ -303,7 +349,8 @@ const CreateEnquiryPage = () => {
       createEnquiry(payload, {
         onSuccess: () => {
           toast.success("Enquiry created successfully!");
-          router.push("/my-enquiries");
+          form.reset();
+          router.replace("/enquiries/create/success");
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
@@ -411,7 +458,16 @@ const CreateEnquiryPage = () => {
                           valueId={field.value}
                           disabled={isPending}
                           onSelect={(item) => {
+                            const derived = deriveCityAndLocalities(item);
                             setValue("address", item.place_name, {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            });
+                            setValue("city", derived.city, {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            });
+                            setValue("localities", derived.localities, {
                               shouldValidate: true,
                               shouldDirty: true,
                             });
@@ -419,6 +475,14 @@ const CreateEnquiryPage = () => {
                           }}
                           onClear={() => {
                             setValue("address", "", {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            });
+                            setValue("city", "", {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            });
+                            setValue("localities", [], {
                               shouldValidate: true,
                               shouldDirty: true,
                             });

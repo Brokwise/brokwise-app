@@ -5,8 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useApp } from "@/context/AppContext";
 
 export default function PropertyCreatedSuccess() {
+    const { companyData } = useApp();
+    const listingsHref = companyData ? "/company-properties" : "/my-listings";
+    const listingsLabel = companyData ? "View Company Properties" : "View My Listings";
     return (
         <main className="container mx-auto p-6 flex items-center justify-center min-h-[85vh]">
             <motion.div
@@ -76,12 +80,12 @@ export default function PropertyCreatedSuccess() {
 
                         {/* Action Buttons */}
                         <div className="space-y-3 pt-2">
-                            <Link href="/my-listings" className="block">
+                            <Link href={listingsHref} className="block">
                                 <Button
                                     size="lg"
                                     className="w-full text-base font-semibold h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/95 hover:to-primary shadow-lg hover:shadow-primary/25 transition-all duration-300"
                                 >
-                                    View My Listings
+                                    {listingsLabel}
                                     <ArrowRight className="ml-2 h-5 w-5" />
                                 </Button>
                             </Link>

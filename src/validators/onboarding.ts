@@ -14,16 +14,18 @@ export const submitProfileDetails = z.object({
   companyName: z
     .string()
     .min(3, { message: "Company name must be at least 3 characters long" })
+    .regex(/[a-zA-Z]/, { message: "Company name must contain at least one letter" })
     .optional()
     .or(z.literal("")),
   gstin: z
     .string()
-    .min(15, { message: "GSTIN must be at least 15 characters long" })
+    .length(15, { message: "GSTIN must be exactly 15 characters" })
     .optional()
     .or(z.literal("")),
   yearsOfExperience: z
     .number({ message: "Please select years of experience" })
-    .min(0, { message: "Years of experience must be >= 0" }),
+    .min(0, { message: "Years of experience must be >= 0" })
+    .max(15, { message: "Years of experience must be <= 15" }),
   city: z
     .string()
     .min(3, { message: "City must be at least 3 characters long" }),
@@ -31,7 +33,12 @@ export const submitProfileDetails = z.object({
     .string()
     .min(3, { message: "Office address must be at least 3 characters long" })
     .optional(),
-  reraNumber: z.string().optional(),
+  reraNumber: z
+    .string()
+    .min(12, { message: "RERA number must be at least 12 characters" })
+    .max(50, { message: "RERA number must not exceed 50 characters" })
+    .optional()
+    .or(z.literal("")),
 });
 
 export const loginFormSchema = z.object({

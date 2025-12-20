@@ -24,7 +24,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  ResponsiveContainer,
 } from "recharts";
 import { motion } from "framer-motion";
 

@@ -160,6 +160,7 @@ export const useCreateCompanyProperty = () => {
   const api = useAxios();
   const {
     mutate: addProperty,
+    mutateAsync: addPropertyAsync,
     isPending: isLoading,
     error,
   } = useMutation<
@@ -181,7 +182,7 @@ export const useCreateCompanyProperty = () => {
       toast.error(errorMessage);
     },
   });
-  return { addProperty, isLoading, error };
+  return { addProperty, addPropertyAsync, isLoading, error };
 };
 
 export const useSaveCompanyPropertyDraft = () => {

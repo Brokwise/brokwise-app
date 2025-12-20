@@ -47,7 +47,7 @@ export const OnboardingDetails = ({
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
-  const { brokerData, setBrokerData, brokerDataLoading } = useApp();
+  const { brokerData, setBrokerData } = useApp();
   const [user] = useAuthState(firebaseAuth);
   const [signOut] = useSignOut(firebaseAuth);
 
@@ -304,7 +304,16 @@ export const OnboardingDetails = ({
                             <span className="text-zinc-500">(Optional)</span>
                           </FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input
+                              {...field}
+                              maxLength={15}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                  .toUpperCase()
+                                  .slice(0, 15);
+                                field.onChange(value);
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -334,12 +343,13 @@ export const OnboardingDetails = ({
                                 <SelectValue placeholder="Select Years of Experience" />
                               </SelectTrigger>
                               <SelectContent>
-                                {[...Array(21)].map((_, index) => (
+                                {[...Array(16)].map((_, index) => (
                                   <SelectItem
                                     key={index}
                                     value={index.toString()}
                                   >
-                                    {index} {index === 1 ? "year" : "years"}
+                                    {index === 15 ? "15+" : index}{" "}
+                                    {index === 1 ? "year" : "years"}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -387,7 +397,7 @@ export const OnboardingDetails = ({
                         <FormItem>
                           <FormLabel>RERA Number (Optional)</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} maxLength={50} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

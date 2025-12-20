@@ -96,9 +96,6 @@ export function EnquiryAnalyticsCharts({
     completedCount: type.completedCount,
   }));
 
-  // Parse conversion rate
-  const conversionRateNum = parseFloat(data.conversion.rate.replace("%", ""));
-
   return (
     <div className="space-y-4">
       {/* Conversion Metrics Cards */}

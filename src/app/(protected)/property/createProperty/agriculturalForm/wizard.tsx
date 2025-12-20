@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ interface AgriculturalWizardProps {
   onSubmit?: (data: AgriculturalPropertyFormData) => void;
   onSaveDraft?: (data: AgriculturalPropertyFormData) => void;
   submitLabel?: string;
+  externalIsLoading?: boolean;
 }
 
 export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
@@ -49,10 +51,13 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
   onSubmit: onSubmitProp,
   onSaveDraft: onSaveDraftProp,
   submitLabel,
+  externalIsLoading,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  const { addProperty, isLoading } = useAddProperty();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { addPropertyAsync, isLoading } = useAddProperty();
   const { savePropertyAsDraft, isPending: isSavingDraft } =
     useSavePropertyAsDraft();
   const [draftId, setDraftId] = useState<string | undefined>(initialData?._id);
@@ -99,7 +104,20 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
     if (onSubmitProp) {
       onSubmitProp(data);
     } else {
-      addProperty(data);
+      (async () => {
+        try {
+          setIsSubmitting(true);
+          await addPropertyAsync(data);
+          form.reset();
+          setCompletedSteps(new Set());
+          setCurrentStep(0);
+          router.replace("/property/createProperty/success");
+        } catch (error) {
+          console.error("Error submitting form:", error);
+        } finally {
+          setIsSubmitting(false);
+        }
+      })();
     }
   };
 
@@ -1006,7 +1024,8 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
-        isLoading={isLoading}
+        isLoading={externalIsLoading ?? isLoading}
+        isSubmitting={isSubmitting}
       />
     </Form>
   );

@@ -78,6 +78,7 @@ interface ResidentialWizardProps {
   onSubmit?: (data: ResidentialPropertyFormData) => void;
   onSaveDraft?: (data: ResidentialPropertyFormData) => void;
   submitLabel?: string;
+  externalIsLoading?: boolean;
 }
 
 const FLAT_AMENITIES = [
@@ -129,6 +130,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   onSubmit: onSubmitProp,
   onSaveDraft: onSaveDraftProp,
   submitLabel,
+  externalIsLoading,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -1355,7 +1357,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
         canProceed={!Object.values(uploading).some(Boolean)}
-        isLoading={isLoading}
+        isLoading={externalIsLoading ?? isLoading}
         isSubmitting={isSubmitting}
       />
     </Form>
