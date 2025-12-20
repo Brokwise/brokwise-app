@@ -33,7 +33,12 @@ export const submitProfileDetails = z.object({
     .string()
     .min(3, { message: "Office address must be at least 3 characters long" })
     .optional(),
-  reraNumber: z.string().optional(),
+  reraNumber: z
+    .string()
+    .min(12, { message: "RERA number must be at least 12 characters" })
+    .max(50, { message: "RERA number must not exceed 50 characters" })
+    .optional()
+    .or(z.literal("")),
 });
 
 export const loginFormSchema = z.object({

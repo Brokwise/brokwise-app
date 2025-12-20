@@ -397,7 +397,7 @@ export const OnboardingDetails = ({
                         <FormItem>
                           <FormLabel>RERA Number (Optional)</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} maxLength={50} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
