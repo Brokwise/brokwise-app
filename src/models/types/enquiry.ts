@@ -189,6 +189,9 @@ export interface MarketplaceFilters {
 
 export interface CreateEnquiryDTO {
   address: string;
+  // Legacy fields required by company create-enquiry endpoint (backend still expects these)
+  city?: string;
+  localities?: string[];
   enquiryCategory: PropertyCategory;
   enquiryType: PropertyType;
   budget: BudgetRange;
