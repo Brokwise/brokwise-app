@@ -14,6 +14,7 @@ export const submitProfileDetails = z.object({
   companyName: z
     .string()
     .min(3, { message: "Company name must be at least 3 characters long" })
+    .regex(/[a-zA-Z]/, { message: "Company name must contain at least one letter" })
     .optional()
     .or(z.literal("")),
   gstin: z
@@ -23,7 +24,8 @@ export const submitProfileDetails = z.object({
     .or(z.literal("")),
   yearsOfExperience: z
     .number({ message: "Please select years of experience" })
-    .min(0, { message: "Years of experience must be >= 0" }),
+    .min(0, { message: "Years of experience must be >= 0" })
+    .max(15, { message: "Years of experience must be <= 15" }),
   city: z
     .string()
     .min(3, { message: "City must be at least 3 characters long" }),

@@ -104,7 +104,10 @@ const ProfilePage = () => {
                 <Briefcase className="h-4 w-4" /> Experience
               </h3>
               <p className="text-lg font-medium">
-                {brokerData.yearsOfExperience} Years
+                {brokerData.yearsOfExperience === 15
+                  ? "15+"
+                  : brokerData.yearsOfExperience}{" "}
+                Years
               </p>
             </div>
 
