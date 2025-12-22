@@ -376,14 +376,14 @@ export default function AuthPage({
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
               className={`object-cover transition-opacity duration-500 ${
-                activeTheme === "light" ? "opacity-90" : "opacity-70"
+                activeTheme === "light" ? "opacity-100" : "opacity-70"
               }`}
               priority
             />
             <div
               className={`absolute inset-0 bg-gradient-to-t transition-colors duration-500 ${
                 activeTheme === "light"
-                  ? "from-white/80 via-white/20 to-transparent"
+                  ? "from-white/70 via-transparent to-transparent"
                   : "from-black/90 via-black/40 to-black/20"
               }`}
             />
