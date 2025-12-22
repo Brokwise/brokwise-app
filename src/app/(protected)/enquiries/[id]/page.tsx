@@ -49,6 +49,7 @@ import {
   formatEnquiryLocation,
 } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
+import { toast } from "sonner";
 
 const isPopulatedProperty = (
   propertyId: Property | string | undefined | null
@@ -221,9 +222,14 @@ const SingleEnquiry = () => {
                   className="w-full"
                   onClick={async () => {
                     if (confirmationText === enquiry.enquiryId) {
-                      await closeEnquiryAsync(enquiry._id);
-                      setIsCloseDialogOpen(false);
-                      setConfirmationText("");
+                      try {
+                        await closeEnquiryAsync(enquiry._id);
+                        setIsCloseDialogOpen(false);
+                        setConfirmationText("");
+                        toast.success("Enquiry closed successfully");
+                      } catch {
+                        toast.error("Failed to close enquiry. Please try again.");
+                      }
                     }
                   }}
                   disabled={
