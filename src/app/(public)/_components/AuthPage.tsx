@@ -693,7 +693,7 @@ export default function AuthPage({
                 <div className="relative my-6 flex items-center gap-4">
                   <div className="flex-1 h-px bg-border" />
                   <span className="text-xs font-medium text-muted-foreground uppercase">
-                    {t("or_continue_with")}
+                    {t("or")}
                   </span>
                   <div className="flex-1 h-px bg-border" />
                 </div>

@@ -374,7 +374,7 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
       )}
       <div className="flex items-center gap-2 flex-col w-full relative">
         <div className="w-1/4 h-[1px] bg-gray-200 absolute top-1/2 left-0"></div>
-        <span className="text-gray-500 z-10">{t("or_continue_with")}</span>
+        <span className="text-gray-500 z-10">{t("or")}</span>
         <div className="w-1/4 h-[1px] bg-gray-200 absolute top-1/2 right-0"></div>
       </div>
       <Button

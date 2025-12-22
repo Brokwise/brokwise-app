@@ -15,7 +15,7 @@
   "signup_button": "Sign up",
   "login_button": "Login",
   "forgot_password": "Forgot Password?",
-  "or_continue_with": "Or continue with",
+  "or": "Or",
   "google_button": "Google",
   "incorrect_email_password": "Incorrect email or password.",
   "email_in_use": "Email already in use.",
