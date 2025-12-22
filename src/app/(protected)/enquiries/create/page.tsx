@@ -461,39 +461,42 @@ const CreateEnquiryPage = () => {
   const selectedType = watch("enquiryType");
 
   useEffect(() => {
+    // Only reset fields when category actually changes (not on initial mount)
+    if (!selectedCategory) return;
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("enquiryType", "" as any, { shouldValidate: true, shouldDirty: true });
+    setValue("enquiryType", "" as any, { shouldValidate: false, shouldDirty: true });
 
     // Clear type-specific fields when category changes to avoid stale values failing backend rules.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("size", undefined as any, { shouldValidate: true });
+    setValue("size", undefined as any, { shouldValidate: false });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("plotType", undefined as any, { shouldValidate: true });
+    setValue("plotType", undefined as any, { shouldValidate: false });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("facing", undefined as any, { shouldValidate: true });
+    setValue("facing", undefined as any, { shouldValidate: false });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("frontRoadWidth", undefined as any, { shouldValidate: true });
+    setValue("frontRoadWidth", undefined as any, { shouldValidate: false });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("bhk", undefined as any, { shouldValidate: true });
+    setValue("bhk", undefined as any, { shouldValidate: false });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("washrooms", undefined as any, { shouldValidate: true });
+    setValue("washrooms", undefined as any, { shouldValidate: false });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("preferredFloor", undefined as any, { shouldValidate: true });
+    setValue("preferredFloor", undefined as any, { shouldValidate: false });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("society", undefined as any, { shouldValidate: true });
+    setValue("society", undefined as any, { shouldValidate: false });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("rooms", undefined as any, { shouldValidate: true });
+    setValue("rooms", undefined as any, { shouldValidate: false });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("beds", undefined as any, { shouldValidate: true });
+    setValue("beds", undefined as any, { shouldValidate: false });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("rentalIncome", undefined as any, { shouldValidate: true });
+    setValue("rentalIncome", undefined as any, { shouldValidate: false });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("purpose", undefined as any, { shouldValidate: true });
+    setValue("purpose", undefined as any, { shouldValidate: false });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("areaType", undefined as any, { shouldValidate: true });
+    setValue("areaType", undefined as any, { shouldValidate: false });
   }, [selectedCategory, setValue]);
 
   useEffect(() => {
