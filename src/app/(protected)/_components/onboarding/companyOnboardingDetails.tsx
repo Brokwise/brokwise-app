@@ -149,11 +149,11 @@ export const CompanyOnboardingDetails = ({
   return (
     <section className="flex flex-col justify-center items-center h-screen w-full relative">
       <div className="absolute top-4 right-4 flex items-center gap-4">
-        <div className="flex gap-1 border rounded-full px-2 py-[0.5px] bg-background/50 backdrop-blur-sm">
+        <div className="flex gap-1 border rounded-full px-2 py-1 bg-background/50 backdrop-blur-sm shadow-sm">
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
             onClick={() => setTheme("light")}
           >
             <Sun className="h-4 w-4" />
@@ -161,7 +161,7 @@ export const CompanyOnboardingDetails = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
             onClick={() => setTheme("dark")}
           >
             <Moon className="h-4 w-4" />
@@ -169,7 +169,7 @@ export const CompanyOnboardingDetails = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
             onClick={() => setTheme("system")}
           >
             <Computer className="h-4 w-4" />
