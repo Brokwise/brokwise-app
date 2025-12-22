@@ -13,14 +13,17 @@ import { useToggleBookmark } from "@/hooks/useBookmarks";
 import { toast } from "sonner";
 import {
   MapPin,
-  IndianRupee,
+  BedDouble,
+  Bath,
+  Building2,
+  ArrowRight,
   Clock,
-  Bookmark,
-  Loader2,
+  IndianRupee,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import { formatEnquiryLocation } from "@/utils/helper";
+import { cn } from "@/lib/utils";
 
 interface EnquiryCardProps {
   enquiry: Enquiry | MarketplaceEnquiry;
@@ -28,8 +31,10 @@ interface EnquiryCardProps {
 
 export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
   const router = useRouter();
-  const { userData, brokerData, setBrokerData, companyData, setCompanyData } = useApp();
-  const { toggleBookmarkAsync, isPending: isBookmarkPending } = useToggleBookmark();
+  const { userData, brokerData, setBrokerData, companyData, setCompanyData } =
+    useApp();
+  const { toggleBookmarkAsync, isPending: isBookmarkPending } =
+    useToggleBookmark();
 
   const isCompany = userData?.userType === "company";
 
@@ -38,6 +43,7 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
     ? !!companyData?.bookmarkedEnquiryIds?.includes(enquiry._id)
     : !!brokerData?.bookmarkedEnquiryIds?.includes(enquiry._id);
   const locationTitle = formatEnquiryLocation(enquiry);
+
   const formatCurrency = (amount: number) => {
     if (amount >= 10000000) {
       return `${(amount / 10000000).toFixed(2)} Cr`;
@@ -48,180 +54,132 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
     return amount.toLocaleString("en-IN");
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200";
+        return {
+          label: "Active",
+          className:
+            "bg-green-500/15 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
+        };
       case "closed":
-        return "bg-muted text-muted-foreground";
+        return {
+          label: "Closed",
+          className:
+            "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200",
+        };
       case "expired":
-        return "bg-destructive/10 text-destructive";
+        return {
+          label: "Expired",
+          className:
+            "bg-red-500/15 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800",
+        };
       default:
-        return "bg-accent/10 text-accent";
+        return {
+          label: status,
+          className:
+            "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-200",
+        };
     }
   };
 
+  const statusConfig = getStatusConfig(enquiry.status);
+
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-none shadow-sm bg-card h-full flex flex-col rounded-xl">
-      <CardHeader className="pb-3 pt-5 px-5">
-        <div className="flex justify-between items-start">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <Badge
-                variant="outline"
-                className="text-xs font-semibold text-accent border-accent/20 uppercase tracking-wider bg-accent/5"
-              >
-                {enquiry.enquiryType}
-              </Badge>
-              <span className="text-[10px] text-muted-foreground font-mono">
-                #{enquiry.enquiryId?.slice(-6) || "ID"}
-              </span>
-            </div>
-            <h3
-              className="font-semibold text-lg line-clamp-1 text-foreground"
-              title={enquiry.description}
-            >
-              {enquiry.description}
-            </h3>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              size="icon"
-              variant="ghost"
-              className={`h-8 w-8 rounded-full hover:bg-muted ${
-                isBookmarked ? "text-accent" : "text-muted-foreground"
-              }`}
-              disabled={(!brokerData && !companyData) || isBookmarkPending}
-              onClick={async (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+    <Card
+      className="group relative overflow-hidden border border-border/50 bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/20 cursor-pointer"
+      onClick={() => router.push(`/enquiries/${enquiry._id}`)}
+    >
+      <CardHeader className="p-5 pb-3">
+        <div className="flex justify-between items-start mb-3">
+          <Badge
+            variant="outline"
+            className="rounded-md px-2.5 py-0.5 font-normal text-xs uppercase tracking-wider bg-background"
+          >
+            {enquiry.enquiryType}
+          </Badge>
+          <Badge
+            variant="outline"
+            className={cn(
+              "border px-2.5 py-0.5 font-medium capitalize",
+              statusConfig.className
+            )}
+          >
+            <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+            {enquiry.status}
+          </Badge>
+        </div>
 
-                if (!brokerData && !companyData) {
-                  toast.error("Please complete your profile to use bookmarks");
-                  return;
-                }
-
-                if (isCompany && companyData) {
-                  const prev = companyData.bookmarkedEnquiryIds ?? [];
-                  const next = isBookmarked
-                    ? prev.filter((id) => id !== enquiry._id)
-                    : [enquiry._id, ...prev.filter((id) => id !== enquiry._id)];
-
-                  setCompanyData({ ...companyData, bookmarkedEnquiryIds: next });
-
-                  try {
-                    const res = await toggleBookmarkAsync({
-                      itemType: "ENQUIRY",
-                      itemId: enquiry._id,
-                    });
-                    setCompanyData({
-                      ...companyData,
-                      bookmarkedPropertyIds: res.bookmarkedPropertyIds,
-                      bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
-                    });
-                  } catch {
-                    setCompanyData({ ...companyData, bookmarkedEnquiryIds: prev });
-                  }
-                } else if (brokerData) {
-                  const prev = brokerData.bookmarkedEnquiryIds ?? [];
-                  const next = isBookmarked
-                    ? prev.filter((id) => id !== enquiry._id)
-                    : [enquiry._id, ...prev.filter((id) => id !== enquiry._id)];
-
-                  setBrokerData({ ...brokerData, bookmarkedEnquiryIds: next });
-
-                  try {
-                    const res = await toggleBookmarkAsync({
-                      itemType: "ENQUIRY",
-                      itemId: enquiry._id,
-                    });
-                    setBrokerData({
-                      ...brokerData,
-                      bookmarkedPropertyIds: res.bookmarkedPropertyIds,
-                      bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
-                    });
-                  } catch {
-                    setBrokerData({ ...brokerData, bookmarkedEnquiryIds: prev });
-                  }
-                }
-              }}
-              title={isBookmarked ? "Remove bookmark" : "Bookmark"}
-            >
-              {isBookmarkPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Bookmark
-                  className="h-4 w-4"
-                  fill={isBookmarked ? "currentColor" : "none"}
-                />
-              )}
-            </Button>
-            <Badge
-              className={`${getStatusColor(
-                enquiry.status
-              )} border-0 px-2 py-0.5 capitalize shadow-none`}
-            >
-              {enquiry.status}
-            </Badge>
+        <div className="space-y-1.5">
+          <h3 className="font-semibold text-lg leading-tight tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
+            {enquiry.description || "Untitled Enquiry"}
+          </h3>
+          <div className="flex items-center text-muted-foreground text-sm">
+            <MapPin className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+            <span className="line-clamp-1">
+              {locationTitle || "Location not specified"}
+            </span>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="pb-4 px-5 flex-grow">
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <IndianRupee className="w-3.5 h-3.5 text-accent" /> Budget
-            </p>
-            <p className="font-medium text-foreground">
-              {formatCurrency(enquiry.budget.min)} -{" "}
+      <CardContent className="p-5 pt-2 pb-4">
+        <div className="mb-4">
+          <div className="flex items-baseline gap-1">
+            <IndianRupee className="h-4 w-4 text-primary" />
+            <span className="text-xl font-bold tracking-tight">
+              {formatCurrency(enquiry.budget.min)}
+            </span>
+            <span className="text-muted-foreground text-sm font-medium">
+              to
+            </span>
+            <span className="text-xl font-bold tracking-tight">
               {formatCurrency(enquiry.budget.max)}
-            </p>
+            </span>
           </div>
-
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-accent" /> Location
-            </p>
-            <p className="font-medium text-foreground line-clamp-1" title={locationTitle}>
-              {locationTitle || "—"}
-            </p>
-          </div>
+          <p className="text-xs text-muted-foreground mt-1 font-medium pl-0.5">
+            Estimated Budget
+          </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-3 text-sm">
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+            <Building2 className="h-3.5 w-3.5" />
+            <span className="font-medium capitalize text-xs">
+              {enquiry.enquiryCategory.toLowerCase()}
+            </span>
+          </div>
           {enquiry.bhk && (
-            <Badge variant="secondary" className="bg-muted/50 hover:bg-muted text-muted-foreground font-normal rounded-md border-0">
-              {enquiry.bhk} BHK
-            </Badge>
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+              <BedDouble className="h-3.5 w-3.5" />
+              <span className="font-medium text-xs">{enquiry.bhk} BHK</span>
+            </div>
           )}
           {enquiry.washrooms && (
-            <Badge variant="secondary" className="bg-muted/50 hover:bg-muted text-muted-foreground font-normal rounded-md border-0">
-              {enquiry.washrooms} Bath
-            </Badge>
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+              <Bath className="h-3.5 w-3.5" />
+              <span className="font-medium text-xs">
+                {enquiry.washrooms} Bath
+              </span>
+            </div>
           )}
-          <Badge variant="secondary" className="bg-muted/50 hover:bg-muted text-muted-foreground font-normal rounded-md border-0 capitalize">
-            {enquiry.enquiryCategory.toLowerCase()}
-          </Badge>
         </div>
       </CardContent>
 
-      <CardFooter className="pt-0 px-5 pb-5 flex justify-between items-center text-xs text-muted-foreground mt-auto">
-        <div className="flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5" />
-          <span>
-            {formatDistanceToNow(new Date(enquiry.createdAt))} ago
-          </span>
+      <CardFooter className="p-5 pt-0 flex items-center justify-between">
+        <div className="flex items-center text-xs text-muted-foreground">
+          <Clock className="mr-1.5 h-3.5 w-3.5" />
+          {formatDistanceToNow(new Date(enquiry.createdAt), {
+            addSuffix: true,
+          })}
         </div>
+
         <Button
+          variant="ghost"
           size="sm"
-          variant="outline"
-          className="gap-2 group-hover:border-primary/50 group-hover:text-primary transition-all rounded-lg text-xs h-8"
-          onClick={() => {
-            router.push(`/enquiries/${enquiry._id}`);
-          }}
+          className="h-8 px-3 text-primary hover:text-primary hover:bg-primary/10 -mr-2"
         >
-          Details
+          Details <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
         </Button>
       </CardFooter>
     </Card>
