@@ -356,7 +356,11 @@ export default function AuthPage({
   return (
     <div className="flex h-dvh w-full font-host-grotesk overflow-hidden bg-background">
       {/* Left Side - Image & Value Prop (Fixed) */}
-      <div className="hidden lg:flex lg:w-1/2 h-full relative overflow-hidden bg-black">
+      <div
+        className={`hidden lg:flex lg:w-1/2 h-full relative overflow-hidden transition-colors duration-500 ${
+          activeTheme === "light" ? "bg-slate-100" : "bg-black"
+        }`}
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={activeContent.image}
@@ -371,16 +375,30 @@ export default function AuthPage({
               alt={activeContent.alt}
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
-              className="object-cover opacity-70"
+              className={`object-cover transition-opacity duration-500 ${
+                activeTheme === "light" ? "opacity-90" : "opacity-70"
+              }`}
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
+            <div
+              className={`absolute inset-0 bg-gradient-to-t transition-colors duration-500 ${
+                activeTheme === "light"
+                  ? "from-white/80 via-white/20 to-transparent"
+                  : "from-black/90 via-black/40 to-black/20"
+              }`}
+            />
           </motion.div>
         </AnimatePresence>
 
         {/* Glassmorphism Testimonial Card */}
         <div className="absolute bottom-0 left-0 p-10 w-full z-10">
-          <div className="max-w-lg backdrop-blur-md bg-black/20 border border-white/10 shadow-2xl rounded-2xl p-8">
+          <div
+            className={`max-w-lg backdrop-blur-lg border shadow-2xl rounded-2xl p-8 transition-all duration-500 ${
+              activeTheme === "light"
+                ? "bg-white/90 border-slate-200 shadow-slate-300/50"
+                : "bg-black/20 border-white/10"
+            }`}
+          >
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeContent.quote}
@@ -389,16 +407,38 @@ export default function AuthPage({
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
               >
-                <h2 className="text-3xl font-instrument-serif text-white leading-snug mb-6">
+                <h2
+                  className={`text-3xl font-instrument-serif leading-snug mb-6 transition-colors duration-500 ${
+                    activeTheme === "light" ? "text-slate-900" : "text-white"
+                  }`}
+                >
                   &ldquo;{activeContent.quote}&rdquo;
                 </h2>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-lg">
+                  <div
+                    className={`w-12 h-12 rounded-full border flex items-center justify-center font-bold text-lg transition-colors duration-500 ${
+                      activeTheme === "light"
+                        ? "bg-primary/10 border-primary/20 text-primary"
+                        : "bg-white/10 border-white/20 text-white"
+                    }`}
+                  >
                     B
                   </div>
                   <div>
-                    <p className="text-white font-semibold">Brokwise Team</p>
-                    <p className="text-zinc-400 text-sm">
+                    <p
+                      className={`font-semibold transition-colors duration-500 ${
+                        activeTheme === "light" ? "text-slate-900" : "text-white"
+                      }`}
+                    >
+                      Brokwise Team
+                    </p>
+                    <p
+                      className={`text-sm transition-colors duration-500 ${
+                        activeTheme === "light"
+                          ? "text-slate-500"
+                          : "text-zinc-400"
+                      }`}
+                    >
                       {activeContent.role}
                     </p>
                   </div>
