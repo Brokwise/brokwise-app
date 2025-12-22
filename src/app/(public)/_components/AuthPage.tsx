@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Building2, User2, ArrowRight, Check } from "lucide-react";
+import { Loader2, Building2, User2, ArrowRight, Check, Sun, Moon, Computer } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { detectLanguage, changeLanguage } from "@/i18n";
+import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,8 +80,8 @@ const AccountTypeCard = ({
       relative flex flex-col items-center justify-center p-5 rounded-xl border-2 transition-all duration-200 w-full
       ${
         selected
-          ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2 ring-offset-zinc-950"
-          : "border-zinc-700 bg-zinc-800/50 hover:border-zinc-600 hover:bg-zinc-800"
+          ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2 ring-offset-background"
+          : "border-border bg-card hover:border-primary/50 hover:bg-accent"
       }
     `}
   >
@@ -91,15 +92,15 @@ const AccountTypeCard = ({
     )}
     <div
       className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
-        selected ? "bg-primary/20 text-primary" : "bg-zinc-700 text-zinc-400"
+        selected ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
       }`}
     >
       {icon}
     </div>
-    <p className={`font-semibold ${selected ? "text-white" : "text-zinc-300"}`}>
+    <p className={`font-semibold ${selected ? "text-primary" : "text-foreground"}`}>
       {title}
     </p>
-    <p className="text-xs text-zinc-500 mt-1">{description}</p>
+    <p className="text-xs text-muted-foreground mt-1">{description}</p>
   </button>
 );
 
@@ -111,6 +112,7 @@ export default function AuthPage({
   initialMode?: AuthMode;
 }) {
   const { t, i18n } = useTranslation();
+  const { setTheme } = useTheme();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [accountType, setAccountType] = useState<AccountType>("broker");
   const [loading, setLoading] = useState(false);
@@ -347,7 +349,7 @@ export default function AuthPage({
   // --- Render ---
 
   return (
-    <div className="flex h-dvh w-full font-host-grotesk overflow-hidden bg-zinc-950">
+    <div className="flex h-dvh w-full font-host-grotesk overflow-hidden bg-background">
       {/* Left Side - Image & Value Prop (Fixed) */}
       <div className="hidden lg:flex lg:w-1/2 h-full relative overflow-hidden bg-black">
         <AnimatePresence mode="wait">
@@ -404,45 +406,67 @@ export default function AuthPage({
 
       {/* Right Side - Auth Form (Scrollable) */}
       <div
-        className="flex-1 h-full overflow-hidden relative bg-zinc-950"
-        style={{
-          background:
-            "radial-gradient(ellipse at top right, #18181b 0%, #09090b 50%, #09090b 100%)",
-        }}
+        className="flex-1 h-full overflow-hidden relative bg-background"
       >
         <div className="h-full w-full flex flex-col items-center px-6 lg:px-16">
           {/* Fixed header area (prevents the Brokwise title from jumping when mode changes) */}
           <div className="w-full max-w-md shrink-0 pt-7 lg:pt-10">
-            <div className="flex justify-end mb-4 absolute top-2 right-2">
+            <div className="flex items-center gap-2 mb-4 absolute top-2 right-2 z-50">
+               <div className="flex gap-1 border rounded-full px-2 py-[0.5px] bg-background/50 backdrop-blur-sm">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setTheme("light")}
+                >
+                  <Sun className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setTheme("dark")}
+                >
+                  <Moon className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setTheme("system")}
+                >
+                  <Computer className="h-4 w-4" />
+                </Button>
+              </div>
               <Select
                 onValueChange={(value) => changeLanguage(value)}
                 value={
                   i18n.resolvedLanguage || i18n.language?.split("-")[0] || "en"
                 }
               >
-                <SelectTrigger className="w-[180px] text-white border-zinc-700 bg-zinc-800/50">
+                <SelectTrigger className="w-[180px] bg-background border-input">
                   <SelectValue placeholder={t("select_language")} />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 text-white border-zinc-700">
+                <SelectContent>
                   <SelectItem value="en">English</SelectItem>
                   <SelectItem value="hi">हिंदी (Hindi)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="text-center space-y-3">
-              <h1 className="text-5xl lg:text-6xl font-instrument-serif text-white tracking-tight">
+              <h1 className="text-5xl lg:text-6xl font-instrument-serif text-foreground tracking-tight">
                 Brokwise
               </h1>
-              <p className="text-zinc-400 text-base">
+              <p className="text-muted-foreground text-base">
                 {mode === "login"
                   ? t("welcome_back_login")
                   : t("create_account_start")}
               </p>
             </div>
 
-            <div className="mt-8 flex p-1.5 bg-zinc-800/80 rounded-full relative border border-zinc-700/50">
+            <div className="mt-8 flex p-1.5 bg-muted rounded-full relative border border-border">
               <div
-                className="absolute h-[calc(100%-12px)] top-1.5 bottom-1.5 rounded-full bg-zinc-900 border border-zinc-700 shadow-lg transition-all duration-300 ease-in-out"
+                className="absolute h-[calc(100%-12px)] top-1.5 bottom-1.5 rounded-full bg-background border border-border shadow-sm transition-all duration-300 ease-in-out"
                 style={{
                   width: "calc(50% - 6px)",
                   left: mode === "login" ? "6px" : "calc(50%)",
@@ -452,8 +476,8 @@ export default function AuthPage({
                 onClick={() => setMode("login")}
                 className={`flex-1 relative z-10 py-3 text-sm font-semibold transition-colors duration-200 rounded-full ${
                   mode === "login"
-                    ? "text-white"
-                    : "text-zinc-500 hover:text-zinc-300"
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {t("toggle_login")}
@@ -462,8 +486,8 @@ export default function AuthPage({
                 onClick={() => setMode("signup")}
                 className={`flex-1 relative z-10 py-3 text-sm font-semibold transition-colors duration-200 rounded-full ${
                   mode === "signup"
-                    ? "text-white"
-                    : "text-zinc-500 hover:text-zinc-300"
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {t("toggle_signup")}
@@ -516,7 +540,7 @@ export default function AuthPage({
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-zinc-300 font-medium">
+                          <FormLabel className="text-foreground font-medium">
                             {t("email_label")}
                           </FormLabel>
                           <FormControl>
@@ -524,7 +548,7 @@ export default function AuthPage({
                               placeholder="name@example.com"
                               type="email"
                               {...field}
-                              className="h-11 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20"
+                              className="h-11 bg-muted/20 border-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20"
                             />
                           </FormControl>
                           <FormMessage />
@@ -537,7 +561,7 @@ export default function AuthPage({
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-zinc-300 font-medium">
+                          <FormLabel className="text-foreground font-medium">
                             {t("password_label")}
                           </FormLabel>
                           <FormControl>
@@ -545,7 +569,7 @@ export default function AuthPage({
                               placeholder="••••••••"
                               type="password"
                               {...field}
-                              className="h-11 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20"
+                              className="h-11 bg-muted/20 border-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20"
                             />
                           </FormControl>
                           <FormMessage />
@@ -559,7 +583,7 @@ export default function AuthPage({
                         name="confirmPassword"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-zinc-300 font-medium">
+                            <FormLabel className="text-foreground font-medium">
                               {t("confirm_password_label")}
                             </FormLabel>
                             <FormControl>
@@ -567,7 +591,7 @@ export default function AuthPage({
                                 placeholder="••••••••"
                                 type="password"
                                 {...field}
-                                className="h-11 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-primary focus:ring-primary/20"
+                                className="h-11 bg-muted/20 border-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20"
                               />
                             </FormControl>
                             <FormMessage />
@@ -605,10 +629,10 @@ export default function AuthPage({
 
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-white/10" />
+                    <span className="w-full border-t border-border" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-zinc-950 px-3 text-zinc-500 font-medium text-xs">
+                    <span className="bg-background px-3 text-muted-foreground font-medium text-xs">
                       {t("or_continue_with")}
                     </span>
                   </div>
@@ -617,7 +641,7 @@ export default function AuthPage({
                 <Button
                   variant="outline"
                   type="button"
-                  className="w-full h-11 font-semibold bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 hover:text-white transition-all"
+                  className="w-full h-11 font-semibold bg-card border-border text-foreground hover:bg-muted/50 transition-all"
                   onClick={handleGoogleAuth}
                 >
                   <Image
@@ -634,7 +658,7 @@ export default function AuthPage({
           </div>
 
           {/* Bottom link pinned outside the scroll area */}
-          <div className="w-full max-w-md shrink-0 text-center text-sm text-zinc-500 pb-8">
+          <div className="w-full max-w-md shrink-0 text-center text-sm text-muted-foreground pb-8">
             <p>
               {mode === "login"
                 ? t("dont_have_account")

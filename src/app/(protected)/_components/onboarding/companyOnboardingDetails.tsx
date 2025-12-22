@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sun, Moon, Computer } from "lucide-react";
 import { createCompany, updateCompanyProfile } from "@/models/api/company";
 import { useApp } from "@/context/AppContext";
 import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
@@ -21,6 +21,7 @@ import { firebaseAuth } from "@/config/firebase";
 import { toast } from "sonner";
 import { logError } from "@/utils/errors";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 
 export const CompanyOnboardingDetails = ({
   isEditing = false,
@@ -35,6 +36,7 @@ export const CompanyOnboardingDetails = ({
   const { companyData, setCompanyData } = useApp();
   const [user] = useAuthState(firebaseAuth);
   const [signOut] = useSignOut(firebaseAuth);
+  const { setTheme } = useTheme();
 
   const stepFields = {
     1: ["name", "mobile", "city"],
@@ -145,19 +147,46 @@ export const CompanyOnboardingDetails = ({
   };
 
   return (
-    <section className="flex flex-col justify-center items-center h-screen w-full">
-      <Button
-        variant={"link"}
-        onClick={() => (isEditing && onCancel ? onCancel() : signOut())}
-        className="absolute top-4 right-4"
-      >
-        {isEditing ? "Cancel" : "Logout"}
-      </Button>
+    <section className="flex flex-col justify-center items-center h-screen w-full relative">
+      <div className="absolute top-4 right-4 flex items-center gap-4">
+        <div className="flex gap-1 border rounded-full px-2 py-[0.5px] bg-background/50 backdrop-blur-sm">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setTheme("light")}
+          >
+            <Sun className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setTheme("dark")}
+          >
+            <Moon className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setTheme("system")}
+          >
+            <Computer className="h-4 w-4" />
+          </Button>
+        </div>
+        <Button
+          variant={"link"}
+          onClick={() => (isEditing && onCancel ? onCancel() : signOut())}
+        >
+          {isEditing ? "Cancel" : "Logout"}
+        </Button>
+      </div>
 
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmitProfileDetails)}
-          className="w-[50vw] lg:w-[30vw] relative bg-[#0f0f11] border border-white/10 
+          className="w-[50vw] lg:w-[30vw] relative bg-card text-card-foreground border border-border 
         rounded-2xl 
         shadow-2xl 
         flex flex-col p-xl overflow-hidden"
