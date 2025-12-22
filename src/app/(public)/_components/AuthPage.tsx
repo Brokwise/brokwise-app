@@ -467,7 +467,7 @@ export default function AuthPage({
                   i18n.resolvedLanguage || i18n.language?.split("-")[0] || "en"
                 }
               >
-                <SelectTrigger className="w-[180px] bg-background border-input">
+                <SelectTrigger className="w-[130px] bg-background border-input">
                   <SelectValue placeholder={t("select_language")} />
                 </SelectTrigger>
                 <SelectContent>
