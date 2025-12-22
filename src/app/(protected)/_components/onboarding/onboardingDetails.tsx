@@ -13,7 +13,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Sun, Moon, Computer } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Sun,
+  Moon,
+  Computer,
+  Loader2,
+  Upload,
+} from "lucide-react";
 import { submitUserDetails, updateProfileDetails } from "@/models/api/user";
 import { useApp } from "@/context/AppContext";
 import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
@@ -29,6 +37,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
 
 // Required field indicator component
 const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
@@ -48,6 +58,7 @@ export const OnboardingDetails = ({
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { brokerData, setBrokerData } = useApp();
   const [user] = useAuthState(firebaseAuth);
   const [signOut] = useSignOut(firebaseAuth);
@@ -58,11 +69,11 @@ export const OnboardingDetails = ({
     setMounted(true);
   }, []);
 
-  const activeTheme = mounted ? (resolvedTheme ?? theme) : undefined;
+  const activeTheme = mounted ? resolvedTheme ?? theme : undefined;
   const isSystemTheme = mounted && theme === "system";
 
   const stepFields = {
-    1: ["firstName", "lastName", "mobile"],
+    1: ["profilePhoto", "firstName", "lastName", "mobile"],
     2: ["companyName", "gstin", "yearsOfExperience"],
     3: ["city", "officeAddress", "reraNumber"],
   };
@@ -71,6 +82,7 @@ export const OnboardingDetails = ({
     resolver: zodResolver(submitProfileDetails),
     mode: "onChange",
     defaultValues: {
+      profilePhoto: brokerData?.profilePhoto,
       firstName:
         brokerData?.firstName || user?.displayName?.split(" ")[0] || "",
       lastName: brokerData?.lastName || user?.displayName?.split(" ")[1] || "",
@@ -89,12 +101,11 @@ export const OnboardingDetails = ({
   const onSubmitProfileDetails = async (
     data: z.infer<typeof submitProfileDetails>
   ) => {
-    console.log(user);
-    console.log(brokerData);
     if (!user || !brokerData) {
       toast.error("User or broker data not found");
       return;
     }
+    console.log(data);
 
     try {
       setLoading(true);
@@ -105,7 +116,6 @@ export const OnboardingDetails = ({
           ...data,
         });
 
-        // Update broker data in context
         setBrokerData({
           ...brokerData,
           ...data,
@@ -127,6 +137,7 @@ export const OnboardingDetails = ({
           city: data.city,
           officeAddress: data.officeAddress,
           reraNumber: data.reraNumber,
+          profilePhoto: data.profilePhoto,
         });
 
         // Update broker data in context
@@ -192,6 +203,23 @@ export const OnboardingDetails = ({
   // Calculate progress
   const totalSteps = 3;
   const progress = (step / totalSteps) * 100;
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        setUploading(true);
+        const path = generateFilePath(file.name, "profile-photos");
+        const downloadURL = await uploadFileToFirebase(file, path);
+        form.setValue("profilePhoto", downloadURL);
+        toast.success("Profile photo uploaded successfully");
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        toast.error("Failed to upload profile photo");
+      } finally {
+        setUploading(false);
+      }
+    }
+  };
 
   return (
     <section className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-[#020617] transition-colors duration-500">
@@ -202,10 +230,11 @@ export const OnboardingDetails = ({
             variant="ghost"
             size="icon"
             onClick={() => setTheme("light")}
-            className={`h-7 w-7 rounded-full transition-all ${activeTheme === "light"
-              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
+            className={`h-7 w-7 rounded-full transition-all ${
+              activeTheme === "light"
+                ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+                : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+            }`}
           >
             <Sun className="h-3.5 w-3.5" />
           </Button>
@@ -213,10 +242,11 @@ export const OnboardingDetails = ({
             variant="ghost"
             size="icon"
             onClick={() => setTheme("dark")}
-            className={`h-7 w-7 rounded-full transition-all ${activeTheme === "dark"
-              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
+            className={`h-7 w-7 rounded-full transition-all ${
+              activeTheme === "dark"
+                ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+                : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+            }`}
           >
             <Moon className="h-3.5 w-3.5" />
           </Button>
@@ -224,10 +254,11 @@ export const OnboardingDetails = ({
             variant="ghost"
             size="icon"
             onClick={() => setTheme("system")}
-            className={`h-7 w-7 rounded-full transition-all ${isSystemTheme
-              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
+            className={`h-7 w-7 rounded-full transition-all ${
+              isSystemTheme
+                ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+                : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+            }`}
           >
             <Computer className="h-3.5 w-3.5" />
           </Button>
@@ -257,15 +288,276 @@ export const OnboardingDetails = ({
               transition={{ duration: 0.5, ease: "circOut" }}
             />
           </div>
+          <h1 className="text-3xl">
+            {isEditing ? "Update your" : "Let's setup your"}
+            <span className="text-primary font-instrument-serif italic">
+              {" "}
+              profile
+            </span>
+          </h1>
+          <div className="grid grid-cols-1">
+            <AnimatePresence custom={direction} initial={false}>
+              <motion.div
+                key={step}
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="space-y-4 col-start-1 row-start-1"
+              >
+                {step === 1 && (
+                  <>
+                    <div className="flex justify-center mb-6">
+                      <FormField
+                        control={form.control}
+                        name="profilePhoto"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <div className="relative group cursor-pointer">
+                                <Avatar className="h-24 w-24">
+                                  <AvatarImage src={field.value} />
+                                  <AvatarFallback className="bg-muted">
+                                    {uploading ? (
+                                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                                    ) : (
+                                      <span className="text-2xl font-bold text-muted-foreground">
+                                        {form
+                                          .getValues("firstName")
+                                          ?.charAt(0) || "U"}
+                                      </span>
+                                    )}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div
+                                  className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() =>
+                                    document
+                                      .getElementById("profile-upload")
+                                      ?.click()
+                                  }
+                                >
+                                  <Upload className="h-6 w-6 text-white" />
+                                </div>
+                                <Input
+                                  id="profile-upload"
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={handleFileChange}
+                                  disabled={uploading}
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            <RequiredLabel>First Name</RequiredLabel>
+                          </FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            <RequiredLabel>Last Name</RequiredLabel>
+                          </FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="mobile"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            <RequiredLabel>Mobile Number</RequiredLabel>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="tel"
+                              maxLength={10}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(0, 10);
+                                field.onChange(value);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
+                {step === 2 && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="companyName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-zinc-400">
+                            Company Name{" "}
+                            <span className="text-zinc-500">(Optional)</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="gstin"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-zinc-400">
+                            GSTIN{" "}
+                            <span className="text-zinc-500">(Optional)</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              maxLength={15}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                  .toUpperCase()
+                                  .slice(0, 15);
+                                field.onChange(value);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="yearsOfExperience"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            <RequiredLabel>Years of Experience</RequiredLabel>
+                          </FormLabel>
+                          <FormControl>
+                            <Select
+                              {...field}
+                              onValueChange={(e) => {
+                                field.onChange(parseInt(e));
+                              }}
+                              value={
+                                field.value !== undefined
+                                  ? field.value.toString()
+                                  : undefined
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Years of Experience" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[...Array(16)].map((_, index) => (
+                                  <SelectItem
+                                    key={index}
+                                    value={index.toString()}
+                                  >
+                                    {index === 15 ? "15+" : index}{" "}
+                                    {index === 1 ? "year" : "years"}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
+                {step === 3 && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="officeAddress"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Office Address</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="reraNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>RERA Number (Optional)</FormLabel>
+                          <FormControl>
+                            <Input {...field} maxLength={50} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
           <div className="p-8 md:p-12 space-y-8">
             {/* Header */}
             <div className="space-y-2">
               <div className="flex justify-between items-baseline">
                 <h1 className="text-3xl md:text-4xl font-instrument-serif text-slate-900 dark:text-slate-50">
-                  {isEditing ? "Update your profile" : (
+                  {isEditing ? (
+                    "Update your profile"
+                  ) : (
                     <>
-                      Let&apos;s setup your <span className="text-[#0F766E] italic">profile</span>
+                      Let&apos;s setup your{" "}
+                      <span className="text-[#0F766E] italic">profile</span>
                     </>
                   )}
                 </h1>
@@ -349,7 +641,9 @@ export const OnboardingDetails = ({
                                 className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
                                 placeholder="e.g. 9876543210"
                                 onChange={(e) => {
-                                  const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+                                  const value = e.target.value
+                                    .replace(/\D/g, "")
+                                    .slice(0, 10);
                                   field.onChange(value);
                                 }}
                               />
@@ -369,7 +663,10 @@ export const OnboardingDetails = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                              Company Name <span className="text-slate-400 text-xs ml-1 font-normal">(Optional)</span>
+                              Company Name{" "}
+                              <span className="text-slate-400 text-xs ml-1 font-normal">
+                                (Optional)
+                              </span>
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -389,7 +686,10 @@ export const OnboardingDetails = ({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                GSTIN <span className="text-slate-400 text-xs ml-1 font-normal">(Optional)</span>
+                                GSTIN{" "}
+                                <span className="text-slate-400 text-xs ml-1 font-normal">
+                                  (Optional)
+                                </span>
                               </FormLabel>
                               <FormControl>
                                 <Input
@@ -398,7 +698,9 @@ export const OnboardingDetails = ({
                                   className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all uppercase placeholder:normal-case"
                                   placeholder="GSTIN Number"
                                   onChange={(e) => {
-                                    const value = e.target.value.toUpperCase().slice(0, 15);
+                                    const value = e.target.value
+                                      .toUpperCase()
+                                      .slice(0, 15);
                                     field.onChange(value);
                                   }}
                                 />
@@ -417,16 +719,26 @@ export const OnboardingDetails = ({
                               </FormLabel>
                               <FormControl>
                                 <Select
-                                  onValueChange={(e) => field.onChange(parseInt(e))}
-                                  value={field.value !== undefined ? field.value.toString() : undefined}
+                                  onValueChange={(e) =>
+                                    field.onChange(parseInt(e))
+                                  }
+                                  value={
+                                    field.value !== undefined
+                                      ? field.value.toString()
+                                      : undefined
+                                  }
                                 >
                                   <SelectTrigger className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all">
                                     <SelectValue placeholder="Years" />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {[...Array(16)].map((_, index) => (
-                                      <SelectItem key={index} value={index.toString()}>
-                                        {index === 15 ? "15+" : index} {index === 1 ? "year" : "years"}
+                                      <SelectItem
+                                        key={index}
+                                        value={index.toString()}
+                                      >
+                                        {index === 15 ? "15+" : index}{" "}
+                                        {index === 1 ? "year" : "years"}
                                       </SelectItem>
                                     ))}
                                   </SelectContent>
@@ -486,7 +798,10 @@ export const OnboardingDetails = ({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                              RERA Number <span className="text-slate-400 text-xs ml-1 font-normal">(Optional)</span>
+                              RERA Number{" "}
+                              <span className="text-slate-400 text-xs ml-1 font-normal">
+                                (Optional)
+                              </span>
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -531,7 +846,11 @@ export const OnboardingDetails = ({
                   bg-[#0F172A] text-white hover:bg-[#1E293B]
                   dark:bg-white dark:text-[#0F172A] dark:hover:bg-slate-200
                   transition-all duration-300
-                  ${step === 3 && !isValid && !loading ? "opacity-50 cursor-not-allowed" : "hover:shadow-lg hover:-translate-y-0.5"}
+                  ${
+                    step === 3 && !isValid && !loading
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:shadow-lg hover:-translate-y-0.5"
+                  }
                 `}
               >
                 {loading ? (
@@ -541,13 +860,16 @@ export const OnboardingDetails = ({
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    {step === 3 ? (isEditing ? "Update Profile" : "Complete Setup") : "Continue"}
+                    {step === 3
+                      ? isEditing
+                        ? "Update Profile"
+                        : "Complete Setup"
+                      : "Continue"}
                     {step < 3 && <ArrowRight className="h-4 w-4" />}
                   </div>
                 )}
               </Button>
             </div>
-
           </div>
         </form>
       </Form>

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const submitProfileDetails = z.object({
+  profilePhoto: z.string().optional(),
   firstName: z
     .string()
     .min(3, { message: "First name must be at least 3 characters long" }),
@@ -14,7 +15,9 @@ export const submitProfileDetails = z.object({
   companyName: z
     .string()
     .min(3, { message: "Company name must be at least 3 characters long" })
-    .regex(/[a-zA-Z]/, { message: "Company name must contain at least one letter" })
+    .regex(/[a-zA-Z]/, {
+      message: "Company name must contain at least one letter",
+    })
     .optional()
     .or(z.literal("")),
   gstin: z
@@ -51,9 +54,7 @@ export const loginFormSchema = z.object({
 export const getLoginFormSchema = (t: (key: string) => string) =>
   z.object({
     email: z.string().email({ message: t("invalid_email") }),
-    password: z
-      .string()
-      .min(8, { message: t("password_min_length") }),
+    password: z.string().min(8, { message: t("password_min_length") }),
   });
 
 export const signupFormSchema = z
@@ -75,12 +76,8 @@ export const getSignupFormSchema = (t: (key: string) => string) =>
   z
     .object({
       email: z.string().email({ message: t("invalid_email") }),
-      password: z
-        .string()
-        .min(8, { message: t("password_min_length") }),
-      confirmPassword: z
-        .string()
-        .min(8, { message: t("password_min_length") }),
+      password: z.string().min(8, { message: t("password_min_length") }),
+      confirmPassword: z.string().min(8, { message: t("password_min_length") }),
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: t("passwords_do_not_match"),

@@ -30,6 +30,7 @@ export type SubmitUserDetailsRequest = {
   email: string;
   _id: string;
   mobile: string;
+  profilePhoto?: string;
   companyName?: string;
   gstin?: string;
   yearsOfExperience: number;
@@ -44,6 +45,7 @@ export type UpdateProfileDetailsRequest = {
   firstName?: string;
   lastName?: string;
   mobile?: string;
+  profilePhoto?: string;
   companyName?: string;
   gstin?: string;
   yearsOfExperience?: number;
@@ -78,5 +80,6 @@ export type GetBrokerDetailsResponse = {
     bookmarkedEnquiryIds?: string[];
     createdAt: string;
     brokerId: string;
+    profilePhoto?: string;
   };
 };
