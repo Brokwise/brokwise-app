@@ -92,6 +92,36 @@ export interface Address {
   pincode: string;
 }
 
+export type OfferStatus =
+  | "pending"
+  | "accepted"
+  | "rejected"
+  | "final_pending"
+  | "final_accepted"
+  | "final_rejected";
+
+export interface PropertyOffer {
+  _id?: string;
+  offerBy: string;
+  rate: number;
+  status: OfferStatus;
+  rejectionReason?: string;
+  isFinalOffer: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface OfferDataDTO {
+  propertyId: string;
+  rate: number;
+}
+
+export interface SubmitFinalOfferDTO {
+  propertyId: string;
+  offerId: string;
+  rate: number;
+}
+
 //  Main Property Interface
 
 export interface Property {
@@ -165,9 +195,10 @@ export interface Property {
 
   // Commercial - Hotel
   rooms?: number;
+  beds?: number;
 
   // Commercial - Hostel
-  beds?: number;
+  // beds?: number; // Duplicate in source, removed
 
   // Amenities
   amenities?: string[];
@@ -178,6 +209,7 @@ export interface Property {
   deletingStatus?: "pending" | "approved" | "rejected" | null;
 
   submittedForEnquiryId?: string;
+  offers?: PropertyOffer[];
 }
 
 export interface PaginatedPropertyResponse {

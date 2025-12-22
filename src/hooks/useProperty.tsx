@@ -12,6 +12,9 @@ import {
   Property,
   ListingStatus,
   PaginatedPropertyResponse,
+  OfferDataDTO,
+  SubmitFinalOfferDTO,
+  PropertyOffer,
 } from "@/types/property";
 
 export const useAddProperty = () => {
@@ -193,4 +196,80 @@ export const useSavePropertyAsDraft = () => {
     },
   });
   return { savePropertyAsDraft: mutateAsync, isPending, error };
+};
+
+export const useOfferPrice = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending, error } = useMutation<
+    PropertyOffer,
+    AxiosError<{ message: string }>,
+    OfferDataDTO
+  >({
+    mutationFn: async (data: OfferDataDTO) => {
+      return (await api.post("/property/offerPrice", data)).data.data;
+    },
+    onSuccess: (_, variables) => {
+      toast.success("Offer submitted successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["property", variables.propertyId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["broker-offers"] });
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "An unknown error occurred while submitting offer.";
+      toast.error(errorMessage);
+    },
+  });
+  return { offerPrice: mutateAsync, isPending, error };
+};
+
+export const useSubmitFinalOffer = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending, error } = useMutation<
+    PropertyOffer,
+    AxiosError<{ message: string }>,
+    SubmitFinalOfferDTO
+  >({
+    mutationFn: async (data: SubmitFinalOfferDTO) => {
+      return (await api.post("/property/submitFinalOffer", data)).data.data;
+    },
+    onSuccess: (_, variables) => {
+      toast.success("Final offer submitted successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["property", variables.propertyId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["broker-offers"] });
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "An unknown error occurred while submitting final offer.";
+      toast.error(errorMessage);
+    },
+  });
+  return { submitFinalOffer: mutateAsync, isPending, error };
+};
+
+export const useGetBrokerOffers = (options?: { enabled?: boolean }) => {
+  const api = useAxios();
+  const {
+    data: offers,
+    isLoading,
+    error,
+  } = useQuery<{ property: any; offer: PropertyOffer }[]>({
+    queryKey: ["broker-offers"],
+    queryFn: async () => {
+      return (await api.get("/property/broker/offers")).data.data;
+    },
+    enabled: options?.enabled ?? true,
+  });
+  return { offers, isLoading, error };
 };

@@ -32,6 +32,7 @@ import { MapBox } from "./_components/mapBox";
 import { KeyFeatures } from "./_components/keyFeatures";
 import { AdditionalDetails } from "./_components/additionalDetails";
 import { ContactSeller } from "./_components/contactSeller";
+import { MakeOffer } from "./_components/makeOffer";
 import { formatCurrency, formatAddress } from "@/utils/helper";
 import { useRouter } from "next/navigation";
 
@@ -392,6 +393,8 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
           {property.listedBy._id !== brokerData?._id && (
             <ContactSeller property={property} />
           )}
+
+          <MakeOffer property={property} />
 
           <Card>
             <CardHeader>
