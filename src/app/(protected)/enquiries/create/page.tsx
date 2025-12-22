@@ -124,6 +124,24 @@ const findNearestBudgetIndex = (value: number) => {
   return bestIdx;
 };
 
+// --- Constants ---
+
+const CATEGORY_TYPE_MAP: Record<PropertyCategory, PropertyType[]> = {
+  RESIDENTIAL: ["FLAT", "VILLA", "LAND"],
+  COMMERCIAL: [
+    "SHOWROOM",
+    "HOTEL",
+    "HOSTEL",
+    "SHOP",
+    "OFFICE_SPACE",
+    "OTHER_SPACE",
+  ],
+  INDUSTRIAL: ["INDUSTRIAL_PARK", "INDUSTRIAL_LAND", "WAREHOUSE"],
+  AGRICULTURAL: ["AGRICULTURAL_LAND"],
+  RESORT: ["RESORT"],
+  FARM_HOUSE: ["FARM_HOUSE", "INDIVIDUAL"],
+};
+
 const budgetRangeSchema = z
   .object({
     min: z
@@ -146,8 +164,8 @@ const budgetRangeSchema = z
 
 const sizeRangeSchema = z
   .object({
-    min: z.number().min(0),
-    max: z.number().min(0),
+    min: z.number().min(1, "Minimum size must be at least 1"),
+    max: z.number().min(1, "Maximum size must be at least 1"),
     unit: z.enum([
       "SQ_FT",
       "SQ_METER",
@@ -162,6 +180,23 @@ const sizeRangeSchema = z
     path: ["max"],
   });
 
+// react-hook-form can materialize nested objects for registered fields even when "empty".
+// Treat an empty size object as undefined so the form doesn't become invalid unexpectedly.
+const optionalSizeRangeSchema = z.preprocess((val) => {
+  if (!val || typeof val !== "object") return undefined;
+  const v = val as Record<string, unknown>;
+  const min = v.min as unknown;
+  const max = v.max as unknown;
+  const unit = v.unit as unknown;
+
+  const isEmpty =
+    (min === undefined || min === null || min === 0 || min === "") &&
+    (max === undefined || max === null || max === 0 || max === "") &&
+    (unit === undefined || unit === null || unit === "");
+
+  return isEmpty ? undefined : val;
+}, sizeRangeSchema.optional());
+
 const rentalIncomeRangeSchema = z
   .object({
     min: z.number().min(0),
@@ -173,16 +208,16 @@ const rentalIncomeRangeSchema = z
   });
 
 const createEnquirySchema = z.object({
-  address: z.string().min(3),
-  addressPlaceId: z
-    .string()
-    .min(1, "Please select an address from suggestions"),
-  // Required for company enquiries (backend expects these); safe to include for brokers too.
-  city: z.string().min(2, "City is required").max(50, "City is too long"),
-  localities: z
-    .array(z.string().min(2).max(100))
-    .min(1, "At least one locality is required")
-    .max(10, "Maximum 10 localities allowed"),
+  // Internal flags (not sent to API)
+  locationMode: z.enum(["search", "manual"]),
+  isCompany: z.boolean(),
+
+  address: z.string().min(3, "Address is required"),
+  addressPlaceId: z.string().optional(),
+
+  // Company endpoint requires these; brokers can submit without them.
+  city: z.string().max(50, "City is too long").optional(),
+  localities: z.array(z.string().min(2).max(100)).max(10).optional(),
   enquiryCategory: z.enum(
     [
       "RESIDENTIAL",
@@ -202,7 +237,7 @@ const createEnquirySchema = z.object({
     .max(2000, "Description cannot exceed 2000 characters"),
 
   // Optional Fields
-  size: sizeRangeSchema.optional(),
+  size: optionalSizeRangeSchema,
   plotType: z.enum(["ROAD", "CORNER"] as [string, ...string[]]).optional(),
   facing: z
     .enum([
@@ -268,27 +303,132 @@ const createEnquirySchema = z.object({
   areaType: z
     .enum(["NEAR_RING_ROAD", "RIICO_AREA", "SEZ"] as [string, ...string[]])
     .optional(),
+}).superRefine((data, ctx) => {
+  // Location requirements
+  if (data.locationMode === "search") {
+    if (!data.addressPlaceId || !data.addressPlaceId.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["addressPlaceId"],
+        message: "Please select an address from suggestions",
+      });
+    }
+  }
+
+  if (data.isCompany) {
+    if (!data.city || data.city.trim().length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["city"],
+        message: "City is required",
+      });
+    }
+
+    const locs = Array.isArray(data.localities)
+      ? data.localities
+          .map((l) => l.trim())
+          .filter((l) => l.length >= 2)
+      : [];
+
+    if (locs.length < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["localities"],
+        message: "At least one locality is required",
+      });
+    }
+  }
+
+  // Category ↔ Type compatibility
+  const category = data.enquiryCategory as PropertyCategory | undefined;
+  const type = data.enquiryType as PropertyType | string | undefined;
+
+  if (category && type) {
+    const validTypes = CATEGORY_TYPE_MAP[category] || [];
+    if (!validTypes.includes(type as PropertyType)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["enquiryType"],
+        message: "Enquiry type does not match the selected category",
+      });
+    }
+  }
+
+  // Backend parity: required fields per type/category
+  if (category === "RESIDENTIAL" && type === "FLAT") {
+    if (
+      typeof data.bhk !== "number" ||
+      Number.isNaN(data.bhk) ||
+      data.bhk < 1
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["bhk"],
+        message: "BHK is required for Flat enquiries",
+      });
+    }
+  }
+
+  if (category === "COMMERCIAL" && type === "HOTEL") {
+    if (
+      typeof data.rooms !== "number" ||
+      Number.isNaN(data.rooms) ||
+      data.rooms < 1
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["rooms"],
+        message: "Number of rooms is required for Hotel enquiries",
+      });
+    }
+  }
+
+  if (category === "COMMERCIAL" && type === "HOSTEL") {
+    if (
+      typeof data.beds !== "number" ||
+      Number.isNaN(data.beds) ||
+      data.beds < 1
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["beds"],
+        message: "Number of beds is required for Hostel enquiries",
+      });
+    }
+  }
+
+  const typesRequiringSize = new Set<string>([
+    "LAND",
+    "VILLA",
+    "WAREHOUSE",
+    "INDUSTRIAL_LAND",
+    "AGRICULTURAL_LAND",
+    "SHOWROOM",
+    "SHOP",
+    "OFFICE_SPACE",
+  ]);
+
+  if (type && typesRequiringSize.has(String(type)) && !data.size) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["size"],
+      message: "Size range is required for this enquiry type",
+    });
+  }
+
+  if (category === "INDUSTRIAL") {
+    const p = (data.purpose ?? "").toString().trim();
+    if (p.length < 5) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["purpose"],
+        message: "Purpose is required for Industrial enquiries (min 5 chars)",
+      });
+    }
+  }
 });
 
 type CreateEnquiryFormValues = z.infer<typeof createEnquirySchema>;
-
-// --- Constants ---
-
-const CATEGORY_TYPE_MAP: Record<PropertyCategory, PropertyType[]> = {
-  RESIDENTIAL: ["FLAT", "VILLA", "LAND"],
-  COMMERCIAL: [
-    "SHOWROOM",
-    "HOTEL",
-    "HOSTEL",
-    "SHOP",
-    "OFFICE_SPACE",
-    "OTHER_SPACE",
-  ],
-  INDUSTRIAL: ["INDUSTRIAL_PARK", "INDUSTRIAL_LAND", "WAREHOUSE"],
-  AGRICULTURAL: ["AGRICULTURAL_LAND"],
-  RESORT: ["RESORT"],
-  FARM_HOUSE: ["FARM_HOUSE", "INDIVIDUAL"],
-};
 
 const CreateEnquiryPage = () => {
   const router = useRouter();
@@ -304,6 +444,8 @@ const CreateEnquiryPage = () => {
     resolver: zodResolver(createEnquirySchema) as any,
     mode: "onChange",
     defaultValues: {
+      locationMode: "search",
+      isCompany: false,
       address: "",
       addressPlaceId: "",
       city: "",
@@ -313,26 +455,63 @@ const CreateEnquiryPage = () => {
     },
   });
 
-  const { watch, setValue, control, formState, trigger } = form;
-  const { isValid } = formState;
+  const { watch, setValue, control, trigger, register } = form;
+  const locationMode = watch("locationMode");
   const selectedCategory = watch("enquiryCategory");
   const selectedType = watch("enquiryType");
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("enquiryType", "" as any);
+    setValue("enquiryType", "" as any, { shouldValidate: true, shouldDirty: true });
+
+    // Clear type-specific fields when category changes to avoid stale values failing backend rules.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("size", undefined as any, { shouldValidate: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("plotType", undefined as any, { shouldValidate: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("facing", undefined as any, { shouldValidate: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("frontRoadWidth", undefined as any, { shouldValidate: true });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("bhk", undefined as any, { shouldValidate: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("washrooms", undefined as any, { shouldValidate: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("preferredFloor", undefined as any, { shouldValidate: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("society", undefined as any, { shouldValidate: true });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("rooms", undefined as any, { shouldValidate: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("beds", undefined as any, { shouldValidate: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("rentalIncome", undefined as any, { shouldValidate: true });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("purpose", undefined as any, { shouldValidate: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setValue("areaType", undefined as any, { shouldValidate: true });
   }, [selectedCategory, setValue]);
+
+  useEffect(() => {
+    setValue("isCompany", !!companyData, { shouldValidate: true });
+  }, [companyData, setValue]);
 
   const onSubmit = (data: CreateEnquiryFormValues) => {
     // We only send the final address string today; placeId is used to enforce "selected from suggestions"
     // and can be stored later if backend supports it.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { addressPlaceId, ...rest } = data;
+    const payload: Record<string, unknown> = { ...(data as unknown as Record<string, unknown>) };
+    delete payload.addressPlaceId;
+    delete payload.locationMode;
+    delete payload.isCompany;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const payload = rest as unknown as CreateEnquiryDTO;
+    const finalPayload = payload as unknown as CreateEnquiryDTO;
 
     if (companyData) {
-      createCompanyEnquiry(payload, {
+      createCompanyEnquiry(finalPayload, {
         onSuccess: () => {
           toast.success("Enquiry created successfully!");
           form.reset();
@@ -346,7 +525,7 @@ const CreateEnquiryPage = () => {
         },
       });
     } else {
-      createEnquiry(payload, {
+      createEnquiry(finalPayload, {
         onSuccess: () => {
           toast.success("Enquiry created successfully!");
           form.reset();
@@ -442,161 +621,182 @@ const CreateEnquiryPage = () => {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Internal form flags for conditional validation */}
+              <input type="hidden" {...register("locationMode")} />
+              <input type="hidden" {...register("isCompany")} />
+
               {/* --- Location --- */}
               <div className="space-y-4">
-                <FormField
-                  control={control}
-                  name="addressPlaceId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Address <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <AddressAutocomplete
-                          valueLabel={watch("address")}
-                          valueId={field.value}
-                          disabled={isPending}
-                          onSelect={(item) => {
-                            const derived = deriveCityAndLocalities(item);
-                            setValue("address", item.place_name, {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            });
-                            setValue("city", derived.city, {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            });
-                            setValue("localities", derived.localities, {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            });
-                            field.onChange(item.id);
-                          }}
-                          onClear={() => {
-                            setValue("address", "", {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            });
-                            setValue("city", "", {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            });
-                            setValue("localities", [], {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            });
-                            field.onChange("");
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {locationMode === "search" ? (
+                  <FormField
+                    control={control}
+                    name="addressPlaceId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Address <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <AddressAutocomplete
+                            valueLabel={watch("address")}
+                            valueId={field.value ?? ""}
+                            disabled={isPending}
+                            onSearchError={(msg) => {
+                              toast.error(msg);
+                              setValue("locationMode", "manual", {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                              setValue("addressPlaceId", "", {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                            }}
+                            onSelect={(item) => {
+                              const derived = deriveCityAndLocalities(item);
+                              setValue("address", item.place_name, {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                              setValue("city", derived.city, {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                              setValue("localities", derived.localities, {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                              field.onChange(item.id);
+                            }}
+                            onClear={() => {
+                              setValue("address", "", {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                              setValue("city", "", {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                              setValue("localities", [], {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                              field.onChange("");
+                            }}
+                          />
+                        </FormControl>
+                        <div className="flex justify-end pt-1">
+                          <Button
+                            type="button"
+                            variant="link"
+                            className="h-auto p-0 text-xs"
+                            onClick={() => {
+                              setValue("locationMode", "manual", {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                              setValue("addressPlaceId", "", {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                            }}
+                          >
+                            Enter address manually
+                          </Button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <FormField
+                    control={control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Address <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Enter full address…"
+                            className="min-h-[90px]"
+                            disabled={isPending}
+                            {...field}
+                          />
+                        </FormControl>
+                        <div className="flex justify-end pt-1">
+                          <Button
+                            type="button"
+                            variant="link"
+                            className="h-auto p-0 text-xs"
+                            onClick={() => {
+                              setValue("locationMode", "search", {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                            }}
+                          >
+                            Use address search
+                          </Button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
-                {/* <FormField
-                  control={control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        City <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Pune" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                /> */}
-
-                {/* <FormField
-                  control={control}
-                  name="localities"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Localities <span className="text-red-500">*</span> (Max
-                        10)
-                      </FormLabel>
-                      <FormControl>
-                        <div className="space-y-2">
-                          <div className="flex gap-2">
+                {companyData && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            City <span className="text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl>
                             <Input
-                              value={localityInput}
-                              onChange={(e) => setLocalityInput(e.target.value)}
-                              placeholder="Add a locality and press Enter or Add"
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault();
-                                  const val = localityInput.trim();
-                                  if (val && !field.value?.includes(val)) {
-                                    if ((field.value?.length || 0) >= 10) {
-                                      toast.error(
-                                        "Maximum 10 localities allowed"
-                                      );
-                                      return;
-                                    }
-                                    field.onChange([
-                                      ...(field.value || []),
-                                      val,
-                                    ]);
-                                    setLocalityInput("");
-                                  }
-                                }
+                              placeholder="e.g. Jaipur"
+                              disabled={isPending}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={control}
+                      name="localities"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Localities <span className="text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Comma-separated (max 10)"
+                              disabled={isPending}
+                              value={(field.value || []).join(", ")}
+                              onChange={(e) => {
+                                const next = e.target.value
+                                  .split(",")
+                                  .map((p) => p.trim())
+                                  .filter(Boolean)
+                                  .slice(0, 10);
+                                field.onChange(next);
                               }}
                             />
-                            <Button
-                              type="button"
-                              onClick={() => {
-                                const val = localityInput.trim();
-                                if (val && !field.value?.includes(val)) {
-                                  if ((field.value?.length || 0) >= 10) {
-                                    toast.error(
-                                      "Maximum 10 localities allowed"
-                                    );
-                                    return;
-                                  }
-                                  field.onChange([...(field.value || []), val]);
-                                  setLocalityInput("");
-                                }
-                              }}
-                              variant="secondary"
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {(field.value || []).map((loc) => (
-                              <Badge
-                                key={loc}
-                                variant="secondary"
-                                className="pl-2 pr-1 py-1"
-                              >
-                                {loc}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    field.onChange(
-                                      (field.value || []).filter(
-                                        (l) => l !== loc
-                                      )
-                                    );
-                                  }}
-                                  className="ml-2 hover:text-destructive"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                /> */}
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* --- Category & Type --- */}
@@ -1146,15 +1346,15 @@ const CreateEnquiryPage = () => {
 
               <Button
                 type="button"
-                className={`w-full ${
-                  !isValid && !isPending ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className="w-full"
                 disabled={isPending}
                 onClick={async () => {
                   const valid = await trigger();
-                  if (valid) {
-                    form.handleSubmit(onSubmit)();
+                  if (!valid) {
+                    toast.error("Please fill in all required fields.");
+                    return;
                   }
+                  form.handleSubmit(onSubmit)();
                 }}
               >
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

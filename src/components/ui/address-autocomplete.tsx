@@ -32,6 +32,7 @@ type Props = {
   valueId: string;
   onSelect: (item: AddressSuggestion) => void;
   onClear?: () => void;
+  onSearchError?: (message: string) => void;
   placeholder?: string;
   className?: string;
   disabled?: boolean;
@@ -43,6 +44,7 @@ export function AddressAutocomplete({
   valueId,
   onSelect,
   onClear,
+  onSearchError,
   placeholder = "Search address and select…",
   searchPlaceholder = "Type an address…",
   className,
@@ -54,6 +56,8 @@ export function AddressAutocomplete({
 
   const [loading, setLoading] = React.useState(false);
   const [items, setItems] = React.useState<AddressSuggestion[]>([]);
+  const [error, setError] = React.useState<string | null>(null);
+  const lastEmittedErrorRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -61,19 +65,53 @@ export function AddressAutocomplete({
     async function run() {
       if (!debouncedQuery || debouncedQuery.trim().length < 3) {
         setItems([]);
+        setError(null);
         return;
       }
 
       setLoading(true);
+      setError(null);
       try {
         const res = await fetch(
           `/api/places?q=${encodeURIComponent(debouncedQuery.trim())}&limit=5`,
           { cache: "no-store" }
         );
-        const data = (await res.json()) as { features?: AddressSuggestion[] };
+        let data: { features?: AddressSuggestion[]; error?: string } = {};
+        try {
+          data = (await res.json()) as {
+            features?: AddressSuggestion[];
+            error?: string;
+          };
+        } catch {
+          data = {};
+        }
+
+        if (!res.ok) {
+          const msg =
+            data?.error ||
+            `Address search failed (${res.status}). Please enter manually.`;
+          if (!cancelled) {
+            setItems([]);
+            setError(msg);
+            if (onSearchError && lastEmittedErrorRef.current !== msg) {
+              lastEmittedErrorRef.current = msg;
+              onSearchError(msg);
+            }
+          }
+          return;
+        }
+
         if (!cancelled) setItems(data.features ?? []);
       } catch {
-        if (!cancelled) setItems([]);
+        const msg = "Address search failed. Please enter manually.";
+        if (!cancelled) {
+          setItems([]);
+          setError(msg);
+          if (onSearchError && lastEmittedErrorRef.current !== msg) {
+            lastEmittedErrorRef.current = msg;
+            onSearchError(msg);
+          }
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -120,7 +158,12 @@ export function AddressAutocomplete({
                   Searching…
                 </div>
               )}
-              {!loading && items.length === 0 && query.trim().length > 2 && (
+              {!loading && !!error && (
+                <div className="py-4 px-3 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
+              {!loading && !error && items.length === 0 && query.trim().length > 2 && (
                 <CommandEmpty>No results found.</CommandEmpty>
               )}
               <CommandGroup>
