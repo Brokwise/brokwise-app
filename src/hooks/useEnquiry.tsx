@@ -104,15 +104,20 @@ export const useGetEnquirySubmissions = (enquiryId: string) => {
 export const useCloseEnquiry = () => {
   const api = useAxios();
   const queryClient = useQueryClient();
-  const { mutate, isPending, error } = useMutation<void, Error, string>({
+  const { mutate, mutateAsync, isPending, error } = useMutation<
+    void,
+    Error,
+    string
+  >({
     mutationFn: async (enquiryId) => {
       return (await api.patch(`/broker/enquiry/${enquiryId}/close`)).data.data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, enquiryId) => {
       queryClient.invalidateQueries({ queryKey: ["my-enquiries"] });
+      queryClient.invalidateQueries({ queryKey: ["enquiry", enquiryId] });
     },
   });
-  return { closeEnquiry: mutate, isPending, error };
+  return { closeEnquiry: mutate, closeEnquiryAsync: mutateAsync, isPending, error };
 };
 
 export const useGetReceivedProperties = (

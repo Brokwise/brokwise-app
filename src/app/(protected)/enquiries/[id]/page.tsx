@@ -73,6 +73,7 @@ const SingleEnquiry = () => {
   const { id } = useParams();
   const { brokerData } = useApp();
   const [confirmationText, setConfirmationText] = useState<string>("");
+  const [isCloseDialogOpen, setIsCloseDialogOpen] = useState(false);
   const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(
     null
   );
@@ -81,7 +82,7 @@ const SingleEnquiry = () => {
   const { enquiry, isPending, error } = useGetEnquiryById(id as string);
   const { myEnquiries } = useGetMyEnquiries();
   const { enquirySubmissions } = useGetEnquirySubmissions(id as string);
-  const { closeEnquiry, isPending: isPendingCloseEnquiry } = useCloseEnquiry();
+  const { closeEnquiryAsync, isPending: isPendingCloseEnquiry } = useCloseEnquiry();
   const isMyEnquiry =
     myEnquiries &&
     myEnquiries.length > 0 &&
@@ -189,7 +190,13 @@ const SingleEnquiry = () => {
         {/* Header Actions */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           {isMyEnquiry && enquiry.status === "active" && (
-            <Dialog>
+            <Dialog
+              open={isCloseDialogOpen}
+              onOpenChange={(open) => {
+                setIsCloseDialogOpen(open);
+                if (!open) setConfirmationText("");
+              }}
+            >
               <DialogTrigger asChild>
                 <Button variant="destructive">Close Enquiry</Button>
               </DialogTrigger>
@@ -212,9 +219,11 @@ const SingleEnquiry = () => {
                 <Button
                   variant="destructive"
                   className="w-full"
-                  onClick={() => {
+                  onClick={async () => {
                     if (confirmationText === enquiry.enquiryId) {
-                      closeEnquiry(enquiry._id);
+                      await closeEnquiryAsync(enquiry._id);
+                      setIsCloseDialogOpen(false);
+                      setConfirmationText("");
                     }
                   }}
                   disabled={
