@@ -23,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { propertyCategories } from "@/constants";
 import { H1 } from "@/components/text/h1";
+import { toast } from "sonner";
 
 const CreateProperty = () => {
   const [selectedCategory, setSelectedCategory] =
@@ -77,8 +78,8 @@ const CreateProperty = () => {
       setSelectedDraft(null);
       router.replace("/property/createProperty/success");
     } catch (error) {
-      // Error is already handled by the hook's onError callback
       console.error("Error creating property:", error);
+      toast.error("Failed to create property. Please try again.");
     }
   };
 

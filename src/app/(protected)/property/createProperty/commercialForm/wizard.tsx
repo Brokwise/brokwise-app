@@ -119,6 +119,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
           router.replace("/property/createProperty/success");
         } catch (error) {
           console.error("Error submitting form:", error);
+          toast.error("Failed to submit property. Please try again.");
         } finally {
           setIsSubmitting(false);
         }

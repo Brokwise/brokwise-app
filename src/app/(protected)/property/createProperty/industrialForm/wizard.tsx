@@ -115,6 +115,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
           router.replace("/property/createProperty/success");
         } catch (error) {
           console.error("Error submitting form:", error);
+          toast.error("Failed to submit property. Please try again.");
         } finally {
           setIsSubmitting(false);
         }
