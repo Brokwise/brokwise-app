@@ -1,5 +1,11 @@
 "use client";
-import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useMemo,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 import { motion } from "framer-motion";
 import { useGetAllProperties } from "@/hooks/useProperty";
 import { useGetAllMarketPlaceEnquiries } from "@/hooks/useEnquiry";
@@ -9,12 +15,7 @@ import { PropertyDetails } from "./_components/propertyDetails";
 import { EnquiryCard } from "./enquiries/_components/EnquiryCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  AlertCircle,
-  LayoutGridIcon,
-  MapPin,
-  Building2,
-} from "lucide-react";
+import { AlertCircle, LayoutGridIcon, MapPin, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/useDebounce";
 import Fuse from "fuse.js";
@@ -38,11 +39,19 @@ const EmptyState = ({ onClearFilters }: { onClearFilters: () => void }) => (
     <div className="h-16 w-16 rounded-full bg-muted/30 flex items-center justify-center mb-6">
       <Building2 className="h-7 w-7 text-muted-foreground/60" />
     </div>
-    <h3 className="text-2xl font-instrument-serif text-foreground mb-2">No properties found</h3>
+    <h3 className="text-2xl font-instrument-serif text-foreground mb-2">
+      No properties found
+    </h3>
     <p className="text-muted-foreground max-w-sm font-light">
-      We couldn&apos;t find any properties matching your criteria. Try adjusting your filters.
+      We couldn&apos;t find any properties matching your criteria. Try adjusting
+      your filters.
     </p>
-    <Button type="button" variant="link" className="mt-4 text-accent" onClick={onClearFilters}>
+    <Button
+      type="button"
+      variant="link"
+      className="mt-4 text-accent"
+      onClick={onClearFilters}
+    >
       Clear all filters
     </Button>
   </div>
@@ -53,7 +62,9 @@ const EmptyEnquiriesState = () => (
     <div className="h-16 w-16 rounded-full bg-muted/30 flex items-center justify-center mb-6">
       <Building2 className="h-7 w-7 text-muted-foreground/60" />
     </div>
-    <h3 className="text-2xl font-instrument-serif text-foreground mb-2">No enquiries found</h3>
+    <h3 className="text-2xl font-instrument-serif text-foreground mb-2">
+      No enquiries found
+    </h3>
     <p className="text-muted-foreground max-w-sm font-light">
       We couldn&apos;t find any enquiries matching your search.
     </p>
@@ -61,7 +72,9 @@ const EmptyEnquiriesState = () => (
 );
 
 const ProtectedPage = () => {
-  const [viewMode, setViewMode] = useState<"PROPERTIES" | "ENQUIRIES">("PROPERTIES");
+  const [viewMode, setViewMode] = useState<"PROPERTIES" | "ENQUIRIES">(
+    "PROPERTIES"
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const { properties, pagination, isLoading, error } = useGetAllProperties(
     currentPage,
@@ -76,9 +89,13 @@ const ProtectedPage = () => {
   /* State for Mobile Map Toggle */
   const [isMobileMapOpen, setIsMobileMapOpen] = useState(false);
   const [view, setView] = useState<"grid" | "map" | "split">("grid"); // Default to grid property-only view
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
+    null
+  );
   // Separate state for highlighted marker (triggered by "Show on Map" button)
-  const [highlightedPropertyId, setHighlightedPropertyId] = useState<string | null>(null);
+  const [highlightedPropertyId, setHighlightedPropertyId] = useState<
+    string | null
+  >(null);
   const [highlightRequestId, setHighlightRequestId] = useState(0);
 
   // The marketplace uses `lg` as the breakpoint for switching between split layout and map overlay.
@@ -113,16 +130,19 @@ const ProtectedPage = () => {
   }, [isBelowLg]);
 
   // Handle "Show on Map" button click from PropertyCard
-  const handleShowOnMap = useCallback((propertyId: string) => {
-    // Switch to split view (desktop) or enable map context (overlay layouts)
-    setView("split");
-    // Trigger marker highlight
-    setHighlightedPropertyId(propertyId);
-    // Ensure re-trigger even if the same property is clicked again
-    setHighlightRequestId((n) => n + 1);
-    // On overlay layouts (< lg), open the map overlay; on desktop, ensure overlay is closed.
-    setIsMobileMapOpen(isBelowLg);
-  }, [isBelowLg]);
+  const handleShowOnMap = useCallback(
+    (propertyId: string) => {
+      // Switch to split view (desktop) or enable map context (overlay layouts)
+      setView("split");
+      // Trigger marker highlight
+      setHighlightedPropertyId(propertyId);
+      // Ensure re-trigger even if the same property is clicked again
+      setHighlightRequestId((n) => n + 1);
+      // On overlay layouts (< lg), open the map overlay; on desktop, ensure overlay is closed.
+      setIsMobileMapOpen(isBelowLg);
+    },
+    [isBelowLg]
+  );
 
   const handleHighlightComplete = useCallback(() => {
     setHighlightedPropertyId(null);
@@ -326,8 +346,7 @@ const ProtectedPage = () => {
 
       // Category Filter
       const matchesCategory =
-        categoryFilter === "ALL" ||
-        enquiry.enquiryCategory === categoryFilter;
+        categoryFilter === "ALL" || enquiry.enquiryCategory === categoryFilter;
 
       // Price (Budget) Filter
       let matchesPrice = true;
@@ -534,21 +553,20 @@ const ProtectedPage = () => {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
+    show: { opacity: 1, y: 0 },
   };
 
   return (
     // Main Container - Cancel parent padding and fill viewport height
     // The layout wrapper has p-4 pt-[3px] pb-24 md:pb-[3px], we cancel it with negative margins
     <div className="-m-4 -mt-[3px] -mb-24 md:-mb-[3px] flex flex-col h-[calc(100vh-4rem)] overflow-hidden relative">
-
       {/* 1. TOP CONTROL BAR (Replaced with Component) */}
       <MarketplaceHeader
         viewMode={viewMode}
@@ -580,35 +598,49 @@ const ProtectedPage = () => {
         <>
           {/* 2. MAIN SPLIT CONTENT */}
           <div className="flex-1 flex overflow-hidden relative">
-
             {/* Left Panel - Property List Only */}
             <div
               className={`
             flex-col h-full overflow-y-auto scrollbar-hide transition-all duration-300
             ${view === "map" ? "hidden" : "flex"}
-            ${view === "grid" ? "w-full" : "w-full lg:w-[60%] xl:w-[55%] 2xl:w-[50%]"}
-            ${isMapOverlayActive ? 'hidden lg:flex' : ''}
+            ${
+              view === "grid"
+                ? "w-full"
+                : "w-full lg:w-[60%] xl:w-[55%] 2xl:w-[50%]"
+            }
+            ${isMapOverlayActive ? "hidden lg:flex" : ""}
           `}
             >
               {/* Increased top padding for better breathing room */}
               <div className="p-6 md:p-8 space-y-4 pb-24">
-
                 {/* Results Count (Desktop) */}
                 {!isLoading && (
                   <div className="hidden sm:flex items-center justify-between px-1">
                     <p className="text-sm text-muted-foreground">
-                      Showing <span className="font-medium text-foreground">{filteredProperties.length}</span> properties
-                      {categoryFilter !== "ALL" && <span className="text-accent"> in {categoryFilter.toLowerCase().replace('_', ' ')}</span>}
+                      Showing{" "}
+                      <span className="font-medium text-foreground">
+                        {filteredProperties.length}
+                      </span>{" "}
+                      properties
+                      {categoryFilter !== "ALL" && (
+                        <span className="text-accent">
+                          {" "}
+                          in {categoryFilter.toLowerCase().replace("_", " ")}
+                        </span>
+                      )}
                     </p>
                   </div>
                 )}
 
                 {/* Property Grid */}
                 {isLoading ? (
-                  <div className={`grid gap-6 ${view === 'split'
-                    ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
-                    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                    }`}>
+                  <div
+                    className={`grid gap-6 ${
+                      view === "split"
+                        ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
+                        : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    }`}
+                  >
                     {[...Array(6)].map((_, i) => (
                       <div key={i} className="space-y-3">
                         <Skeleton className="aspect-[4/3] w-full rounded-xl" />
@@ -626,21 +658,25 @@ const ProtectedPage = () => {
                       variants={containerVariants}
                       initial="hidden"
                       animate="show"
-                      className={`grid gap-6 ${view === 'split'
-                        ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
-                        : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                        }`}
+                      className={`grid gap-6 ${
+                        view === "split"
+                          ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
+                          : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                      }`}
                     >
                       {filteredProperties.length > 0 ? (
                         filteredProperties.map((property) => (
                           <motion.div
                             key={property._id}
                             variants={itemVariants}
-                            ref={(el: HTMLDivElement | null) => { propertyRefs.current[property._id] = el; }}
-                            className={`rounded-3xl transition-all duration-300 ${selectedPropertyId === property._id
-                              ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
-                              : ""
-                              }`}
+                            ref={(el: HTMLDivElement | null) => {
+                              propertyRefs.current[property._id] = el;
+                            }}
+                            className={`rounded-3xl transition-all duration-300 ${
+                              selectedPropertyId === property._id
+                                ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
+                                : ""
+                            }`}
                           >
                             <PropertyCard
                               property={property}
@@ -656,7 +692,6 @@ const ProtectedPage = () => {
                     {renderPagination()}
                   </>
                 )}
-
               </div>
             </div>
 
@@ -667,8 +702,16 @@ const ProtectedPage = () => {
           transition-all duration-300 relative
           ${view === "grid" ? "hidden" : ""}
           ${view === "map" ? "block w-full" : ""}
-          ${view === "split" && !isMapOverlayActive ? "hidden lg:block lg:w-[40%] xl:w-[45%] 2xl:w-[50%] lg:sticky lg:top-0 lg:self-start" : ""}
-          ${isMapOverlayActive ? 'block w-full fixed inset-0 top-[120px] z-40' : ''}
+          ${
+            view === "split" && !isMapOverlayActive
+              ? "hidden lg:block lg:w-[40%] xl:w-[45%] 2xl:w-[50%] lg:sticky lg:top-0 lg:self-start"
+              : ""
+          }
+          ${
+            isMapOverlayActive
+              ? "block w-full fixed inset-0 top-[120px] z-40"
+              : ""
+          }
         `}
             >
               {selectedProperty && (
@@ -708,6 +751,25 @@ const ProtectedPage = () => {
               </Button>
             </div>
 
+            {/* Floating Mobile Toggle Button */}
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 lg:hidden">
+              <Button
+                onClick={() => setIsMobileMapOpen(!isMobileMapOpen)}
+                className="rounded-full bg-primary/95 text-primary-foreground backdrop-blur-md border border-white/10 px-6 py-6 h-auto shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
+              >
+                {isMobileMapOpen ? (
+                  <>
+                    <LayoutGridIcon className="h-5 w-5" />
+                    <span className="font-medium tracking-wide">List View</span>
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="h-5 w-5" />
+                    <span className="font-medium tracking-wide">Map View</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </>
       ) : (

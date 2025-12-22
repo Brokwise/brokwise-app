@@ -27,11 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AddressAutocomplete,
   type AddressSuggestion,
@@ -70,8 +66,8 @@ const formatBudgetLabel = (amount: number) => {
     const crText = Number.isInteger(cr)
       ? String(cr)
       : cr < 10
-        ? cr.toFixed(2)
-        : cr.toFixed(1);
+      ? cr.toFixed(2)
+      : cr.toFixed(1);
     return `₹${crText}Cr`;
   }
   const l = amount / 100000;
@@ -82,7 +78,9 @@ const formatBudgetLabel = (amount: number) => {
 const clampText = (value: string, maxLen: number) =>
   value.length > maxLen ? value.slice(0, maxLen) : value;
 
-const deriveCityAndLocalities = (item: AddressSuggestion): {
+const deriveCityAndLocalities = (
+  item: AddressSuggestion
+): {
   city: string;
   localities: string[];
 } => {
@@ -99,10 +97,14 @@ const deriveCityAndLocalities = (item: AddressSuggestion): {
   const cityFromCtx = pickCtx(["place"]);
   const localityFromCtx = pickCtx(["locality", "neighborhood"]);
 
-  // Mapbox place_name usually ends with: "... , City(place), State(region), Country"
+  // Address format usually ends with: "... , City, State, Country"
   const fallbackCity =
-    (parts.length >= 3 ? parts[parts.length - 3] : "") || parts[1] || parts[0] || "";
-  const fallbackLocality = (parts.length >= 4 ? parts[parts.length - 4] : "") || "";
+    (parts.length >= 3 ? parts[parts.length - 3] : "") ||
+    parts[1] ||
+    parts[0] ||
+    "";
+  const fallbackLocality =
+    (parts.length >= 4 ? parts[parts.length - 4] : "") || "";
 
   const cityRaw = cityFromCtx || fallbackCity;
   const localityRaw = localityFromCtx || fallbackLocality || cityRaw;
@@ -211,127 +213,217 @@ const rentalIncomeRangeSchema = z
     path: ["max"],
   });
 
-const createEnquirySchema = z.object({
-  // Internal flags (not sent to API)
-  locationMode: z.enum(["search", "manual"]),
-  isCompany: z.boolean(),
+const createEnquirySchema = z
+  .object({
+    // Internal flags (not sent to API)
+    locationMode: z.enum(["search", "manual"]),
+    isCompany: z.boolean(),
 
-  address: z.string().min(3, "Address is required"),
-  addressPlaceId: z.string().optional(),
+    address: z.string().min(3, "Address is required"),
+    addressPlaceId: z.string().optional(),
 
-  // Company endpoint requires these; brokers can submit without them.
-  city: z.string().max(50, "City is too long").optional(),
-  localities: z.array(z.string().min(2).max(100)).max(10).optional(),
-  enquiryCategory: z.enum(
-    [
-      "RESIDENTIAL",
-      "COMMERCIAL",
-      "INDUSTRIAL",
-      "AGRICULTURAL",
-      "RESORT",
-      "FARM_HOUSE",
-    ] as [string, ...string[]],
-    { error: "Please select a valid category" }
-  ),
-  enquiryType: z.string().min(1, "Property Type is required"), // Narrowed down in UI based on Category
-  budget: budgetRangeSchema,
-  description: z
-    .string()
-    .min(10, "Description must be at least 10 characters")
-    .max(2000, "Description cannot exceed 2000 characters"),
+    // Company endpoint requires these; brokers can submit without them.
+    city: z.string().max(50, "City is too long").optional(),
+    localities: z.array(z.string().min(2).max(100)).max(10).optional(),
+    enquiryCategory: z.enum(
+      [
+        "RESIDENTIAL",
+        "COMMERCIAL",
+        "INDUSTRIAL",
+        "AGRICULTURAL",
+        "RESORT",
+        "FARM_HOUSE",
+      ] as [string, ...string[]],
+      { error: "Please select a valid category" }
+    ),
+    enquiryType: z.string().min(1, "Property Type is required"), // Narrowed down in UI based on Category
+    budget: budgetRangeSchema,
+    description: z
+      .string()
+      .min(10, "Description must be at least 10 characters")
+      .max(2000, "Description cannot exceed 2000 characters"),
 
-  // Optional Fields
-  size: optionalSizeRangeSchema,
-  plotType: z.enum(["ROAD", "CORNER"] as [string, ...string[]]).optional(),
-  facing: z
-    .enum([
-      "NORTH",
-      "SOUTH",
-      "EAST",
-      "WEST",
-      "NORTH_EAST",
-      "NORTH_WEST",
-      "SOUTH_EAST",
-      "SOUTH_WEST",
-    ] as [string, ...string[]])
-    .optional(),
-  frontRoadWidth: z.coerce
-    .number({
-      error: "Please enter a valid road width.",
-    })
-    .min(1, "Road width must be at least 1 ft.")
-    .max(500, "Road width cannot exceed 500 ft.")
-    .optional(),
+    // Optional Fields
+    size: optionalSizeRangeSchema,
+    plotType: z.enum(["ROAD", "CORNER"] as [string, ...string[]]).optional(),
+    facing: z
+      .enum([
+        "NORTH",
+        "SOUTH",
+        "EAST",
+        "WEST",
+        "NORTH_EAST",
+        "NORTH_WEST",
+        "SOUTH_EAST",
+        "SOUTH_WEST",
+      ] as [string, ...string[]])
+      .optional(),
+    frontRoadWidth: z.coerce
+      .number({
+        error: "Please enter a valid road width.",
+      })
+      .min(1, "Road width must be at least 1 ft.")
+      .max(500, "Road width cannot exceed 500 ft.")
+      .optional(),
 
-  // Residential - Flat
-  bhk: z.coerce
-    .number({
-      error: "Please enter a valid number of bedrooms.",
-    })
-    .int("Bedrooms must be a whole number.")
-    .min(1, "Number of bedrooms must be at least 1.")
-    .max(20, "Bedrooms cannot exceed 20.")
-    .optional(),
-  washrooms: z.coerce
-    .number({
-      error: "Please enter a valid number of washrooms.",
-    })
-    .int("Washrooms must be a whole number.")
-    .min(1, "Number of washrooms must be at least 1.")
-    .max(20, "Washrooms cannot exceed 20.")
-    .optional(),
-  preferredFloor: z.string().max(20).optional(),
-  society: z.string().max(100).optional(),
+    // Residential - Flat
+    bhk: z.coerce
+      .number({
+        error: "Please enter a valid number of bedrooms.",
+      })
+      .int("Bedrooms must be a whole number.")
+      .min(1, "Number of bedrooms must be at least 1.")
+      .max(20, "Bedrooms cannot exceed 20.")
+      .optional(),
+    washrooms: z.coerce
+      .number({
+        error: "Please enter a valid number of washrooms.",
+      })
+      .int("Washrooms must be a whole number.")
+      .min(1, "Number of washrooms must be at least 1.")
+      .max(20, "Washrooms cannot exceed 20.")
+      .optional(),
+    preferredFloor: z.string().max(20).optional(),
+    society: z.string().max(100).optional(),
 
-  // Commercial - Hotel/Hostel
-  rooms: z.coerce
-    .number({
-      error: "Please enter a valid number of rooms.",
-    })
-    .int("Rooms must be a whole number.")
-    .min(1, "Number of rooms must be at least 1.")
-    .max(1000, "Rooms cannot exceed 1000.")
-    .optional(),
-  beds: z.coerce
-    .number({
-      error: "Please enter a valid number of beds.",
-    })
-    .int("Beds must be a whole number.")
-    .min(1, "Number of beds must be at least 1.")
-    .max(5000, "Beds cannot exceed 5000.")
-    .optional(),
-  rentalIncome: rentalIncomeRangeSchema.optional(),
+    // Commercial - Hotel/Hostel
+    rooms: z.coerce
+      .number({
+        error: "Please enter a valid number of rooms.",
+      })
+      .int("Rooms must be a whole number.")
+      .min(1, "Number of rooms must be at least 1.")
+      .max(1000, "Rooms cannot exceed 1000.")
+      .optional(),
+    beds: z.coerce
+      .number({
+        error: "Please enter a valid number of beds.",
+      })
+      .int("Beds must be a whole number.")
+      .min(1, "Number of beds must be at least 1.")
+      .max(5000, "Beds cannot exceed 5000.")
+      .optional(),
+    rentalIncome: rentalIncomeRangeSchema.optional(),
 
-  // Industrial
-  purpose: z.string().max(200).optional(),
-  areaType: z
-    .enum(["NEAR_RING_ROAD", "RIICO_AREA", "SEZ"] as [string, ...string[]])
-    .optional(),
-}).superRefine((data, ctx) => {
-  // Location requirements
-  if (data.locationMode === "search") {
-    if (!data.addressPlaceId || !data.addressPlaceId.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["addressPlaceId"],
-        message: "Please select an address from suggestions",
-      });
+    // Industrial
+    purpose: z.string().max(200).optional(),
+    areaType: z
+      .enum(["NEAR_RING_ROAD", "RIICO_AREA", "SEZ"] as [string, ...string[]])
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    // Location requirements
+    if (data.locationMode === "search") {
+      if (!data.addressPlaceId || !data.addressPlaceId.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["addressPlaceId"],
+          message: "Please select an address from suggestions",
+        });
+      }
     }
-  }
 
-  if (data.isCompany) {
-    if (!data.city || data.city.trim().length < 2) {
+    if (data.isCompany) {
+      if (!data.city || data.city.trim().length < 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["city"],
+          message: "City is required",
+        });
+      }
+
+      const locs = Array.isArray(data.localities)
+        ? data.localities.map((l) => l.trim()).filter((l) => l.length >= 2)
+        : [];
+
+      if (locs.length < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["localities"],
+          message: "At least one locality is required",
+        });
+      }
+    }
+
+    // Category ↔ Type compatibility
+    const category = data.enquiryCategory as PropertyCategory | undefined;
+    const type = data.enquiryType as PropertyType | string | undefined;
+
+    if (category && type) {
+      const validTypes = CATEGORY_TYPE_MAP[category] || [];
+      if (!validTypes.includes(type as PropertyType)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["enquiryType"],
+          message: "Enquiry type does not match the selected category",
+        });
+      }
+    }
+
+    // Backend parity: required fields per type/category
+    if (category === "RESIDENTIAL" && type === "FLAT") {
+      if (
+        typeof data.bhk !== "number" ||
+        Number.isNaN(data.bhk) ||
+        data.bhk < 1
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["bhk"],
+          message: "BHK is required for Flat enquiries",
+        });
+      }
+    }
+
+    if (category === "COMMERCIAL" && type === "HOTEL") {
+      if (
+        typeof data.rooms !== "number" ||
+        Number.isNaN(data.rooms) ||
+        data.rooms < 1
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["rooms"],
+          message: "Number of rooms is required for Hotel enquiries",
+        });
+      }
+    }
+
+    if (category === "COMMERCIAL" && type === "HOSTEL") {
+      if (
+        typeof data.beds !== "number" ||
+        Number.isNaN(data.beds) ||
+        data.beds < 1
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["beds"],
+          message: "Number of beds is required for Hostel enquiries",
+        });
+      }
+    }
+
+    const typesRequiringSize = new Set<string>([
+      "LAND",
+      "VILLA",
+      "WAREHOUSE",
+      "INDUSTRIAL_LAND",
+      "AGRICULTURAL_LAND",
+      "SHOWROOM",
+      "SHOP",
+      "OFFICE_SPACE",
+    ]);
+
+    if (type && typesRequiringSize.has(String(type)) && !data.size) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["city"],
-        message: "City is required",
+        path: ["size"],
+        message: "Size range is required for this enquiry type",
       });
     }
 
     const locs = Array.isArray(data.localities)
-      ? data.localities
-        .map((l) => l.trim())
-        .filter((l) => l.length >= 2)
+      ? data.localities.map((l) => l.trim()).filter((l) => l.length >= 2)
       : [];
 
     if (locs.length < 1) {
@@ -341,96 +433,7 @@ const createEnquirySchema = z.object({
         message: "At least one locality is required",
       });
     }
-  }
-
-  // Category ↔ Type compatibility
-  const category = data.enquiryCategory as PropertyCategory | undefined;
-  const type = data.enquiryType as PropertyType | string | undefined;
-
-  if (category && type) {
-    const validTypes = CATEGORY_TYPE_MAP[category] || [];
-    if (!validTypes.includes(type as PropertyType)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["enquiryType"],
-        message: "Enquiry type does not match the selected category",
-      });
-    }
-  }
-
-  // Backend parity: required fields per type/category
-  if (category === "RESIDENTIAL" && type === "FLAT") {
-    if (
-      typeof data.bhk !== "number" ||
-      Number.isNaN(data.bhk) ||
-      data.bhk < 1
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["bhk"],
-        message: "BHK is required for Flat enquiries",
-      });
-    }
-  }
-
-  if (category === "COMMERCIAL" && type === "HOTEL") {
-    if (
-      typeof data.rooms !== "number" ||
-      Number.isNaN(data.rooms) ||
-      data.rooms < 1
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["rooms"],
-        message: "Number of rooms is required for Hotel enquiries",
-      });
-    }
-  }
-
-  if (category === "COMMERCIAL" && type === "HOSTEL") {
-    if (
-      typeof data.beds !== "number" ||
-      Number.isNaN(data.beds) ||
-      data.beds < 1
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["beds"],
-        message: "Number of beds is required for Hostel enquiries",
-      });
-    }
-  }
-
-  const typesRequiringSize = new Set<string>([
-    "LAND",
-    "VILLA",
-    "WAREHOUSE",
-    "INDUSTRIAL_LAND",
-    "AGRICULTURAL_LAND",
-    "SHOWROOM",
-    "SHOP",
-    "OFFICE_SPACE",
-  ]);
-
-  if (type && typesRequiringSize.has(String(type)) && !data.size) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["size"],
-      message: "Size range is required for this enquiry type",
-    });
-  }
-
-  if (category === "INDUSTRIAL") {
-    const p = (data.purpose ?? "").toString().trim();
-    if (p.length < 5) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["purpose"],
-        message: "Purpose is required for Industrial enquiries (min 5 chars)",
-      });
-    }
-  }
-});
+  });
 
 type CreateEnquiryFormValues = z.infer<typeof createEnquirySchema>;
 
@@ -489,7 +492,10 @@ const CreateEnquiryPage = () => {
     if (!selectedCategory) return;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("enquiryType", "" as any, { shouldValidate: false, shouldDirty: true });
+    setValue("enquiryType", "" as any, {
+      shouldValidate: false,
+      shouldDirty: true,
+    });
 
     // Clear type-specific fields when category changes to avoid stale values failing backend rules.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -530,7 +536,9 @@ const CreateEnquiryPage = () => {
   const onSubmit = (data: CreateEnquiryFormValues) => {
     // We only send the final address string today; placeId is used to enforce "selected from suggestions"
     // and can be stored later if backend supports it.
-    const payload: Record<string, unknown> = { ...(data as unknown as Record<string, unknown>) };
+    const payload: Record<string, unknown> = {
+      ...(data as unknown as Record<string, unknown>),
+    };
     delete payload.addressPlaceId;
     delete payload.locationMode;
     delete payload.isCompany;
@@ -717,7 +725,8 @@ const CreateEnquiryPage = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-muted-foreground">
-                      Search Area or City <span className="text-destructive">*</span>
+                      Search Area or City{" "}
+                      <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
                       <AddressAutocomplete
@@ -942,14 +951,18 @@ const CreateEnquiryPage = () => {
                   {/* Visual Budget Display */}
                   <div className="flex items-center justify-between px-2">
                     <div className="flex flex-col items-center">
-                      <span className="text-sm text-muted-foreground uppercase tracking-widest text-[10px] font-semibold mb-1">Min Budget</span>
+                      <span className="text-sm text-muted-foreground uppercase tracking-widest text-[10px] font-semibold mb-1">
+                        Min Budget
+                      </span>
                       <div className="text-2xl md:text-3xl font-instrument-serif text-primary">
                         {formatBudgetLabel(currentMin ?? BUDGET_MIN)}
                       </div>
                     </div>
                     <div className="h-px w-full mx-6 bg-border/60 transform translate-y-2"></div>
                     <div className="flex flex-col items-center">
-                      <span className="text-sm text-muted-foreground uppercase tracking-widest text-[10px] font-semibold mb-1">Max Budget</span>
+                      <span className="text-sm text-muted-foreground uppercase tracking-widest text-[10px] font-semibold mb-1">
+                        Max Budget
+                      </span>
                       <div className="text-2xl md:text-3xl font-instrument-serif text-primary">
                         {formatBudgetLabel(currentMax ?? BUDGET_MAX)}
                       </div>
@@ -1146,7 +1159,9 @@ const CreateEnquiryPage = () => {
                   name="bhk"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-muted-foreground">BHK</FormLabel>
+                      <FormLabel className="text-muted-foreground">
+                        BHK
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="text"
@@ -1171,7 +1186,9 @@ const CreateEnquiryPage = () => {
                   name="washrooms"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-muted-foreground">Washrooms</FormLabel>
+                      <FormLabel className="text-muted-foreground">
+                        Washrooms
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="text"
@@ -1196,9 +1213,14 @@ const CreateEnquiryPage = () => {
                   name="society"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-muted-foreground">Preferred Society</FormLabel>
+                      <FormLabel className="text-muted-foreground">
+                        Preferred Society
+                      </FormLabel>
                       <FormControl>
-                        <Input {...field} className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter" />
+                        <Input
+                          {...field}
+                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1209,9 +1231,14 @@ const CreateEnquiryPage = () => {
                   name="preferredFloor"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-muted-foreground">Preferred Floor</FormLabel>
+                      <FormLabel className="text-muted-foreground">
+                        Preferred Floor
+                      </FormLabel>
                       <FormControl>
-                        <Input {...field} className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter" />
+                        <Input
+                          {...field}
+                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1226,100 +1253,106 @@ const CreateEnquiryPage = () => {
             selectedType === "VILLA" ||
             selectedType === "INDUSTRIAL_LAND" ||
             selectedType === "AGRICULTURAL_LAND") && (
-              <div className="space-y-6">
-                <div className="border-b border-border/40 pb-2 mb-6">
-                  <h3 className="text-xl font-instrument-serif text-foreground/90">
-                    Plot Details
-                  </h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={control}
-                    name="plotType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-muted-foreground">Plot Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
-                              <SelectValue placeholder="Select Plot Type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="ROAD">Road</SelectItem>
-                            <SelectItem value="CORNER">Corner</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name="facing"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-muted-foreground">Facing</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
-                              <SelectValue placeholder="Select Facing" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {[
-                              "NORTH",
-                              "SOUTH",
-                              "EAST",
-                              "WEST",
-                              "NORTH_EAST",
-                              "NORTH_WEST",
-                              "SOUTH_EAST",
-                              "SOUTH_WEST",
-                            ].map((f) => (
-                              <SelectItem key={f} value={f}>
-                                {f.replace("_", " ")}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name="frontRoadWidth"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-muted-foreground">Front Road Width (ft)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            {...field}
-                            className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                            value={field.value ?? ""}
-                            onChange={(e) =>
-                              field.onChange(
-                                parseIntegerOrUndefined(e.target.value)
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+            <div className="space-y-6">
+              <div className="border-b border-border/40 pb-2 mb-6">
+                <h3 className="text-xl font-instrument-serif text-foreground/90">
+                  Plot Details
+                </h3>
               </div>
-            )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={control}
+                  name="plotType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-muted-foreground">
+                        Plot Type
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
+                            <SelectValue placeholder="Select Plot Type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="ROAD">Road</SelectItem>
+                          <SelectItem value="CORNER">Corner</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name="facing"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-muted-foreground">
+                        Facing
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
+                            <SelectValue placeholder="Select Facing" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {[
+                            "NORTH",
+                            "SOUTH",
+                            "EAST",
+                            "WEST",
+                            "NORTH_EAST",
+                            "NORTH_WEST",
+                            "SOUTH_EAST",
+                            "SOUTH_WEST",
+                          ].map((f) => (
+                            <SelectItem key={f} value={f}>
+                              {f.replace("_", " ")}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name="frontRoadWidth"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-muted-foreground">
+                        Front Road Width (ft)
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          {...field}
+                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              parseIntegerOrUndefined(e.target.value)
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Commercial (Hotel/Hostel) */}
           {(selectedType === "HOTEL" || selectedType === "HOSTEL") && (
@@ -1335,7 +1368,9 @@ const CreateEnquiryPage = () => {
                   name="rooms"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-muted-foreground">Rooms</FormLabel>
+                      <FormLabel className="text-muted-foreground">
+                        Rooms
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="text"
@@ -1361,7 +1396,9 @@ const CreateEnquiryPage = () => {
                     name="beds"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-muted-foreground">Beds</FormLabel>
+                        <FormLabel className="text-muted-foreground">
+                          Beds
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="text"
@@ -1400,7 +1437,9 @@ const CreateEnquiryPage = () => {
                   name="purpose"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-muted-foreground">Purpose</FormLabel>
+                      <FormLabel className="text-muted-foreground">
+                        Purpose
+                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -1417,7 +1456,9 @@ const CreateEnquiryPage = () => {
                   name="areaType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-muted-foreground">Area Type</FormLabel>
+                      <FormLabel className="text-muted-foreground">
+                        Area Type
+                      </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -1431,9 +1472,7 @@ const CreateEnquiryPage = () => {
                           <SelectItem value="NEAR_RING_ROAD">
                             Near Ring Road
                           </SelectItem>
-                          <SelectItem value="RIICO_AREA">
-                            RIICO Area
-                          </SelectItem>
+                          <SelectItem value="RIICO_AREA">RIICO Area</SelectItem>
                           <SelectItem value="SEZ">SEZ</SelectItem>
                         </SelectContent>
                       </Select>

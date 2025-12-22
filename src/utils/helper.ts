@@ -71,7 +71,6 @@ export const getCityFromAddress = (address?: string) => {
     .map((p) => p.trim())
     .filter(Boolean);
 
-  // Mapbox `place_name` is commonly: "Locality, City, State..., Country"
   if (parts.length >= 4) return parts[1];
   return parts[0] ?? "";
 };

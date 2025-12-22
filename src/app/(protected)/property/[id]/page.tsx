@@ -40,6 +40,7 @@ import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { PropertyPdfLayout } from "@/components/property-pdf/property-pdf-layout";
 import { exportElementAsPdf, makeSafeFilePart } from "@/utils/pdf";
+import { useApp } from "@/context/AppContext";
 
 const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
@@ -48,7 +49,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [exportedOnLabel, setExportedOnLabel] = useState<string>("");
   const pdfRef = useRef<HTMLDivElement | null>(null);
-
+  const { brokerData } = useApp();
   const handleExportPdf = useCallback(async () => {
     if (!property) return;
     if (!pdfRef.current) return;
@@ -60,7 +61,9 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
       // Ensure latest layout is painted before capture.
       await new Promise((r) => setTimeout(r, 75));
 
-      const safeId = makeSafeFilePart(property.propertyId || property._id || "property");
+      const safeId = makeSafeFilePart(
+        property.propertyId || property._id || "property"
+      );
       await exportElementAsPdf({
         element: pdfRef.current,
         fileName: `Brokwise_Property_${safeId}.pdf`,
@@ -386,8 +389,10 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
 
         {/* Right Column - Sidebar */}
         <div className="lg:col-span-1 space-y-6">
-          <ContactSeller property={property} />
-          {/* Status Card */}
+          {property.listedBy._id !== brokerData?._id && (
+            <ContactSeller property={property} />
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>Status</CardTitle>
