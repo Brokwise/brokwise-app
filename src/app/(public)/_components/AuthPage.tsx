@@ -412,11 +412,11 @@ export default function AuthPage({
           {/* Fixed header area (prevents the Brokwise title from jumping when mode changes) */}
           <div className="w-full max-w-md shrink-0 pt-7 lg:pt-10">
             <div className="flex items-center gap-2 mb-4 absolute top-2 right-2 z-50">
-               <div className="flex gap-1 border rounded-full px-2 py-[0.5px] bg-background/50 backdrop-blur-sm">
+               <div className="flex gap-1 border rounded-full px-2 py-1 bg-background/50 backdrop-blur-sm shadow-sm">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
                   onClick={() => setTheme("light")}
                 >
                   <Sun className="h-4 w-4" />
@@ -424,7 +424,7 @@ export default function AuthPage({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
                   onClick={() => setTheme("dark")}
                 >
                   <Moon className="h-4 w-4" />
@@ -432,7 +432,7 @@ export default function AuthPage({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
                   onClick={() => setTheme("system")}
                 >
                   <Computer className="h-4 w-4" />
@@ -627,15 +627,12 @@ export default function AuthPage({
                   </form>
                 </Form>
 
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-border" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-3 text-muted-foreground font-medium text-xs">
-                      {t("or_continue_with")}
-                    </span>
-                  </div>
+                <div className="relative my-6 flex items-center gap-4">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase">
+                    {t("or_continue_with")}
+                  </span>
+                  <div className="flex-1 h-px bg-border" />
                 </div>
 
                 <Button
@@ -658,7 +655,7 @@ export default function AuthPage({
           </div>
 
           {/* Bottom link pinned outside the scroll area */}
-          <div className="w-full max-w-md shrink-0 text-center text-sm text-muted-foreground pb-8">
+          <div className="w-full max-w-md shrink-0 text-center text-sm text-muted-foreground pb-4 lg:pb-8">
             <p>
               {mode === "login"
                 ? t("dont_have_account")
