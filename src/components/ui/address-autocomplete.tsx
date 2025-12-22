@@ -58,6 +58,11 @@ export function AddressAutocomplete({
   const [items, setItems] = React.useState<AddressSuggestion[]>([]);
   const [error, setError] = React.useState<string | null>(null);
   const lastEmittedErrorRef = React.useRef<string | null>(null);
+  const onSearchErrorRef = React.useRef(onSearchError);
+
+  React.useEffect(() => {
+    onSearchErrorRef.current = onSearchError;
+  }, [onSearchError]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -93,9 +98,10 @@ export function AddressAutocomplete({
           if (!cancelled) {
             setItems([]);
             setError(msg);
-            if (onSearchError && lastEmittedErrorRef.current !== msg) {
+            const cb = onSearchErrorRef.current;
+            if (cb && lastEmittedErrorRef.current !== msg) {
               lastEmittedErrorRef.current = msg;
-              onSearchError(msg);
+              cb(msg);
             }
           }
           return;
@@ -107,9 +113,10 @@ export function AddressAutocomplete({
         if (!cancelled) {
           setItems([]);
           setError(msg);
-          if (onSearchError && lastEmittedErrorRef.current !== msg) {
+          const cb = onSearchErrorRef.current;
+          if (cb && lastEmittedErrorRef.current !== msg) {
             lastEmittedErrorRef.current = msg;
-            onSearchError(msg);
+            cb(msg);
           }
         }
       } finally {

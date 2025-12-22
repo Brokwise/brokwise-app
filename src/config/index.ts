@@ -12,10 +12,6 @@ export interface FrontendConfig {
 }
 
 const initClient = () => {
-  console.log(
-    "process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID",
-    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-  );
   return {
     version: pkg.version,
     backendUrl: process.env.NEXT_PUBLIC_API_URL,

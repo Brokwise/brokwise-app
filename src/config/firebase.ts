@@ -20,7 +20,6 @@ export interface FirebaseConfig {
   appId: string;
   measurementId?: string;
 }
-console.log("Config.firebaseConfig", Config.firebaseConfig);
 export const firebaseApp = initializeApp(Config.firebaseConfig);
 export const firebaseDb = getFirestore(firebaseApp);
 export const firebaseAuth = getAuth(firebaseApp);
