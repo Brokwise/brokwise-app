@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createCompanyFormSchema } from "@/validators/company";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -36,7 +36,15 @@ export const CompanyOnboardingDetails = ({
   const { companyData, setCompanyData } = useApp();
   const [user] = useAuthState(firebaseAuth);
   const [signOut] = useSignOut(firebaseAuth);
-  const { setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const activeTheme = mounted ? (resolvedTheme ?? theme) : undefined;
+  const isSystemTheme = mounted && theme === "system";
 
   const stepFields = {
     1: ["name", "mobile", "city"],
@@ -153,24 +161,42 @@ export const CompanyOnboardingDetails = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
+            aria-pressed={activeTheme === "light"}
+            className={`h-8 w-8 ${
+              activeTheme === "light"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "hover:bg-accent hover:text-accent-foreground"
+            }`}
             onClick={() => setTheme("light")}
+            title="Light mode"
           >
             <Sun className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
+            aria-pressed={activeTheme === "dark"}
+            className={`h-8 w-8 ${
+              activeTheme === "dark"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "hover:bg-accent hover:text-accent-foreground"
+            }`}
             onClick={() => setTheme("dark")}
+            title="Dark mode"
           >
             <Moon className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
+            aria-pressed={isSystemTheme}
+            className={`h-8 w-8 ${
+              isSystemTheme
+                ? "bg-muted text-foreground ring-1 ring-border"
+                : "hover:bg-accent hover:text-accent-foreground"
+            }`}
             onClick={() => setTheme("system")}
+            title="System default"
           >
             <Computer className="h-4 w-4" />
           </Button>

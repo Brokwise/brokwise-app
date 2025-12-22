@@ -19,6 +19,7 @@ const GoogleOauthPage = () => {
   const defaultMessage = "Authenticating with google";
   const [message, setMessage] = useState(defaultMessage);
   const router = useRouter();
+  const hasAttemptedLoginRef = React.useRef(false);
   const redirectUser = useCallback(
     ({
       isError,
@@ -114,12 +115,22 @@ const GoogleOauthPage = () => {
         await createUserInDb(user, accountType);
         await sendVerificationLink(user);
       } catch (error) {
+        const firebaseError = error as Error & { code?: string };
         logError({
           error: error as Error,
           slackChannel: "frontend-errors",
-          description: "Failed to verify google user",
+          description: `Failed to verify google user. Code: ${firebaseError.code}, Message: ${firebaseError.message}`,
         });
-        toast.error("Failed to verify google user");
+        
+        // Handle specific Firebase errors
+        if (firebaseError.code === "auth/account-exists-with-different-credential") {
+          toast.error("An account already exists with this email. Please sign in with email/password instead.");
+        } else if (firebaseError.code === "auth/invalid-credential") {
+          toast.error("Invalid credentials. Please try again.");
+        } else {
+          toast.error("Failed to verify Google user. Please try again.");
+        }
+        throw error; // Re-throw to be caught by the caller
       }
     },
     [createUserInDb, sendVerificationLink]
@@ -178,6 +189,9 @@ const GoogleOauthPage = () => {
   }, [redirectUser, verifyGoogleUser]);
 
   useEffect(() => {
+    // In React StrictMode (dev), effects run twice; guard to avoid duplicate sign-in attempts.
+    if (hasAttemptedLoginRef.current) return;
+    hasAttemptedLoginRef.current = true;
     login();
   }, [login]);
   return (
