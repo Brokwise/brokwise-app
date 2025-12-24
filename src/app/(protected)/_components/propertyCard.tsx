@@ -1,27 +1,88 @@
+"use client";
 import React from "react";
 import { Property } from "@/types/property";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   MapPin,
   BedDouble,
   Bath,
   Move,
-  ArrowRight,
   Home,
   Building2,
   Share2,
+  Link2,
+  FileText,
+  Download,
+  CheckCircle2,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatCurrency, formatAddress } from "@/utils/helper";
+import { toast } from "sonner";
 
 interface PropertyCardProps {
   property: Property;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
+  const propertyUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/property/${property._id}`
+    : `/property/${property._id}`;
+
+  const handleCopyLink = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(propertyUrl);
+      toast.success("Link copied to clipboard!", {
+        icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
+      });
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handleShareNative = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const shareData = {
+      title: `${property.bhk ? `${property.bhk} BHK ` : ""}${property.propertyType.replace(/_/g, " ")}`,
+      text: `Check out this property: ${formatAddress(property.address)} - ${formatCurrency(property.totalPrice)}`,
+      url: propertyUrl,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        // User cancelled or share failed - do nothing
+      }
+    } else {
+      // Fallback: copy to clipboard
+      await handleCopyLink(e);
+    }
+  };
+
+  const handleExportPdf = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Open property page in new tab with print dialog
+    const printUrl = `/property/${property._id}?print=true`;
+    window.open(printUrl, "_blank");
+    toast.info("Opening property page for PDF export...", {
+      description: "Use your browser's Print → Save as PDF option.",
+    });
+  };
+
   return (
     <Card className="group overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 bg-card h-full flex flex-col rounded-xl">
       {/* Image Section */}
@@ -59,20 +120,35 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
           </Badge>
         </div>
 
-        {/* Share Button */}
+        {/* Share Button with Dropdown */}
         <div className="absolute top-3 right-3 z-10">
-          <Button
-            size="icon"
-            variant="secondary"
-            className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-md hover:bg-background shadow-sm"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              // Implement share logic here perfectly
-            }}
-          >
-            <Share2 className="h-4 w-4 text-foreground/70" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="icon"
+                variant="secondary"
+                className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-md hover:bg-background shadow-sm"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Share2 className="h-4 w-4 text-foreground/70" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
+                <Link2 className="mr-2 h-4 w-4" />
+                Copy Link
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleShareNative} className="cursor-pointer">
+                <Share2 className="mr-2 h-4 w-4" />
+                Share Property
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleExportPdf} className="cursor-pointer">
+                <Download className="mr-2 h-4 w-4" />
+                Export as PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Price Tag Overlay (Luxurious Touch) */}
