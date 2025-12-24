@@ -24,7 +24,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
         <SidebarProvider defaultOpen={defaultSidebarOpen}>
           <AppSidebar />
           <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 bg-background/50 backdrop-blur-sm sticky top-0 z-10 w-full">
+            <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 sticky top-0 z-40 w-full">
               <div className="flex items-center gap-2">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />

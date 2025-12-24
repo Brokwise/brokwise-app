@@ -18,7 +18,7 @@ const WebViewContent = () => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] w-full">
+    <div className="flex flex-col h-full min-h-0 w-full">
       <div className="flex items-center justify-between px-4 py-2 border-b bg-background">
         <h1 className="text-lg font-semibold">
           {title || "External Resource"}

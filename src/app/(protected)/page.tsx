@@ -361,7 +361,7 @@ const ProtectedPage = () => {
 
   return (
     // Main Container - Viewport minus Header (approx 64px/4rem)
-    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden relative">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden relative">
 
       {/* 1. TOP CONTROL BAR (Always Visible) */}
       <div className="shrink-0 z-30 bg-background border-b border-border/40">
