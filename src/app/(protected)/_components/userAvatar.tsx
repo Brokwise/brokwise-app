@@ -1,3 +1,4 @@
+"use client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,54 +43,60 @@ export function UserAvatar() {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="start">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+      <DropdownMenuContent className="w-56" align="end">
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{user?.displayName || "User"}</p>
+            <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <Link href="/profile">Profile</Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Link href="/my-enquiries">My Enquiries</Link>
+          <DropdownMenuItem asChild>
+            <Link href="/profile" className="w-full cursor-pointer">
+              Profile
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <Link href="/my-listings">My Listings</Link>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <div className="w-full flex items-start justify-between flex-col">
-              <p>Theme</p>
-              <div className="flex gap-2 border rounded-full  px-2 py-[0.5px]">
+          <DropdownMenuItem className="focus:bg-transparent">
+            <div className="w-full flex items-center justify-between">
+              <span className="text-sm">Theme</span>
+              <div className="flex gap-1 border rounded-full px-1 py-0.5 bg-muted/50">
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setTheme("light")}
+                  className="h-6 w-6 rounded-full"
+                  onClick={(e) => { e.preventDefault(); setTheme("light"); }}
                 >
-                  <Sun className="h-4 w-4" />
+                  <Sun className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setTheme("dark")}
+                  className="h-6 w-6 rounded-full"
+                  onClick={(e) => { e.preventDefault(); setTheme("dark"); }}
                 >
-                  <Moon className="h-4 w-4" />
+                  <Moon className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setTheme("system")}
+                  className="h-6 w-6 rounded-full"
+                  onClick={(e) => { e.preventDefault(); setTheme("system"); }}
                 >
-                  <Computer className="h-4 w-4" />
+                  <Computer className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </div>
           </DropdownMenuItem>
         </DropdownMenuGroup>
-
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut(firebaseAuth)}>
+        <DropdownMenuItem
+          onClick={() => signOut(firebaseAuth)}
+          className="text-destructive focus:text-destructive cursor-pointer"
+        >
           Log out
         </DropdownMenuItem>
       </DropdownMenuContent>

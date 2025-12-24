@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import "../globals.css";
 import { QueryClientProviderWrapper } from "@/providers/queryClientProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/providers/themeProvider";
 import { PostHogProvider } from "./providers";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 const hostGrotesk = localFont({
   src: "../../public/fonts/HostGrotesk-VariableFont_wght.ttf",
@@ -30,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${hostGrotesk.variable} ${instrumentSerif.variable} antialiased`}
+        className={`${inter.variable} ${hostGrotesk.variable} ${instrumentSerif.variable} antialiased`}
       >
         <PostHogProvider>
           <Providers>

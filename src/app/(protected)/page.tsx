@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useGetAllProperties } from "@/hooks/useProperty";
 import { PropertyCard } from "./_components/propertyCard";
 import { MapBox } from "./_components/mapBox";
@@ -16,7 +17,6 @@ import {
   Filter as FilterIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -39,7 +39,6 @@ import {
 import { Label } from "@/components/ui/label";
 import Fuse from "fuse.js";
 import { formatIndianNumber } from "@/utils/helper";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApp } from "@/context/AppContext";
 import {
   Pagination,
@@ -59,12 +58,15 @@ const ProtectedPage = () => {
     12
   );
   const { totalPages } = pagination;
-  const [view, setView] = useState<"grid" | "map" | "split">("grid");
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
-    null
-  );
+  /* State for Mobile Map Toggle */
+  const [isMobileMapOpen, setIsMobileMapOpen] = useState(false);
+  const [view, setView] = useState<"grid" | "map" | "split">("grid"); // Default to grid property-only view
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
 
-  // Filter States
+  /* Scroll Refs - Using Record type for cleaner typing */
+  const propertyRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  /* Filter States */
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [sourceFilter, setSourceFilter] = useState<string>("ALL");
@@ -101,6 +103,16 @@ const ProtectedPage = () => {
       includeScore: true,
     });
   }, [properties]);
+
+  /* Scroll to Selected Property Interaction */
+  useEffect(() => {
+    if (selectedPropertyId && propertyRefs.current[selectedPropertyId]) {
+      propertyRefs.current[selectedPropertyId]?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [selectedPropertyId]);
 
   const filteredProperties = useMemo(() => {
     if (!properties) return [];
@@ -316,287 +328,362 @@ const ProtectedPage = () => {
     );
   }
 
+  // Category Pills Data
+  const categoryPills = [
+    { value: "ALL", label: "All" },
+    { value: "RESIDENTIAL", label: "Residential" },
+    { value: "COMMERCIAL", label: "Commercial" },
+    { value: "INDUSTRIAL", label: "Industrial" },
+    { value: "AGRICULTURAL", label: "Agricultural" },
+    { value: "RESORT", label: "Resort" },
+    { value: "FARM_HOUSE", label: "Farmhouse" },
+  ];
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div
-      className={`mx-auto p-6 lg:px-80 space-y-6 ${
-        view === "split" ? "h-[calc(100vh-100px)] overflow-hidden" : ""
-      }`}
-    >
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Properties</h1>
-          <p className="text-muted-foreground mt-1">
-            Browse and manage your listed properties
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant={view === "grid" ? "default" : "outline"}
-            size="icon"
-            onClick={() => {
-              setView("grid");
-              setSelectedPropertyId(null);
-            }}
-            title="Grid View"
-          >
-            <LayoutGridIcon className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={view === "map" ? "default" : "outline"}
-            size="icon"
-            onClick={() => {
-              setView("map");
-              setSelectedPropertyId(null);
-            }}
-            title="Map View"
-          >
-            <MapPin className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={view === "split" ? "default" : "outline"}
-            size="icon"
-            onClick={() => {
-              setView("split");
-              setSelectedPropertyId(null);
-            }}
-            title="Split View"
-          >
-            <Columns className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+    // Main Container - Viewport minus Header (approx 64px/4rem)
+    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden relative">
 
-      {userData?.userType === "company" && (
-        <Tabs
-          value={sourceFilter}
-          onValueChange={setSourceFilter}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-3 max-w-[400px]">
-            <TabsTrigger value="ALL">All</TabsTrigger>
-            <TabsTrigger value="BROKER">Broker Listed</TabsTrigger>
-            <TabsTrigger value="COMPANY">Company Listed</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      )}
+      {/* 1. TOP CONTROL BAR (Always Visible) */}
+      <div className="shrink-0 z-30 bg-background border-b border-border/40">
+        <div className="px-4 py-3 space-y-3">
 
-      {/* Search and Filters Bar */}
-      <div className="bg-card p-4 rounded-lg border shadow-sm flex gap-4 items-center flex-col sm:flex-row">
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search address, society, description..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full sm:w-auto relative">
-                <FilterIcon className="h-4 w-4 mr-2" />
-                Filters
-                {hasActiveFilters && (
-                  <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-primary border-2 border-background" />
-                )}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Filters</DialogTitle>
-                <DialogDescription>
-                  Refine your property search results.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-6 py-4">
-                {/* Category */}
-                <div className="space-y-2">
-                  <Label>Category</Label>
-                  <Select
-                    value={categoryFilter}
-                    onValueChange={setCategoryFilter}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ALL">All Categories</SelectItem>
-                      <SelectItem value="RESIDENTIAL">Residential</SelectItem>
-                      <SelectItem value="COMMERCIAL">Commercial</SelectItem>
-                      <SelectItem value="INDUSTRIAL">Industrial</SelectItem>
-                      <SelectItem value="AGRICULTURAL">Agricultural</SelectItem>
-                      <SelectItem value="RESORT">Resort</SelectItem>
-                      <SelectItem value="FARM_HOUSE">Farm House</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Price Range */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <Label>Price Range</Label>
-                    <div className="text-xs text-muted-foreground font-medium">
-                      {formatPriceShort(priceRange[0])} -{" "}
-                      {formatPriceShort(priceRange[1])}
-                    </div>
-                  </div>
-                  <Slider
-                    min={0}
-                    max={maxPropertyPrice}
-                    step={100000}
-                    value={priceRange}
-                    onValueChange={(value) => setPriceRange(value)}
-                    className="py-2"
-                  />
-                </div>
-
-                {/* BHK */}
-                <div className="space-y-2">
-                  <Label>BHK (Residential)</Label>
-                  <Select value={bhkFilter} onValueChange={setBhkFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="BHK" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ALL">Any BHK</SelectItem>
-                      <SelectItem value="1">1 BHK</SelectItem>
-                      <SelectItem value="2">2 BHK</SelectItem>
-                      <SelectItem value="3">3 BHK</SelectItem>
-                      <SelectItem value="4">4 BHK</SelectItem>
-                      <SelectItem value="5+">5+ BHK</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+          {/* Hero Section (Compact) */}
+          <div className="bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-lg p-3 border border-border/50 relative overflow-hidden">
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                <h1 className="text-lg font-bold tracking-tight text-foreground">
+                  Welcome back{userData?.fullName ? `, ${userData.fullName.split(' ')[0]}` : ''} 👋
+                </h1>
               </div>
-              <DialogFooter className="gap-2 sm:gap-0">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    clearFilters();
-                  }}
-                  disabled={!hasActiveFilters && searchQuery === ""}
-                >
-                  Clear Filters
-                </Button>
-                <Button onClick={() => setIsFilterOpen(false)}>
-                  Show Results
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
 
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSearchQuery("")}
-              title="Clear Search"
-              className="shrink-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="space-y-3">
-              <Skeleton className="h-48 w-full rounded-xl" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-[250px]" />
-                <Skeleton className="h-4 w-[200px]" />
+              {/* Search Input */}
+              <div className="relative flex-1 lg:max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search properties..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-9 text-sm bg-background/80 backdrop-blur border-border/60 shadow-sm rounded-lg"
+                />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 hover:bg-background/50 rounded-md"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                )}
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Filter Bar (Moved Here) */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+
+            {/* Category Pills - Horizontal Scroll */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full scrollbar-hide mask-linear-fade">
+              {categoryPills.map((pill) => (
+                <Button
+                  key={pill.value}
+                  variant={categoryFilter === pill.value ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setCategoryFilter(pill.value)}
+                  className={`shrink-0 rounded-full px-4 font-medium transition-all ${categoryFilter === pill.value
+                    ? "bg-accent/10 text-accent hover:bg-accent/20 border-accent/20 border"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                >
+                  {pill.label}
+                </Button>
+              ))}
+            </div>
+
+            {/* View Toggle & Advanced Filters */}
+            <div className="flex items-center gap-2 shrink-0 ml-auto w-full sm:w-auto justify-end">
+              {/* Results Count (Mobile Only) */}
+              <span className="text-xs text-muted-foreground sm:hidden mr-auto">
+                {filteredProperties.length} results
+              </span>
+
+              {/* Advanced Filters Button */}
+              <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="relative gap-2 rounded-full border-border/60">
+                    <FilterIcon className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Filters</span>
+                    {hasActiveFilters && (
+                      <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-accent border-2 border-background" />
+                    )}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Advanced Filters</DialogTitle>
+                    <DialogDescription>
+                      Refine your property search results.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-6 py-4">
+                    {/* Price Range */}
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label>Price Range</Label>
+                        <div className="text-xs text-muted-foreground font-medium">
+                          {formatPriceShort(priceRange[0])} - {formatPriceShort(priceRange[1])}
+                        </div>
+                      </div>
+                      <Slider
+                        min={0}
+                        max={maxPropertyPrice}
+                        step={100000}
+                        value={priceRange}
+                        onValueChange={(value) => setPriceRange(value)}
+                        className="py-2"
+                      />
+                    </div>
+
+                    {/* BHK */}
+                    <div className="space-y-2">
+                      <Label>BHK (Residential)</Label>
+                      <Select value={bhkFilter} onValueChange={setBhkFilter}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="BHK" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ALL">Any BHK</SelectItem>
+                          <SelectItem value="1">1 BHK</SelectItem>
+                          <SelectItem value="2">2 BHK</SelectItem>
+                          <SelectItem value="3">3 BHK</SelectItem>
+                          <SelectItem value="4">4 BHK</SelectItem>
+                          <SelectItem value="5+">5+ BHK</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Source Filter for Companies */}
+                    {userData?.userType === "company" && (
+                      <div className="space-y-2">
+                        <Label>Listed By</Label>
+                        <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Source" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ALL">All Sources</SelectItem>
+                            <SelectItem value="BROKER">Broker Listed</SelectItem>
+                            <SelectItem value="COMPANY">Company Listed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                  <DialogFooter className="gap-2 sm:gap-0">
+                    <Button
+                      variant="outline"
+                      onClick={clearFilters}
+                      disabled={!hasActiveFilters && searchQuery === ""}
+                    >
+                      Clear All
+                    </Button>
+                    <Button onClick={() => setIsFilterOpen(false)}>
+                      Apply Filters
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              <div className="w-px h-6 bg-border/60 mx-1 hidden sm:block" />
+
+              {/* View Toggle Buttons */}
+              <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-full border border-border/40">
+                <Button
+                  variant={view === "grid" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => { setView("grid"); setSelectedPropertyId(null); }}
+                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'grid' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-background/50'}`}
+                  title="Grid View"
+                >
+                  <LayoutGridIcon className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant={view === "map" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => { setView("map"); setSelectedPropertyId(null); }}
+                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'map' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-background/50'}`}
+                  title="Map View"
+                >
+                  <MapPin className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant={view === "split" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => { setView("split"); setSelectedPropertyId(null); }}
+                  className={`h-7 w-7 rounded-full hidden md:flex transition-all duration-300 ${view === 'split' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-background/50'}`}
+                  title="Split View"
+                >
+                  <Columns className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
-      ) : view === "map" ? (
-        <div className="h-[calc(100vh-200px)] relative">
-          {selectedProperty ? (
-            <div className="absolute left-4 top-4 z-10 w-[400px] h-[calc(100%-2rem)] bg-background rounded-lg shadow-xl overflow-hidden border">
+      </div>
+
+      {/* 2. MAIN SPLIT CONTENT */}
+      <div className="flex-1 flex overflow-hidden relative">
+
+        {/* Left Panel - Property List Only */}
+        <div
+          className={`
+            flex-col h-full overflow-y-auto scrollbar-hide transition-all duration-300
+            ${view === "map" ? "hidden" : "flex"}
+            ${view === "grid" ? "w-full" : "w-full lg:w-[60%] xl:w-[55%] 2xl:w-[50%]"}
+            ${isMobileMapOpen && view === "split" ? 'hidden lg:flex' : ''}
+          `}
+        >
+          <div className="p-4 space-y-4 pb-24">
+
+            {/* Results Count (Desktop) */}
+            {!isLoading && (
+              <div className="hidden sm:flex items-center justify-between px-1">
+                <p className="text-sm text-muted-foreground">
+                  Showing <span className="font-medium text-foreground">{filteredProperties.length}</span> properties
+                  {categoryFilter !== "ALL" && <span className="text-accent"> in {categoryFilter.toLowerCase().replace('_', ' ')}</span>}
+                </p>
+              </div>
+            )}
+
+            {/* Property Grid */}
+            {isLoading ? (
+              <div className={`grid gap-6 ${view === 'split'
+                ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
+                : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                }`}>
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="aspect-[4/3] w-full rounded-xl" />
+                    <div className="space-y-2 px-1">
+                      <Skeleton className="h-5 w-24" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="show"
+                  className={`grid gap-6 ${view === 'split'
+                    ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
+                    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    }`}
+                >
+                  {filteredProperties.length > 0 ? (
+                    filteredProperties.map((property) => (
+                      <motion.div
+                        key={property._id}
+                        variants={itemVariants}
+                        ref={(el: HTMLDivElement | null) => { propertyRefs.current[property._id] = el; }}
+                        className={`rounded-xl transition-all duration-300 ${selectedPropertyId === property._id
+                          ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
+                          : ""
+                          }`}
+                      >
+                        <PropertyCard property={property} />
+                      </motion.div>
+                    ))
+                  ) : (
+                    <EmptyState />
+                  )}
+                </motion.div>
+                {renderPagination()}
+              </>
+            )}
+
+          </div>
+        </div>
+
+        {/* Right Panel - Map */}
+        <div
+          className={`
+          flex-1 h-full bg-muted border-l border-border/50
+          transition-all duration-300 relative
+          ${view === "grid" ? "hidden" : ""}
+          ${view === "map" ? "block w-full" : "hidden lg:block"}
+          ${isMobileMapOpen && view === "split" ? 'block w-full fixed inset-0 top-[120px] z-40' : ''}
+        `}
+        >
+          {selectedProperty && (
+            <div className="absolute left-4 top-4 z-10 w-[380px] max-h-[calc(100%-2rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
               <PropertyDetails
                 property={selectedProperty}
                 onClose={() => setSelectedPropertyId(null)}
               />
             </div>
-          ) : null}
+          )}
           <MapBox
             properties={filteredProperties}
             onSelectProperty={setSelectedPropertyId}
           />
-          {/* Overlay Pagination on Map */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 p-2 rounded-lg shadow-lg">
-            {renderPagination()}
-          </div>
         </div>
-      ) : view === "split" ? (
-        <div className="flex h-full gap-6">
-          <div className="w-1/2 h-full flex flex-col">
-            {selectedProperty ? (
-              <div className="h-[calc(100vh-200px)] border rounded-lg overflow-hidden">
-                <PropertyDetails
-                  property={selectedProperty}
-                  onClose={() => setSelectedPropertyId(null)}
-                />
-              </div>
+
+        {/* Floating Mobile Toggle Button */}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 lg:hidden filter drop-shadow-xl">
+          <Button
+            onClick={() => setIsMobileMapOpen(!isMobileMapOpen)}
+            className="rounded-full bg-foreground text-background hover:bg-foreground/90 px-6 py-6 h-auto shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-2"
+          >
+            {isMobileMapOpen ? (
+              <>
+                <LayoutGridIcon className="h-5 w-5" />
+                <span className="font-semibold">Show List</span>
+              </>
             ) : (
-              <div className="flex-1 min-h-0 flex flex-col">
-                <ScrollArea className="flex-1">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pr-4 pb-4">
-                    {filteredProperties.length > 0 ? (
-                      filteredProperties.map((property) => (
-                        <PropertyCard key={property._id} property={property} />
-                      ))
-                    ) : (
-                      <div className="col-span-full text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-                        <h3 className="text-lg font-semibold">
-                          No properties found
-                        </h3>
-                        <p className="text-muted-foreground">
-                          Try adjusting your filters to find what you&apos;re
-                          looking for.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-                {/* Pagination below ScrollArea in Split View */}
-                <div className="mt-4">{renderPagination()}</div>
-              </div>
+              <>
+                <MapPin className="h-5 w-5" />
+                <span className="font-semibold">Show Map</span>
+              </>
             )}
-          </div>
-          <div className="w-1/2 h-full">
-            <MapBox
-              properties={filteredProperties}
-              onSelectProperty={setSelectedPropertyId}
-            />
-          </div>
+          </Button>
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProperties.length > 0 ? (
-              filteredProperties.map((property) => (
-                <PropertyCard key={property._id} property={property} />
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-                <h3 className="text-lg font-semibold">No properties found</h3>
-                <p className="text-muted-foreground">
-                  Try adjusting your filters to find what you&apos;re looking
-                  for.
-                </p>
-              </div>
-            )}
-          </div>
-          {renderPagination()}
-        </>
-      )}
+
+      </div>
     </div>
   );
 };
 
+// Empty State Component
+const EmptyState = () => (
+  <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 bg-muted/20 rounded-2xl border border-dashed">
+    <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+      <Search className="h-8 w-8 text-muted-foreground/50" />
+    </div>
+    <h3 className="text-lg font-semibold text-foreground">No properties found</h3>
+    <p className="text-muted-foreground text-center mt-1 max-w-sm">
+      Try adjusting your filters or search terms to find what you&apos;re looking for.
+    </p>
+  </div>
+);
+
 export default ProtectedPage;
+

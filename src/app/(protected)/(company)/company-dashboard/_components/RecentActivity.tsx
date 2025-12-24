@@ -11,14 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { RecentActivity } from "@/hooks/useCompanyDashboard";
 import { motion } from "framer-motion";
 import {
-  Building2,
-  MessageSquare,
   Clock,
-  MapPin,
-  IndianRupee,
-  User,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -27,14 +21,7 @@ interface RecentActivityFeedProps {
   isLoading: boolean;
 }
 
-function formatCurrency(value: number): string {
-  if (value >= 10000000) {
-    return `₹${(value / 10000000).toFixed(1)}Cr`;
-  } else if (value >= 100000) {
-    return `₹${(value / 100000).toFixed(1)}L`;
-  }
-  return `₹${value.toLocaleString()}`;
-}
+
 
 function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
@@ -56,21 +43,20 @@ export function RecentActivityFeed({
 }: RecentActivityFeedProps) {
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
+      <Card className="h-full border-none shadow-none bg-transparent">
+        <CardHeader className="px-0 pt-0">
           <Skeleton className="h-5 w-32" />
           <Skeleton className="h-4 w-48" />
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="px-0">
+          <div className="space-y-6">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <Skeleton className="h-10 w-10 rounded-full" />
+              <div key={i} className="flex gap-4">
+                <Skeleton className="h-10 w-10 rounded-full shrink-0" />
                 <div className="flex-1 space-y-2">
-                  <Skeleton className="h-4 w-48" />
-                  <Skeleton className="h-3 w-32" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-3 w-24" />
                 </div>
-                <Skeleton className="h-5 w-16" />
               </div>
             ))}
           </div>
@@ -81,19 +67,16 @@ export function RecentActivityFeed({
 
   if (!data || data.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Clock className="h-5 w-5 text-primary" />
+      <Card className="h-full border-none shadow-none bg-transparent">
+        <CardHeader className="px-0 pt-0">
+          <CardTitle className="text-xl font-semibold flex items-center gap-2 font-host-grotesk">
             Recent Activity
           </CardTitle>
-          <CardDescription>Latest properties and enquiries</CardDescription>
+          <CardDescription>Latest updates from your team</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
-            <Clock className="h-12 w-12 mb-2 opacity-20" />
-            <p>No recent activity</p>
-          </div>
+        <CardContent className="px-0 flex flex-col items-center justify-center h-[300px] text-muted-foreground bg-muted/30 rounded-xl">
+          <Clock className="h-10 w-10 mb-3 opacity-20" />
+          <p>No activity yet</p>
         </CardContent>
       </Card>
     );
@@ -101,123 +84,73 @@ export function RecentActivityFeed({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="h-full flex flex-col"
     >
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Clock className="h-5 w-5 text-primary" />
-            Recent Activity
-          </CardTitle>
-          <CardDescription>Latest properties and enquiries</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[400px] pr-4">
-            <div className="space-y-4">
-              {data.map((activity, index) => (
-                <motion.div
-                  key={activity.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
-                >
-                  {/* Icon */}
-                  <div
-                    className={`p-2.5 rounded-xl shrink-0 ${
-                      activity.type === "property"
-                        ? "bg-blue-500/10"
-                        : "bg-amber-500/10"
-                    }`}
-                  >
-                    {activity.type === "property" ? (
-                      <Building2 className="h-4 w-4 text-blue-500" />
-                    ) : (
-                      <MessageSquare className="h-4 w-4 text-amber-500" />
-                    )}
-                  </div>
+      <div className="mb-4">
+        <h3 className="text-xl font-semibold font-host-grotesk text-foreground">
+          Recent Activity
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Real-time updates
+        </p>
+      </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-medium">
-                          {activity.type === "property" ? (
-                            <>
-                              <span className="capitalize">
-                                {activity.category?.toLowerCase()}
-                              </span>{" "}
-                              <span className="text-muted-foreground">
-                                {activity.propertyType?.toLowerCase()}
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <span>{activity.name || "Enquiry"}</span>{" "}
-                              <span className="text-muted-foreground text-xs">
-                                ({activity.enquiryType})
-                              </span>
-                            </>
-                          )}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
-                          {activity.type === "property" && activity.address && (
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              {activity.address.city}
-                              {activity.address.state &&
-                                `, ${activity.address.state}`}
-                            </span>
-                          )}
-                          {activity.type === "property" && activity.price && (
-                            <span className="flex items-center gap-1">
-                              <IndianRupee className="h-3 w-3" />
-                              {formatCurrency(activity.price)}
-                            </span>
-                          )}
-                          {activity.type === "property" &&
-                            activity.listedBy && (
-                              <span className="flex items-center gap-1">
-                                <User className="h-3 w-3" />
-                                {activity.listedBy.firstName}{" "}
-                                {activity.listedBy.lastName}
-                              </span>
-                            )}
-                          {activity.type === "enquiry" && activity.broker && (
-                            <span className="flex items-center gap-1">
-                              <User className="h-3 w-3" />
-                              {activity.broker.firstName}{" "}
-                              {activity.broker.lastName}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className={`shrink-0 text-xs ${getStatusColor(
-                          activity.status
-                        )}`}
-                      >
-                        {activity.status}
-                      </Badge>
-                    </div>
+      <ScrollArea className="flex-1 -mr-4 pr-4">
+        <div className="relative border-l-2 border-border/50 ml-4 space-y-8 pb-4">
+          {data.map((activity, index) => (
+            <motion.div
+              key={activity.id}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className="relative pl-8"
+            >
+              {/* Timeline Dot */}
+              <div
+                className={`absolute -left-[9px] top-1 p-1 rounded-full border-4 border-background ${activity.type === "property"
+                  ? "bg-blue-500"
+                  : "bg-amber-500"
+                  }`}
+              >
+                {/* Inner dot handled by bg color */}
+              </div>
 
-                    {/* Time */}
-                    <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(activity.createdAt), {
-                        addSuffix: true,
-                      })}
+              {/* Content */}
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full w-fit ${getStatusColor(activity.status)}`}>
+                    {activity.status}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                  </span>
+                </div>
+
+                <div className="space-y-0.5">
+                  {activity.type === "property" ? (
+                    <p className="text-sm font-medium text-foreground">
+                      {activity.listedBy?.firstName} updated {activity.category?.toLowerCase() || 'property'}
                     </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
+                  ) : (
+                    <p className="text-sm font-medium text-foreground">
+                      New enquiry from {activity.name || activity.enquiryType}
+                    </p>
+                  )}
+
+                  <p className="text-xs text-muted-foreground line-clamp-2 bg-muted/30 p-2 rounded-md mt-1">
+                    {activity.type === 'property'
+                      ? `${activity.propertyType} in ${activity.address?.city}`
+                      : `Enquiry for ${activity.enquiryType} from ${activity.name || 'Unknown Client'}`
+                    }
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </ScrollArea>
     </motion.div>
   );
 }

@@ -154,241 +154,294 @@ export const CompanyOnboardingDetails = ({
     setStep(step - 1);
   };
 
+  // Calculate progress
+  const totalSteps = 2;
+  const progress = (step / totalSteps) * 100;
+
   return (
-    <section className="flex flex-col justify-center items-center h-screen w-full relative">
-      <div className="absolute top-4 right-4 flex items-center gap-4">
-        <div className="flex gap-1 border rounded-full px-2 py-1 bg-background/50 backdrop-blur-sm shadow-sm">
+    <section className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-[#020617] transition-colors duration-500">
+      {/* Theme Toggles */}
+      <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
+        <div className="flex gap-0.5 border border-slate-200 dark:border-slate-800 rounded-full p-1 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md shadow-sm">
           <Button
             variant="ghost"
             size="icon"
-            aria-pressed={activeTheme === "light"}
-            className={`h-8 w-8 ${
-              activeTheme === "light"
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "hover:bg-accent hover:text-accent-foreground"
-            }`}
             onClick={() => setTheme("light")}
-            title="Light mode"
+            className={`h-7 w-7 rounded-full transition-all ${activeTheme === "light"
+              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+              }`}
           >
-            <Sun className="h-4 w-4" />
+            <Sun className="h-3.5 w-3.5" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            aria-pressed={activeTheme === "dark"}
-            className={`h-8 w-8 ${
-              activeTheme === "dark"
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "hover:bg-accent hover:text-accent-foreground"
-            }`}
             onClick={() => setTheme("dark")}
-            title="Dark mode"
+            className={`h-7 w-7 rounded-full transition-all ${activeTheme === "dark"
+              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+              }`}
           >
-            <Moon className="h-4 w-4" />
+            <Moon className="h-3.5 w-3.5" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            aria-pressed={isSystemTheme}
-            className={`h-8 w-8 ${
-              isSystemTheme
-                ? "bg-muted text-foreground ring-1 ring-border"
-                : "hover:bg-accent hover:text-accent-foreground"
-            }`}
             onClick={() => setTheme("system")}
-            title="System default"
+            className={`h-7 w-7 rounded-full transition-all ${isSystemTheme
+              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+              }`}
           >
-            <Computer className="h-4 w-4" />
+            <Computer className="h-3.5 w-3.5" />
           </Button>
         </div>
+
         <Button
-          variant={"link"}
+          variant="ghost"
           onClick={() => (isEditing && onCancel ? onCancel() : signOut())}
+          className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
         >
           {isEditing ? "Cancel" : "Logout"}
         </Button>
       </div>
 
+      {/* Executive Card */}
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmitProfileDetails)}
-          className="w-[50vw] lg:w-[30vw] relative bg-card text-card-foreground border border-border 
-        rounded-2xl 
-        shadow-2xl 
-        flex flex-col p-xl overflow-hidden"
+          className="relative max-w-2xl w-full bg-white dark:bg-[#0F172A] rounded-2xl shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col"
         >
-          <h1 className="text-3xl">
-            {isEditing ? "Update your" : "Let's setup your"}
-            <span className="text-primary font-instrument-serif italic">
-              {" "}
-              company profile
-            </span>
-          </h1>
-          <div className="grid grid-cols-1">
-            <AnimatePresence custom={direction} initial={false}>
-              <motion.div
-                key={step}
-                custom={direction}
-                variants={variants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="space-y-4 col-start-1 row-start-1"
-              >
-                {step === 1 && (
-                  <>
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Company Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="mobile"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Mobile Number</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="tel"
-                              maxLength={10}
-                              onChange={(e) => {
-                                const value = e.target.value
-                                  .replace(/\D/g, "")
-                                  .slice(0, 10);
-                                field.onChange(value);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="city"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>City</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </>
-                )}
-
-                {step === 2 && (
-                  <>
-                    <FormField
-                      control={form.control}
-                      name="gstin"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>GSTIN</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              maxLength={15}
-                              onChange={(e) => {
-                                const value = e.target.value
-                                  .toUpperCase()
-                                  .slice(0, 15);
-                                field.onChange(value);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="noOfEmployees"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Number of Employees</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="number"
-                              min="0"
-                              onChange={(e) =>
-                                field.onChange(parseInt(e.target.value) || 0)
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="officeAddress"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Office Address</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </>
-                )}
-              </motion.div>
-            </AnimatePresence>
+          {/* Progress Bar */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-100 dark:bg-slate-800">
+            <motion.div
+              className="h-full bg-[#0F766E]"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5, ease: "circOut" }}
+            />
           </div>
 
-          <div className="flex justify-between mt-4 pt-4 z-10 relative">
-            {step > 1 ? (
+          <div className="p-8 md:p-12 space-y-8">
+            {/* Header */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-baseline">
+                <h1 className="text-3xl md:text-4xl font-instrument-serif text-slate-900 dark:text-slate-50">
+                  {isEditing ? "Update your profile" : (
+                    <>
+                      Let&apos;s setup your <span className="text-[#0F766E] italic">company profile</span>
+                    </>
+                  )}
+                </h1>
+                <span className="hidden sm:block text-xs font-bold tracking-widest text-slate-400 uppercase">
+                  Step {step} of {totalSteps}
+                </span>
+              </div>
+              <p className="text-slate-500 dark:text-slate-400">
+                Provide your company details to verify your agency.
+              </p>
+            </div>
+
+            {/* Form Fields */}
+            <div className="relative min-h-[300px]">
+              <AnimatePresence custom={direction} mode="wait">
+                <motion.div
+                  key={step}
+                  custom={direction}
+                  variants={variants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.4, ease: "circOut" }}
+                  className="space-y-6"
+                >
+                  {step === 1 && (
+                    <div className="space-y-5">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                              Company Name
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
+                                placeholder="Your registered company name"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <FormField
+                          control={form.control}
+                          name="mobile"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                Mobile Number
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="tel"
+                                  maxLength={10}
+                                  className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
+                                  placeholder="Contact number"
+                                  onChange={(e) => {
+                                    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+                                    field.onChange(value);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="city"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                City
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
+                                  placeholder="Headquarters City"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {step === 2 && (
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <FormField
+                          control={form.control}
+                          name="gstin"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                GSTIN
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  maxLength={15}
+                                  className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all uppercase placeholder:normal-case"
+                                  placeholder="GST Identification Number"
+                                  onChange={(e) => {
+                                    const value = e.target.value.toUpperCase().slice(0, 15);
+                                    field.onChange(value);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="noOfEmployees"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                Number of Employees
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  min="0"
+                                  className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control}
+                        name="officeAddress"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                              Office Address
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
+                                placeholder="Registered office address"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Actions Bar */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800/50">
+              {step > 1 ? (
+                <Button
+                  variant="ghost"
+                  type="button"
+                  onClick={handlePrev}
+                  className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+              ) : (
+                <div /> // Spacer
+              )}
+
               <Button
-                variant={"outline"}
+                onClick={handleNext}
                 type="button"
-                onClick={handlePrev}
-                size={"lg"}
+                disabled={loading}
+                className={`
+                  h-12 px-8 font-medium
+                  bg-[#0F172A] text-white hover:bg-[#1E293B]
+                  dark:bg-white dark:text-[#0F172A] dark:hover:bg-slate-200
+                  transition-all duration-300
+                  ${step === 2 && !isValid && !loading ? "opacity-50 cursor-not-allowed" : "hover:shadow-lg hover:-translate-y-0.5"}
+                `}
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Previous
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    {isEditing ? "Updating..." : "Submitting..."}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {step === 2 ? (isEditing ? "Update Profile" : "Complete Setup") : "Continue"}
+                    {step < 2 && <ArrowRight className="h-4 w-4" />}
+                  </div>
+                )}
               </Button>
-            ) : (
-              <div />
-            )}
-            <Button
-              onClick={handleNext}
-              type="button"
-              size={"lg"}
-              disabled={loading}
-              className={
-                step === 2 && !isValid && !loading
-                  ? "opacity-50 cursor-not-allowed"
-                  : ""
-              }
-            >
-              {loading
-                ? isEditing
-                  ? "Updating..."
-                  : "Submitting..."
-                : step === 2
-                ? isEditing
-                  ? "Update"
-                  : "Submit"
-                : "Next"}
-              {step < 2 && !loading && <ArrowRight className="ml-2 h-4 w-4" />}
-            </Button>
+            </div>
+
           </div>
         </form>
       </Form>
