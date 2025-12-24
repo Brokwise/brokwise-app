@@ -86,11 +86,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     let host: HTMLDivElement | null = null;
     let root: ReturnType<typeof createRoot> | null = null;
 
+    const toastId = toast.loading("Generating PDF…");
+
     try {
       setIsExportingPdf(true);
-      toast.info("Generating PDF…", {
-        description: "This may take a few seconds.",
-      });
 
       const exportedOnLabel = format(new Date(), "PPP p");
 
@@ -122,10 +121,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         fileName: `Brokwise_Property_${safeId}.pdf`,
       });
 
-      toast.success("PDF downloaded");
+      toast.success("PDF downloaded", { id: toastId });
     } catch (err) {
       console.error(err);
-      toast.error("Failed to export PDF. Please try again.");
+      toast.error("Failed to export PDF. Please try again.", { id: toastId });
     } finally {
       try {
         root?.unmount();
