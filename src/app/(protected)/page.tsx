@@ -192,7 +192,6 @@ const ProtectedPage = () => {
   };
 
   const hasActiveFilters =
-    categoryFilter !== "ALL" ||
     bhkFilter !== "ALL" ||
     sourceFilter !== "ALL" ||
     priceRange !== null; // Only true if user explicitly set a price range
