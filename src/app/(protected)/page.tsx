@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useGetAllProperties } from "@/hooks/useProperty";
 import { PropertyCard } from "./_components/propertyCard";
@@ -17,7 +17,6 @@ import {
   Filter as FilterIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -40,7 +39,6 @@ import {
 import { Label } from "@/components/ui/label";
 import Fuse from "fuse.js";
 import { formatIndianNumber } from "@/utils/helper";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApp } from "@/context/AppContext";
 import {
   Pagination,
@@ -65,8 +63,8 @@ const ProtectedPage = () => {
   const [view, setView] = useState<"grid" | "map" | "split">("grid"); // Default to grid property-only view
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
 
-  /* Scroll Refs */
-  const propertyRefs = React.useRef<{ [key: string]: HTMLDivElement | null }>({});
+  /* Scroll Refs - Using Record type for cleaner typing */
+  const propertyRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   /* Filter States */
   const [searchQuery, setSearchQuery] = useState("");
@@ -107,7 +105,7 @@ const ProtectedPage = () => {
   }, [properties]);
 
   /* Scroll to Selected Property Interaction */
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedPropertyId && propertyRefs.current[selectedPropertyId]) {
       propertyRefs.current[selectedPropertyId]?.scrollIntoView({
         behavior: "smooth",
@@ -549,7 +547,7 @@ const ProtectedPage = () => {
       </div>
 
       {/* 2. MAIN SPLIT CONTENT */}
-      <div className={`flex-1 flex overflow-hidden relative ${view === "grid" ? "" : ""}`}>
+      <div className="flex-1 flex overflow-hidden relative">
 
         {/* Left Panel - Property List Only */}
         <div
@@ -574,7 +572,10 @@ const ProtectedPage = () => {
 
             {/* Property Grid */}
             {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
+              <div className={`grid gap-6 ${view === 'split'
+                ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
+                : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                }`}>
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="space-y-3">
                     <Skeleton className="aspect-[4/3] w-full rounded-xl" />
@@ -629,7 +630,7 @@ const ProtectedPage = () => {
           transition-all duration-300 relative
           ${view === "grid" ? "hidden" : ""}
           ${view === "map" ? "block w-full" : "hidden lg:block"}
-          ${isMobileMapOpen && view === "split" ? 'block w-full fixed inset-0 top-[60px] z-40' : ''}
+          ${isMobileMapOpen && view === "split" ? 'block w-full fixed inset-0 top-[120px] z-40' : ''}
         `}
         >
           {selectedProperty && (
@@ -685,3 +686,4 @@ const EmptyState = () => (
 );
 
 export default ProtectedPage;
+
