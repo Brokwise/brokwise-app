@@ -5,9 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     Home,
-    Search,
     Plus,
-    MessageSquare,
     User,
     LayoutDashboard,
     Building2,

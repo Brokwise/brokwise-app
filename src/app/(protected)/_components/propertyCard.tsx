@@ -20,7 +20,6 @@ import {
   Building2,
   Share2,
   Link2,
-  FileText,
   Download,
   CheckCircle2,
 } from "lucide-react";
@@ -63,7 +62,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     if (navigator.share) {
       try {
         await navigator.share(shareData);
-      } catch (err) {
+      } catch {
         // User cancelled or share failed - do nothing
       }
     } else {

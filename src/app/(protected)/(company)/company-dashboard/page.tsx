@@ -16,20 +16,15 @@ import {
 } from "@/hooks/useCompanyDashboard";
 import { DashboardStatsCards } from "./_components/DashboardStats";
 import { PropertyDistributionCharts } from "./_components/PropertyDistribution";
-import { EnquiryAnalyticsCharts } from "./_components/EnquiryAnalytics";
-import { BrokerPerformanceCard } from "./_components/BrokerPerformance";
 import { TrendsCharts } from "./_components/TrendsCharts";
 import { RecentActivityFeed } from "./_components/RecentActivity";
-import { PropertyValueAnalyticsCard } from "./_components/PropertyValueAnalytics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import { useQueryClient, useIsFetching } from "@tanstack/react-query";
 import {
-  LayoutDashboard,
   Building2,
   MessageSquare,
   Users,
-  IndianRupee,
   Download,
   RefreshCcw,
 } from "lucide-react";
@@ -48,7 +43,7 @@ export default function CompanyDashboard() {
       query.queryKey[0].startsWith("company-"),
   });
 
-  const [brokerTimeFrame, setBrokerTimeFrame] = useState<TimeFrame>("MONTH");
+  const [brokerTimeFrame] = useState<TimeFrame>("MONTH");
   const [trendsTimeFrame, setTrendsTimeFrame] = useState<TimeFrame>("MONTH");
 
   // Fetch all dashboard data
@@ -56,9 +51,8 @@ export default function CompanyDashboard() {
     useGetDashboardStats();
   const { data: propertyDistribution, isLoading: isLoadingDistribution } =
     useGetPropertyDistribution();
-  const { data: enquiryAnalytics, isLoading: isLoadingEnquiryAnalytics } =
-    useGetEnquiryAnalytics();
-  const { data: brokerPerformance, isLoading: isLoadingBrokerPerformance } =
+  useGetEnquiryAnalytics();
+  const { data: brokerPerformance } =
     useGetBrokerPerformance(brokerTimeFrame);
   const { data: propertyTrends, isLoading: isLoadingPropertyTrends } =
     useGetPropertyTrends(trendsTimeFrame);
@@ -66,8 +60,7 @@ export default function CompanyDashboard() {
     useGetEnquiryTrends(trendsTimeFrame);
   const { data: recentActivity, isLoading: isLoadingRecentActivity } =
     useGetRecentActivity(15);
-  const { data: propertyValueAnalytics, isLoading: isLoadingValueAnalytics } =
-    useGetPropertyValueAnalytics();
+  useGetPropertyValueAnalytics();
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({
@@ -193,7 +186,7 @@ export default function CompanyDashboard() {
               Dashboard
             </h1>
             <p className="text-muted-foreground text-sm font-medium">
-              Welcome back, here's what's happening today.
+              Welcome back, here&apos;s what&apos;s happening today.
             </p>
           </motion.div>
 

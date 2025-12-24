@@ -265,7 +265,7 @@ export const OnboardingDetails = ({
                 <h1 className="text-3xl md:text-4xl font-instrument-serif text-slate-900 dark:text-slate-50">
                   {isEditing ? "Update your profile" : (
                     <>
-                      Let's setup your <span className="text-[#0F766E] italic">profile</span>
+                      Let&apos;s setup your <span className="text-[#0F766E] italic">profile</span>
                     </>
                   )}
                 </h1>

@@ -603,7 +603,7 @@ const ProtectedPage = () => {
                       <motion.div
                         key={property._id}
                         variants={itemVariants}
-                        ref={(el) => (propertyRefs.current[property._id] = el) as any}
+                        ref={(el: HTMLDivElement | null) => { propertyRefs.current[property._id] = el; }}
                         className={`rounded-xl transition-all duration-300 ${selectedPropertyId === property._id
                           ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
                           : ""
@@ -680,7 +680,7 @@ const EmptyState = () => (
     </div>
     <h3 className="text-lg font-semibold text-foreground">No properties found</h3>
     <p className="text-muted-foreground text-center mt-1 max-w-sm">
-      Try adjusting your filters or search terms to find what you're looking for.
+      Try adjusting your filters or search terms to find what you&apos;re looking for.
     </p>
   </div>
 );

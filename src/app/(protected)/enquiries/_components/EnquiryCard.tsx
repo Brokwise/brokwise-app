@@ -11,10 +11,6 @@ import { Button } from "@/components/ui/button";
 import {
   MapPin,
   IndianRupee,
-  BedDouble,
-  Bath,
-  Building2,
-  ArrowRight,
   Clock,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";

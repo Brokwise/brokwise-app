@@ -11,14 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { RecentActivity } from "@/hooks/useCompanyDashboard";
 import { motion } from "framer-motion";
 import {
-  Building2,
-  MessageSquare,
   Clock,
-  MapPin,
-  IndianRupee,
-  User,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -27,14 +21,7 @@ interface RecentActivityFeedProps {
   isLoading: boolean;
 }
 
-function formatCurrency(value: number): string {
-  if (value >= 10000000) {
-    return `₹${(value / 10000000).toFixed(1)}Cr`;
-  } else if (value >= 100000) {
-    return `₹${(value / 100000).toFixed(1)}L`;
-  }
-  return `₹${value.toLocaleString()}`;
-}
+
 
 function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
