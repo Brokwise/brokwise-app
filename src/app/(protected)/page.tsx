@@ -316,130 +316,104 @@ const ProtectedPage = () => {
     );
   }
 
+  // Category Pills Data
+  const categoryPills = [
+    { value: "ALL", label: "All" },
+    { value: "RESIDENTIAL", label: "Residential" },
+    { value: "COMMERCIAL", label: "Commercial" },
+    { value: "INDUSTRIAL", label: "Industrial" },
+    { value: "AGRICULTURAL", label: "Agricultural" },
+    { value: "RESORT", label: "Resort" },
+    { value: "FARM_HOUSE", label: "Farmhouse" },
+  ];
+
   return (
     <div
-      className={`mx-auto p-6 lg:px-80 space-y-6 ${
-        view === "split" ? "h-[calc(100vh-100px)] overflow-hidden" : ""
-      }`}
+      className={`space-y-6 ${view === "split" ? "h-[calc(100vh-100px)] overflow-hidden" : ""
+        }`}
     >
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Properties</h1>
-          <p className="text-muted-foreground mt-1">
-            Browse and manage your listed properties
+      {/* Hero Section - Welcome & Search */}
+      <div className="bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-2xl p-6 md:p-8 border border-border/50">
+        <div className="max-w-2xl">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+            Welcome back{userData?.name ? `, ${userData.name.split(' ')[0]}` : ''} 👋
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">
+            Discover properties that match your clients' needs
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant={view === "grid" ? "default" : "outline"}
-            size="icon"
-            onClick={() => {
-              setView("grid");
-              setSelectedPropertyId(null);
-            }}
-            title="Grid View"
-          >
-            <LayoutGridIcon className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={view === "map" ? "default" : "outline"}
-            size="icon"
-            onClick={() => {
-              setView("map");
-              setSelectedPropertyId(null);
-            }}
-            title="Map View"
-          >
-            <MapPin className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={view === "split" ? "default" : "outline"}
-            size="icon"
-            onClick={() => {
-              setView("split");
-              setSelectedPropertyId(null);
-            }}
-            title="Split View"
-          >
-            <Columns className="h-4 w-4" />
-          </Button>
+
+        {/* Prominent Search Input */}
+        <div className="mt-6 max-w-xl">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              placeholder="Search by address, society, or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 h-12 text-base bg-background/80 backdrop-blur border-border/60 shadow-sm rounded-xl focus-visible:ring-accent"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
-      {userData?.userType === "company" && (
-        <Tabs
-          value={sourceFilter}
-          onValueChange={setSourceFilter}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-3 max-w-[400px]">
-            <TabsTrigger value="ALL">All</TabsTrigger>
-            <TabsTrigger value="BROKER">Broker Listed</TabsTrigger>
-            <TabsTrigger value="COMPANY">Company Listed</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      )}
-
-      {/* Search and Filters Bar */}
-      <div className="bg-card p-4 rounded-lg border shadow-sm flex gap-4 items-center flex-col sm:flex-row">
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search address, society, description..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
+      {/* Horizontal Pill Filters & View Toggle */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {/* Category Pills - Horizontal Scroll */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto scrollbar-hide">
+          {categoryPills.map((pill) => (
+            <Button
+              key={pill.value}
+              variant={categoryFilter === pill.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => setCategoryFilter(pill.value)}
+              className={`shrink-0 rounded-full px-4 transition-all ${categoryFilter === pill.value
+                  ? "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"
+                  : "bg-background hover:bg-muted border-border/60"
+                }`}
+            >
+              {pill.label}
+            </Button>
+          ))}
         </div>
 
-        <div className="flex gap-2 w-full sm:w-auto">
+        {/* View Toggle & Advanced Filters */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Advanced Filters Button */}
           <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="w-full sm:w-auto relative">
-                <FilterIcon className="h-4 w-4 mr-2" />
-                Filters
+              <Button variant="outline" size="sm" className="relative gap-2">
+                <FilterIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">Filters</span>
                 {hasActiveFilters && (
-                  <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-primary border-2 border-background" />
+                  <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-accent border-2 border-background" />
                 )}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Filters</DialogTitle>
+                <DialogTitle>Advanced Filters</DialogTitle>
                 <DialogDescription>
                   Refine your property search results.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-4">
-                {/* Category */}
-                <div className="space-y-2">
-                  <Label>Category</Label>
-                  <Select
-                    value={categoryFilter}
-                    onValueChange={setCategoryFilter}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ALL">All Categories</SelectItem>
-                      <SelectItem value="RESIDENTIAL">Residential</SelectItem>
-                      <SelectItem value="COMMERCIAL">Commercial</SelectItem>
-                      <SelectItem value="INDUSTRIAL">Industrial</SelectItem>
-                      <SelectItem value="AGRICULTURAL">Agricultural</SelectItem>
-                      <SelectItem value="RESORT">Resort</SelectItem>
-                      <SelectItem value="FARM_HOUSE">Farm House</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {/* Price Range */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <Label>Price Range</Label>
                     <div className="text-xs text-muted-foreground font-medium">
-                      {formatPriceShort(priceRange[0])} -{" "}
-                      {formatPriceShort(priceRange[1])}
+                      {formatPriceShort(priceRange[0])} - {formatPriceShort(priceRange[1])}
                     </div>
                   </div>
                   <Slider
@@ -469,74 +443,118 @@ const ProtectedPage = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Source Filter for Companies */}
+                {userData?.userType === "company" && (
+                  <div className="space-y-2">
+                    <Label>Listed By</Label>
+                    <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Source" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">All Sources</SelectItem>
+                        <SelectItem value="BROKER">Broker Listed</SelectItem>
+                        <SelectItem value="COMPANY">Company Listed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
               <DialogFooter className="gap-2 sm:gap-0">
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    clearFilters();
-                  }}
+                  onClick={clearFilters}
                   disabled={!hasActiveFilters && searchQuery === ""}
                 >
-                  Clear Filters
+                  Clear All
                 </Button>
                 <Button onClick={() => setIsFilterOpen(false)}>
-                  Show Results
+                  Apply Filters
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
 
-          {searchQuery && (
+          {/* View Toggle Buttons */}
+          <div className="flex items-center border rounded-lg p-0.5 bg-muted/30">
             <Button
-              variant="ghost"
+              variant={view === "grid" ? "secondary" : "ghost"}
               size="icon"
-              onClick={() => setSearchQuery("")}
-              title="Clear Search"
-              className="shrink-0"
+              onClick={() => { setView("grid"); setSelectedPropertyId(null); }}
+              className="h-8 w-8 rounded-md"
             >
-              <X className="h-4 w-4" />
+              <LayoutGridIcon className="h-4 w-4" />
             </Button>
-          )}
+            <Button
+              variant={view === "map" ? "secondary" : "ghost"}
+              size="icon"
+              onClick={() => { setView("map"); setSelectedPropertyId(null); }}
+              className="h-8 w-8 rounded-md"
+            >
+              <MapPin className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={view === "split" ? "secondary" : "ghost"}
+              size="icon"
+              onClick={() => { setView("split"); setSelectedPropertyId(null); }}
+              className="h-8 w-8 rounded-md hidden md:flex"
+            >
+              <Columns className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
+      {/* Results Count */}
+      {!isLoading && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">{filteredProperties.length}</span> properties found
+            {categoryFilter !== "ALL" && ` in ${categoryFilter.toLowerCase().replace('_', ' ')}`}
+          </p>
+        </div>
+      )}
+
+      {/* Loading State */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {[...Array(8)].map((_, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
             <div key={i} className="space-y-3">
-              <Skeleton className="h-48 w-full rounded-xl" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-[250px]" />
-                <Skeleton className="h-4 w-[200px]" />
+              <Skeleton className="aspect-[4/3] w-full rounded-xl" />
+              <div className="space-y-2 px-1">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
               </div>
             </div>
           ))}
         </div>
       ) : view === "map" ? (
-        <div className="h-[calc(100vh-200px)] relative">
-          {selectedProperty ? (
-            <div className="absolute left-4 top-4 z-10 w-[400px] h-[calc(100%-2rem)] bg-background rounded-lg shadow-xl overflow-hidden border">
+        /* Map View */
+        <div className="h-[calc(100vh-280px)] relative rounded-xl overflow-hidden border">
+          {selectedProperty && (
+            <div className="absolute left-4 top-4 z-10 w-[380px] max-h-[calc(100%-2rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
               <PropertyDetails
                 property={selectedProperty}
                 onClose={() => setSelectedPropertyId(null)}
               />
             </div>
-          ) : null}
+          )}
           <MapBox
             properties={filteredProperties}
             onSelectProperty={setSelectedPropertyId}
           />
-          {/* Overlay Pagination on Map */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 p-2 rounded-lg shadow-lg">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-background/95 backdrop-blur p-2 rounded-lg shadow-lg border">
             {renderPagination()}
           </div>
         </div>
       ) : view === "split" ? (
+        /* Split View */
         <div className="flex h-full gap-6">
           <div className="w-1/2 h-full flex flex-col">
             {selectedProperty ? (
-              <div className="h-[calc(100vh-200px)] border rounded-lg overflow-hidden">
+              <div className="h-[calc(100vh-280px)] border rounded-xl overflow-hidden">
                 <PropertyDetails
                   property={selectedProperty}
                   onClose={() => setSelectedPropertyId(null)}
@@ -545,30 +563,21 @@ const ProtectedPage = () => {
             ) : (
               <div className="flex-1 min-h-0 flex flex-col">
                 <ScrollArea className="flex-1">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pr-4 pb-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pr-4 pb-4">
                     {filteredProperties.length > 0 ? (
                       filteredProperties.map((property) => (
                         <PropertyCard key={property._id} property={property} />
                       ))
                     ) : (
-                      <div className="col-span-full text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-                        <h3 className="text-lg font-semibold">
-                          No properties found
-                        </h3>
-                        <p className="text-muted-foreground">
-                          Try adjusting your filters to find what you&apos;re
-                          looking for.
-                        </p>
-                      </div>
+                      <EmptyState />
                     )}
                   </div>
                 </ScrollArea>
-                {/* Pagination below ScrollArea in Split View */}
                 <div className="mt-4">{renderPagination()}</div>
               </div>
             )}
           </div>
-          <div className="w-1/2 h-full">
+          <div className="w-1/2 h-full rounded-xl overflow-hidden border">
             <MapBox
               properties={filteredProperties}
               onSelectProperty={setSelectedPropertyId}
@@ -576,20 +585,15 @@ const ProtectedPage = () => {
           </div>
         </div>
       ) : (
+        /* Grid View (Default) */
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProperties.length > 0 ? (
               filteredProperties.map((property) => (
                 <PropertyCard key={property._id} property={property} />
               ))
             ) : (
-              <div className="col-span-full text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-                <h3 className="text-lg font-semibold">No properties found</h3>
-                <p className="text-muted-foreground">
-                  Try adjusting your filters to find what you&apos;re looking
-                  for.
-                </p>
-              </div>
+              <EmptyState />
             )}
           </div>
           {renderPagination()}
@@ -598,5 +602,18 @@ const ProtectedPage = () => {
     </div>
   );
 };
+
+// Empty State Component
+const EmptyState = () => (
+  <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 bg-muted/20 rounded-2xl border border-dashed">
+    <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+      <Search className="h-8 w-8 text-muted-foreground/50" />
+    </div>
+    <h3 className="text-lg font-semibold text-foreground">No properties found</h3>
+    <p className="text-muted-foreground text-center mt-1 max-w-sm">
+      Try adjusting your filters or search terms to find what you're looking for.
+    </p>
+  </div>
+);
 
 export default ProtectedPage;
