@@ -336,7 +336,7 @@ const ProtectedPage = () => {
       <div className="bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-2xl p-6 md:p-8 border border-border/50">
         <div className="max-w-2xl">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
-            Welcome back{userData?.name ? `, ${userData.name.split(' ')[0]}` : ''} 👋
+            Welcome back{userData?.fullName ? `, ${userData.fullName.split(' ')[0]}` : ''} 👋
           </h1>
           <p className="text-muted-foreground mt-1 text-sm md:text-base">
             Discover properties that match your clients' needs
@@ -378,8 +378,8 @@ const ProtectedPage = () => {
               size="sm"
               onClick={() => setCategoryFilter(pill.value)}
               className={`shrink-0 rounded-full px-4 transition-all ${categoryFilter === pill.value
-                  ? "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"
-                  : "bg-background hover:bg-muted border-border/60"
+                ? "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"
+                : "bg-background hover:bg-muted border-border/60"
                 }`}
             >
               {pill.label}
