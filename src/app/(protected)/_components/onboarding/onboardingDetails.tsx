@@ -11,14 +11,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
-// Required field indicator component
-const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
-  <span className="flex items-center gap-1">
-    {children}
-    <span className="text-red-500">*</span>
-  </span>
-);
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Sun, Moon, Computer } from "lucide-react";
@@ -37,6 +29,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+// Required field indicator component
+const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
+  <span className="flex items-center gap-1">
+    {children}
+    <span className="text-red-500">*</span>
+  </span>
+);
 
 export const OnboardingDetails = ({
   isEditing = false,
@@ -203,8 +203,8 @@ export const OnboardingDetails = ({
             size="icon"
             onClick={() => setTheme("light")}
             className={`h-7 w-7 rounded-full transition-all ${activeTheme === "light"
-                ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-                : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
           >
             <Sun className="h-3.5 w-3.5" />
@@ -214,8 +214,8 @@ export const OnboardingDetails = ({
             size="icon"
             onClick={() => setTheme("dark")}
             className={`h-7 w-7 rounded-full transition-all ${activeTheme === "dark"
-                ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-                : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
           >
             <Moon className="h-3.5 w-3.5" />
@@ -225,8 +225,8 @@ export const OnboardingDetails = ({
             size="icon"
             onClick={() => setTheme("system")}
             className={`h-7 w-7 rounded-full transition-all ${isSystemTheme
-                ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-                : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
           >
             <Computer className="h-3.5 w-3.5" />
