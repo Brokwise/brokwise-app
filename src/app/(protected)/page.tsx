@@ -70,12 +70,11 @@ const ProtectedPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [sourceFilter, setSourceFilter] = useState<string>("ALL");
-  const [priceRange, setPriceRange] = useState<number[]>([0, 100000000]);
+  const [priceRange, setPriceRange] = useState<number[] | null>(null); // null means "use full range"
   const [bhkFilter, setBhkFilter] = useState<string>("ALL");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const debouncedPriceRange = useDebounce(priceRange, 300);
 
   const selectedProperty = properties?.find(
     (p) => p._id === selectedPropertyId
@@ -86,6 +85,14 @@ const ProtectedPage = () => {
     const max = Math.max(...properties.map((p) => p.totalPrice));
     return max > 0 ? max : 100000000;
   }, [properties]);
+
+  // Effective price range: use full range if user hasn't set a custom one.
+  // Important: memoize the array so `useDebounce` doesn't fire forever due to new array identity.
+  const effectivePriceRange = useMemo(
+    () => priceRange ?? [0, maxPropertyPrice],
+    [priceRange, maxPropertyPrice]
+  );
+  const debouncedPriceRange = useDebounce(effectivePriceRange, 300);
 
   // Initialize Fuse instance
   const fuse = useMemo(() => {
@@ -174,7 +181,7 @@ const ProtectedPage = () => {
     setSearchQuery("");
     setCategoryFilter("ALL");
     setSourceFilter("ALL");
-    setPriceRange([0, maxPropertyPrice]);
+    setPriceRange(null); // Reset to full range
     setBhkFilter("ALL");
   };
 
@@ -189,11 +196,9 @@ const ProtectedPage = () => {
   };
 
   const hasActiveFilters =
-    categoryFilter !== "ALL" ||
     bhkFilter !== "ALL" ||
     sourceFilter !== "ALL" ||
-    priceRange[0] !== 0 ||
-    priceRange[1] !== maxPropertyPrice;
+    priceRange !== null; // Only true if user explicitly set a price range
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
@@ -356,7 +361,7 @@ const ProtectedPage = () => {
 
   return (
     // Main Container - Viewport minus Header (approx 64px/4rem)
-    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden relative">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden relative">
 
       {/* 1. TOP CONTROL BAR (Always Visible) */}
       <div className="shrink-0 z-30 bg-background border-b border-border/40">
@@ -446,14 +451,51 @@ const ProtectedPage = () => {
                       <div className="flex justify-between items-center">
                         <Label>Price Range</Label>
                         <div className="text-xs text-muted-foreground font-medium">
-                          {formatPriceShort(priceRange[0])} - {formatPriceShort(priceRange[1])}
+                          {formatPriceShort(effectivePriceRange[0])} - {formatPriceShort(effectivePriceRange[1])}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Min</Label>
+                          <Input
+                            inputMode="numeric"
+                            type="number"
+                            min={0}
+                            max={effectivePriceRange[1]}
+                            value={effectivePriceRange[0]}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              const next = raw === "" ? 0 : Number(raw);
+                              if (!Number.isFinite(next)) return;
+                              setPriceRange([Math.max(0, Math.min(next, effectivePriceRange[1])), effectivePriceRange[1]]);
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Max</Label>
+                          <Input
+                            inputMode="numeric"
+                            type="number"
+                            min={effectivePriceRange[0]}
+                            max={maxPropertyPrice}
+                            value={effectivePriceRange[1]}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              const next = raw === "" ? maxPropertyPrice : Number(raw);
+                              if (!Number.isFinite(next)) return;
+                              setPriceRange([
+                                effectivePriceRange[0],
+                                Math.min(maxPropertyPrice, Math.max(next, effectivePriceRange[0])),
+                              ]);
+                            }}
+                          />
                         </div>
                       </div>
                       <Slider
                         min={0}
                         max={maxPropertyPrice}
                         step={100000}
-                        value={priceRange}
+                        value={effectivePriceRange}
                         onValueChange={(value) => setPriceRange(value)}
                         className="py-2"
                       />
@@ -517,7 +559,7 @@ const ProtectedPage = () => {
                   variant={view === "grid" ? "default" : "ghost"}
                   size="icon"
                   onClick={() => { setView("grid"); setSelectedPropertyId(null); }}
-                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'grid' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-background/50'}`}
+                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'grid' ? 'shadow-md scale-105 ring-1 ring-background' : ''}`}
                   title="Grid View"
                 >
                   <LayoutGridIcon className="h-3.5 w-3.5" />
@@ -526,7 +568,7 @@ const ProtectedPage = () => {
                   variant={view === "map" ? "default" : "ghost"}
                   size="icon"
                   onClick={() => { setView("map"); setSelectedPropertyId(null); }}
-                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'map' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-background/50'}`}
+                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'map' ? 'shadow-md scale-105 ring-1 ring-background' : ''}`}
                   title="Map View"
                 >
                   <MapPin className="h-3.5 w-3.5" />
@@ -535,7 +577,7 @@ const ProtectedPage = () => {
                   variant={view === "split" ? "default" : "ghost"}
                   size="icon"
                   onClick={() => { setView("split"); setSelectedPropertyId(null); }}
-                  className={`h-7 w-7 rounded-full hidden md:flex transition-all duration-300 ${view === 'split' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-background/50'}`}
+                  className={`h-7 w-7 rounded-full hidden md:flex transition-all duration-300 ${view === 'split' ? 'shadow-md scale-105 ring-1 ring-background' : ''}`}
                   title="Split View"
                 >
                   <Columns className="h-3.5 w-3.5" />
@@ -543,6 +585,78 @@ const ProtectedPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Active Filters (Quick Clear) */}
+          {(hasActiveFilters || searchQuery) && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {searchQuery && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setSearchQuery("")}
+                  className="h-7 rounded-full gap-2 px-3 bg-muted/60 text-foreground hover:bg-muted"
+                >
+                  <span className="max-w-[14rem] truncate">
+                    Search: {searchQuery}
+                  </span>
+                  <X className="h-3 w-3 opacity-70" />
+                </Button>
+              )}
+
+              {priceRange !== null && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setPriceRange(null)}
+                  className="h-7 rounded-full gap-2 px-3 bg-muted/60 text-foreground hover:bg-muted"
+                >
+                  <span className="max-w-[14rem] truncate">
+                    Price: {formatPriceShort(effectivePriceRange[0])} -{" "}
+                    {formatPriceShort(effectivePriceRange[1])}
+                  </span>
+                  <X className="h-3 w-3 opacity-70" />
+                </Button>
+              )}
+
+              {bhkFilter !== "ALL" && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setBhkFilter("ALL")}
+                  className="h-7 rounded-full gap-2 px-3 bg-muted/60 text-foreground hover:bg-muted"
+                >
+                  <span className="max-w-[14rem] truncate">
+                    BHK: {bhkFilter === "5+" ? "5+ BHK" : `${bhkFilter} BHK`}
+                  </span>
+                  <X className="h-3 w-3 opacity-70" />
+                </Button>
+              )}
+
+              {userData?.userType === "company" && sourceFilter !== "ALL" && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setSourceFilter("ALL")}
+                  className="h-7 rounded-full gap-2 px-3 bg-muted/60 text-foreground hover:bg-muted"
+                >
+                  <span className="max-w-[14rem] truncate">
+                    Listed by:{" "}
+                    {sourceFilter === "BROKER" ? "Broker" : "Company"}
+                  </span>
+                  <X className="h-3 w-3 opacity-70" />
+                </Button>
+              )}
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="h-7 rounded-full px-3 text-muted-foreground hover:text-foreground"
+              >
+                Clear all
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 

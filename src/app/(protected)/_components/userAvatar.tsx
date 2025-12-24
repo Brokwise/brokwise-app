@@ -60,7 +60,12 @@ export function UserAvatar() {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem className="focus:bg-transparent">
+          <DropdownMenuItem
+            // Keep the theme controls visible in light mode on hover/focus.
+            // (Default DropdownMenuItem applies focus:text-accent-foreground, which is white in light mode.)
+            className="focus:bg-transparent focus:text-foreground"
+            onSelect={(e) => e.preventDefault()}
+          >
             <div className="w-full flex items-center justify-between">
               <span className="text-sm">Theme</span>
               <div className="flex gap-1 border rounded-full px-1 py-0.5 bg-muted/50">
@@ -68,7 +73,11 @@ export function UserAvatar() {
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 rounded-full"
-                  onClick={(e) => { e.preventDefault(); setTheme("light"); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setTheme("light");
+                  }}
                 >
                   <Sun className="h-3.5 w-3.5" />
                 </Button>
@@ -76,7 +85,11 @@ export function UserAvatar() {
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 rounded-full"
-                  onClick={(e) => { e.preventDefault(); setTheme("dark"); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setTheme("dark");
+                  }}
                 >
                   <Moon className="h-3.5 w-3.5" />
                 </Button>
@@ -84,7 +97,11 @@ export function UserAvatar() {
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 rounded-full"
-                  onClick={(e) => { e.preventDefault(); setTheme("system"); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setTheme("system");
+                  }}
                 >
                   <Computer className="h-3.5 w-3.5" />
                 </Button>

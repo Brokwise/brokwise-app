@@ -74,8 +74,8 @@ const MessagePage = () => {
     : null;
 
   return (
-    <div className="h-[calc(100vh-120px)] w-full p-4">
-      <Card className="flex h-full overflow-hidden border shadow-sm bg-background">
+    <div className="flex h-full min-h-0 w-full p-4">
+      <Card className="flex min-h-0 w-full flex-1 overflow-hidden border bg-background shadow-sm">
         {/* Sidebar */}
         <div
           className={cn(

@@ -77,7 +77,7 @@ export default function LandConvertorPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-background p-4">
+    <div className="flex items-center justify-center min-h-full bg-background p-4">
       <div className="w-full max-w-lg p-6 rounded-3xl bg-card border border-border shadow-sm">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-normal mb-2">Land Area Converter</h1>
