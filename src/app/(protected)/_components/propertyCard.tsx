@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Home,
   Building2,
+  Share2,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,12 +51,28 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         <div className="absolute top-3 left-3 flex gap-2 z-10">
           <Badge
             className={`shadow-sm backdrop-blur-md border-none ${property.listingStatus === "ACTIVE"
-                ? "bg-emerald-600/90 text-white"
-                : "bg-background/80 text-foreground"
+              ? "bg-emerald-600/90 text-white"
+              : "bg-background/80 text-foreground"
               }`}
           >
             {property.listingStatus.replace("_", " ")}
           </Badge>
+        </div>
+
+        {/* Share Button */}
+        <div className="absolute top-3 right-3 z-10">
+          <Button
+            size="icon"
+            variant="secondary"
+            className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-md hover:bg-background shadow-sm"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // Implement share logic here perfectly
+            }}
+          >
+            <Share2 className="h-4 w-4 text-foreground/70" />
+          </Button>
         </div>
 
         {/* Price Tag Overlay (Luxurious Touch) */}

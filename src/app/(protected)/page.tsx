@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useGetAllProperties } from "@/hooks/useProperty";
 import { PropertyCard } from "./_components/propertyCard";
 import { MapBox } from "./_components/mapBox";
@@ -327,14 +328,31 @@ const ProtectedPage = () => {
     { value: "FARM_HOUSE", label: "Farmhouse" },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   return (
     <div
       className={`space-y-6 ${view === "split" ? "h-[calc(100vh-100px)] overflow-hidden" : ""
         }`}
     >
       {/* Hero Section - Welcome & Search */}
-      <div className="bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-2xl p-6 md:p-8 border border-border/50">
-        <div className="max-w-2xl">
+      <div className="bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-2xl p-6 md:p-8 border border-border/50 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+        <div className="relative z-10 max-w-2xl">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
             Welcome back{userData?.fullName ? `, ${userData.fullName.split(' ')[0]}` : ''} 👋
           </h1>
@@ -344,21 +362,21 @@ const ProtectedPage = () => {
         </div>
 
         {/* Prominent Search Input */}
-        <div className="mt-6 max-w-xl">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <div className="relative z-10 mt-6 max-w-xl">
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
             <Input
               placeholder="Search by address, society, or description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-12 text-base bg-background/80 backdrop-blur border-border/60 shadow-sm rounded-xl focus-visible:ring-accent"
+              className="pl-12 h-12 text-base bg-background/80 backdrop-blur border-border/60 shadow-sm rounded-xl focus-visible:ring-accent transition-shadow hover:shadow-md"
             />
             {searchQuery && (
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-background/50 rounded-lg"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -367,159 +385,168 @@ const ProtectedPage = () => {
         </div>
       </div>
 
-      {/* Horizontal Pill Filters & View Toggle */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        {/* Category Pills - Horizontal Scroll */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto scrollbar-hide">
-          {categoryPills.map((pill) => (
-            <Button
-              key={pill.value}
-              variant={categoryFilter === pill.value ? "default" : "outline"}
-              size="sm"
-              onClick={() => setCategoryFilter(pill.value)}
-              className={`shrink-0 rounded-full px-4 transition-all ${categoryFilter === pill.value
-                ? "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"
-                : "bg-background hover:bg-muted border-border/60"
-                }`}
-            >
-              {pill.label}
-            </Button>
-          ))}
-        </div>
-
-        {/* View Toggle & Advanced Filters */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Advanced Filters Button */}
-          <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="relative gap-2">
-                <FilterIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Filters</span>
-                {hasActiveFilters && (
-                  <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-accent border-2 border-background" />
-                )}
+      {/* Sticky Filters Bar */}
+      <div className="sticky top-16 z-20 -mx-6 px-6 py-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 transition-all">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 max-w-[1400px] mx-auto">
+          {/* Category Pills - Horizontal Scroll */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto scrollbar-hide mask-linear-fade">
+            {categoryPills.map((pill) => (
+              <Button
+                key={pill.value}
+                variant={categoryFilter === pill.value ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setCategoryFilter(pill.value)}
+                className={`shrink-0 rounded-full px-4 font-medium transition-all ${categoryFilter === pill.value
+                  ? "bg-accent/10 text-accent hover:bg-accent/20 border-accent/20 border"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+              >
+                {pill.label}
               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Advanced Filters</DialogTitle>
-                <DialogDescription>
-                  Refine your property search results.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-6 py-4">
-                {/* Price Range */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <Label>Price Range</Label>
-                    <div className="text-xs text-muted-foreground font-medium">
-                      {formatPriceShort(priceRange[0])} - {formatPriceShort(priceRange[1])}
+            ))}
+          </div>
+
+          {/* View Toggle & Advanced Filters */}
+          <div className="flex items-center gap-2 shrink-0 ml-auto">
+            {/* Results Count (Mobile Only) */}
+            <span className="text-xs text-muted-foreground sm:hidden">
+              {filteredProperties.length} results
+            </span>
+
+            {/* Advanced Filters Button */}
+            <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="relative gap-2 rounded-full border-border/60">
+                  <FilterIcon className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Filters</span>
+                  {hasActiveFilters && (
+                    <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-accent border-2 border-background" />
+                  )}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Advanced Filters</DialogTitle>
+                  <DialogDescription>
+                    Refine your property search results.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-6 py-4">
+                  {/* Price Range */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label>Price Range</Label>
+                      <div className="text-xs text-muted-foreground font-medium">
+                        {formatPriceShort(priceRange[0])} - {formatPriceShort(priceRange[1])}
+                      </div>
                     </div>
+                    <Slider
+                      min={0}
+                      max={maxPropertyPrice}
+                      step={100000}
+                      value={priceRange}
+                      onValueChange={(value) => setPriceRange(value)}
+                      className="py-2"
+                    />
                   </div>
-                  <Slider
-                    min={0}
-                    max={maxPropertyPrice}
-                    step={100000}
-                    value={priceRange}
-                    onValueChange={(value) => setPriceRange(value)}
-                    className="py-2"
-                  />
-                </div>
 
-                {/* BHK */}
-                <div className="space-y-2">
-                  <Label>BHK (Residential)</Label>
-                  <Select value={bhkFilter} onValueChange={setBhkFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="BHK" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ALL">Any BHK</SelectItem>
-                      <SelectItem value="1">1 BHK</SelectItem>
-                      <SelectItem value="2">2 BHK</SelectItem>
-                      <SelectItem value="3">3 BHK</SelectItem>
-                      <SelectItem value="4">4 BHK</SelectItem>
-                      <SelectItem value="5+">5+ BHK</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Source Filter for Companies */}
-                {userData?.userType === "company" && (
+                  {/* BHK */}
                   <div className="space-y-2">
-                    <Label>Listed By</Label>
-                    <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                    <Label>BHK (Residential)</Label>
+                    <Select value={bhkFilter} onValueChange={setBhkFilter}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Source" />
+                        <SelectValue placeholder="BHK" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ALL">All Sources</SelectItem>
-                        <SelectItem value="BROKER">Broker Listed</SelectItem>
-                        <SelectItem value="COMPANY">Company Listed</SelectItem>
+                        <SelectItem value="ALL">Any BHK</SelectItem>
+                        <SelectItem value="1">1 BHK</SelectItem>
+                        <SelectItem value="2">2 BHK</SelectItem>
+                        <SelectItem value="3">3 BHK</SelectItem>
+                        <SelectItem value="4">4 BHK</SelectItem>
+                        <SelectItem value="5+">5+ BHK</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                )}
-              </div>
-              <DialogFooter className="gap-2 sm:gap-0">
-                <Button
-                  variant="outline"
-                  onClick={clearFilters}
-                  disabled={!hasActiveFilters && searchQuery === ""}
-                >
-                  Clear All
-                </Button>
-                <Button onClick={() => setIsFilterOpen(false)}>
-                  Apply Filters
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
 
-          {/* View Toggle Buttons */}
-          <div className="flex items-center border rounded-lg p-0.5 bg-muted/30">
-            <Button
-              variant={view === "grid" ? "secondary" : "ghost"}
-              size="icon"
-              onClick={() => { setView("grid"); setSelectedPropertyId(null); }}
-              className="h-8 w-8 rounded-md"
-            >
-              <LayoutGridIcon className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={view === "map" ? "secondary" : "ghost"}
-              size="icon"
-              onClick={() => { setView("map"); setSelectedPropertyId(null); }}
-              className="h-8 w-8 rounded-md"
-            >
-              <MapPin className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={view === "split" ? "secondary" : "ghost"}
-              size="icon"
-              onClick={() => { setView("split"); setSelectedPropertyId(null); }}
-              className="h-8 w-8 rounded-md hidden md:flex"
-            >
-              <Columns className="h-4 w-4" />
-            </Button>
+                  {/* Source Filter for Companies */}
+                  {userData?.userType === "company" && (
+                    <div className="space-y-2">
+                      <Label>Listed By</Label>
+                      <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Source" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ALL">All Sources</SelectItem>
+                          <SelectItem value="BROKER">Broker Listed</SelectItem>
+                          <SelectItem value="COMPANY">Company Listed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+                <DialogFooter className="gap-2 sm:gap-0">
+                  <Button
+                    variant="outline"
+                    onClick={clearFilters}
+                    disabled={!hasActiveFilters && searchQuery === ""}
+                  >
+                    Clear All
+                  </Button>
+                  <Button onClick={() => setIsFilterOpen(false)}>
+                    Apply Filters
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <div className="w-px h-6 bg-border/60 mx-1 hidden sm:block" />
+
+            {/* View Toggle Buttons */}
+            <div className="flex items-center gap-1 bg-muted/30 p-1 rounded-full border border-border/40">
+              <Button
+                variant={view === "grid" ? "secondary" : "ghost"}
+                size="icon"
+                onClick={() => { setView("grid"); setSelectedPropertyId(null); }}
+                className={`h-7 w-7 rounded-full ${view === 'grid' ? 'bg-background shadow-sm' : ''}`}
+              >
+                <LayoutGridIcon className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant={view === "map" ? "secondary" : "ghost"}
+                size="icon"
+                onClick={() => { setView("map"); setSelectedPropertyId(null); }}
+                className={`h-7 w-7 rounded-full ${view === 'map' ? 'bg-background shadow-sm' : ''}`}
+              >
+                <MapPin className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant={view === "split" ? "secondary" : "ghost"}
+                size="icon"
+                onClick={() => { setView("split"); setSelectedPropertyId(null); }}
+                className={`h-7 w-7 rounded-full hidden md:flex ${view === 'split' ? 'bg-background shadow-sm' : ''}`}
+              >
+                <Columns className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Results Count */}
+      {/* Results Count (Desktop) */}
       {!isLoading && (
-        <div className="flex items-center justify-between">
+        <div className="hidden sm:flex items-center justify-between px-1">
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{filteredProperties.length}</span> properties found
-            {categoryFilter !== "ALL" && ` in ${categoryFilter.toLowerCase().replace('_', ' ')}`}
+            Showing <span className="font-medium text-foreground">{filteredProperties.length}</span> properties
+            {categoryFilter !== "ALL" && <span className="text-accent"> in {categoryFilter.toLowerCase().replace('_', ' ')}</span>}
           </p>
         </div>
       )}
 
       {/* Loading State */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, i) => (
             <div key={i} className="space-y-3">
               <Skeleton className="aspect-[4/3] w-full rounded-xl" />
               <div className="space-y-2 px-1">
@@ -532,7 +559,7 @@ const ProtectedPage = () => {
         </div>
       ) : view === "map" ? (
         /* Map View */
-        <div className="h-[calc(100vh-280px)] relative rounded-xl overflow-hidden border">
+        <div className="h-[calc(100vh-280px)] relative rounded-xl overflow-hidden border bg-muted/10">
           {selectedProperty && (
             <div className="absolute left-4 top-4 z-10 w-[380px] max-h-[calc(100%-2rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
               <PropertyDetails
@@ -577,7 +604,7 @@ const ProtectedPage = () => {
               </div>
             )}
           </div>
-          <div className="w-1/2 h-full rounded-xl overflow-hidden border">
+          <div className="w-1/2 h-full rounded-xl overflow-hidden border bg-muted/10">
             <MapBox
               properties={filteredProperties}
               onSelectProperty={setSelectedPropertyId}
@@ -587,15 +614,22 @@ const ProtectedPage = () => {
       ) : (
         /* Grid View (Default) */
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
             {filteredProperties.length > 0 ? (
               filteredProperties.map((property) => (
-                <PropertyCard key={property._id} property={property} />
+                <motion.div key={property._id} variants={itemVariants}>
+                  <PropertyCard property={property} />
+                </motion.div>
               ))
             ) : (
               <EmptyState />
             )}
-          </div>
+          </motion.div>
           {renderPagination()}
         </>
       )}
