@@ -65,18 +65,18 @@ export function BottomNav() {
                 icon: Home,
             },
             {
-                label: "Enquiries",
-                href: "/enquiries",
-                icon: FileText,
+                label: "Listings",
+                href: "/my-listings",
+                icon: Building2,
             },
             {
                 component: Fab, // Middle Button
                 href: "/property/createProperty",
             },
             {
-                label: "Message",
-                href: "/message",
-                icon: MessageSquare,
+                label: "Enquiries",
+                href: "/my-enquiries",
+                icon: FileText,
             },
             {
                 label: "Profile",

@@ -76,13 +76,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     // Regular Broker Navigation
     const brokerNav = [
         {
-            title: "Properties",
+            title: "Home",
             url: "/",
             icon: Home,
         },
         {
-            title: "Enquiries",
-            url: "/enquiries",
+            title: "My Listings",
+            url: "/my-listings",
+            icon: Building2,
+        },
+        {
+            title: "My Enquiries",
+            url: "/my-enquiries",
             icon: FileText,
         },
         {

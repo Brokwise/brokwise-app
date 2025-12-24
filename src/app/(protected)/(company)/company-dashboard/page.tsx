@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import {
   useGetDashboardStats,
@@ -38,6 +39,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export default function CompanyDashboard() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const isFetching = useIsFetching({
     predicate: (query) =>
@@ -266,21 +268,21 @@ export default function CompanyDashboard() {
             transition={{ delay: 0.1 }}
             className="xl:col-span-2 grid grid-cols-2 gap-4 h-full"
           >
-            <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => {/* Add Property Handler */ }}>
+            <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => router.push('/property/createProperty')}>
               <Building2 className="h-6 w-6" />
               Add Property
             </Button>
-            <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => {/* Add Utility */ }}>
+            <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => router.push('/company-brokers')}>
               <Users className="h-6 w-6" />
-              Add Broker
+              Manage Brokers
             </Button>
-            <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => {/* Add Utility */ }}>
+            <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => router.push('/company-enquiries')}>
               <MessageSquare className="h-6 w-6" />
-              New Enquiry
+              View Enquiries
             </Button>
-            <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => {/* Add Utility */ }}>
+            <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={handleExport}>
               <Download className="h-6 w-6" />
-              Reports
+              Export Report
             </Button>
           </motion.div>
 
