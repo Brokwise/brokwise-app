@@ -70,12 +70,11 @@ const ProtectedPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [sourceFilter, setSourceFilter] = useState<string>("ALL");
-  const [priceRange, setPriceRange] = useState<number[]>([0, 100000000]);
+  const [priceRange, setPriceRange] = useState<number[] | null>(null); // null means "use full range"
   const [bhkFilter, setBhkFilter] = useState<string>("ALL");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const debouncedPriceRange = useDebounce(priceRange, 300);
 
   const selectedProperty = properties?.find(
     (p) => p._id === selectedPropertyId
@@ -86,6 +85,10 @@ const ProtectedPage = () => {
     const max = Math.max(...properties.map((p) => p.totalPrice));
     return max > 0 ? max : 100000000;
   }, [properties]);
+
+  // Effective price range: use full range if user hasn't set a custom one
+  const effectivePriceRange = priceRange ?? [0, maxPropertyPrice];
+  const debouncedPriceRange = useDebounce(effectivePriceRange, 300);
 
   // Initialize Fuse instance
   const fuse = useMemo(() => {
@@ -174,7 +177,7 @@ const ProtectedPage = () => {
     setSearchQuery("");
     setCategoryFilter("ALL");
     setSourceFilter("ALL");
-    setPriceRange([0, maxPropertyPrice]);
+    setPriceRange(null); // Reset to full range
     setBhkFilter("ALL");
   };
 
@@ -192,8 +195,7 @@ const ProtectedPage = () => {
     categoryFilter !== "ALL" ||
     bhkFilter !== "ALL" ||
     sourceFilter !== "ALL" ||
-    priceRange[0] !== 0 ||
-    priceRange[1] !== maxPropertyPrice;
+    priceRange !== null; // Only true if user explicitly set a price range
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
@@ -446,7 +448,7 @@ const ProtectedPage = () => {
                       <div className="flex justify-between items-center">
                         <Label>Price Range</Label>
                         <div className="text-xs text-muted-foreground font-medium">
-                          {formatPriceShort(priceRange[0])} - {formatPriceShort(priceRange[1])}
+                          {formatPriceShort(effectivePriceRange[0])} - {formatPriceShort(effectivePriceRange[1])}
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
@@ -456,13 +458,13 @@ const ProtectedPage = () => {
                             inputMode="numeric"
                             type="number"
                             min={0}
-                            max={priceRange[1]}
-                            value={priceRange[0]}
+                            max={effectivePriceRange[1]}
+                            value={effectivePriceRange[0]}
                             onChange={(e) => {
                               const raw = e.target.value;
                               const next = raw === "" ? 0 : Number(raw);
                               if (!Number.isFinite(next)) return;
-                              setPriceRange(([_, max]) => [Math.max(0, Math.min(next, max)), max]);
+                              setPriceRange([Math.max(0, Math.min(next, effectivePriceRange[1])), effectivePriceRange[1]]);
                             }}
                           />
                         </div>
@@ -471,16 +473,16 @@ const ProtectedPage = () => {
                           <Input
                             inputMode="numeric"
                             type="number"
-                            min={priceRange[0]}
+                            min={effectivePriceRange[0]}
                             max={maxPropertyPrice}
-                            value={priceRange[1]}
+                            value={effectivePriceRange[1]}
                             onChange={(e) => {
                               const raw = e.target.value;
                               const next = raw === "" ? maxPropertyPrice : Number(raw);
                               if (!Number.isFinite(next)) return;
-                              setPriceRange(([min]) => [
-                                min,
-                                Math.min(maxPropertyPrice, Math.max(next, min)),
+                              setPriceRange([
+                                effectivePriceRange[0],
+                                Math.min(maxPropertyPrice, Math.max(next, effectivePriceRange[0])),
                               ]);
                             }}
                           />
@@ -490,7 +492,7 @@ const ProtectedPage = () => {
                         min={0}
                         max={maxPropertyPrice}
                         step={100000}
-                        value={priceRange}
+                        value={effectivePriceRange}
                         onValueChange={(value) => setPriceRange(value)}
                         className="py-2"
                       />
@@ -598,16 +600,16 @@ const ProtectedPage = () => {
                 </Button>
               )}
 
-              {(priceRange[0] !== 0 || priceRange[1] !== maxPropertyPrice) && (
+              {priceRange !== null && (
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => setPriceRange([0, maxPropertyPrice])}
+                  onClick={() => setPriceRange(null)}
                   className="h-7 rounded-full gap-2 px-3 bg-muted/60 text-foreground hover:bg-muted"
                 >
                   <span className="max-w-[14rem] truncate">
-                    Price: {formatPriceShort(priceRange[0])} -{" "}
-                    {formatPriceShort(priceRange[1])}
+                    Price: {formatPriceShort(effectivePriceRange[0])} -{" "}
+                    {formatPriceShort(effectivePriceRange[1])}
                   </span>
                   <X className="h-3 w-3 opacity-70" />
                 </Button>
