@@ -86,8 +86,12 @@ const ProtectedPage = () => {
     return max > 0 ? max : 100000000;
   }, [properties]);
 
-  // Effective price range: use full range if user hasn't set a custom one
-  const effectivePriceRange = priceRange ?? [0, maxPropertyPrice];
+  // Effective price range: use full range if user hasn't set a custom one.
+  // Important: memoize the array so `useDebounce` doesn't fire forever due to new array identity.
+  const effectivePriceRange = useMemo(
+    () => priceRange ?? [0, maxPropertyPrice],
+    [priceRange, maxPropertyPrice]
+  );
   const debouncedPriceRange = useDebounce(effectivePriceRange, 300);
 
   // Initialize Fuse instance
