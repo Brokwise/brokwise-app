@@ -39,7 +39,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
               </div>
             </header>
 
-            <div className="flex-1 p-4 pt-4 pb-24 md:pb-4 max-w-[1600px] mx-auto w-full">
+            <div className="flex-1 min-h-0 p-4 pt-4 pb-24 md:pb-4 max-w-[1600px] mx-auto w-full">
               {children}
             </div>
 
