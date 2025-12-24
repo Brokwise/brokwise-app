@@ -60,12 +60,15 @@ const ProtectedPage = () => {
     12
   );
   const { totalPages } = pagination;
-  const [view, setView] = useState<"grid" | "map" | "split">("grid");
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
-    null
-  );
+  /* State for Mobile Map Toggle */
+  const [isMobileMapOpen, setIsMobileMapOpen] = useState(false);
+  const [view, setView] = useState<"grid" | "map" | "split">("grid"); // Default to grid property-only view
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
 
-  // Filter States
+  /* Scroll Refs */
+  const propertyRefs = React.useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  /* Filter States */
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [sourceFilter, setSourceFilter] = useState<string>("ALL");
@@ -102,6 +105,16 @@ const ProtectedPage = () => {
       includeScore: true,
     });
   }, [properties]);
+
+  /* Scroll to Selected Property Interaction */
+  React.useEffect(() => {
+    if (selectedPropertyId && propertyRefs.current[selectedPropertyId]) {
+      propertyRefs.current[selectedPropertyId]?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [selectedPropertyId]);
 
   const filteredProperties = useMemo(() => {
     if (!properties) return [];
@@ -344,222 +357,281 @@ const ProtectedPage = () => {
   };
 
   return (
-    <div
-      className={`space-y-6 ${view === "split" ? "h-[calc(100vh-100px)] overflow-hidden" : ""
-        }`}
-    >
-      {/* Hero Section - Welcome & Search */}
-      <div className="bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-2xl p-6 md:p-8 border border-border/50 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+    // Main Container - Viewport minus Header (approx 64px/4rem)
+    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden relative">
 
-        <div className="relative z-10 max-w-2xl">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
-            Welcome back{userData?.fullName ? `, ${userData.fullName.split(' ')[0]}` : ''} 👋
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            Discover properties that match your clients' needs
-          </p>
-        </div>
+      {/* 1. TOP CONTROL BAR (Always Visible) */}
+      <div className="shrink-0 z-30 bg-background border-b border-border/40">
+        <div className="px-4 py-3 space-y-3">
 
-        {/* Prominent Search Input */}
-        <div className="relative z-10 mt-6 max-w-xl">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-accent transition-colors" />
-            <Input
-              placeholder="Search by address, society, or description..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-12 text-base bg-background/80 backdrop-blur border-border/60 shadow-sm rounded-xl focus-visible:ring-accent transition-shadow hover:shadow-md"
-            />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-background/50 rounded-lg"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
+          {/* Hero Section (Compact) */}
+          <div className="bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-lg p-3 border border-border/50 relative overflow-hidden">
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                <h1 className="text-lg font-bold tracking-tight text-foreground">
+                  Welcome back{userData?.fullName ? `, ${userData.fullName.split(' ')[0]}` : ''} 👋
+                </h1>
+              </div>
 
-      {/* Sticky Filters Bar */}
-      <div className="sticky top-16 z-20 -mx-6 px-6 py-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 transition-all">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 max-w-[1400px] mx-auto">
-          {/* Category Pills - Horizontal Scroll */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto scrollbar-hide mask-linear-fade">
-            {categoryPills.map((pill) => (
-              <Button
-                key={pill.value}
-                variant={categoryFilter === pill.value ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setCategoryFilter(pill.value)}
-                className={`shrink-0 rounded-full px-4 font-medium transition-all ${categoryFilter === pill.value
-                  ? "bg-accent/10 text-accent hover:bg-accent/20 border-accent/20 border"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-              >
-                {pill.label}
-              </Button>
-            ))}
+              {/* Search Input */}
+              <div className="relative flex-1 lg:max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search properties..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-9 text-sm bg-background/80 backdrop-blur border-border/60 shadow-sm rounded-lg"
+                />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 hover:bg-background/50 rounded-md"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* View Toggle & Advanced Filters */}
-          <div className="flex items-center gap-2 shrink-0 ml-auto">
-            {/* Results Count (Mobile Only) */}
-            <span className="text-xs text-muted-foreground sm:hidden">
-              {filteredProperties.length} results
-            </span>
+          {/* Filter Bar (Moved Here) */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
 
-            {/* Advanced Filters Button */}
-            <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="relative gap-2 rounded-full border-border/60">
-                  <FilterIcon className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Filters</span>
-                  {hasActiveFilters && (
-                    <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-accent border-2 border-background" />
-                  )}
+            {/* Category Pills - Horizontal Scroll */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full scrollbar-hide mask-linear-fade">
+              {categoryPills.map((pill) => (
+                <Button
+                  key={pill.value}
+                  variant={categoryFilter === pill.value ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setCategoryFilter(pill.value)}
+                  className={`shrink-0 rounded-full px-4 font-medium transition-all ${categoryFilter === pill.value
+                    ? "bg-accent/10 text-accent hover:bg-accent/20 border-accent/20 border"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                >
+                  {pill.label}
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Advanced Filters</DialogTitle>
-                  <DialogDescription>
-                    Refine your property search results.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-6 py-4">
-                  {/* Price Range */}
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <Label>Price Range</Label>
-                      <div className="text-xs text-muted-foreground font-medium">
-                        {formatPriceShort(priceRange[0])} - {formatPriceShort(priceRange[1])}
+              ))}
+            </div>
+
+            {/* View Toggle & Advanced Filters */}
+            <div className="flex items-center gap-2 shrink-0 ml-auto w-full sm:w-auto justify-end">
+              {/* Results Count (Mobile Only) */}
+              <span className="text-xs text-muted-foreground sm:hidden mr-auto">
+                {filteredProperties.length} results
+              </span>
+
+              {/* Advanced Filters Button */}
+              <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="relative gap-2 rounded-full border-border/60">
+                    <FilterIcon className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Filters</span>
+                    {hasActiveFilters && (
+                      <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-accent border-2 border-background" />
+                    )}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Advanced Filters</DialogTitle>
+                    <DialogDescription>
+                      Refine your property search results.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-6 py-4">
+                    {/* Price Range */}
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label>Price Range</Label>
+                        <div className="text-xs text-muted-foreground font-medium">
+                          {formatPriceShort(priceRange[0])} - {formatPriceShort(priceRange[1])}
+                        </div>
                       </div>
+                      <Slider
+                        min={0}
+                        max={maxPropertyPrice}
+                        step={100000}
+                        value={priceRange}
+                        onValueChange={(value) => setPriceRange(value)}
+                        className="py-2"
+                      />
                     </div>
-                    <Slider
-                      min={0}
-                      max={maxPropertyPrice}
-                      step={100000}
-                      value={priceRange}
-                      onValueChange={(value) => setPriceRange(value)}
-                      className="py-2"
-                    />
-                  </div>
 
-                  {/* BHK */}
-                  <div className="space-y-2">
-                    <Label>BHK (Residential)</Label>
-                    <Select value={bhkFilter} onValueChange={setBhkFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="BHK" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ALL">Any BHK</SelectItem>
-                        <SelectItem value="1">1 BHK</SelectItem>
-                        <SelectItem value="2">2 BHK</SelectItem>
-                        <SelectItem value="3">3 BHK</SelectItem>
-                        <SelectItem value="4">4 BHK</SelectItem>
-                        <SelectItem value="5+">5+ BHK</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Source Filter for Companies */}
-                  {userData?.userType === "company" && (
+                    {/* BHK */}
                     <div className="space-y-2">
-                      <Label>Listed By</Label>
-                      <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                      <Label>BHK (Residential)</Label>
+                      <Select value={bhkFilter} onValueChange={setBhkFilter}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Source" />
+                          <SelectValue placeholder="BHK" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="ALL">All Sources</SelectItem>
-                          <SelectItem value="BROKER">Broker Listed</SelectItem>
-                          <SelectItem value="COMPANY">Company Listed</SelectItem>
+                          <SelectItem value="ALL">Any BHK</SelectItem>
+                          <SelectItem value="1">1 BHK</SelectItem>
+                          <SelectItem value="2">2 BHK</SelectItem>
+                          <SelectItem value="3">3 BHK</SelectItem>
+                          <SelectItem value="4">4 BHK</SelectItem>
+                          <SelectItem value="5+">5+ BHK</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                  )}
-                </div>
-                <DialogFooter className="gap-2 sm:gap-0">
-                  <Button
-                    variant="outline"
-                    onClick={clearFilters}
-                    disabled={!hasActiveFilters && searchQuery === ""}
-                  >
-                    Clear All
-                  </Button>
-                  <Button onClick={() => setIsFilterOpen(false)}>
-                    Apply Filters
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
 
-            <div className="w-px h-6 bg-border/60 mx-1 hidden sm:block" />
+                    {/* Source Filter for Companies */}
+                    {userData?.userType === "company" && (
+                      <div className="space-y-2">
+                        <Label>Listed By</Label>
+                        <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Source" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ALL">All Sources</SelectItem>
+                            <SelectItem value="BROKER">Broker Listed</SelectItem>
+                            <SelectItem value="COMPANY">Company Listed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                  <DialogFooter className="gap-2 sm:gap-0">
+                    <Button
+                      variant="outline"
+                      onClick={clearFilters}
+                      disabled={!hasActiveFilters && searchQuery === ""}
+                    >
+                      Clear All
+                    </Button>
+                    <Button onClick={() => setIsFilterOpen(false)}>
+                      Apply Filters
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
-            {/* View Toggle Buttons */}
-            <div className="flex items-center gap-1 bg-muted/30 p-1 rounded-full border border-border/40">
-              <Button
-                variant={view === "grid" ? "secondary" : "ghost"}
-                size="icon"
-                onClick={() => { setView("grid"); setSelectedPropertyId(null); }}
-                className={`h-7 w-7 rounded-full ${view === 'grid' ? 'bg-background shadow-sm' : ''}`}
-              >
-                <LayoutGridIcon className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant={view === "map" ? "secondary" : "ghost"}
-                size="icon"
-                onClick={() => { setView("map"); setSelectedPropertyId(null); }}
-                className={`h-7 w-7 rounded-full ${view === 'map' ? 'bg-background shadow-sm' : ''}`}
-              >
-                <MapPin className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant={view === "split" ? "secondary" : "ghost"}
-                size="icon"
-                onClick={() => { setView("split"); setSelectedPropertyId(null); }}
-                className={`h-7 w-7 rounded-full hidden md:flex ${view === 'split' ? 'bg-background shadow-sm' : ''}`}
-              >
-                <Columns className="h-3.5 w-3.5" />
-              </Button>
+              <div className="w-px h-6 bg-border/60 mx-1 hidden sm:block" />
+
+              {/* View Toggle Buttons */}
+              <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-full border border-border/40">
+                <Button
+                  variant={view === "grid" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => { setView("grid"); setSelectedPropertyId(null); }}
+                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'grid' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-background/50'}`}
+                  title="Grid View"
+                >
+                  <LayoutGridIcon className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant={view === "map" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => { setView("map"); setSelectedPropertyId(null); }}
+                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'map' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-background/50'}`}
+                  title="Map View"
+                >
+                  <MapPin className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant={view === "split" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => { setView("split"); setSelectedPropertyId(null); }}
+                  className={`h-7 w-7 rounded-full hidden md:flex transition-all duration-300 ${view === 'split' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-background/50'}`}
+                  title="Split View"
+                >
+                  <Columns className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Results Count (Desktop) */}
-      {!isLoading && (
-        <div className="hidden sm:flex items-center justify-between px-1">
-          <p className="text-sm text-muted-foreground">
-            Showing <span className="font-medium text-foreground">{filteredProperties.length}</span> properties
-            {categoryFilter !== "ALL" && <span className="text-accent"> in {categoryFilter.toLowerCase().replace('_', ' ')}</span>}
-          </p>
-        </div>
-      )}
+      {/* 2. MAIN SPLIT CONTENT */}
+      <div className={`flex-1 flex overflow-hidden relative ${view === "grid" ? "" : ""}`}>
 
-      {/* Loading State */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="space-y-3">
-              <Skeleton className="aspect-[4/3] w-full rounded-xl" />
-              <div className="space-y-2 px-1">
-                <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
+        {/* Left Panel - Property List Only */}
+        <div
+          className={`
+            flex-col h-full overflow-y-auto scrollbar-hide transition-all duration-300
+            ${view === "map" ? "hidden" : "flex"}
+            ${view === "grid" ? "w-full" : "w-full lg:w-[60%] xl:w-[55%] 2xl:w-[50%]"}
+            ${isMobileMapOpen && view === "split" ? 'hidden lg:flex' : ''}
+          `}
+        >
+          <div className="p-4 space-y-4 pb-24">
+
+            {/* Results Count (Desktop) */}
+            {!isLoading && (
+              <div className="hidden sm:flex items-center justify-between px-1">
+                <p className="text-sm text-muted-foreground">
+                  Showing <span className="font-medium text-foreground">{filteredProperties.length}</span> properties
+                  {categoryFilter !== "ALL" && <span className="text-accent"> in {categoryFilter.toLowerCase().replace('_', ' ')}</span>}
+                </p>
               </div>
-            </div>
-          ))}
+            )}
+
+            {/* Property Grid */}
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="aspect-[4/3] w-full rounded-xl" />
+                    <div className="space-y-2 px-1">
+                      <Skeleton className="h-5 w-24" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="show"
+                  className={`grid gap-6 ${view === 'split'
+                    ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
+                    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    }`}
+                >
+                  {filteredProperties.length > 0 ? (
+                    filteredProperties.map((property) => (
+                      <motion.div
+                        key={property._id}
+                        variants={itemVariants}
+                        ref={(el) => (propertyRefs.current[property._id] = el) as any}
+                        className={`rounded-xl transition-all duration-300 ${selectedPropertyId === property._id
+                          ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
+                          : ""
+                          }`}
+                      >
+                        <PropertyCard property={property} />
+                      </motion.div>
+                    ))
+                  ) : (
+                    <EmptyState />
+                  )}
+                </motion.div>
+                {renderPagination()}
+              </>
+            )}
+
+          </div>
         </div>
-      ) : view === "map" ? (
-        /* Map View */
-        <div className="h-[calc(100vh-280px)] relative rounded-xl overflow-hidden border bg-muted/10">
+
+        {/* Right Panel - Map */}
+        <div
+          className={`
+          flex-1 h-full bg-muted border-l border-border/50
+          transition-all duration-300 relative
+          ${view === "grid" ? "hidden" : ""}
+          ${view === "map" ? "block w-full" : "hidden lg:block"}
+          ${isMobileMapOpen && view === "split" ? 'block w-full fixed inset-0 top-[60px] z-40' : ''}
+        `}
+        >
           {selectedProperty && (
             <div className="absolute left-4 top-4 z-10 w-[380px] max-h-[calc(100%-2rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
               <PropertyDetails
@@ -572,67 +644,29 @@ const ProtectedPage = () => {
             properties={filteredProperties}
             onSelectProperty={setSelectedPropertyId}
           />
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-background/95 backdrop-blur p-2 rounded-lg shadow-lg border">
-            {renderPagination()}
-          </div>
         </div>
-      ) : view === "split" ? (
-        /* Split View */
-        <div className="flex h-full gap-6">
-          <div className="w-1/2 h-full flex flex-col">
-            {selectedProperty ? (
-              <div className="h-[calc(100vh-280px)] border rounded-xl overflow-hidden">
-                <PropertyDetails
-                  property={selectedProperty}
-                  onClose={() => setSelectedPropertyId(null)}
-                />
-              </div>
-            ) : (
-              <div className="flex-1 min-h-0 flex flex-col">
-                <ScrollArea className="flex-1">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pr-4 pb-4">
-                    {filteredProperties.length > 0 ? (
-                      filteredProperties.map((property) => (
-                        <PropertyCard key={property._id} property={property} />
-                      ))
-                    ) : (
-                      <EmptyState />
-                    )}
-                  </div>
-                </ScrollArea>
-                <div className="mt-4">{renderPagination()}</div>
-              </div>
-            )}
-          </div>
-          <div className="w-1/2 h-full rounded-xl overflow-hidden border bg-muted/10">
-            <MapBox
-              properties={filteredProperties}
-              onSelectProperty={setSelectedPropertyId}
-            />
-          </div>
-        </div>
-      ) : (
-        /* Grid View (Default) */
-        <>
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+
+        {/* Floating Mobile Toggle Button */}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 lg:hidden filter drop-shadow-xl">
+          <Button
+            onClick={() => setIsMobileMapOpen(!isMobileMapOpen)}
+            className="rounded-full bg-foreground text-background hover:bg-foreground/90 px-6 py-6 h-auto shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-2"
           >
-            {filteredProperties.length > 0 ? (
-              filteredProperties.map((property) => (
-                <motion.div key={property._id} variants={itemVariants}>
-                  <PropertyCard property={property} />
-                </motion.div>
-              ))
+            {isMobileMapOpen ? (
+              <>
+                <LayoutGridIcon className="h-5 w-5" />
+                <span className="font-semibold">Show List</span>
+              </>
             ) : (
-              <EmptyState />
+              <>
+                <MapPin className="h-5 w-5" />
+                <span className="font-semibold">Show Map</span>
+              </>
             )}
-          </motion.div>
-          {renderPagination()}
-        </>
-      )}
+          </Button>
+        </div>
+
+      </div>
     </div>
   );
 };
