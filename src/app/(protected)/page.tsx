@@ -559,7 +559,7 @@ const ProtectedPage = () => {
                   variant={view === "grid" ? "default" : "ghost"}
                   size="icon"
                   onClick={() => { setView("grid"); setSelectedPropertyId(null); }}
-                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'grid' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-background/50'}`}
+                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'grid' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-accent hover:text-accent-foreground'}`}
                   title="Grid View"
                 >
                   <LayoutGridIcon className="h-3.5 w-3.5" />
@@ -568,7 +568,7 @@ const ProtectedPage = () => {
                   variant={view === "map" ? "default" : "ghost"}
                   size="icon"
                   onClick={() => { setView("map"); setSelectedPropertyId(null); }}
-                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'map' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-background/50'}`}
+                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'map' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-accent hover:text-accent-foreground'}`}
                   title="Map View"
                 >
                   <MapPin className="h-3.5 w-3.5" />
@@ -577,7 +577,7 @@ const ProtectedPage = () => {
                   variant={view === "split" ? "default" : "ghost"}
                   size="icon"
                   onClick={() => { setView("split"); setSelectedPropertyId(null); }}
-                  className={`h-7 w-7 rounded-full hidden md:flex transition-all duration-300 ${view === 'split' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-background/50'}`}
+                  className={`h-7 w-7 rounded-full hidden md:flex transition-all duration-300 ${view === 'split' ? 'shadow-md scale-105 ring-1 ring-background' : 'hover:bg-accent hover:text-accent-foreground'}`}
                   title="Split View"
                 >
                   <Columns className="h-3.5 w-3.5" />
