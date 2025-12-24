@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Property } from "@/types/property";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,17 +22,24 @@ import {
   Link2,
   Download,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatCurrency, formatAddress } from "@/utils/helper";
 import { toast } from "sonner";
+import { createRoot } from "react-dom/client";
+import { format } from "date-fns";
+import { PropertyPdfLayout } from "@/components/property-pdf/property-pdf-layout";
+import { exportElementAsPdf, makeSafeFilePart } from "@/utils/pdf";
 
 interface PropertyCardProps {
   property: Property;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
   const propertyUrl = typeof window !== "undefined"
     ? `${window.location.origin}/property/${property._id}`
     : `/property/${property._id}`;
@@ -71,15 +78,63 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     }
   };
 
-  const handleExportPdf = (e: React.MouseEvent) => {
+  const handleExportPdf = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Open property page in new tab with print dialog
-    const printUrl = `/property/${property._id}?print=true`;
-    window.open(printUrl, "_blank");
-    toast.info("Opening property page for PDF export...", {
-      description: "Use your browser's Print → Save as PDF option.",
-    });
+    if (isExportingPdf) return;
+
+    let host: HTMLDivElement | null = null;
+    let root: ReturnType<typeof createRoot> | null = null;
+
+    try {
+      setIsExportingPdf(true);
+      toast.info("Generating PDF…", {
+        description: "This may take a few seconds.",
+      });
+
+      const exportedOnLabel = format(new Date(), "PPP p");
+
+      host = document.createElement("div");
+      host.style.position = "fixed";
+      host.style.left = "-10000px";
+      host.style.top = "0";
+      host.style.zIndex = "2147483647";
+      document.body.appendChild(host);
+
+      root = createRoot(host);
+      root.render(
+        <div className="w-[794px] bg-white text-black">
+          <PropertyPdfLayout property={property} exportedOnLabel={exportedOnLabel} />
+        </div>
+      );
+
+      // Ensure layout is painted before capture.
+      await new Promise((r) => setTimeout(r, 75));
+
+      const element = host.querySelector("[data-property-pdf]") as HTMLElement | null;
+      if (!element) {
+        throw new Error("PDF layout failed to render");
+      }
+
+      const safeId = makeSafeFilePart(property.propertyId || property._id || "property");
+      await exportElementAsPdf({
+        element,
+        fileName: `Brokwise_Property_${safeId}.pdf`,
+      });
+
+      toast.success("PDF downloaded");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to export PDF. Please try again.");
+    } finally {
+      try {
+        root?.unmount();
+      } catch {
+        // no-op
+      }
+      host?.remove();
+      setIsExportingPdf(false);
+    }
   };
 
   return (
@@ -142,9 +197,17 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                 Share Property
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleExportPdf} className="cursor-pointer">
-                <Download className="mr-2 h-4 w-4" />
-                Export as PDF
+              <DropdownMenuItem
+                onClick={handleExportPdf}
+                disabled={isExportingPdf}
+                className="cursor-pointer"
+              >
+                {isExportingPdf ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                {isExportingPdf ? "Exporting…" : "Export as PDF"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -449,6 +449,43 @@ const ProtectedPage = () => {
                           {formatPriceShort(priceRange[0])} - {formatPriceShort(priceRange[1])}
                         </div>
                       </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Min</Label>
+                          <Input
+                            inputMode="numeric"
+                            type="number"
+                            min={0}
+                            max={priceRange[1]}
+                            value={priceRange[0]}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              const next = raw === "" ? 0 : Number(raw);
+                              if (!Number.isFinite(next)) return;
+                              setPriceRange(([_, max]) => [Math.max(0, Math.min(next, max)), max]);
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Max</Label>
+                          <Input
+                            inputMode="numeric"
+                            type="number"
+                            min={priceRange[0]}
+                            max={maxPropertyPrice}
+                            value={priceRange[1]}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              const next = raw === "" ? maxPropertyPrice : Number(raw);
+                              if (!Number.isFinite(next)) return;
+                              setPriceRange(([min]) => [
+                                min,
+                                Math.min(maxPropertyPrice, Math.max(next, min)),
+                              ]);
+                            }}
+                          />
+                        </div>
+                      </div>
                       <Slider
                         min={0}
                         max={maxPropertyPrice}
@@ -543,6 +580,78 @@ const ProtectedPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Active Filters (Quick Clear) */}
+          {(hasActiveFilters || searchQuery) && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {searchQuery && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setSearchQuery("")}
+                  className="h-7 rounded-full gap-2 px-3 bg-muted/60 text-foreground hover:bg-muted"
+                >
+                  <span className="max-w-[14rem] truncate">
+                    Search: {searchQuery}
+                  </span>
+                  <X className="h-3 w-3 opacity-70" />
+                </Button>
+              )}
+
+              {(priceRange[0] !== 0 || priceRange[1] !== maxPropertyPrice) && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setPriceRange([0, maxPropertyPrice])}
+                  className="h-7 rounded-full gap-2 px-3 bg-muted/60 text-foreground hover:bg-muted"
+                >
+                  <span className="max-w-[14rem] truncate">
+                    Price: {formatPriceShort(priceRange[0])} -{" "}
+                    {formatPriceShort(priceRange[1])}
+                  </span>
+                  <X className="h-3 w-3 opacity-70" />
+                </Button>
+              )}
+
+              {bhkFilter !== "ALL" && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setBhkFilter("ALL")}
+                  className="h-7 rounded-full gap-2 px-3 bg-muted/60 text-foreground hover:bg-muted"
+                >
+                  <span className="max-w-[14rem] truncate">
+                    BHK: {bhkFilter === "5+" ? "5+ BHK" : `${bhkFilter} BHK`}
+                  </span>
+                  <X className="h-3 w-3 opacity-70" />
+                </Button>
+              )}
+
+              {userData?.userType === "company" && sourceFilter !== "ALL" && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setSourceFilter("ALL")}
+                  className="h-7 rounded-full gap-2 px-3 bg-muted/60 text-foreground hover:bg-muted"
+                >
+                  <span className="max-w-[14rem] truncate">
+                    Listed by:{" "}
+                    {sourceFilter === "BROKER" ? "Broker" : "Company"}
+                  </span>
+                  <X className="h-3 w-3 opacity-70" />
+                </Button>
+              )}
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="h-7 rounded-full px-3 text-muted-foreground hover:text-foreground"
+              >
+                Clear all
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
