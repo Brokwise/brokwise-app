@@ -212,6 +212,11 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
     } else {
       map.once("style.load", fitToMarkers);
     }
+
+    // Cleanup: remove the style.load listener if effect re-runs or component unmounts
+    return () => {
+      map.off("style.load", fitToMarkers);
+    };
   }, [properties, onSelectProperty, mapLoaded]);
 
   return (
