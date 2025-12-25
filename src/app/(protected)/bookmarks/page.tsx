@@ -56,7 +56,7 @@ const BookmarksPage = () => {
             </div>
           ) : (
             <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {properties.map((property: any) => (
+              {properties.map((property) => (
                 <PropertyCard key={property._id} property={property} />
               ))}
             </div>
@@ -78,7 +78,7 @@ const BookmarksPage = () => {
             </div>
           ) : (
             <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {enquiries.map((enquiry: any) => (
+              {enquiries.map((enquiry) => (
                 <EnquiryCard key={enquiry._id} enquiry={enquiry} />
               ))}
             </div>
