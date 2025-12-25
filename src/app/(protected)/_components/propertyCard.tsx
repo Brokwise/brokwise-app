@@ -4,6 +4,8 @@ import { Property } from "@/types/property";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useApp } from "@/context/AppContext";
+import { useToggleBookmark } from "@/hooks/useBookmarks";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +25,7 @@ import {
   Download,
   CheckCircle2,
   Loader2,
+  Bookmark,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -39,6 +42,11 @@ interface PropertyCardProps {
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const { brokerData, setBrokerData } = useApp();
+  const { toggleBookmarkAsync, isPending: isBookmarkPending } = useToggleBookmark();
+
+  const isBookmarked =
+    !!brokerData?.bookmarkedPropertyIds?.includes(property._id);
 
   const propertyUrl = typeof window !== "undefined"
     ? `${window.location.origin}/property/${property._id}`
@@ -173,8 +181,59 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
           </Badge>
         </div>
 
-        {/* Share Button with Dropdown */}
-        <div className="absolute top-3 right-3 z-10">
+        {/* Bookmark + Share */}
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+          <Button
+            size="icon"
+            variant="secondary"
+            className={`h-8 w-8 rounded-full bg-background/80 backdrop-blur-md hover:bg-background shadow-sm ${
+              isBookmarked ? "text-accent" : ""
+            }`}
+            disabled={!brokerData || isBookmarkPending}
+            onClick={async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              if (!brokerData) {
+                toast.error("Please complete your profile to use bookmarks");
+                return;
+              }
+
+              const prev = brokerData.bookmarkedPropertyIds ?? [];
+              const next = isBookmarked
+                ? prev.filter((id) => id !== property._id)
+                : [property._id, ...prev.filter((id) => id !== property._id)];
+
+              setBrokerData({ ...brokerData, bookmarkedPropertyIds: next });
+
+              try {
+                const res = await toggleBookmarkAsync({
+                  itemType: "PROPERTY",
+                  itemId: property._id,
+                });
+                setBrokerData({
+                  ...brokerData,
+                  bookmarkedPropertyIds: res.bookmarkedPropertyIds,
+                  bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
+                });
+              } catch {
+                setBrokerData({ ...brokerData, bookmarkedPropertyIds: prev });
+              }
+            }}
+            title={isBookmarked ? "Remove bookmark" : "Bookmark"}
+          >
+            {isBookmarkPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Bookmark
+                className={`h-4 w-4 ${
+                  isBookmarked ? "text-accent" : "text-foreground/70"
+                }`}
+                fill={isBookmarked ? "currentColor" : "none"}
+              />
+            )}
+          </Button>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

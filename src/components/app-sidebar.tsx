@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
     Building2,
+    Bookmark,
     Home,
     LayoutDashboard,
     MessageSquare,
@@ -75,6 +76,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: "Home",
             url: "/",
             icon: Home,
+        },
+        {
+            title: "Bookmarks",
+            url: "/bookmarks",
+            icon: Bookmark,
         },
         {
             title: "My Listings",

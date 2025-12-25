@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Search,
     X,
@@ -10,8 +10,7 @@ import {
     Columns,
     Plus,
     MessageSquarePlus,
-    Star,
-    ChevronDown
+    ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,13 +31,15 @@ import {
     DialogTrigger,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { formatIndianNumber } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
-import { useSavedSearch } from "@/hooks/useSavedSearch";
-import { toast } from "sonner";
+import { useRecentSearches } from "@/hooks/useRecentSearches";
 
 interface MarketplaceHeaderProps {
+    viewMode: "PROPERTIES" | "ENQUIRIES";
+    setViewMode: (val: "PROPERTIES" | "ENQUIRIES") => void;
     searchQuery: string;
     setSearchQuery: (val: string) => void;
     categoryFilter: string;
@@ -60,6 +61,8 @@ interface MarketplaceHeaderProps {
 }
 
 export const MarketplaceHeader = ({
+    viewMode,
+    setViewMode,
     searchQuery,
     setSearchQuery,
     categoryFilter,
@@ -79,9 +82,15 @@ export const MarketplaceHeader = ({
     hasActiveFilters,
     onClearPropertySelection,
 }: MarketplaceHeaderProps) => {
-    const { userData, brokerData } = useApp();
+    const { userData } = useApp();
     const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const { saveSearch, isSaving } = useSavedSearch(brokerData?._id);
+    const [recentOpen, setRecentOpen] = useState(false);
+    const {
+        recentSearches,
+        isLoading: isRecentLoading,
+        refetch: refetchRecentSearches,
+        addRecentSearch,
+    } = useRecentSearches({ enabled: false });
 
     // Category Pills Data
     const categoryPills = [
@@ -105,7 +114,7 @@ export const MarketplaceHeader = ({
     };
 
     return (
-        <div className="shrink-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/40 pb-4 pt-6 px-6 lg:px-8 space-y-6">
+        <div className="shrink-0 sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40 pb-4 pt-6 px-6 lg:px-8 space-y-6">
 
             {/* 1. Header Section: Title + Quick Actions */}
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -131,6 +140,28 @@ export const MarketplaceHeader = ({
                         <span className="text-border/60">•</span>
                         <span className="shrink-0 font-medium text-foreground">3</span> New Enquiries
                     </div>
+
+                    {/* Marketplace Toggle (Properties | Enquiries) */}
+                    <div className="pt-4">
+                        <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-full border border-border/40 w-full sm:w-fit">
+                            <Button
+                                type="button"
+                                variant={viewMode === "PROPERTIES" ? "default" : "ghost"}
+                                onClick={() => setViewMode("PROPERTIES")}
+                                className="h-9 rounded-full px-5 flex-1 sm:flex-none"
+                            >
+                                Properties
+                            </Button>
+                            <Button
+                                type="button"
+                                variant={viewMode === "ENQUIRIES" ? "default" : "ghost"}
+                                onClick={() => setViewMode("ENQUIRIES")}
+                                className="h-9 rounded-full px-5 flex-1 sm:flex-none"
+                            >
+                                Enquiries
+                            </Button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Quick Actions */}
@@ -152,55 +183,91 @@ export const MarketplaceHeader = ({
                 {/* Search Input Group */}
                 <div className="relative flex-1 group">
                     <div className="absolute inset-0 bg-gradient-to-r from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none" />
-                    <div className="relative flex items-center w-full shadow-sm hover:shadow-md transition-shadow duration-300 rounded-full bg-background border border-border/60 active:ring-1 active:ring-accent/20">
-                        <Search className="absolute left-4 h-5 w-5 text-muted-foreground/60" />
-                        <Input
-                            placeholder="Search by location, society, or keywords..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-12 pr-20 h-12 text-base bg-transparent border-0 shadow-none rounded-full placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        />
-                        {/* Save Search Button (Inside Input) */}
-                        <div className="absolute right-2 flex items-center gap-1">
-                            {searchQuery && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setSearchQuery("")}
-                                    className="h-8 w-8 hover:bg-muted rounded-full"
-                                >
-                                    <X className="h-4 w-4 text-muted-foreground" />
-                                </Button>
-                            )}
-                            <Button
-                                size="icon"
-                                variant="ghost"
-                                className={`h-8 w-8 rounded-full text-muted-foreground hover:text-accent hover:bg-accent/10 ${isSaving ? "opacity-50 pointer-events-none" : ""}`}
-                                title="Save this search"
-                                disabled={isSaving}
-                                onClick={async () => {
-                                    if (!brokerData?._id) {
-                                        toast.error("Please complete your profile to save searches");
-                                        return;
+                    <Popover open={recentOpen} onOpenChange={setRecentOpen}>
+                        <PopoverAnchor asChild>
+                            <div className="relative flex items-center w-full shadow-sm hover:shadow-md transition-shadow duration-300 rounded-full bg-background border border-border/60 active:ring-1 active:ring-accent/20">
+                                <Search className="absolute left-4 h-5 w-5 text-muted-foreground/60" />
+                                <Input
+                                    placeholder={
+                                        viewMode === "PROPERTIES"
+                                            ? "Search properties by location, society, or keywords..."
+                                            : "Search enquiries by location, budget, or requirements..."
                                     }
-                                    const name = searchQuery || `Search ${new Date().toLocaleDateString()}`;
-                                    await saveSearch(name, {
-                                        searchQuery,
-                                        categoryFilter,
-                                        sourceFilter,
-                                        priceRange: priceRange ?? undefined,
-                                        bhkFilter,
-                                    });
-                                }}
-                            >
-                                <Star className={`h-4 w-4 ${isSaving ? "animate-spin" : ""}`} />
-                            </Button>
-                        </div>
-                    </div>
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onFocus={async () => {
+                                        setRecentOpen(true);
+                                        await refetchRecentSearches();
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Escape") {
+                                            setRecentOpen(false);
+                                            return;
+                                        }
+                                        if (e.key === "Enter") {
+                                            const term = searchQuery.trim();
+                                            if (term) {
+                                                void addRecentSearch(term);
+                                            }
+                                            setRecentOpen(false);
+                                        }
+                                    }}
+                                    className="pl-12 pr-12 h-12 text-base bg-transparent border-0 shadow-none rounded-full placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                />
+                                <div className="absolute right-2 flex items-center gap-1">
+                                    {searchQuery && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => setSearchQuery("")}
+                                            className="h-8 w-8 hover:bg-muted rounded-full"
+                                            title="Clear"
+                                        >
+                                            <X className="h-4 w-4 text-muted-foreground" />
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        </PopoverAnchor>
+
+                        <PopoverContent className="w-[min(28rem,calc(100vw-2rem))] p-0" align="start">
+                            <div className="p-3 border-b border-border/50">
+                                <h4 className="font-semibold text-sm">Recent Searches</h4>
+                            </div>
+                            <div className="max-h-64 overflow-y-auto">
+                                {isRecentLoading ? (
+                                    <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>
+                                ) : recentSearches.length === 0 ? (
+                                    <div className="p-4 text-center text-sm text-muted-foreground">
+                                        No recent searches yet.
+                                        <br />
+                                        <span className="text-xs">Press Enter to save a search term.</span>
+                                    </div>
+                                ) : (
+                                    recentSearches.slice(0, 5).map((term) => (
+                                        <button
+                                            key={term}
+                                            type="button"
+                                            className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted/50 transition-colors border-b border-border/30 last:border-0"
+                                            onClick={() => {
+                                                setSearchQuery(term);
+                                                setRecentOpen(false);
+                                                void addRecentSearch(term);
+                                            }}
+                                        >
+                                            <span className="font-medium">{term}</span>
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                 </div>
 
-                {/* Controls: Filter Pills + View Toggle */}
-                <div className="flex flex-col sm:flex-row items-center gap-4 justify-between xl:justify-end min-w-0">
+                {viewMode === "PROPERTIES" && (
+                    <>
+                        {/* Controls: Filter Pills + View Toggle */}
+                        <div className="flex flex-col sm:flex-row items-center gap-4 justify-between xl:justify-end min-w-0">
 
                     {/* Category Pills (Scrollable) */}
                     <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full xl:w-auto scrollbar-hide mask-linear-fade flex-1">
@@ -381,12 +448,14 @@ export const MarketplaceHeader = ({
                             </Button>
                         </div>
                     </div>
-                </div>
+                        </div>
+                    </>
+                )}
 
             </div>
 
             {/* 3. Active Filters Quick Row (if filters active) */}
-            {(hasActiveFilters || searchQuery) && (
+            {(searchQuery || (viewMode === "PROPERTIES" && hasActiveFilters)) && (
                 <div className="flex flex-wrap items-center gap-2 pt-1 animate-in fade-in slide-in-from-top-2 duration-300">
                     <span className="text-xs font-semibold text-muted-foreground mr-1">Active:</span>
                     {searchQuery && (
@@ -401,7 +470,7 @@ export const MarketplaceHeader = ({
                         </Button>
                     )}
 
-                    {priceRange !== null && (
+                    {viewMode === "PROPERTIES" && priceRange !== null && (
                         <Button
                             variant="secondary"
                             size="sm"
@@ -413,7 +482,7 @@ export const MarketplaceHeader = ({
                         </Button>
                     )}
 
-                    {bhkFilter !== "ALL" && (
+                    {viewMode === "PROPERTIES" && bhkFilter !== "ALL" && (
                         <Button
                             variant="secondary"
                             size="sm"
@@ -425,7 +494,7 @@ export const MarketplaceHeader = ({
                         </Button>
                     )}
 
-                    {userData?.userType === "company" && sourceFilter !== "ALL" && (
+                    {viewMode === "PROPERTIES" && userData?.userType === "company" && sourceFilter !== "ALL" && (
                         <Button
                             variant="secondary"
                             size="sm"
@@ -440,7 +509,13 @@ export const MarketplaceHeader = ({
                     <Button
                         variant="link"
                         size="sm"
-                        onClick={clearFilters}
+                        onClick={() => {
+                            if (viewMode === "PROPERTIES") {
+                                clearFilters();
+                            } else {
+                                setSearchQuery("");
+                            }
+                        }}
                         className="h-6 text-xs px-2 text-muted-foreground hover:text-destructive transition-colors"
                     >
                         Clear all

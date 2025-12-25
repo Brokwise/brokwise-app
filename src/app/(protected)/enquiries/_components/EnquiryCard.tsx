@@ -8,10 +8,15 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useApp } from "@/context/AppContext";
+import { useToggleBookmark } from "@/hooks/useBookmarks";
+import { toast } from "sonner";
 import {
   MapPin,
   IndianRupee,
   Clock,
+  Bookmark,
+  Loader2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -23,6 +28,9 @@ interface EnquiryCardProps {
 
 export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
   const router = useRouter();
+  const { brokerData, setBrokerData } = useApp();
+  const { toggleBookmarkAsync, isPending: isBookmarkPending } = useToggleBookmark();
+  const isBookmarked = !!brokerData?.bookmarkedEnquiryIds?.includes(enquiry._id);
   const locationTitle = formatEnquiryLocation(enquiry);
   const formatCurrency = (amount: number) => {
     if (amount >= 10000000) {
@@ -70,9 +78,63 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
               {enquiry.description}
             </h3>
           </div>
-          <Badge className={`${getStatusColor(enquiry.status)} border-0 px-2 py-0.5 capitalize shadow-none`}>
-            {enquiry.status}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              className={`h-8 w-8 rounded-full hover:bg-muted ${
+                isBookmarked ? "text-accent" : "text-muted-foreground"
+              }`}
+              disabled={!brokerData || isBookmarkPending}
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (!brokerData) {
+                  toast.error("Please complete your profile to use bookmarks");
+                  return;
+                }
+
+                const prev = brokerData.bookmarkedEnquiryIds ?? [];
+                const next = isBookmarked
+                  ? prev.filter((id) => id !== enquiry._id)
+                  : [enquiry._id, ...prev.filter((id) => id !== enquiry._id)];
+
+                setBrokerData({ ...brokerData, bookmarkedEnquiryIds: next });
+
+                try {
+                  const res = await toggleBookmarkAsync({
+                    itemType: "ENQUIRY",
+                    itemId: enquiry._id,
+                  });
+                  setBrokerData({
+                    ...brokerData,
+                    bookmarkedPropertyIds: res.bookmarkedPropertyIds,
+                    bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
+                  });
+                } catch {
+                  setBrokerData({ ...brokerData, bookmarkedEnquiryIds: prev });
+                }
+              }}
+              title={isBookmarked ? "Remove bookmark" : "Bookmark"}
+            >
+              {isBookmarkPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Bookmark
+                  className="h-4 w-4"
+                  fill={isBookmarked ? "currentColor" : "none"}
+                />
+              )}
+            </Button>
+            <Badge
+              className={`${getStatusColor(
+                enquiry.status
+              )} border-0 px-2 py-0.5 capitalize shadow-none`}
+            >
+              {enquiry.status}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
 

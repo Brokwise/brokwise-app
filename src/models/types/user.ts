@@ -73,6 +73,9 @@ export type GetBrokerDetailsResponse = {
     reraNumber: string;
     status: "approved" | "pending" | "incomplete" | "blacklisted";
     companyId?: string | Company;
+    recentSearches?: string[];
+    bookmarkedPropertyIds?: string[];
+    bookmarkedEnquiryIds?: string[];
     createdAt: string;
     brokerId: string;
   };

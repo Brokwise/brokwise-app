@@ -2,9 +2,11 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useGetAllProperties } from "@/hooks/useProperty";
+import { useGetAllMarketPlaceEnquiries } from "@/hooks/useEnquiry";
 import { PropertyCard } from "./_components/propertyCard";
 import { MapBox } from "./_components/mapBox";
 import { PropertyDetails } from "./_components/propertyDetails";
+import { EnquiryCard } from "./enquiries/_components/EnquiryCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -40,17 +42,44 @@ const EmptyState = () => (
   </div>
 );
 
+const EmptyEnquiriesState = () => (
+  <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 bg-muted/20 rounded-2xl border border-dashed">
+    <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+      <Search className="h-8 w-8 text-muted-foreground/50" />
+    </div>
+    <h3 className="text-lg font-semibold text-foreground">No enquiries found</h3>
+    <p className="text-muted-foreground text-center mt-1 max-w-sm">
+      Try adjusting your search terms to find what you&apos;re looking for.
+    </p>
+  </div>
+);
+
 const ProtectedPage = () => {
+  const [viewMode, setViewMode] = useState<"PROPERTIES" | "ENQUIRIES">("PROPERTIES");
   const [currentPage, setCurrentPage] = useState(1);
   const { properties, pagination, isLoading, error } = useGetAllProperties(
     currentPage,
     12
   );
+  const {
+    marketPlaceEnquiries,
+    isPending: isEnquiriesLoading,
+    error: enquiriesError,
+  } = useGetAllMarketPlaceEnquiries({ enabled: viewMode === "ENQUIRIES" });
   const { totalPages } = pagination;
   /* State for Mobile Map Toggle */
   const [isMobileMapOpen, setIsMobileMapOpen] = useState(false);
   const [view, setView] = useState<"grid" | "map" | "split">("grid"); // Default to grid property-only view
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+
+  // When switching to Enquiries mode, ensure property-specific panels are reset/closed.
+  useEffect(() => {
+    if (viewMode === "ENQUIRIES") {
+      setView("grid");
+      setSelectedPropertyId(null);
+      setIsMobileMapOpen(false);
+    }
+  }, [viewMode]);
 
   /* Scroll Refs - Using Record type for cleaner typing */
   const propertyRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -102,6 +131,21 @@ const ProtectedPage = () => {
       includeScore: true,
     });
   }, [properties]);
+
+  const enquiryFuse = useMemo(() => {
+    if (!marketPlaceEnquiries || marketPlaceEnquiries.length === 0) return null;
+    return new Fuse(marketPlaceEnquiries, {
+      keys: [
+        { name: "address", weight: 0.7 },
+        { name: "society", weight: 0.4 },
+        { name: "description", weight: 0.8 },
+        { name: "enquiryType", weight: 0.35 },
+        { name: "enquiryCategory", weight: 0.25 },
+      ],
+      threshold: 0.4,
+      includeScore: true,
+    });
+  }, [marketPlaceEnquiries]);
 
   /* Scroll to Selected Property Interaction */
   useEffect(() => {
@@ -168,6 +212,20 @@ const ProtectedPage = () => {
     bhkFilter,
     fuse,
   ]);
+
+  const filteredEnquiries = useMemo(() => {
+    let baseEnquiries = marketPlaceEnquiries;
+
+    // Fuzzy Search (Enquiries)
+    if (debouncedSearchQuery) {
+      if (enquiryFuse) {
+        const searchResults = enquiryFuse.search(debouncedSearchQuery);
+        baseEnquiries = searchResults.map((res) => res.item);
+      }
+    }
+
+    return baseEnquiries;
+  }, [marketPlaceEnquiries, debouncedSearchQuery, enquiryFuse]);
 
   const clearFilters = () => {
     setSearchQuery("");
@@ -301,7 +359,7 @@ const ProtectedPage = () => {
     );
   };
 
-  if (error) {
+  if (viewMode === "PROPERTIES" && error) {
     return (
       <div className="container mx-auto p-6">
         <Alert variant="destructive">
@@ -309,6 +367,20 @@ const ProtectedPage = () => {
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>
             Failed to load properties. Please try again later.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (viewMode === "ENQUIRIES" && enquiriesError) {
+    return (
+      <div className="container mx-auto p-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            Failed to load enquiries. Please try again later.
           </AlertDescription>
         </Alert>
       </div>
@@ -336,6 +408,8 @@ const ProtectedPage = () => {
 
       {/* 1. TOP CONTROL BAR (Replaced with Component) */}
       <MarketplaceHeader
+        viewMode={viewMode}
+        setViewMode={setViewMode}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         categoryFilter={categoryFilter}
@@ -356,8 +430,10 @@ const ProtectedPage = () => {
         onClearPropertySelection={() => setSelectedPropertyId(null)}
       />
 
-      {/* 2. MAIN SPLIT CONTENT */}
-      <div className="flex-1 flex overflow-hidden relative">
+      {viewMode === "PROPERTIES" ? (
+        <>
+          {/* 2. MAIN SPLIT CONTENT */}
+          <div className="flex-1 flex overflow-hidden relative">
 
         {/* Left Panel - Property List Only */}
         <div
@@ -478,7 +554,52 @@ const ProtectedPage = () => {
           </Button>
         </div>
 
-      </div>
+          </div>
+        </>
+      ) : (
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
+          <div className="p-6 md:p-8 space-y-4 pb-24">
+            {!isEnquiriesLoading && (
+              <div className="hidden sm:flex items-center justify-between px-1">
+                <p className="text-sm text-muted-foreground">
+                  Showing{" "}
+                  <span className="font-medium text-foreground">
+                    {filteredEnquiries.length}
+                  </span>{" "}
+                  enquiries
+                </p>
+              </div>
+            )}
+
+            {isEnquiriesLoading ? (
+              <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="h-[220px] w-full rounded-xl" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+              >
+                {filteredEnquiries.length > 0 ? (
+                  filteredEnquiries.map((enquiry) => (
+                    <motion.div key={enquiry._id} variants={itemVariants}>
+                      <EnquiryCard enquiry={enquiry} />
+                    </motion.div>
+                  ))
+                ) : (
+                  <EmptyEnquiriesState />
+                )}
+              </motion.div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
