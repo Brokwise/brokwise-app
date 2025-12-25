@@ -175,8 +175,8 @@ const CreateProperty = () => {
                   const lastEdited =
                     draft.updatedAt
                       ? formatDistanceToNow(new Date(draft.updatedAt), {
-                          addSuffix: true,
-                        })
+                        addSuffix: true,
+                      })
                       : "recently";
 
                   return (
@@ -257,7 +257,7 @@ const CreateProperty = () => {
               </h2>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {propertyCategories.map((category) => (
                 <motion.div
                   key={category.key}
