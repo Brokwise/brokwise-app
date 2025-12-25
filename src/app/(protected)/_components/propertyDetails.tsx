@@ -28,10 +28,10 @@ export const PropertyDetails = ({
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-background z-10">
+      <div className="flex items-center justify-between p-4 border-b border-border/50 sticky top-0 bg-background/95 backdrop-blur-md z-10">
         <div>
-          <h2 className="text-lg font-bold">Property Details</h2>
-          <p className="text-xs text-muted-foreground font-mono">
+          <h2 className="text-xl font-instrument-serif text-foreground">Property Details</h2>
+          <p className="text-[10px] text-muted-foreground/70 font-mono tracking-wider mt-0.5">
             {property.propertyId}
           </p>
         </div>
@@ -39,7 +39,7 @@ export const PropertyDetails = ({
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="h-8 w-8"
+          className="h-8 w-8 rounded-full hover:bg-muted/50"
         >
           <X className="h-4 w-4" />
         </Button>
@@ -72,32 +72,35 @@ export const PropertyDetails = ({
           {/* Title & Price */}
           <div>
             <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-xl font-bold leading-tight">
-                  {property.propertyType.replace(/_/g, " ")}
+              <div className="space-y-1">
+                <p className="text-[10px] font-semibold text-accent uppercase tracking-widest">
+                  {property.propertyCategory}
+                </p>
+                <h3 className="text-xl font-instrument-serif text-foreground leading-tight">
+                  {property.bhk ? `${property.bhk} BHK ` : ""}{property.propertyType.replace(/_/g, " ")}
                 </h3>
-                <div className="flex items-center text-muted-foreground text-sm mt-1">
-                  <MapPin className="h-3.5 w-3.5 mr-1 shrink-0" />
-                  <span>{formatAddress(property.address)}</span>
+                <div className="flex items-center text-muted-foreground text-sm">
+                  <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0 text-accent/60" />
+                  <span className="line-clamp-1">{formatAddress(property.address)}</span>
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-xl font-bold text-primary">
+                <p className="text-2xl font-instrument-serif text-accent">
                   {formatCurrency(property.totalPrice)}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground font-medium">
                   {formatCurrency(property.rate)}/sqft
                 </p>
               </div>
             </div>
 
-            <div className="flex gap-2 mt-3">
+            <div className="flex gap-2 mt-4">
               <Badge
                 variant={
                   property.listingStatus === "ACTIVE" ? "default" : "secondary"
                 }
                 className={
-                  property.listingStatus === "ACTIVE" ? "bg-green-500" : ""
+                  property.listingStatus === "ACTIVE" ? "bg-emerald-600/90 text-white border-none" : ""
                 }
               >
                 {property.listingStatus.replace(/_/g, " ")}
@@ -105,7 +108,7 @@ export const PropertyDetails = ({
               {property.isVerified && (
                 <Badge
                   variant="outline"
-                  className="border-green-500 text-green-600"
+                  className="border-emerald-500/50 text-emerald-600 bg-emerald-50/50"
                 >
                   Verified
                 </Badge>
@@ -116,34 +119,34 @@ export const PropertyDetails = ({
           <div className="h-px bg-border" />
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-muted/40 p-3 rounded-lg text-center space-y-1">
-              <Move className="h-5 w-5 mx-auto text-primary mb-1" />
-              <p className="text-xs text-muted-foreground">Size</p>
-              <p className="font-semibold text-sm">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-muted/30 p-3 rounded-xl text-center space-y-1 border border-border/30">
+              <Move className="h-4 w-4 mx-auto text-accent/80 mb-1" />
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Size</p>
+              <p className="font-semibold text-sm text-foreground">
                 {property.size} {property.sizeUnit?.replace("SQ_", "")}
               </p>
             </div>
             {property.bhk ? (
-              <div className="bg-muted/40 p-3 rounded-lg text-center space-y-1">
-                <BedDouble className="h-5 w-5 mx-auto text-primary mb-1" />
-                <p className="text-xs text-muted-foreground">Bedrooms</p>
-                <p className="font-semibold text-sm">{property.bhk} BHK</p>
+              <div className="bg-muted/30 p-3 rounded-xl text-center space-y-1 border border-border/30">
+                <BedDouble className="h-4 w-4 mx-auto text-accent/80 mb-1" />
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Beds</p>
+                <p className="font-semibold text-sm text-foreground">{property.bhk} BHK</p>
               </div>
             ) : (
-              <div className="bg-muted/40 p-3 rounded-lg text-center space-y-1">
-                <Building2 className="h-5 w-5 mx-auto text-primary mb-1" />
-                <p className="text-xs text-muted-foreground">Type</p>
-                <p className="font-semibold text-sm truncate px-1">
+              <div className="bg-muted/30 p-3 rounded-xl text-center space-y-1 border border-border/30">
+                <Building2 className="h-4 w-4 mx-auto text-accent/80 mb-1" />
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Type</p>
+                <p className="font-semibold text-sm text-foreground truncate px-1">
                   {property.propertyType.replace(/_/g, " ")}
                 </p>
               </div>
             )}
             {property.washrooms !== undefined && (
-              <div className="bg-muted/40 p-3 rounded-lg text-center space-y-1">
-                <Bath className="h-5 w-5 mx-auto text-primary mb-1" />
-                <p className="text-xs text-muted-foreground">Bathrooms</p>
-                <p className="font-semibold text-sm">{property.washrooms}</p>
+              <div className="bg-muted/30 p-3 rounded-xl text-center space-y-1 border border-border/30">
+                <Bath className="h-4 w-4 mx-auto text-accent/80 mb-1" />
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Baths</p>
+                <p className="font-semibold text-sm text-foreground">{property.washrooms}</p>
               </div>
             )}
           </div>
@@ -185,10 +188,10 @@ export const PropertyDetails = ({
         </div>
       </ScrollArea>
 
-      <div className="p-4 border-t bg-muted/10 mt-auto">
-        <Button className="w-full gap-2" asChild>
+      <div className="p-4 border-t border-border/50 bg-muted/5 mt-auto">
+        <Button className="w-full gap-2 shadow-sm" asChild>
           <Link href={`/property/${property._id}`} target="_blank">
-            View Full Page
+            View Full Details
             <ArrowUpRight className="h-4 w-4" />
           </Link>
         </Button>

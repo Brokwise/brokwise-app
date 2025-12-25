@@ -31,25 +31,28 @@ import { MarketplaceHeader } from "./_components/MarketplaceHeader";
 
 // Empty State Component
 const EmptyState = () => (
-  <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 bg-muted/20 rounded-2xl border border-dashed">
-    <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-      <Search className="h-8 w-8 text-muted-foreground/50" />
+  <div className="col-span-full flex flex-col items-center justify-center py-24 px-4 text-center">
+    <div className="h-16 w-16 rounded-full bg-muted/30 flex items-center justify-center mb-6">
+      <Search className="h-6 w-6 text-muted-foreground/60" />
     </div>
-    <h3 className="text-lg font-semibold text-foreground">No properties found</h3>
-    <p className="text-muted-foreground text-center mt-1 max-w-sm">
-      Try adjusting your filters or search terms to find what you&apos;re looking for.
+    <h3 className="text-2xl font-instrument-serif text-foreground mb-2">No properties found</h3>
+    <p className="text-muted-foreground max-w-sm font-light">
+      We couldn&apos;t find any properties matching your criteria. Try adjusting your filters.
     </p>
+    <Button variant="link" className="mt-4 text-accent" onClick={() => window.location.reload()}>
+      Clear all filters
+    </Button>
   </div>
 );
 
 const EmptyEnquiriesState = () => (
-  <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 bg-muted/20 rounded-2xl border border-dashed">
-    <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-      <Search className="h-8 w-8 text-muted-foreground/50" />
+  <div className="col-span-full flex flex-col items-center justify-center py-24 px-4 text-center">
+    <div className="h-16 w-16 rounded-full bg-muted/30 flex items-center justify-center mb-6">
+      <Search className="h-6 w-6 text-muted-foreground/60" />
     </div>
-    <h3 className="text-lg font-semibold text-foreground">No enquiries found</h3>
-    <p className="text-muted-foreground text-center mt-1 max-w-sm">
-      Try adjusting your search terms to find what you&apos;re looking for.
+    <h3 className="text-2xl font-instrument-serif text-foreground mb-2">No enquiries found</h3>
+    <p className="text-muted-foreground max-w-sm font-light">
+       We couldn&apos;t find any enquiries matching your search.
     </p>
   </div>
 );
@@ -619,20 +622,20 @@ const ProtectedPage = () => {
         </div>
 
         {/* Floating Mobile Toggle Button */}
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 lg:hidden filter drop-shadow-xl animate-bounce-in">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 lg:hidden">
           <Button
             onClick={() => setIsMobileMapOpen(!isMobileMapOpen)}
-            className="rounded-full bg-foreground text-background hover:bg-foreground/90 px-6 py-6 h-auto shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-2"
+            className="rounded-full bg-primary/95 text-primary-foreground backdrop-blur-md border border-white/10 px-6 py-6 h-auto shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
           >
             {isMobileMapOpen ? (
               <>
                 <LayoutGridIcon className="h-5 w-5" />
-                <span className="font-semibold">Show List</span>
+                <span className="font-medium tracking-wide">List View</span>
               </>
             ) : (
               <>
                 <MapPin className="h-5 w-5" />
-                <span className="font-semibold">Show Map</span>
+                <span className="font-medium tracking-wide">Map View</span>
               </>
             )}
           </Button>
