@@ -92,15 +92,14 @@ export const MapBox = ({ property }: { property: Property }) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div
-          ref={mapContainerRef}
-          className="w-full h-[400px] rounded-lg overflow-hidden border bg-muted"
-        />
-        {!mapLoaded && (
-          <div className="flex items-center justify-center h-[400px]">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        )}
+        <div className="relative w-full h-[400px] rounded-lg overflow-hidden border bg-muted">
+          <div ref={mapContainerRef} className="w-full h-full" />
+          {!mapLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

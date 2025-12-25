@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,7 +27,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import {
   AddressAutocomplete,
   type AddressSuggestion,
@@ -66,8 +70,8 @@ const formatBudgetLabel = (amount: number) => {
     const crText = Number.isInteger(cr)
       ? String(cr)
       : cr < 10
-      ? cr.toFixed(2)
-      : cr.toFixed(1);
+        ? cr.toFixed(2)
+        : cr.toFixed(1);
     return `₹${crText}Cr`;
   }
   const l = amount / 100000;
@@ -326,8 +330,8 @@ const createEnquirySchema = z.object({
 
     const locs = Array.isArray(data.localities)
       ? data.localities
-          .map((l) => l.trim())
-          .filter((l) => l.length >= 2)
+        .map((l) => l.trim())
+        .filter((l) => l.length >= 2)
       : [];
 
     if (locs.length < 1) {
@@ -456,9 +460,29 @@ const CreateEnquiryPage = () => {
   });
 
   const { watch, setValue, control, trigger, register } = form;
+  const { errors } = form.formState;
   const locationMode = watch("locationMode");
   const selectedCategory = watch("enquiryCategory");
   const selectedType = watch("enquiryType");
+  const budgetMin = watch("budget.min");
+  const budgetMax = watch("budget.max");
+
+  const [budgetMinText, setBudgetMinText] = useState(String(BUDGET_MIN));
+  const [budgetMaxText, setBudgetMaxText] = useState(String(BUDGET_MAX));
+  const [isBudgetMinFocused, setIsBudgetMinFocused] = useState(false);
+  const [isBudgetMaxFocused, setIsBudgetMaxFocused] = useState(false);
+
+  useEffect(() => {
+    if (!isBudgetMinFocused) {
+      setBudgetMinText(String(budgetMin ?? BUDGET_MIN));
+    }
+  }, [budgetMin, isBudgetMinFocused]);
+
+  useEffect(() => {
+    if (!isBudgetMaxFocused) {
+      setBudgetMaxText(String(budgetMax ?? BUDGET_MAX));
+    }
+  }, [budgetMax, isBudgetMaxFocused]);
 
   useEffect(() => {
     // Only reset fields when category actually changes (not on initial mount)
@@ -544,6 +568,10 @@ const CreateEnquiryPage = () => {
     }
   };
 
+  const onInvalid = () => {
+    toast.error("Please fill in all required fields.");
+  };
+
   const availableTypes = selectedCategory
     ? CATEGORY_TYPE_MAP[selectedCategory as PropertyCategory] || []
     : [];
@@ -551,17 +579,25 @@ const CreateEnquiryPage = () => {
   // --- Render Helpers ---
 
   const renderSizeFields = () => (
-    <div className="space-y-4 border p-4 rounded-md">
-      <h3 className="font-medium">Size Requirement</h3>
+    <div className="space-y-6">
+      <div className="border-b border-border/40 pb-2 mb-6">
+        <h3 className="text-xl font-instrument-serif text-foreground/90">
+          Size Requirement
+        </h3>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <FormField
           control={control}
           name="size.min"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Min Size</FormLabel>
+              <FormLabel className="text-muted-foreground">Min Size</FormLabel>
               <FormControl>
-                <NumberInput {...field} onChange={field.onChange} />
+                <NumberInput
+                  {...field}
+                  onChange={field.onChange}
+                  className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -572,9 +608,13 @@ const CreateEnquiryPage = () => {
           name="size.max"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Max Size</FormLabel>
+              <FormLabel className="text-muted-foreground">Max Size</FormLabel>
               <FormControl>
-                <NumberInput {...field} onChange={field.onChange} />
+                <NumberInput
+                  {...field}
+                  onChange={field.onChange}
+                  className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -585,10 +625,10 @@ const CreateEnquiryPage = () => {
           name="size.unit"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Unit</FormLabel>
+              <FormLabel className="text-muted-foreground">Unit</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
                     <SelectValue placeholder="Unit" />
                   </SelectTrigger>
                 </FormControl>
@@ -616,219 +656,164 @@ const CreateEnquiryPage = () => {
   );
 
   return (
-    <div className="container mx-auto p-4 md:p-6 max-w-7xl space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New Enquiry</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Internal form flags for conditional validation */}
-              <input type="hidden" {...register("locationMode")} />
-              <input type="hidden" {...register("isCompany")} />
+    <div className="container mx-auto p-4 md:p-8 max-w-4xl space-y-12 pb-24">
+      {/* Header */}
+      <div className="space-y-4 text-center md:text-left border-b border-border/40 pb-8">
+        <h1 className="text-3xl md:text-4xl font-instrument-serif text-primary tracking-tight">
+          Post a Requirement
+        </h1>
+        <p className="text-muted-foreground font-inter text-lg">
+          Tell us what you are looking for, and we will find the perfect match.
+        </p>
+      </div>
 
-              {/* --- Location --- */}
-              <div className="space-y-4">
-                {locationMode === "search" ? (
-                  <FormField
-                    control={control}
-                    name="addressPlaceId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Address <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <AddressAutocomplete
-                            valueLabel={watch("address")}
-                            valueId={field.value ?? ""}
-                            disabled={isPending}
-                            onSearchError={(msg) => {
-                              toast.error(msg);
-                              setValue("locationMode", "manual", {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                              });
-                              setValue("addressPlaceId", "", {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                              });
-                            }}
-                            onSelect={(item) => {
-                              const derived = deriveCityAndLocalities(item);
-                              setValue("address", item.place_name, {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                              });
-                              setValue("city", derived.city, {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                              });
-                              setValue("localities", derived.localities, {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                              });
-                              field.onChange(item.id);
-                            }}
-                            onClear={() => {
-                              setValue("address", "", {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                              });
-                              setValue("city", "", {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                              });
-                              setValue("localities", [], {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                              });
-                              field.onChange("");
-                            }}
-                          />
-                        </FormControl>
-                        <div className="flex justify-end pt-1">
-                          <Button
-                            type="button"
-                            variant="link"
-                            className="h-auto p-0 text-xs"
-                            onClick={() => {
-                              setValue("locationMode", "manual", {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                              });
-                              setValue("addressPlaceId", "", {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                              });
-                            }}
-                          >
-                            Enter address manually
-                          </Button>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ) : (
-                  <FormField
-                    control={control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Address <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Enter full address…"
-                            className="min-h-[90px]"
-                            disabled={isPending}
-                            {...field}
-                          />
-                        </FormControl>
-                        <div className="flex justify-end pt-1">
-                          <Button
-                            type="button"
-                            variant="link"
-                            className="h-auto p-0 text-xs"
-                            onClick={() => {
-                              setValue("locationMode", "search", {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                              });
-                            }}
-                          >
-                            Use address search
-                          </Button>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+          className="space-y-12"
+        >
+          {/* Internal form flags for conditional validation */}
+          <input type="hidden" {...register("locationMode")} />
+          <input type="hidden" {...register("isCompany")} />
+
+          {/* --- Location Section --- */}
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-2 mb-6">
+              <h3 className="text-xl font-instrument-serif text-foreground/90">
+                Location
+              </h3>
+              <Tabs
+                value={locationMode}
+                onValueChange={(val) => {
+                  if (val === "search") {
+                    setValue("locationMode", "search", {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    });
+                  } else {
+                    setValue("locationMode", "manual", {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    });
+                    setValue("addressPlaceId", "", {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    });
+                  }
+                }}
+                className="w-full md:w-auto"
+              >
+                <TabsList className="grid w-full grid-cols-2 md:w-[200px]">
+                  <TabsTrigger value="search">Search</TabsTrigger>
+                  <TabsTrigger value="manual">Manual</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            {locationMode === "search" ? (
+              <FormField
+                control={control}
+                name="addressPlaceId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-muted-foreground">
+                      Search Area or City <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <AddressAutocomplete
+                        valueLabel={watch("address")}
+                        valueId={field.value ?? ""}
+                        disabled={isPending}
+                        className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all shadow-sm font-inter"
+                        onSearchError={(msg) => {
+                          toast.error(msg);
+                          setValue("locationMode", "manual", {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                          setValue("addressPlaceId", "", {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                        }}
+                        onSelect={(item) => {
+                          const derived = deriveCityAndLocalities(item);
+                          setValue("address", item.place_name, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                          setValue("city", derived.city, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                          setValue("localities", derived.localities, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                          field.onChange(item.id);
+                        }}
+                        onClear={() => {
+                          setValue("address", "", {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                          setValue("city", "", {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                          setValue("localities", [], {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                          field.onChange("");
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-
-                {companyData && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={control}
-                      name="city"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            City <span className="text-red-500">*</span>
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g. Jaipur"
-                              disabled={isPending}
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={control}
-                      name="localities"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Localities <span className="text-red-500">*</span>
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Comma-separated (max 10)"
-                              disabled={isPending}
-                              value={(field.value || []).join(", ")}
-                              onChange={(e) => {
-                                const next = e.target.value
-                                  .split(",")
-                                  .map((p) => p.trim())
-                                  .filter(Boolean)
-                                  .slice(0, 10);
-                                field.onChange(next);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+              />
+            ) : (
+              <FormField
+                control={control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-muted-foreground">
+                      Full Address <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter full address, landmarks, city..."
+                        className="min-h-[120px] rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter resize-none"
+                        disabled={isPending}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
+              />
+            )}
 
-              {/* --- Category & Type --- */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {companyData && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <FormField
                   control={control}
-                  name="enquiryCategory"
+                  name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Category <span className="text-red-500">*</span>
+                      <FormLabel className="text-muted-foreground">
+                        City <span className="text-destructive">*</span>
                       </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Object.keys(CATEGORY_TYPE_MAP).map((cat) => (
-                            <SelectItem key={cat} value={cat}>
-                              {cat}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. Jaipur"
+                          disabled={isPending}
+                          {...field}
+                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -836,315 +821,430 @@ const CreateEnquiryPage = () => {
 
                 <FormField
                   control={control}
-                  name="enquiryType"
+                  name="localities"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Property Type <span className="text-red-500">*</span>
+                      <FormLabel className="text-muted-foreground">
+                        Localities <span className="text-destructive">*</span>
                       </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={!selectedCategory}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {availableTypes.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* --- Budget --- */}
-              <div className="space-y-4 border p-4 rounded-md">
-                <h3 className="font-medium">Budget Range</h3>
-                {(() => {
-                  const currentMin = watch("budget.min");
-                  const currentMax = watch("budget.max");
-                  const minIdx = findNearestBudgetIndex(currentMin);
-                  const maxIdx = findNearestBudgetIndex(currentMax);
-                  const safeMinIdx = Math.min(minIdx, maxIdx);
-                  const safeMaxIdx = Math.max(minIdx, maxIdx);
-
-                  return (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <p className="text-sm text-muted-foreground">
-                            Min Budget
-                          </p>
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="Min (₹5L)"
-                            value={String(currentMin ?? BUDGET_MIN)}
-                            onChange={(e) => {
-                              const raw = sanitizeIntegerInput(e.target.value);
-                              if (raw === "") return;
-                              // Allow typing freely; clamp/fix on blur.
-                              const nextMin = Math.min(Number(raw), BUDGET_MAX);
-                              setValue("budget.min", nextMin, {
-                                shouldDirty: true,
-                                shouldValidate: false,
-                              });
-                            }}
-                            onBlur={() => {
-                              const minVal = watch("budget.min");
-                              const maxVal = watch("budget.max");
-                              const clampedMin = Math.max(
-                                BUDGET_MIN,
-                                Math.min(minVal ?? BUDGET_MIN, BUDGET_MAX)
-                              );
-                              const clampedMax = Math.max(
-                                clampedMin,
-                                Math.min(maxVal ?? clampedMin, BUDGET_MAX)
-                              );
-                              setValue("budget.min", clampedMin, {
-                                shouldDirty: true,
-                                shouldValidate: true,
-                              });
-                              setValue("budget.max", clampedMax, {
-                                shouldDirty: true,
-                                shouldValidate: true,
-                              });
-                              void trigger(["budget.min", "budget.max"]);
-                            }}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <p className="text-sm text-muted-foreground">
-                            Max Budget
-                          </p>
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="Max (₹1000Cr)"
-                            value={String(currentMax ?? BUDGET_MAX)}
-                            onChange={(e) => {
-                              const raw = sanitizeIntegerInput(e.target.value);
-                              if (raw === "") return;
-                              // Allow typing freely; clamp/fix on blur.
-                              const nextMax = Math.min(Number(raw), BUDGET_MAX);
-                              setValue("budget.max", nextMax, {
-                                shouldDirty: true,
-                                shouldValidate: false,
-                              });
-                            }}
-                            onBlur={() => {
-                              const minVal = watch("budget.min");
-                              const maxVal = watch("budget.max");
-                              const clampedMin = Math.max(
-                                BUDGET_MIN,
-                                Math.min(minVal ?? BUDGET_MIN, BUDGET_MAX)
-                              );
-                              const clampedMax = Math.max(
-                                clampedMin,
-                                Math.min(maxVal ?? clampedMin, BUDGET_MAX)
-                              );
-                              setValue("budget.min", clampedMin, {
-                                shouldDirty: true,
-                                shouldValidate: true,
-                              });
-                              setValue("budget.max", clampedMax, {
-                                shouldDirty: true,
-                                shouldValidate: true,
-                              });
-                              void trigger(["budget.min", "budget.max"]);
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="rounded-md bg-muted px-2 py-1 font-medium">
-                            {formatBudgetLabel(currentMin ?? BUDGET_MIN)}
-                          </span>
-                          <span className="rounded-md bg-muted px-2 py-1 font-medium">
-                            {formatBudgetLabel(currentMax ?? BUDGET_MAX)}
-                          </span>
-                        </div>
-
-                        <Slider
-                          value={[safeMinIdx, safeMaxIdx]}
-                          min={0}
-                          max={BUDGET_OPTIONS.length - 1}
-                          step={1}
-                          onValueChange={(vals) => {
-                            const a = vals?.[0] ?? 0;
-                            const b = vals?.[1] ?? 0;
-                            const nextMinIdx = Math.min(a, b);
-                            const nextMaxIdx = Math.max(a, b);
-                            const nextMin = BUDGET_OPTIONS[nextMinIdx];
-                            const nextMax = BUDGET_OPTIONS[nextMaxIdx];
-                            setValue("budget.min", nextMin, {
-                              shouldDirty: true,
-                              shouldValidate: true,
-                            });
-                            setValue("budget.max", nextMax, {
-                              shouldDirty: true,
-                              shouldValidate: true,
-                            });
+                      <FormControl>
+                        <Input
+                          placeholder="Comma-separated (max 10)"
+                          disabled={isPending}
+                          value={(field.value || []).join(", ")}
+                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                          onChange={(e) => {
+                            const next = e.target.value
+                              .split(",")
+                              .map((p) => p.trim())
+                              .filter(Boolean)
+                              .slice(0, 10);
+                            field.onChange(next);
                           }}
-                          onValueCommit={() =>
-                            void trigger(["budget.min", "budget.max"])
-                          }
                         />
-                      </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+          </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={control}
-                          name="budget.min"
-                          render={() => (
-                            <FormItem>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={control}
-                          name="budget.max"
-                          render={() => (
-                            <FormItem>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+          {/* --- Category & Type Section --- */}
+          <div className="space-y-6">
+            <div className="border-b border-border/40 pb-2 mb-6">
+              <h3 className="text-xl font-instrument-serif text-foreground/90">
+                Property Details
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={control}
+                name="enquiryCategory"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-muted-foreground">
+                      Category <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
+                          <SelectValue placeholder="Select Category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.keys(CATEGORY_TYPE_MAP).map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={control}
+                name="enquiryType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-muted-foreground">
+                      Property Type <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={!selectedCategory}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
+                          <SelectValue placeholder="Select Type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availableTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* --- Budget Section --- */}
+          <div className="space-y-6">
+            <div className="border-b border-border/40 pb-2 mb-6">
+              <h3 className="text-xl font-instrument-serif text-foreground/90">
+                Budget
+              </h3>
+            </div>
+            {(() => {
+              const currentMin = budgetMin;
+              const currentMax = budgetMax;
+              const minIdx = findNearestBudgetIndex(currentMin);
+              const maxIdx = findNearestBudgetIndex(currentMax);
+              const safeMinIdx = Math.min(minIdx, maxIdx);
+              const safeMaxIdx = Math.max(minIdx, maxIdx);
+
+              return (
+                <div className="space-y-12 pt-4">
+                  {/* Visual Budget Display */}
+                  <div className="flex items-center justify-between px-2">
+                    <div className="flex flex-col items-center">
+                      <span className="text-sm text-muted-foreground uppercase tracking-widest text-[10px] font-semibold mb-1">Min Budget</span>
+                      <div className="text-2xl md:text-3xl font-instrument-serif text-primary">
+                        {formatBudgetLabel(currentMin ?? BUDGET_MIN)}
                       </div>
                     </div>
-                  );
-                })()}
-              </div>
+                    <div className="h-px w-full mx-6 bg-border/60 transform translate-y-2"></div>
+                    <div className="flex flex-col items-center">
+                      <span className="text-sm text-muted-foreground uppercase tracking-widest text-[10px] font-semibold mb-1">Max Budget</span>
+                      <div className="text-2xl md:text-3xl font-instrument-serif text-primary">
+                        {formatBudgetLabel(currentMax ?? BUDGET_MAX)}
+                      </div>
+                    </div>
+                  </div>
 
-              {/* --- Conditional Fields --- */}
+                  {/* Slider */}
+                  <div className="px-2">
+                    <Slider
+                      defaultValue={[safeMinIdx, safeMaxIdx]}
+                      value={[safeMinIdx, safeMaxIdx]}
+                      min={0}
+                      max={BUDGET_OPTIONS.length - 1}
+                      step={1}
+                      className="py-4 cursor-pointer"
+                      onValueChange={(vals) => {
+                        const a = vals?.[0] ?? 0;
+                        const b = vals?.[1] ?? 0;
+                        const nextMinIdx = Math.min(a, b);
+                        const nextMaxIdx = Math.max(a, b);
+                        const nextMin = BUDGET_OPTIONS[nextMinIdx];
+                        const nextMax = BUDGET_OPTIONS[nextMaxIdx];
+                        setValue("budget.min", nextMin, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                        setValue("budget.max", nextMax, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                      }}
+                      onValueCommit={() =>
+                        void trigger(["budget.min", "budget.max"])
+                      }
+                    />
+                  </div>
 
-              {/* Size: For Land, Villa, Warehouse, Commercial, Industrial */}
-              {([
-                "LAND",
-                "VILLA",
-                "WAREHOUSE",
-                "INDUSTRIAL_LAND",
-                "AGRICULTURAL_LAND",
-                "SHOWROOM",
-                "OFFICE_SPACE",
-                "OTHER_SPACE",
-                "SHOP",
-              ].includes(selectedType) ||
-                selectedCategory === "COMMERCIAL" ||
-                selectedCategory === "INDUSTRIAL") &&
-                renderSizeFields()}
+                  {/* Manual Inputs for fallback/precision */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-80 hover:opacity-100 transition-opacity">
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground ml-1">
+                        Exact Minimum Amount
+                      </p>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Min (₹5L)"
+                        value={budgetMinText}
+                        className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                        onFocus={() => setIsBudgetMinFocused(true)}
+                        onChange={(e) => {
+                          const raw = sanitizeIntegerInput(e.target.value);
+                          setBudgetMinText(raw);
+                          if (raw === "") return;
+                          // Allow typing freely; clamp/fix on blur.
+                          const nextMin = Math.min(Number(raw), BUDGET_MAX);
+                          setValue("budget.min", nextMin, {
+                            shouldDirty: true,
+                            shouldValidate: false,
+                          });
+                        }}
+                        onBlur={() => {
+                          setIsBudgetMinFocused(false);
+                          const raw = sanitizeIntegerInput(budgetMinText);
+                          const nextMin =
+                            raw === ""
+                              ? budgetMin ?? BUDGET_MIN
+                              : Math.min(Number(raw), BUDGET_MAX);
 
-              {/* Flat Specifics */}
-              {selectedType === "FLAT" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={control}
-                    name="bhk"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>BHK</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="1-20"
-                            {...field}
-                            value={field.value ?? ""}
-                            onChange={(e) =>
-                              field.onChange(
-                                parseIntegerWithMax(e.target.value, 20)
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name="washrooms"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Washrooms</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="1-20"
-                            {...field}
-                            value={field.value ?? ""}
-                            onChange={(e) =>
-                              field.onChange(
-                                parseIntegerWithMax(e.target.value, 20)
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name="society"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Preferred Society</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name="preferredFloor"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Preferred Floor</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          const minVal = nextMin;
+                          const maxVal = budgetMax ?? BUDGET_MAX;
+                          const clampedMin = Math.max(
+                            BUDGET_MIN,
+                            Math.min(minVal ?? BUDGET_MIN, BUDGET_MAX)
+                          );
+                          const clampedMax = Math.max(
+                            clampedMin,
+                            Math.min(maxVal ?? clampedMin, BUDGET_MAX)
+                          );
+                          setValue("budget.min", clampedMin, {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                          setValue("budget.max", clampedMax, {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                          setBudgetMinText(String(clampedMin));
+                          setBudgetMaxText(String(clampedMax));
+                          void trigger(["budget.min", "budget.max"]);
+                        }}
+                      />
+                      {errors.budget?.min?.message && (
+                        <p className="text-xs text-destructive ml-1">
+                          {String(errors.budget.min.message)}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground ml-1">
+                        Exact Maximum Amount
+                      </p>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Max (₹1000Cr)"
+                        value={budgetMaxText}
+                        className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                        onFocus={() => setIsBudgetMaxFocused(true)}
+                        onChange={(e) => {
+                          const raw = sanitizeIntegerInput(e.target.value);
+                          setBudgetMaxText(raw);
+                          if (raw === "") return;
+                          // Allow typing freely; clamp/fix on blur.
+                          const nextMax = Math.min(Number(raw), BUDGET_MAX);
+                          setValue("budget.max", nextMax, {
+                            shouldDirty: true,
+                            shouldValidate: false,
+                          });
+                        }}
+                        onBlur={() => {
+                          setIsBudgetMaxFocused(false);
+                          const raw = sanitizeIntegerInput(budgetMaxText);
+                          const nextMax =
+                            raw === ""
+                              ? budgetMax ?? BUDGET_MAX
+                              : Math.min(Number(raw), BUDGET_MAX);
+
+                          const minVal = budgetMin ?? BUDGET_MIN;
+                          const maxVal = nextMax;
+                          const clampedMin = Math.max(
+                            BUDGET_MIN,
+                            Math.min(minVal ?? BUDGET_MIN, BUDGET_MAX)
+                          );
+                          const clampedMax = Math.max(
+                            clampedMin,
+                            Math.min(maxVal ?? clampedMin, BUDGET_MAX)
+                          );
+                          setValue("budget.min", clampedMin, {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                          setValue("budget.max", clampedMax, {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                          setBudgetMinText(String(clampedMin));
+                          setBudgetMaxText(String(clampedMax));
+                          void trigger(["budget.min", "budget.max"]);
+                        }}
+                      />
+                      {errors.budget?.max?.message && (
+                        <p className="text-xs text-destructive ml-1">
+                          {String(errors.budget.max.message)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
+              );
+            })()}
+          </div>
 
-              {/* Land / Villa Specifics */}
-              {(selectedType === "LAND" ||
-                selectedType === "VILLA" ||
-                selectedType === "INDUSTRIAL_LAND" ||
-                selectedType === "AGRICULTURAL_LAND") && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* --- Conditional Fields --- */}
+
+          {/* Size */}
+          {([
+            "LAND",
+            "VILLA",
+            "WAREHOUSE",
+            "INDUSTRIAL_LAND",
+            "AGRICULTURAL_LAND",
+            "SHOWROOM",
+            "OFFICE_SPACE",
+            "OTHER_SPACE",
+            "SHOP",
+          ].includes(selectedType) ||
+            selectedCategory === "COMMERCIAL" ||
+            selectedCategory === "INDUSTRIAL") &&
+            renderSizeFields()}
+
+          {/* Flat Specifics */}
+          {selectedType === "FLAT" && (
+            <div className="space-y-6">
+              <div className="border-b border-border/40 pb-2 mb-6">
+                <h3 className="text-xl font-instrument-serif text-foreground/90">
+                  Configuration
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={control}
+                  name="bhk"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-muted-foreground">BHK</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="1-20"
+                          {...field}
+                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              parseIntegerWithMax(e.target.value, 20)
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name="washrooms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-muted-foreground">Washrooms</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="1-20"
+                          {...field}
+                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              parseIntegerWithMax(e.target.value, 20)
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name="society"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-muted-foreground">Preferred Society</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name="preferredFloor"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-muted-foreground">Preferred Floor</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Land / Villa Specifics */}
+          {(selectedType === "LAND" ||
+            selectedType === "VILLA" ||
+            selectedType === "INDUSTRIAL_LAND" ||
+            selectedType === "AGRICULTURAL_LAND") && (
+              <div className="space-y-6">
+                <div className="border-b border-border/40 pb-2 mb-6">
+                  <h3 className="text-xl font-instrument-serif text-foreground/90">
+                    Plot Details
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={control}
                     name="plotType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Plot Type</FormLabel>
+                        <FormLabel className="text-muted-foreground">Plot Type</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
                               <SelectValue placeholder="Select Plot Type" />
                             </SelectTrigger>
                           </FormControl>
@@ -1162,13 +1262,13 @@ const CreateEnquiryPage = () => {
                     name="facing"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Facing</FormLabel>
+                        <FormLabel className="text-muted-foreground">Facing</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
                               <SelectValue placeholder="Select Facing" />
                             </SelectTrigger>
                           </FormControl>
@@ -1198,12 +1298,13 @@ const CreateEnquiryPage = () => {
                     name="frontRoadWidth"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Front Road Width (ft)</FormLabel>
+                        <FormLabel className="text-muted-foreground">Front Road Width (ft)</FormLabel>
                         <FormControl>
                           <Input
                             type="text"
                             inputMode="numeric"
                             {...field}
+                            className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
                             value={field.value ?? ""}
                             onChange={(e) =>
                               field.onChange(
@@ -1217,27 +1318,61 @@ const CreateEnquiryPage = () => {
                     )}
                   />
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Commercial (Hotel/Hostel) */}
-              {(selectedType === "HOTEL" || selectedType === "HOSTEL") && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Commercial (Hotel/Hostel) */}
+          {(selectedType === "HOTEL" || selectedType === "HOSTEL") && (
+            <div className="space-y-6">
+              <div className="border-b border-border/40 pb-2 mb-6">
+                <h3 className="text-xl font-instrument-serif text-foreground/90">
+                  Capacity
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={control}
+                  name="rooms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-muted-foreground">Rooms</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="1-1000"
+                          {...field}
+                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              parseIntegerWithMax(e.target.value, 1000)
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {selectedType === "HOSTEL" && (
                   <FormField
                     control={control}
-                    name="rooms"
+                    name="beds"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Rooms</FormLabel>
+                        <FormLabel className="text-muted-foreground">Beds</FormLabel>
                         <FormControl>
                           <Input
                             type="text"
                             inputMode="numeric"
-                            placeholder="1-1000"
+                            placeholder="1-5000"
                             {...field}
+                            className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
                             value={field.value ?? ""}
                             onChange={(e) =>
                               field.onChange(
-                                parseIntegerWithMax(e.target.value, 1000)
+                                parseIntegerWithMax(e.target.value, 5000)
                               )
                             }
                           />
@@ -1246,127 +1381,110 @@ const CreateEnquiryPage = () => {
                       </FormItem>
                     )}
                   />
-                  {selectedType === "HOSTEL" && (
-                    <FormField
-                      control={control}
-                      name="beds"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Beds</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="text"
-                              inputMode="numeric"
-                              placeholder="1-5000"
-                              {...field}
-                              value={field.value ?? ""}
-                              onChange={(e) =>
-                                field.onChange(
-                                  parseIntegerWithMax(e.target.value, 5000)
-                                )
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
-              )}
-
-              {/* Industrial */}
-              {selectedCategory === "INDUSTRIAL" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={control}
-                    name="purpose"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Purpose</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="e.g. Manufacturing, Warehousing"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name="areaType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Area Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select Area Type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="NEAR_RING_ROAD">
-                              Near Ring Road
-                            </SelectItem>
-                            <SelectItem value="RIICO_AREA">
-                              RIICO Area
-                            </SelectItem>
-                            <SelectItem value="SEZ">SEZ</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
-
-              {/* --- Description --- */}
-              <FormField
-                control={control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Description <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe your requirements in detail..."
-                        className="min-h-[100px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
                 )}
-              />
+              </div>
+            </div>
+          )}
 
-              <Button
-                type="button"
-                className="w-full"
-                disabled={isPending}
-                onClick={async () => {
-                  const valid = await trigger();
-                  if (!valid) {
-                    toast.error("Please fill in all required fields.");
-                    return;
-                  }
-                  form.handleSubmit(onSubmit)();
-                }}
-              >
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Enquiry
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+          {/* Industrial */}
+          {selectedCategory === "INDUSTRIAL" && (
+            <div className="space-y-6">
+              <div className="border-b border-border/40 pb-2 mb-6">
+                <h3 className="text-xl font-instrument-serif text-foreground/90">
+                  Industrial Use Only
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={control}
+                  name="purpose"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-muted-foreground">Purpose</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="e.g. Manufacturing, Warehousing"
+                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name="areaType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-muted-foreground">Area Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
+                            <SelectValue placeholder="Select Area Type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="NEAR_RING_ROAD">
+                            Near Ring Road
+                          </SelectItem>
+                          <SelectItem value="RIICO_AREA">
+                            RIICO Area
+                          </SelectItem>
+                          <SelectItem value="SEZ">SEZ</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* --- Description --- */}
+          <div className="space-y-6">
+            <div className="border-b border-border/40 pb-2 mb-6">
+              <h3 className="text-xl font-instrument-serif text-foreground/90">
+                Additional Details
+              </h3>
+            </div>
+            <FormField
+              control={control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-muted-foreground">
+                    Description <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe your requirements in detail..."
+                      className="min-h-[150px] rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter resize-y"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="pt-8">
+            <Button
+              type="submit"
+              className="w-full h-12 md:h-14 rounded-xl text-lg font-medium bg-primary hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              disabled={isPending}
+            >
+              {isPending && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+              Create Enquiry
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 };

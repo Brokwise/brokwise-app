@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Loader2, Smile, X, ImageIcon, FileIcon } from "lucide-react";
+import { Send, Paperclip, Loader2, Smile, FileIcon } from "lucide-react";
 import { useState, KeyboardEvent, useRef, ChangeEvent } from "react";
 import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
 import { toast } from "sonner";
@@ -18,7 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
   onSend: (data: {
@@ -65,6 +64,11 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
 
     // Clear input so same file can be selected again
     if (fileInputRef.current) fileInputRef.current.value = "";
+
+    // If user is replacing an existing pending image, release the old object URL to avoid leaks.
+    if (pendingFile?.previewUrl) {
+      URL.revokeObjectURL(pendingFile.previewUrl);
+    }
 
     // Check file size (e.g. 10MB limit)
     if (file.size > 10 * 1024 * 1024) {
@@ -141,6 +145,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
             {/* Preview */}
             {pendingFile?.isImage && pendingFile.previewUrl ? (
               <div className="relative overflow-hidden rounded-xl border border-border/30 bg-muted/20">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={pendingFile.previewUrl}
                   alt="Preview"

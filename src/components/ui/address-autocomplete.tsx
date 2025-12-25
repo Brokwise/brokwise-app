@@ -34,7 +34,10 @@ type Props = {
   onClear?: () => void;
   onSearchError?: (message: string) => void;
   placeholder?: string;
+  /** Class applied to the clickable trigger control (button). */
   className?: string;
+  /** Class applied to the outer wrapper (useful when composing layout). */
+  containerClassName?: string;
   disabled?: boolean;
   searchPlaceholder?: string;
 };
@@ -48,6 +51,7 @@ export function AddressAutocomplete({
   placeholder = "Search address and select…",
   searchPlaceholder = "Type an address…",
   className,
+  containerClassName,
   disabled,
 }: Props) {
   const [open, setOpen] = React.useState(false);
@@ -133,7 +137,7 @@ export function AddressAutocomplete({
   const showLabel = valueLabel?.trim() ? valueLabel.trim() : placeholder;
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn("flex items-center gap-2", containerClassName)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -144,14 +148,18 @@ export function AddressAutocomplete({
             disabled={disabled}
             className={cn(
               "w-full justify-between",
-              !valueLabel && "text-muted-foreground"
+              !valueLabel && "text-muted-foreground",
+              className
             )}
           >
             <span className="truncate">{showLabel}</span>
             <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[520px] p-0" align="start">
+        <PopoverContent
+          className="w-[min(520px,calc(100vw-2rem))] p-0"
+          align="start"
+        >
           <Command shouldFilter={false}>
             <CommandInput
               placeholder={searchPlaceholder}
