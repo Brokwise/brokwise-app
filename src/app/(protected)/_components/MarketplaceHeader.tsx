@@ -35,6 +35,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { formatIndianNumber } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
+import { useSavedSearch } from "@/hooks/useSavedSearch";
+import { toast } from "sonner";
 
 interface MarketplaceHeaderProps {
     searchQuery: string;
@@ -77,8 +79,9 @@ export const MarketplaceHeader = ({
     hasActiveFilters,
     onClearPropertySelection,
 }: MarketplaceHeaderProps) => {
-    const { userData } = useApp();
+    const { userData, brokerData } = useApp();
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const { saveSearch, isSaving } = useSavedSearch(brokerData?._id);
 
     // Category Pills Data
     const categoryPills = [
@@ -169,8 +172,28 @@ export const MarketplaceHeader = ({
                                     <X className="h-4 w-4 text-muted-foreground" />
                                 </Button>
                             )}
-                            <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full text-muted-foreground hover:text-accent hover:bg-accent/10" title="Save this search">
-                                <Star className="h-4 w-4" />
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className={`h-8 w-8 rounded-full text-muted-foreground hover:text-accent hover:bg-accent/10 ${isSaving ? "opacity-50 pointer-events-none" : ""}`}
+                                title="Save this search"
+                                disabled={isSaving}
+                                onClick={async () => {
+                                    if (!brokerData?._id) {
+                                        toast.error("Please complete your profile to save searches");
+                                        return;
+                                    }
+                                    const name = searchQuery || `Search ${new Date().toLocaleDateString()}`;
+                                    await saveSearch(name, {
+                                        searchQuery,
+                                        categoryFilter,
+                                        sourceFilter,
+                                        priceRange: priceRange ?? undefined,
+                                        bhkFilter,
+                                    });
+                                }}
+                            >
+                                <Star className={`h-4 w-4 ${isSaving ? "animate-spin" : ""}`} />
                             </Button>
                         </div>
                     </div>
