@@ -86,22 +86,20 @@ const MessagePage = () => {
             : "w-[380px] min-w-[300px]"
         )}
       >
-        <div className="flexh-[80px] shrink-0 items-center justify-between p-6 pb-4">
+        <div className="flex h-[80px] shrink-0 items-center justify-between border-b border-border/20 px-6">
           <h1 className="font-instrument-serif text-3xl font-medium tracking-tight text-foreground">
             Messages
           </h1>
-          {!isLoadingConversations &&
-            (!conversations || conversations.length === 0) && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleStartChat}
-                disabled={isCreatingConversation || !currentUserId}
-                className="text-muted-foreground hover:text-accent"
-              >
-                <MessageSquarePlus className="h-6 w-6" />
-              </Button>
-            )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleStartChat}
+            disabled={isCreatingConversation || !currentUserId || isLoadingConversations}
+            className="h-10 w-10 rounded-full text-muted-foreground transition-colors hover:bg-accent/10 hover:text-accent"
+            title="Start new chat"
+          >
+            <MessageSquarePlus className="h-5 w-5" />
+          </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-2">
