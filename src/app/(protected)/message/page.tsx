@@ -74,119 +74,139 @@ const MessagePage = () => {
     : null;
 
   return (
-    <div className="flex h-full min-h-0 w-full p-4">
-      <Card className="flex min-h-0 w-full flex-1 overflow-hidden border bg-background shadow-sm">
-        {/* Sidebar */}
-        <div
-          className={cn(
-            "flex flex-col border-r bg-muted/10 transition-all duration-300",
-            isMobile
-              ? selectedConversationId
-                ? "hidden"
-                : "w-full"
-              : "w-1/3 min-w-[300px]"
+    <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden bg-background">
+      {/* Sidebar */}
+      <div
+        className={cn(
+          "flex flex-col border-r border-border/40 bg-background transition-all duration-300",
+          isMobile
+            ? selectedConversationId
+              ? "hidden"
+              : "w-full"
+            : "w-[380px] min-w-[300px]"
+        )}
+      >
+        <div className="flexh-[80px] shrink-0 items-center justify-between p-6 pb-4">
+          <h1 className="font-instrument-serif text-3xl font-medium tracking-tight text-foreground">
+            Messages
+          </h1>
+          {!isLoadingConversations &&
+            (!conversations || conversations.length === 0) && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleStartChat}
+                disabled={isCreatingConversation || !currentUserId}
+                className="text-muted-foreground hover:text-accent"
+              >
+                <MessageSquarePlus className="h-6 w-6" />
+              </Button>
+            )}
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-2">
+          {isLoadingConversations ? (
+            <div className="flex justify-center p-8">
+              <Spinner />
+            </div>
+          ) : (
+            <ConversationList
+              conversations={conversations || []}
+              selectedId={selectedConversationId || undefined}
+              onSelect={setSelectedConversationId}
+            />
           )}
-        >
-          <div className="p-4 border-b font-semibold bg-background flex justify-between items-center h-[60px]">
-            <span>Messages</span>
-            {!isLoadingConversations &&
-              (!conversations || conversations.length === 0) && (
+          {!isLoadingConversations &&
+            (!conversations || conversations.length === 0) && (
+              <div className="mt-20 flex flex-col items-center gap-6 p-8 text-center text-muted-foreground">
+                <div className="rounded-full bg-muted/30 p-4">
+                  <MessageSquarePlus className="h-8 w-8 text-muted-foreground/50" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-instrument-serif text-lg text-foreground">
+                    No messages yet
+                  </h3>
+                  <p className="text-sm font-light">
+                    Start a conversation with our support team to get help with your inquiries.
+                  </p>
+                </div>
+                <Button
+                  onClick={handleStartChat}
+                  disabled={isCreatingConversation || !currentUserId}
+                  className="h-10 rounded-xl bg-primary px-6 font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  {isCreatingConversation
+                    ? "Starting..."
+                    : "Start Support Chat"}
+                </Button>
+              </div>
+            )}
+        </div>
+      </div>
+
+      {/* Chat Window */}
+      <div
+        className={cn(
+          "flex flex-col bg-background transition-all duration-300",
+          isMobile ? (selectedConversationId ? "w-full" : "hidden") : "flex-1"
+        )}
+      >
+        {selectedConversationId && currentUserId ? (
+          <>
+            {/* Chat Header */}
+            <div className="sticky top-0 z-10 flex h-[72px] shrink-0 items-center gap-4 border-b border-border/40 bg-background/80 px-6 backdrop-blur-md">
+              {isMobile && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={handleStartChat}
-                  disabled={isCreatingConversation || !currentUserId}
+                  className="-ml-3"
+                  onClick={() => setSelectedConversationId(null)}
                 >
-                  <MessageSquarePlus className="h-5 w-5" />
+                  <ArrowLeft className="h-5 w-5" />
                 </Button>
               )}
-          </div>
-          <div className="flex-1 overflow-y-auto bg-background">
-            {isLoadingConversations ? (
-              <div className="flex justify-center p-8">
-                <Spinner />
+              <Avatar className="h-10 w-10 border border-border/50">
+                <AvatarFallback className="bg-muted text-sm font-medium">
+                  {partnerDetails?.initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="font-instrument-serif text-lg font-medium leading-none text-foreground">
+                  {partnerDetails?.name}
+                </span>
+                <span className="text-xs text-muted-foreground">Active now</span>
               </div>
-            ) : (
-              <ConversationList
-                conversations={conversations || []}
-                selectedId={selectedConversationId || undefined}
-                onSelect={setSelectedConversationId}
-              />
-            )}
-            {!isLoadingConversations &&
-              (!conversations || conversations.length === 0) && (
-                <div className="flex flex-col items-center gap-4 p-8 text-center text-muted-foreground mt-10">
-                  <p className="text-sm">
-                    No conversations yet. <br /> Start chatting with support.
-                  </p>
-                  <Button
-                    onClick={handleStartChat}
-                    disabled={isCreatingConversation || !currentUserId}
-                    size="sm"
-                  >
-                    {isCreatingConversation
-                      ? "Starting..."
-                      : "Start Support Chat"}
-                  </Button>
-                </div>
-              )}
-          </div>
-        </div>
-
-        {/* Chat Window */}
-        <div
-          className={cn(
-            "flex flex-col bg-background transition-all duration-300",
-            isMobile ? (selectedConversationId ? "w-full" : "hidden") : "flex-1"
-          )}
-        >
-          {selectedConversationId && currentUserId ? (
-            <>
-              {/* Chat Header */}
-              <div className="px-4 border-b flex items-center gap-3 h-[60px] shrink-0">
-                {isMobile && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="-ml-2"
-                    onClick={() => setSelectedConversationId(null)}
-                  >
-                    <ArrowLeft className="h-5 w-5" />
-                  </Button>
-                )}
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>{partnerDetails?.initials}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-semibold text-sm">
-                    {partnerDetails?.name}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-hidden">
-                <ChatWindow
-                  key={selectedConversationId}
-                  conversationId={selectedConversationId}
-                  currentUser={userData}
-                  currentUserId={currentUserId}
-                />
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground bg-muted/5">
-              {!currentUserId ? (
-                <Spinner />
-              ) : (
-                <>
-                  <MessageSquarePlus className="h-12 w-12 opacity-20 mb-4" />
-                  <p>Select a conversation to start chatting</p>
-                </>
-              )}
             </div>
-          )}
-        </div>
-      </Card>
+
+            <div className="flex-1 overflow-hidden">
+              <ChatWindow
+                key={selectedConversationId}
+                conversationId={selectedConversationId}
+                currentUser={userData}
+                currentUserId={currentUserId}
+              />
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-1 flex-col items-center justify-center bg-muted/5 text-muted-foreground">
+            {!currentUserId ? (
+              <Spinner />
+            ) : (
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/20">
+                  <MessageSquarePlus className="h-8 w-8 text-muted-foreground/40" strokeWidth={1.5} />
+                </div>
+                <h3 className="font-instrument-serif text-2xl font-medium text-foreground">
+                  Select a conversation
+                </h3>
+                <p className="text-sm font-light text-muted-foreground">
+                  Choose a chat from the sidebar to start messaging
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -64,10 +64,11 @@ export const ChatWindow = ({
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 scrollbar-thin">
         {displayMessages.length === 0 ? (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            No messages yet. Start a conversation!
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground opacity-50">
+            <p className="text-sm font-medium">No messages yet</p>
+            <p className="text-xs">Start the conversation!</p>
           </div>
         ) : (
           displayMessages.map((msg) => {

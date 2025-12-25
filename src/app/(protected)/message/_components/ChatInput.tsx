@@ -87,59 +87,68 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
   };
 
   return (
-    <div className="flex items-end gap-2 p-4 border-t bg-background">
+    <div className="relative flex items-end gap-3 border-t border-border/40 bg-background/80 p-4 pb-6 backdrop-blur-md">
       <input
         type="file"
         className="hidden"
         ref={fileInputRef}
         onChange={handleFileSelect}
-        // accept="image/*,.pdf,.doc,.docx" // Optional: restrict file types
+      // accept="image/*,.pdf,.doc,.docx" // Optional: restrict file types
       />
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-[50px] w-[50px] text-muted-foreground hover:text-foreground"
-        onClick={triggerFileSelect}
-        disabled={disabled || isUploading}
-      >
-        {isUploading ? (
-          <Loader2 className="h-5 w-5 animate-spin" />
-        ) : (
-          <Paperclip className="h-5 w-5" />
-        )}
-      </Button>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-[50px] w-[50px] text-muted-foreground hover:text-foreground"
-            disabled={disabled || isUploading}
-          >
-            <Smile className="h-5 w-5" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 border-none" align="start">
-          <EmojiPicker
-            onEmojiClick={(emojiData) =>
-              setMessage((prev) => prev + emojiData.emoji)
-            }
-          />
-        </PopoverContent>
-      </Popover>
+
+      <div className="flex shrink-0 gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground rounded-full"
+          onClick={triggerFileSelect}
+          disabled={disabled || isUploading}
+          title="Attach file"
+        >
+          {isUploading ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <Paperclip className="h-5 w-5" />
+          )}
+        </Button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground rounded-full"
+              disabled={disabled || isUploading}
+              title="Add emoji"
+            >
+              <Smile className="h-5 w-5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto border-none p-0 shadow-xl" align="start">
+            <EmojiPicker
+              onEmojiClick={(emojiData) =>
+                setMessage((prev) => prev + emojiData.emoji)
+              }
+              width={300}
+              height={400}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
       <Textarea
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Type a message..."
-        className="min-h-[50px] max-h-[150px] resize-none"
+        className="min-h-[44px] max-h-[150px] resize-none rounded-2xl border-transparent bg-muted/30 px-4 py-3 placeholder:text-muted-foreground/60 focus:border-border/30 focus:ring-0 focus-visible:ring-1 focus-visible:ring-primary/20 scrollbar-hide"
         disabled={disabled || isUploading}
       />
+
       <Button
         onClick={handleSend}
         disabled={!message.trim() || disabled || isUploading}
         size="icon"
-        className="h-[50px] w-[50px]"
+        className="h-11 w-11 shrink-0 rounded-xl bg-primary text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
       >
         <Send className="h-5 w-5" />
       </Button>
