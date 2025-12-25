@@ -1,3 +1,5 @@
+ "use client";
+
 import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -6,6 +8,7 @@ import { useEffect, useMemo, useRef } from "react";
 const useAxios = () => {
   const router = useRouter();
   const routerRef = useRef(router);
+  const isHandlingAuthErrorRef = useRef(false);
 
   // Keep the latest router instance for interceptors without re-creating axios.
   useEffect(() => {
@@ -25,7 +28,13 @@ const useAxios = () => {
       (response) => response,
       async (error) => {
         const status = error?.response?.status;
-        if (status === 401 || status === 403) {
+        // Only 401 implies an invalid/expired token.
+        // 403 can be a valid authorization failure; don't force logout on it.
+        if (status === 401) {
+          if (isHandlingAuthErrorRef.current) {
+            return Promise.reject(error);
+          }
+          isHandlingAuthErrorRef.current = true;
           try {
             await firebaseAuth.signOut();
           } catch {
