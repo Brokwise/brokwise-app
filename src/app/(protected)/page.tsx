@@ -107,6 +107,44 @@ const ProtectedPage = () => {
     return max > 0 ? max : 100000000;
   }, [properties]);
 
+  // Compute dynamic marketplace stats
+  const marketplaceStats = useMemo(() => {
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    // New listings in the last 7 days
+    const newListings = (properties || []).filter(
+      (p) => new Date(p.createdAt) >= oneWeekAgo
+    );
+    const newListingsCount = newListings.length;
+
+    // Find most common city among new listings
+    const cityCounts: Record<string, number> = {};
+    newListings.forEach((p) => {
+      const city = p.address?.city;
+      if (city) {
+        cityCounts[city] = (cityCounts[city] || 0) + 1;
+      }
+    });
+    const topCity = Object.entries(cityCounts).sort((a, b) => b[1] - a[1])[0];
+    const newListingsCity = topCity ? topCity[0] : null;
+
+    // New enquiries in the last 7 days
+    const newEnquiriesCount = (marketPlaceEnquiries || []).filter(
+      (e) => new Date(e.createdAt) >= oneWeekAgo
+    ).length;
+
+    // Total properties
+    const totalProperties = pagination.total || (properties?.length ?? 0);
+
+    return {
+      newListingsCount,
+      newListingsCity,
+      newEnquiriesCount,
+      totalProperties,
+    };
+  }, [properties, marketPlaceEnquiries, pagination.total]);
+
   // Effective price range: use full range if user hasn't set a custom one.
   // Important: memoize the array so `useDebounce` doesn't fire forever due to new array identity.
   const effectivePriceRange = useMemo(
@@ -474,6 +512,7 @@ const ProtectedPage = () => {
         clearFilters={clearFilters}
         hasActiveFilters={hasActiveFilters}
         onClearPropertySelection={() => setSelectedPropertyId(null)}
+        stats={marketplaceStats}
       />
 
       {viewMode === "PROPERTIES" ? (

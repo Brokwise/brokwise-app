@@ -37,6 +37,13 @@ import { formatIndianNumber } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
 
+interface MarketplaceStats {
+    newListingsCount: number;
+    newListingsCity: string | null;
+    newEnquiriesCount: number;
+    totalProperties: number;
+}
+
 interface MarketplaceHeaderProps {
     viewMode: "PROPERTIES" | "ENQUIRIES";
     setViewMode: (val: "PROPERTIES" | "ENQUIRIES") => void;
@@ -58,6 +65,7 @@ interface MarketplaceHeaderProps {
     clearFilters: () => void;
     hasActiveFilters: boolean;
     onClearPropertySelection: () => void;
+    stats: MarketplaceStats;
 }
 
 export const MarketplaceHeader = ({
@@ -81,6 +89,7 @@ export const MarketplaceHeader = ({
     clearFilters,
     hasActiveFilters,
     onClearPropertySelection,
+    stats,
 }: MarketplaceHeaderProps) => {
     const { userData } = useApp();
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -114,7 +123,7 @@ export const MarketplaceHeader = ({
     };
 
     return (
-        <div className="shrink-0 sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40 pb-4 pt-6 px-6 lg:px-8 space-y-6">
+        <div className="shrink-0 sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40 pb-4 pt-0.5 px-6 lg:px-8 space-y-6">
 
             {/* 1. Header Section: Title + Quick Actions */}
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -133,12 +142,17 @@ export const MarketplaceHeader = ({
                     <div className="flex items-center gap-2 text-sm text-muted-foreground/80 overflow-x-auto scrollbar-hide">
                         <span className="shrink-0 flex items-center gap-1.5">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="font-medium text-foreground">12 New</span> Listings from Jaipur
+                            <span className="font-medium text-foreground">{stats.newListingsCount} New</span> 
+                            {stats.newListingsCity ? ` Listings from ${stats.newListingsCity}` : " Listings this week"}
                         </span>
                         <span className="text-border/60">•</span>
-                        <span className="shrink-0 font-medium text-foreground">5</span> Price Drops
+                        <span className="shrink-0">
+                            <span className="font-medium text-foreground">{stats.totalProperties}</span> Total Properties
+                        </span>
                         <span className="text-border/60">•</span>
-                        <span className="shrink-0 font-medium text-foreground">3</span> New Enquiries
+                        <span className="shrink-0">
+                            <span className="font-medium text-foreground">{stats.newEnquiriesCount}</span> New Enquiries
+                        </span>
                     </div>
 
                     {/* Marketplace Toggle (Properties | Enquiries) */}
