@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
     Search,
     X,
@@ -9,7 +10,6 @@ import {
     MapPin,
     Columns,
     Plus,
-    MessageSquarePlus,
     ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,13 +37,6 @@ import { formatIndianNumber } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
 
-interface MarketplaceStats {
-    newListingsCount: number;
-    newListingsCity: string | null;
-    newEnquiriesCount: number;
-    totalProperties: number;
-}
-
 interface MarketplaceHeaderProps {
     viewMode: "PROPERTIES" | "ENQUIRIES";
     setViewMode: (val: "PROPERTIES" | "ENQUIRIES") => void;
@@ -65,7 +58,6 @@ interface MarketplaceHeaderProps {
     clearFilters: () => void;
     hasActiveFilters: boolean;
     onClearPropertySelection: () => void;
-    stats: MarketplaceStats;
 }
 
 export const MarketplaceHeader = ({
@@ -89,7 +81,6 @@ export const MarketplaceHeader = ({
     clearFilters,
     hasActiveFilters,
     onClearPropertySelection,
-    stats,
 }: MarketplaceHeaderProps) => {
     const { userData } = useApp();
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -123,160 +114,143 @@ export const MarketplaceHeader = ({
     };
 
     return (
-        <div className="shrink-0 sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40 pb-4 pt-0.5 px-6 lg:px-8 space-y-6">
+        <div className="shrink-0 sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40 pb-4 pt-2 px-6 lg:px-8 space-y-4">
 
-            {/* 1. Header Section: Title + Quick Actions */}
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-4xl md:text-5xl font-instrument-serif text-foreground tracking-tight">
-                            Marketplace
-                        </h1>
-                        {/* Date/Time Pill */}
-                        <div className="hidden md:inline-flex items-center justify-center px-3 py-1 rounded-full bg-muted/50 border border-border/50 text-xs font-medium text-muted-foreground uppercase tracking-wider backdrop-blur-sm self-center">
-                            {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                        </div>
-                    </div>
-
-                    {/* Ticker Row */}
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground/80 overflow-x-auto scrollbar-hide">
-                        <span className="shrink-0 flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="font-medium text-foreground">{stats.newListingsCount} New</span> 
-                            {stats.newListingsCity ? ` Listings from ${stats.newListingsCity}` : " Listings this week"}
-                        </span>
-                        <span className="text-border/60">•</span>
-                        <span className="shrink-0">
-                            <span className="font-medium text-foreground">{stats.totalProperties}</span> Total Properties
-                        </span>
-                        <span className="text-border/60">•</span>
-                        <span className="shrink-0">
-                            <span className="font-medium text-foreground">{stats.newEnquiriesCount}</span> New Enquiries
-                        </span>
-                    </div>
-
-                    {/* Marketplace Toggle (Properties | Enquiries) */}
-                    <div className="pt-4">
-                        <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-full border border-border/40 w-full sm:w-fit">
-                            <Button
-                                type="button"
-                                variant={viewMode === "PROPERTIES" ? "default" : "ghost"}
-                                onClick={() => setViewMode("PROPERTIES")}
-                                className="h-9 rounded-full px-5 flex-1 sm:flex-none"
-                            >
-                                Properties
-                            </Button>
-                            <Button
-                                type="button"
-                                variant={viewMode === "ENQUIRIES" ? "default" : "ghost"}
-                                onClick={() => setViewMode("ENQUIRIES")}
-                                className="h-9 rounded-full px-5 flex-1 sm:flex-none"
-                            >
-                                Enquiries
-                            </Button>
-                        </div>
+            {/* 1. Compact Header Row: Title + Segmented Control + Action Button */}
+            <div className="flex items-center justify-between gap-4">
+                {/* Left: Title + Segmented Control */}
+                <div className="flex items-center gap-4 md:gap-6 min-w-0">
+                    <h1 className="text-2xl md:text-3xl font-instrument-serif text-foreground tracking-tight shrink-0">
+                        Marketplace
+                    </h1>
+                    
+                    {/* Segmented Control */}
+                    <div className="flex items-center gap-0.5 bg-muted/50 p-0.5 rounded-lg border border-border/40">
+                        <Button
+                            type="button"
+                            variant={viewMode === "PROPERTIES" ? "default" : "ghost"}
+                            onClick={() => setViewMode("PROPERTIES")}
+                            size="sm"
+                            className={`h-8 rounded-md px-3 md:px-4 text-sm font-medium transition-all ${
+                                viewMode === "PROPERTIES" 
+                                    ? "shadow-sm" 
+                                    : "text-muted-foreground hover:text-foreground"
+                            }`}
+                        >
+                            Properties
+                        </Button>
+                        <Button
+                            type="button"
+                            variant={viewMode === "ENQUIRIES" ? "default" : "ghost"}
+                            onClick={() => setViewMode("ENQUIRIES")}
+                            size="sm"
+                            className={`h-8 rounded-md px-3 md:px-4 text-sm font-medium transition-all ${
+                                viewMode === "ENQUIRIES" 
+                                    ? "shadow-sm" 
+                                    : "text-muted-foreground hover:text-foreground"
+                            }`}
+                        >
+                            Enquiries
+                        </Button>
                     </div>
                 </div>
 
-                {/* Quick Actions */}
-                <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" className="h-9 gap-2 rounded-full border-dashed border-border/80 hover:bg-accent/5 hover:text-accent hover:border-accent/40 transition-all">
+                {/* Right: Dynamic Action Button */}
+                <Button 
+                    asChild 
+                    size="sm" 
+                    className="h-9 gap-2 rounded-lg font-medium shadow-sm hover:shadow-md transition-all shrink-0"
+                >
+                    <Link href={viewMode === "PROPERTIES" ? "/property/createProperty" : "/enquiries/create"}>
                         <Plus className="h-4 w-4" />
-                        <span className="hidden sm:inline">Add Property</span>
-                    </Button>
-                    <Button size="sm" variant="outline" className="h-9 gap-2 rounded-full border-dashed border-border/80 hover:bg-accent/5 hover:text-accent hover:border-accent/40 transition-all">
-                        <MessageSquarePlus className="h-4 w-4" />
-                        <span className="hidden sm:inline">New Enquiry</span>
-                    </Button>
-                </div>
+                        <span className="hidden sm:inline">
+                            {viewMode === "PROPERTIES" ? "List Property" : "Post Enquiry"}
+                        </span>
+                        <span className="sm:hidden">New</span>
+                    </Link>
+                </Button>
             </div>
 
-            {/* 2. Floating Search Bar & View Controls */}
-            <div className="flex flex-col gap-4">
-
-                {/* Search Input Group */}
-                <div className="relative w-full group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none" />
-                    <Popover open={recentOpen} onOpenChange={setRecentOpen}>
-                        <PopoverAnchor asChild>
-                            <div className="relative flex items-center w-full shadow-sm hover:shadow-md transition-shadow duration-300 rounded-full bg-background border border-border/60 active:ring-1 active:ring-accent/20">
-                                <Search className="absolute left-4 h-5 w-5 text-muted-foreground/60" />
-                                <Input
-                                    placeholder={
-                                        viewMode === "PROPERTIES"
-                                            ? "Search properties by location, society, or keywords..."
-                                            : "Search enquiries by location, budget, or requirements..."
+            {/* 2. Full-Width Search Bar */}
+            <div className="relative w-full">
+                <Popover open={recentOpen} onOpenChange={setRecentOpen}>
+                    <PopoverAnchor asChild>
+                        <div className="relative flex items-center w-full rounded-xl bg-muted/40 border border-border/50 hover:border-border/80 focus-within:border-primary/30 focus-within:ring-2 focus-within:ring-primary/10 transition-all duration-200">
+                            <Search className="absolute left-4 h-4 w-4 text-muted-foreground/60" />
+                            <Input
+                                placeholder={
+                                    viewMode === "PROPERTIES"
+                                        ? "Search properties by location, society, or keywords..."
+                                        : "Search enquiries by location, budget, or requirements..."
+                                }
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onFocus={async () => {
+                                    setRecentOpen(true);
+                                    await refetchRecentSearches();
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Escape") {
+                                        setRecentOpen(false);
+                                        return;
                                     }
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onFocus={async () => {
-                                        setRecentOpen(true);
-                                        await refetchRecentSearches();
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Escape") {
-                                            setRecentOpen(false);
-                                            return;
+                                    if (e.key === "Enter") {
+                                        const term = searchQuery.trim();
+                                        if (term) {
+                                            void addRecentSearch(term);
                                         }
-                                        if (e.key === "Enter") {
-                                            const term = searchQuery.trim();
-                                            if (term) {
-                                                void addRecentSearch(term);
-                                            }
-                                            setRecentOpen(false);
-                                        }
-                                    }}
-                                    className="pl-12 pr-12 h-12 text-base bg-transparent border-0 shadow-none rounded-full placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                />
-                                <div className="absolute right-2 flex items-center gap-1">
-                                    {searchQuery && (
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => setSearchQuery("")}
-                                            className="h-8 w-8 hover:bg-muted rounded-full"
-                                            title="Clear"
-                                        >
-                                            <X className="h-4 w-4 text-muted-foreground" />
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-                        </PopoverAnchor>
+                                        setRecentOpen(false);
+                                    }
+                                }}
+                                className="pl-11 pr-10 h-11 text-sm bg-transparent border-0 shadow-none rounded-xl placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            />
+                            {searchQuery && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setSearchQuery("")}
+                                    className="absolute right-2 h-7 w-7 hover:bg-muted rounded-lg"
+                                    title="Clear"
+                                >
+                                    <X className="h-3.5 w-3.5 text-muted-foreground" />
+                                </Button>
+                            )}
+                        </div>
+                    </PopoverAnchor>
 
-                        <PopoverContent className="w-[min(28rem,calc(100vw-2rem))] p-0" align="start">
-                            <div className="p-3 border-b border-border/50">
-                                <h4 className="font-semibold text-sm">Recent Searches</h4>
-                            </div>
-                            <div className="max-h-64 overflow-y-auto">
-                                {isRecentLoading ? (
-                                    <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>
-                                ) : recentSearches.length === 0 ? (
-                                    <div className="p-4 text-center text-sm text-muted-foreground">
-                                        No recent searches yet.
-                                        <br />
-                                        <span className="text-xs">Press Enter to save a search term.</span>
-                                    </div>
-                                ) : (
-                                    recentSearches.slice(0, 5).map((term) => (
-                                        <button
-                                            key={term}
-                                            type="button"
-                                            className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted/50 transition-colors border-b border-border/30 last:border-0"
-                                            onClick={() => {
-                                                setSearchQuery(term);
-                                                setRecentOpen(false);
-                                                void addRecentSearch(term);
-                                            }}
-                                        >
-                                            <span className="font-medium">{term}</span>
-                                        </button>
-                                    ))
-                                )}
-                            </div>
-                        </PopoverContent>
-                    </Popover>
-                </div>
+                    <PopoverContent className="w-[min(28rem,calc(100vw-2rem))] p-0 rounded-xl" align="start">
+                        <div className="p-3 border-b border-border/50">
+                            <h4 className="font-semibold text-sm">Recent Searches</h4>
+                        </div>
+                        <div className="max-h-64 overflow-y-auto">
+                            {isRecentLoading ? (
+                                <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>
+                            ) : recentSearches.length === 0 ? (
+                                <div className="p-4 text-center text-sm text-muted-foreground">
+                                    No recent searches yet.
+                                    <br />
+                                    <span className="text-xs">Press Enter to save a search term.</span>
+                                </div>
+                            ) : (
+                                recentSearches.slice(0, 5).map((term) => (
+                                    <button
+                                        key={term}
+                                        type="button"
+                                        className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted/50 transition-colors border-b border-border/30 last:border-0"
+                                        onClick={() => {
+                                            setSearchQuery(term);
+                                            setRecentOpen(false);
+                                            void addRecentSearch(term);
+                                        }}
+                                    >
+                                        <span className="font-medium">{term}</span>
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            </div>
 
                 {viewMode === "PROPERTIES" && (
                     <>
@@ -465,8 +439,6 @@ export const MarketplaceHeader = ({
                         </div>
                     </>
                 )}
-
-            </div>
 
             {/* 3. Active Filters Quick Row (if filters active) */}
             {(searchQuery || (viewMode === "PROPERTIES" && hasActiveFilters)) && (

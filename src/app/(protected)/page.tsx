@@ -512,7 +512,6 @@ const ProtectedPage = () => {
         clearFilters={clearFilters}
         hasActiveFilters={hasActiveFilters}
         onClearPropertySelection={() => setSelectedPropertyId(null)}
-        stats={marketplaceStats}
       />
 
       {viewMode === "PROPERTIES" ? (
