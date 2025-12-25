@@ -187,8 +187,9 @@ h6 {
   }
 }
 
-/* Mapbox popup dark mode support */
-.mapboxgl-popup-content {
+/* Mapbox popup theme support - scoped to custom popup classes */
+.custom-popup .mapboxgl-popup-content,
+.theme-aware-popup .mapboxgl-popup-content {
   background: hsl(var(--card)) !important;
   padding: 0 !important;
   border-radius: 12px !important;
@@ -196,19 +197,16 @@ h6 {
   border: 1px solid hsl(var(--border)) !important;
 }
 
-.mapboxgl-popup-tip {
+.custom-popup .mapboxgl-popup-tip,
+.theme-aware-popup .mapboxgl-popup-tip {
   border-top-color: hsl(var(--card)) !important;
   border-bottom-color: hsl(var(--card)) !important;
 }
 
-/* Hide default close button since our custom popups handle interaction */
-.mapboxgl-popup-close-button {
+/* Hide default close button for our custom popups */
+.custom-popup .mapboxgl-popup-close-button,
+.theme-aware-popup .mapboxgl-popup-close-button {
   display: none;
-}
-
-/* Ensure popup content respects theme */
-.theme-aware-popup .mapboxgl-popup-content {
-  padding: 0 !important;
 }
 
 @media print {

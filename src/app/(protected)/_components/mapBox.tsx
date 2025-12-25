@@ -156,15 +156,12 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
 
     const bounds = new mapboxgl.LngLatBounds();
 
-    // Theme-aware colors handled via CSS variables
     validProperties.forEach((property) => {
       const [lng, lat] = property.location.coordinates;
       const priceFormatted = formatPrice(property.totalPrice);
 
-      // Create custom marker element with theme-aware styling using CSS variables
       const el = document.createElement("div");
       el.className = "custom-marker group cursor-pointer z-20";
-      // We use hsl(var(--variable)) to automatically adapt to theme changes without JS logic
       el.innerHTML = `
         <div class="transition-transform duration-200 group-hover:scale-110">
           <div style="background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 6px 10px; border-radius: 99px; box-shadow: 0 4px 12px hsl(var(--foreground) / 0.2); font-weight: 600; font-size: 13px; white-space: nowrap; display: flex; align-items: center; justify-content: center; border: 2px solid hsl(var(--background));">
@@ -174,7 +171,6 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
         </div>
       `;
 
-      // Create popup with CSS variables
       const popup = new mapboxgl.Popup({
         offset: 25,
         closeButton: false,
@@ -210,9 +206,6 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
         .addTo(map);
       markersRef.current.push(marker);
 
-      // Add click event listener to the button inside popup
-      // Note: We attach to the button ID, but the whole card interaction is handled via this button for now.
-      // We could also attach to the card itself if we gave it an ID.
       popup.on("open", () => {
         const button = document.getElementById(`view-details-${property._id}`);
         if (button) {
@@ -220,16 +213,6 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
             e.preventDefault();
             onSelectProperty?.(property._id);
           };
-        }
-        // Also attach to the image wrapper for better UX
-        const card = button?.closest('.group');
-        if (card) {
-             (card as HTMLElement).onclick = (e) => {
-                // Prevent double firing if button clicked
-                if ((e.target as HTMLElement).closest('button')) return;
-                e.preventDefault();
-                onSelectProperty?.(property._id);
-            };
         }
       });
 

@@ -43,7 +43,6 @@ export const MapBox = ({ property }: { property: Property }) => {
       </div>
     `;
 
-    // Theme-aware popup styling
     const popupHTML = `
       <div style="padding: 8px; font-family: system-ui, -apple-system, sans-serif;">
         <strong style="color: hsl(var(--foreground)); font-size: 14px;">${property.propertyCategory}</strong>
@@ -51,21 +50,8 @@ export const MapBox = ({ property }: { property: Property }) => {
         <span style="color: hsl(var(--muted-foreground)); font-size: 12px;">${formatAddress(property.address)}</span>
       </div>
     `;
-    
-    // We can't easily use CSS vars inside the standard Mapbox popup class without global CSS overrides,
-    // but we can inject a custom class and rely on our global styles or inline styles on the content.
-    // The wrapper mapboxgl-popup-content needs styling.
-    // Mapbox doesn't support setting style on the popup container directly via JS easily besides className.
-    // So we'll stick to styling the inner content and maybe adding a global class if needed.
-    // For now, the inner content styling handles text colors. Background defaults to white in standard mapbox.
-    // To fix background, we need to target .mapboxgl-popup-content.
-    // We can add a <style> tag to the popup content? No, that's messy.
-    // Better: use the same custom marker approach where the popup is custom HTML if we really want full control.
-    // But for this simple view, just the marker is a big win.
-    // Actually, we can just let the popup be default white for now, or use a custom class in globals.css.
-    // Let's stick to the marker improvement and map style.
 
-    // Add marker
+    // Add marker with theme-aware popup (styled via globals.css)
     new mapboxgl.Marker({ element: el })
       .setLngLat([lng, lat])
       .setPopup(
@@ -87,19 +73,13 @@ export const MapBox = ({ property }: { property: Property }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [property]);
 
-  // Update map style dynamically
+  // Update map style when theme changes
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    
     const style = isDarkMode
       ? "mapbox://styles/mapbox/dark-v11"
       : "mapbox://styles/mapbox/streets-v12";
-      
-    // Only update if different to avoid reloading
-    // Mapbox doesn't expose current style URL easily, but setStyle is cheap if same? 
-    // Actually setStyle triggers a reload. We should check.
-    // We'll trust the prop change.
     map.setStyle(style);
   }, [isDarkMode]);
 

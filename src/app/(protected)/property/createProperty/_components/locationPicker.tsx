@@ -188,23 +188,10 @@ export const LocationPicker = ({
       </div>
     `;
 
-    // Add marker
+    // Add draggable marker
     markerRef.current = new mapboxgl.Marker({
       element: el,
       draggable: true,
-      anchor: "bottom", // Anchor at bottom since it's a pin-like shape? 
-      // Actually, the circle design is centered. The pin shape in SVG points down?
-      // The SVG I used: <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-      // This is a pin shape. The tip is at the bottom (12, 22).
-      // So yes, anchor: 'bottom' is roughly correct, but because I wrapped it in a centered flex circle, 
-      // the visual center is the circle center.
-      // Wait, if I use `display: flex; align-items: center` in a 40x40 circle, the SVG is centered.
-      // The SVG pin tip is at the bottom of the SVG viewBox.
-      // If the SVG is 20x20 inside a 40x40 circle, it's centered.
-      // So the "tip" of the marker logic is the center of the circle.
-      // So `anchor: 'center'` (default) is actually better for a circular bubble!
-      // But visually it's a pin inside a circle.
-      // Let's stick to default anchor (center) for the circle.
     })
       .setLngLat([lng, lat])
       .addTo(mapRef.current);
@@ -268,11 +255,6 @@ export const LocationPicker = ({
       : "mapbox://styles/mapbox/streets-v12";
     map.setStyle(style);
   }, [isDarkMode]);
-
-  // Update marker when value changes externally (if needed, but be careful of loops)
-  // We'll skip this for now to avoid conflict with internal updates,
-  // assuming value is controlled primarily by this component's interactions
-  // or we can check if the distance is significant.
 
   const handleSelectLocation = (result: SearchResult) => {
     const [lng, lat] = result.center;

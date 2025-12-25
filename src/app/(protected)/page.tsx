@@ -332,10 +332,11 @@ const ProtectedPage = () => {
   };
 
   const hasActiveFilters =
+    categoryFilter !== "ALL" ||
     bhkFilter !== "ALL" ||
     sourceFilter !== "ALL" ||
     propertyTypeFilter !== "ALL" ||
-    priceRange !== null; // Only true if user explicitly set a price range
+    priceRange !== null;
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
@@ -522,6 +523,7 @@ const ProtectedPage = () => {
         view={view}
         setView={setView}
         filteredCount={filteredProperties.length}
+        filteredEnquiriesCount={filteredEnquiries.length}
         maxPropertyPrice={maxPropertyPrice}
         effectivePriceRange={effectivePriceRange}
         clearFilters={clearFilters}
@@ -540,7 +542,7 @@ const ProtectedPage = () => {
             flex-col h-full overflow-y-auto scrollbar-hide transition-all duration-300
             ${view === "map" ? "hidden" : "flex"}
             ${view === "grid" ? "w-full" : "w-full lg:w-[60%] xl:w-[55%] 2xl:w-[50%]"}
-            ${isMobileMapOpen && view === "split" ? 'hidden lg:flex' : ''}
+            ${isMobileMapOpen ? 'hidden lg:flex' : ''}
           `}
         >
           {/* Increased top padding for better breathing room */}
@@ -614,9 +616,9 @@ const ProtectedPage = () => {
           className={`
           flex-1 h-full bg-muted border-l border-border/50
           transition-all duration-300 relative
-          ${view === "grid" ? "hidden" : ""}
+          ${view === "grid" && !isMobileMapOpen ? "hidden" : ""}
           ${view === "map" ? "block w-full" : "hidden lg:block"}
-          ${isMobileMapOpen && view === "split" ? 'block w-full fixed inset-0 top-[120px] z-40' : ''}
+          ${isMobileMapOpen ? 'block lg:hidden w-full fixed inset-0 top-[120px] z-40' : ''}
         `}
         >
           {selectedProperty && (
