@@ -50,9 +50,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, hideShare 
   const isCompany = userData?.userType === "company";
 
   // Check if property is private/enquiry-only
-  const isPrivateProperty = 
-    property.listingStatus === "ENQUIRY_ONLY" || 
-    !!property.submittedForEnquiryId;
+  const isPrivateProperty =
+    property.listingStatus === "ENQUIRY_ONLY" || !!property.submittedForEnquiryId;
+  const canShareExternally = !hideShare && !isPrivateProperty;
 
   // Check bookmark status from the correct user data
   const isBookmarked = isCompany
@@ -292,12 +292,17 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, hideShare 
                 variant="secondary"
                 className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-md hover:bg-background shadow-sm"
                 onClick={(e) => e.stopPropagation()}
+                title={canShareExternally ? "Share" : "Export PDF"}
               >
-                <Share2 className="h-4 w-4 text-foreground/70" />
+                {canShareExternally ? (
+                  <Share2 className="h-4 w-4 text-foreground/70" />
+                ) : (
+                  <Download className="h-4 w-4 text-foreground/70" />
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {!hideShare && !isPrivateProperty && (
+              {canShareExternally && (
                 <>
                   <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
                     <Link2 className="mr-2 h-4 w-4" />
