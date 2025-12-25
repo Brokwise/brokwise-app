@@ -192,10 +192,10 @@ export const MarketplaceHeader = ({
             </div>
 
             {/* 2. Floating Search Bar & View Controls */}
-            <div className="flex flex-col xl:flex-row gap-4 items-stretch xl:items-center">
+            <div className="flex flex-col gap-4">
 
                 {/* Search Input Group */}
-                <div className="relative flex-1 group">
+                <div className="relative w-full group">
                     <div className="absolute inset-0 bg-gradient-to-r from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-full pointer-events-none" />
                     <Popover open={recentOpen} onOpenChange={setRecentOpen}>
                         <PopoverAnchor asChild>
@@ -281,10 +281,10 @@ export const MarketplaceHeader = ({
                 {viewMode === "PROPERTIES" && (
                     <>
                         {/* Controls: Filter Pills + View Toggle */}
-                        <div className="flex flex-col sm:flex-row items-center gap-4 justify-between xl:justify-end min-w-0">
+                        <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full">
 
                     {/* Category Pills (Scrollable) */}
-                    <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full xl:w-auto scrollbar-hide mask-linear-fade flex-1">
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto scrollbar-hide mask-linear-fade sm:flex-1">
                         {categoryPills.map((pill) => (
                             <Button
                                 key={pill.value}
