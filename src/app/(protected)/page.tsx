@@ -214,7 +214,7 @@ const ProtectedPage = () => {
   ]);
 
   const filteredEnquiries = useMemo(() => {
-    let baseEnquiries = marketPlaceEnquiries;
+    let baseEnquiries = marketPlaceEnquiries || [];
 
     // Fuzzy Search (Enquiries)
     if (debouncedSearchQuery) {
@@ -224,8 +224,54 @@ const ProtectedPage = () => {
       }
     }
 
-    return baseEnquiries;
-  }, [marketPlaceEnquiries, debouncedSearchQuery, enquiryFuse]);
+    return baseEnquiries.filter((enquiry) => {
+      // Source Filter
+      const matchesSource =
+        sourceFilter === "ALL" ||
+        (sourceFilter === "BROKER" && enquiry.source === "broker") ||
+        (sourceFilter === "COMPANY" && enquiry.source === "company");
+
+      // Category Filter
+      const matchesCategory =
+        categoryFilter === "ALL" ||
+        enquiry.enquiryCategory === categoryFilter;
+
+      // Price (Budget) Filter
+      let matchesPrice = true;
+      if (debouncedPriceRange && enquiry.budget) {
+        const [minFilter, maxFilter] = debouncedPriceRange;
+        // Check for overlap: eMin <= fMax && eMax >= fMin
+        const eMin = enquiry.budget.min || 0;
+        const eMax = enquiry.budget.max || Number.MAX_SAFE_INTEGER;
+        matchesPrice = eMin <= maxFilter && eMax >= minFilter;
+      }
+
+      // BHK Filter
+      let matchesBhk = true;
+      if (bhkFilter !== "ALL") {
+        if (enquiry.bhk) {
+          if (bhkFilter === "5+") {
+            matchesBhk = enquiry.bhk >= 5;
+          } else {
+            matchesBhk = enquiry.bhk === Number(bhkFilter);
+          }
+        } else {
+          // If filtering by BHK but enquiry has no BHK (e.g. land), hide it
+          matchesBhk = false;
+        }
+      }
+
+      return matchesSource && matchesCategory && matchesPrice && matchesBhk;
+    });
+  }, [
+    marketPlaceEnquiries,
+    debouncedSearchQuery,
+    enquiryFuse,
+    sourceFilter,
+    categoryFilter,
+    debouncedPriceRange,
+    bhkFilter,
+  ]);
 
   const clearFilters = () => {
     setSearchQuery("");

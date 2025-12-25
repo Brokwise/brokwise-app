@@ -42,11 +42,15 @@ interface PropertyCardProps {
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
-  const { brokerData, setBrokerData } = useApp();
+  const { userData, brokerData, setBrokerData, companyData, setCompanyData } = useApp();
   const { toggleBookmarkAsync, isPending: isBookmarkPending } = useToggleBookmark();
 
-  const isBookmarked =
-    !!brokerData?.bookmarkedPropertyIds?.includes(property._id);
+  const isCompany = userData?.userType === "company";
+
+  // Check bookmark status from the correct user data
+  const isBookmarked = isCompany
+    ? !!companyData?.bookmarkedPropertyIds?.includes(property._id)
+    : !!brokerData?.bookmarkedPropertyIds?.includes(property._id);
 
   const propertyUrl = typeof window !== "undefined"
     ? `${window.location.origin}/property/${property._id}`
@@ -189,35 +193,58 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
             className={`h-8 w-8 rounded-full bg-background/80 backdrop-blur-md hover:bg-background shadow-sm ${
               isBookmarked ? "text-accent" : ""
             }`}
-            disabled={!brokerData || isBookmarkPending}
+            disabled={(!brokerData && !companyData) || isBookmarkPending}
             onClick={async (e) => {
               e.preventDefault();
               e.stopPropagation();
 
-              if (!brokerData) {
+              if (!brokerData && !companyData) {
                 toast.error("Please complete your profile to use bookmarks");
                 return;
               }
 
-              const prev = brokerData.bookmarkedPropertyIds ?? [];
-              const next = isBookmarked
-                ? prev.filter((id) => id !== property._id)
-                : [property._id, ...prev.filter((id) => id !== property._id)];
+              if (isCompany && companyData) {
+                const prev = companyData.bookmarkedPropertyIds ?? [];
+                const next = isBookmarked
+                  ? prev.filter((id) => id !== property._id)
+                  : [property._id, ...prev.filter((id) => id !== property._id)];
 
-              setBrokerData({ ...brokerData, bookmarkedPropertyIds: next });
+                setCompanyData({ ...companyData, bookmarkedPropertyIds: next });
 
-              try {
-                const res = await toggleBookmarkAsync({
-                  itemType: "PROPERTY",
-                  itemId: property._id,
-                });
-                setBrokerData({
-                  ...brokerData,
-                  bookmarkedPropertyIds: res.bookmarkedPropertyIds,
-                  bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
-                });
-              } catch {
-                setBrokerData({ ...brokerData, bookmarkedPropertyIds: prev });
+                try {
+                  const res = await toggleBookmarkAsync({
+                    itemType: "PROPERTY",
+                    itemId: property._id,
+                  });
+                  setCompanyData({
+                    ...companyData,
+                    bookmarkedPropertyIds: res.bookmarkedPropertyIds,
+                    bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
+                  });
+                } catch {
+                  setCompanyData({ ...companyData, bookmarkedPropertyIds: prev });
+                }
+              } else if (brokerData) {
+                const prev = brokerData.bookmarkedPropertyIds ?? [];
+                const next = isBookmarked
+                  ? prev.filter((id) => id !== property._id)
+                  : [property._id, ...prev.filter((id) => id !== property._id)];
+
+                setBrokerData({ ...brokerData, bookmarkedPropertyIds: next });
+
+                try {
+                  const res = await toggleBookmarkAsync({
+                    itemType: "PROPERTY",
+                    itemId: property._id,
+                  });
+                  setBrokerData({
+                    ...brokerData,
+                    bookmarkedPropertyIds: res.bookmarkedPropertyIds,
+                    bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
+                  });
+                } catch {
+                  setBrokerData({ ...brokerData, bookmarkedPropertyIds: prev });
+                }
               }
             }}
             title={isBookmarked ? "Remove bookmark" : "Bookmark"}

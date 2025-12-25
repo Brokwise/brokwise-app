@@ -18,6 +18,10 @@ export interface Company {
   status: CompanyStatus;
   createdAt: string;
   noOfEmployees: number;
+  // Unified Marketplace fields
+  recentSearches?: string[];
+  bookmarkedPropertyIds?: string[];
+  bookmarkedEnquiryIds?: string[];
 }
 
 export type CreateCompanyRequest = {
