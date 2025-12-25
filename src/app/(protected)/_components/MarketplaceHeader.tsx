@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import {
     Search,
@@ -37,6 +37,44 @@ import { formatIndianNumber } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
 
+// Property type options based on category
+const PROPERTY_TYPE_OPTIONS: Record<string, { value: string; label: string }[]> = {
+    RESIDENTIAL: [
+        { value: "ALL", label: "All Types" },
+        { value: "FLAT", label: "Flat / Apartment" },
+        { value: "VILLA", label: "Villa" },
+        { value: "LAND", label: "Residential Land" },
+    ],
+    COMMERCIAL: [
+        { value: "ALL", label: "All Types" },
+        { value: "SHOWROOM", label: "Showroom" },
+        { value: "HOTEL", label: "Hotel" },
+        { value: "HOSTEL", label: "Hostel" },
+        { value: "SHOP", label: "Shop" },
+        { value: "OFFICE_SPACE", label: "Office Space" },
+        { value: "OTHER_SPACE", label: "Other Space" },
+    ],
+    INDUSTRIAL: [
+        { value: "ALL", label: "All Types" },
+        { value: "INDUSTRIAL_PARK", label: "Industrial Park" },
+        { value: "INDUSTRIAL_LAND", label: "Industrial Land" },
+        { value: "WAREHOUSE", label: "Warehouse" },
+    ],
+    AGRICULTURAL: [
+        { value: "ALL", label: "All Types" },
+        { value: "AGRICULTURAL_LAND", label: "Agricultural Land" },
+    ],
+    RESORT: [
+        { value: "ALL", label: "All Types" },
+        { value: "RESORT", label: "Resort" },
+    ],
+    FARM_HOUSE: [
+        { value: "ALL", label: "All Types" },
+        { value: "FARM_HOUSE", label: "Farm House" },
+        { value: "INDIVIDUAL", label: "Individual" },
+    ],
+};
+
 interface MarketplaceHeaderProps {
     viewMode: "PROPERTIES" | "ENQUIRIES";
     setViewMode: (val: "PROPERTIES" | "ENQUIRIES") => void;
@@ -44,6 +82,8 @@ interface MarketplaceHeaderProps {
     setSearchQuery: (val: string) => void;
     categoryFilter: string;
     setCategoryFilter: (val: string) => void;
+    propertyTypeFilter: string;
+    setPropertyTypeFilter: (val: string) => void;
     sourceFilter: string;
     setSourceFilter: (val: string) => void;
     priceRange: number[] | null;
@@ -67,6 +107,8 @@ export const MarketplaceHeader = ({
     setSearchQuery,
     categoryFilter,
     setCategoryFilter,
+    propertyTypeFilter,
+    setPropertyTypeFilter,
     sourceFilter,
     setSourceFilter,
     priceRange,
@@ -102,6 +144,17 @@ export const MarketplaceHeader = ({
         { value: "RESORT", label: "Resort" },
         { value: "FARM_HOUSE", label: "Farmhouse" },
     ];
+
+    // Get property type options based on selected category
+    const propertyTypeOptions = useMemo(() => {
+        if (categoryFilter === "ALL") {
+            return [{ value: "ALL", label: "All Types" }];
+        }
+        return PROPERTY_TYPE_OPTIONS[categoryFilter] || [{ value: "ALL", label: "All Types" }];
+    }, [categoryFilter]);
+
+    // Check if BHK filter is relevant (only for Residential category)
+    const showBhkFilter = categoryFilter === "ALL" || categoryFilter === "RESIDENTIAL";
 
     const formatPriceShort = (price: number) => {
         if (price >= 10000000) {
@@ -292,7 +345,7 @@ export const MarketplaceHeader = ({
                                     <ChevronDown className="h-3 w-3 opacity-50" />
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
+                            <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
                                 <DialogHeader>
                                     <DialogTitle>Filter Properties</DialogTitle>
                                     <DialogDescription>
@@ -300,6 +353,52 @@ export const MarketplaceHeader = ({
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className="grid gap-6 py-4">
+                                    {/* Property Category */}
+                                    <div className="space-y-2">
+                                        <Label>Property Category</Label>
+                                        <Select 
+                                            value={categoryFilter} 
+                                            onValueChange={(val) => {
+                                                setCategoryFilter(val);
+                                                // Reset property type and category-specific filters when category changes
+                                                setPropertyTypeFilter("ALL");
+                                                if (val !== "ALL" && val !== "RESIDENTIAL") {
+                                                    setBhkFilter("ALL");
+                                                }
+                                            }}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select Category" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {categoryPills.map((pill) => (
+                                                    <SelectItem key={pill.value} value={pill.value}>
+                                                        {pill.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    {/* Property Type - Dynamic based on category */}
+                                    {categoryFilter !== "ALL" && (
+                                        <div className="space-y-2">
+                                            <Label>Property Type</Label>
+                                            <Select value={propertyTypeFilter} onValueChange={setPropertyTypeFilter}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Type" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {propertyTypeOptions.map((option) => (
+                                                        <SelectItem key={option.value} value={option.value}>
+                                                            {option.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    )}
+
                                     {/* Price Range */}
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center">
@@ -355,23 +454,25 @@ export const MarketplaceHeader = ({
                                         />
                                     </div>
 
-                                    {/* BHK */}
-                                    <div className="space-y-2">
-                                        <Label>BHK (Residential)</Label>
-                                        <Select value={bhkFilter} onValueChange={setBhkFilter}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="BHK" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="ALL">Any BHK</SelectItem>
-                                                <SelectItem value="1">1 BHK</SelectItem>
-                                                <SelectItem value="2">2 BHK</SelectItem>
-                                                <SelectItem value="3">3 BHK</SelectItem>
-                                                <SelectItem value="4">4 BHK</SelectItem>
-                                                <SelectItem value="5+">5+ BHK</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                                    {/* BHK - Only shown for Residential properties */}
+                                    {showBhkFilter && (
+                                        <div className="space-y-2">
+                                            <Label>BHK (Bedrooms)</Label>
+                                            <Select value={bhkFilter} onValueChange={setBhkFilter}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="BHK" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="ALL">Any BHK</SelectItem>
+                                                    <SelectItem value="1">1 BHK</SelectItem>
+                                                    <SelectItem value="2">2 BHK</SelectItem>
+                                                    <SelectItem value="3">3 BHK</SelectItem>
+                                                    <SelectItem value="4">4 BHK</SelectItem>
+                                                    <SelectItem value="5+">5+ BHK</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    )}
 
                                     {/* Source Filter for Companies */}
                                     {userData?.userType === "company" && (
@@ -452,6 +553,18 @@ export const MarketplaceHeader = ({
                             className="h-6 text-xs rounded-full gap-1.5 px-2.5 bg-accent/10 text-accent hover:bg-accent/20 border border-accent/10"
                         >
                             &quot;{searchQuery}&quot;
+                            <X className="h-3 w-3 opacity-70" />
+                        </Button>
+                    )}
+
+                    {viewMode === "PROPERTIES" && propertyTypeFilter !== "ALL" && (
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setPropertyTypeFilter("ALL")}
+                            className="h-6 text-xs rounded-full gap-1.5 px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+                        >
+                            {propertyTypeOptions.find(o => o.value === propertyTypeFilter)?.label || propertyTypeFilter}
                             <X className="h-3 w-3 opacity-70" />
                         </Button>
                     )}
