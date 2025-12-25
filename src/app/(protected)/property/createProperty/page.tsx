@@ -131,7 +131,7 @@ const CreateProperty = () => {
   };
 
   return (
-    <main className="container mx-auto px-4 md:px-8 lg:px-12 py-4 md:py-6 min-h-screen">
+    <main className="container mx-auto px-4 md:px-8 lg:px-12 py-2.5 md:py-2.5 min-h-screen">
       {!selectedCategory ? (
         <motion.div
           variants={containerVariants}
