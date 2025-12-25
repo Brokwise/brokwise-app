@@ -2,7 +2,6 @@ import { cn } from "@/lib/utils";
 import { Message } from "@/models/types/chat";
 import { format } from "date-fns";
 import { FileIcon, ExternalLink } from "lucide-react";
-import Image from "next/image";
 
 interface MessageBubbleProps {
   message: Message;
@@ -13,21 +12,19 @@ export const MessageBubble = ({ message, isMe }: MessageBubbleProps) => {
   const renderContent = () => {
     if (message.type === "image" && message.mediaUrl) {
       return (
-        <div className="space-y-1">
-          <div className="relative overflow-hidden rounded-md">
+        <div className="space-y-2">
+          <div className="relative overflow-hidden rounded-xl">
             {/* Using regular img tag for now to avoid Next.js Image configuration issues with external domains if not configured */}
-            <Image
-              width={100}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={message.mediaUrl}
               alt="Sent image"
-              height={300}
-              className="w-auto h-auto max-w-full max-h-[300px] object-contain rounded-md"
+              className="h-auto max-h-[300px] w-auto max-w-full rounded-xl object-contain"
               loading="lazy"
-              unoptimized
             />
           </div>
           {message.content && (
-            <p className="whitespace-pre-wrap break-words text-sm mt-1">
+            <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
               {message.content}
             </p>
           )}
@@ -37,8 +34,8 @@ export const MessageBubble = ({ message, isMe }: MessageBubbleProps) => {
 
     if (message.type === "file" && message.mediaUrl) {
       return (
-        <div className="flex items-center gap-3 p-1">
-          <div className="bg-background/20 p-2 rounded-full shrink-0">
+        <div className="flex items-center gap-3 rounded-xl bg-background/10 p-2 pr-4 backdrop-blur-sm">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background/20">
             <FileIcon className="h-5 w-5" />
           </div>
           <div className="overflow-hidden">
@@ -46,7 +43,7 @@ export const MessageBubble = ({ message, isMe }: MessageBubbleProps) => {
               href={message.mediaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 hover:underline truncate text-sm font-medium"
+              className="flex items-center gap-1 truncate text-sm font-medium hover:underline"
             >
               {message.fileName || "Download File"}
               <ExternalLink className="h-3 w-3 opacity-70" />
@@ -63,7 +60,9 @@ export const MessageBubble = ({ message, isMe }: MessageBubbleProps) => {
 
     // Default text
     return (
-      <p className="whitespace-pre-wrap break-words">{message.content || ""}</p>
+      <p className="whitespace-pre-wrap break-words font-inter text-sm leading-relaxed tracking-wide md:text-base">
+        {message.content || ""}
+      </p>
     );
   };
 
@@ -71,17 +70,17 @@ export const MessageBubble = ({ message, isMe }: MessageBubbleProps) => {
     <div className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
       <div
         className={cn(
-          "max-w-[75%] rounded-lg px-4 py-2 text-sm",
+          "max-w-[75%] px-5 py-3 shadow-sm transition-all",
           isMe
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted text-muted-foreground"
+            ? "rounded-2xl rounded-br-sm bg-primary text-primary-foreground"
+            : "rounded-2xl rounded-bl-sm bg-muted text-foreground"
         )}
       >
         {renderContent()}
         <div
           className={cn(
-            "mt-1 text-[10px] opacity-70 flex items-center justify-end gap-1",
-            isMe ? "text-primary-foreground/70" : ""
+            "mt-1 flex items-center justify-end gap-1 text-[10px] font-medium opacity-60",
+            isMe ? "text-primary-foreground" : "text-muted-foreground"
           )}
         >
           {message.createdAt && format(new Date(message.createdAt), "HH:mm")}

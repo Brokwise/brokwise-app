@@ -4,8 +4,10 @@ import {
   useCreateCompanyProperty,
   useSaveCompanyPropertyDraft,
 } from "@/hooks/useCompany";
-import { Loader2, Edit } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, FileText, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { formatDistanceToNow } from "date-fns";
 
 import { PropertyFormData } from "@/validators/property";
 import { useApp } from "@/context/AppContext";
@@ -18,12 +20,25 @@ import { AgriculturalWizard } from "./agriculturalForm/wizard";
 import { IndustrialWizard } from "./industrialForm/wizard";
 import { CommercialWizard } from "./commercialForm/wizard";
 import { ResidentialWizard } from "./residentialForm/wizard";
-import { H2 } from "@/components/text/h2";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { propertyCategories } from "@/constants";
-import { H1 } from "@/components/text/h1";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
+};
 
 const CreateProperty = () => {
   const [selectedCategory, setSelectedCategory] =
@@ -116,89 +131,202 @@ const CreateProperty = () => {
   };
 
   return (
-    <main className="container mx-auto p-6 space-y-6 px-4 md:px-28 xl:px-80">
+    <main className="container mx-auto px-4 md:px-8 lg:px-12 py-2.5 md:py-2.5 min-h-screen">
       {!selectedCategory ? (
-        <>
-          <div className="flex items-center justify-between">
-            <H2 text="Create Property" />
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="space-y-6"
+        >
+          {/* Header Section */}
+          <div className="space-y-1">
+            <h1 className="text-3xl md:text-4xl font-instrument-serif text-foreground tracking-tight">
+              List a new property
+            </h1>
+            <p className="text-muted-foreground text-sm md:text-base font-light max-w-2xl">
+              Select a category to begin listing your premium property on the market.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {propertyCategories.map((category) => (
-              <Card
-                key={category.key}
-                onClick={() => handleCategorySelect(category.key)}
-                className="cursor-pointer transition-all duration-500 h-52  hover:scale-95 bg-cover bg-center"
-                style={{
-                  backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${category.image})`,
-                }}
-              >
-                <CardHeader>
-                  <CardTitle className="text-3xl text-white font-bold">
-                    {category.label}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg text-white">{category.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : drafts.length > 0 ? (
-            <div className="space-y-4 pt-8 border-t">
-              <H2 text="Continue Drafting" />
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {drafts.map((draft) => (
-                  <Card key={draft._id} className="overflow-hidden">
-                    <CardHeader>
-                      <CardTitle className="text-lg">
-                        {propertyCategories.find(
-                          (c) => c.key === draft.propertyCategory
-                        )?.label || draft.propertyCategory}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {draft.address?.city
-                          ? `${draft.address.city}, ${draft.address.state}`
-                          : "Location not set"}
-                      </p>
-                      <Button
-                        onClick={() => handleDraftSelect(draft)}
-                        className="w-full"
-                        variant="secondary"
-                      >
-                        <Edit className="w-4 h-4 mr-2" /> Continue Editing
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+          {/* Continue Drafting - Always on top */}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-muted-foreground" />
+                <h2 className="text-lg font-instrument-serif text-foreground tracking-tight">
+                  Continue Drafting
+                </h2>
               </div>
+              {drafts.length > 0 && (
+                <Badge variant="secondary" className="rounded-full text-xs">
+                  {drafts.length}
+                </Badge>
+              )}
             </div>
-          ) : null}
-        </>
+
+            {isLoading ? (
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              </div>
+            ) : drafts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {drafts.map((draft) => {
+                  const lastEdited =
+                    draft.updatedAt
+                      ? formatDistanceToNow(new Date(draft.updatedAt), {
+                        addSuffix: true,
+                      })
+                      : "recently";
+
+                  return (
+                    <motion.div
+                      key={draft._id}
+                      variants={itemVariants}
+                      className="group bg-card hover:bg-muted/40 border border-border/60 rounded-xl p-3 transition-all duration-200 hover:shadow-sm cursor-pointer flex flex-col gap-2 relative overflow-hidden"
+                      onClick={() => handleDraftSelect(draft)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleDraftSelect(draft);
+                        }
+                      }}
+                    >
+                      <div className="absolute top-2 right-2">
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px] px-1.5 py-0 h-5 bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
+                        >
+                          Draft
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-0.5 pr-12">
+                        <h3 className="font-medium text-sm text-foreground leading-tight">
+                          {propertyCategories.find(
+                            (c) => c.key === draft.propertyCategory
+                          )?.label || draft.propertyCategory}
+                        </h3>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {draft.address?.city
+                            ? `${draft.address.city}, ${draft.address.state}`
+                            : "Location not set"}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto">
+                        <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider">
+                          {lastEdited}
+                        </span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 text-xs hover:bg-accent/10 hover:text-accent"
+                        >
+                          Resume <ChevronRight className="w-3 h-3 ml-0.5" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-border/60 bg-muted/10 px-4 py-3 flex items-center gap-3">
+                <div className="p-2 rounded-full bg-background border border-border/40">
+                  <FileText className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">No drafts yet</p>
+                  <p className="text-xs text-muted-foreground">
+                    Saved drafts will appear here so you can resume quickly.
+                  </p>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Categories Grid */}
+          <section className="space-y-3 pt-2">
+            <div className="flex items-center gap-2 text-accent">
+              <Sparkles className="w-4 h-4" />
+              <h2 className="text-lg font-instrument-serif font-medium tracking-tight">
+                Property Categories
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {propertyCategories.map((category) => (
+                <motion.div
+                  key={category.key}
+                  variants={itemVariants}
+                  onClick={() => handleCategorySelect(category.key)}
+                  className="group relative cursor-pointer overflow-hidden rounded-xl h-40 hover:shadow-lg transition-all duration-300 ease-out"
+                >
+                  {/* Background Image */}
+                  <div
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                    style={{ backgroundImage: `url(${category.image})` }}
+                  />
+
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300" />
+
+                  {/* Border Highlight on Hover */}
+                  <div className="absolute inset-0 border border-white/10 group-hover:border-accent/50 rounded-xl transition-colors duration-300" />
+
+                  {/* Content */}
+                  <div className="absolute inset-0 p-3 flex flex-col justify-end">
+                    <div className="transform transition-transform duration-300 translate-y-1 group-hover:translate-y-0">
+                      <h3 className="text-base font-instrument-serif text-white leading-tight">
+                        {category.label}
+                      </h3>
+                      <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
+                        <span className="text-white/80 text-[11px] line-clamp-1">
+                          {category.description}
+                        </span>
+                        <ChevronRight className="w-3.5 h-3.5 text-accent" />
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        </motion.div>
       ) : (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          className="space-y-8"
+        >
+          <div className="flex items-center justify-between pb-6 border-b border-border/40">
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={handleBack}>
-                ← Back to Categories
+              <Button
+                variant="ghost"
+                onClick={handleBack}
+                className="group pl-0 hover:pl-2 transition-all hover:bg-transparent hover:text-accent"
+              >
+                <ArrowLeft className="w-5 h-5 mr-1 group-hover:-translate-x-1 transition-transform" />
+                Back to Categories
               </Button>
-              <H1
-                text={`Create ${
+            </div>
+            <div className="text-right">
+              <h1 className="text-2xl font-instrument-serif text-foreground">
+                Create{" "}
+                {
                   propertyCategories.find((cat) => cat.key === selectedCategory)
                     ?.label
-                } Property`}
-              />
+                }
+              </h1>
+              <p className="text-sm text-muted-foreground">step 1 of 4</p>
             </div>
           </div>
           {renderCategoryForm()}
-        </div>
+        </motion.div>
       )}
     </main>
   );

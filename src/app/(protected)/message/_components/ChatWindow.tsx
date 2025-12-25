@@ -18,15 +18,32 @@ export const ChatWindow = ({
   const { conversationDetails, isLoadingDetails, errorDetails } =
     useGetConversationDetails(conversationId);
   const { sendMessage, isSendingMessage } = useSendMessage();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isNearBottomRef = useRef(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const updateIsNearBottom = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    isNearBottomRef.current = distanceFromBottom < 120;
   };
 
+  const scrollToBottom = (smooth = false) => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: smooth ? "smooth" : "auto",
+    });
+  };
+
+  const latestMessageId = conversationDetails?.messages?.[0]?._id;
+
+  // Auto-scroll only when a NEW message arrives AND the user is already near the bottom.
+  // This avoids fighting the user while they're scrolling older messages (especially with polling).
   useEffect(() => {
-    scrollToBottom();
-  }, [conversationDetails?.messages]);
+    if (!latestMessageId) return;
+    if (!isNearBottomRef.current) return;
+    scrollToBottom(true);
+  }, [latestMessageId]);
 
   if (isLoadingDetails) {
     return (
@@ -64,10 +81,15 @@ export const ChatWindow = ({
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div
+        ref={scrollContainerRef}
+        onScroll={updateIsNearBottom}
+        className="flex-1 overflow-y-auto px-4 py-6 space-y-6 scrollbar-thin"
+      >
         {displayMessages.length === 0 ? (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            No messages yet. Start a conversation!
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground opacity-50">
+            <p className="text-sm font-medium">No messages yet</p>
+            <p className="text-xs">Start the conversation!</p>
           </div>
         ) : (
           displayMessages.map((msg) => {

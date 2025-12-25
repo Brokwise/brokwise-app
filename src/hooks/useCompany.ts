@@ -277,6 +277,7 @@ export const useGetBrokerDetails = (id: string) => {
     queryFn: async () => {
       return (await api.get(`/company/brokerDetails?brokerId=${id}`)).data.data;
     },
+    enabled: !!id,
   });
   return { data, isLoading, error };
 };

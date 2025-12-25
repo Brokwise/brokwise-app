@@ -12,7 +12,12 @@ import { Property } from "@/types/property";
 
 // Helper to check if value is a populated Property object
 const isPopulatedProperty = (value: unknown): value is Property => {
-  return value !== null && value !== undefined && typeof value === 'object' && '_id' in value;
+  return (
+    value !== null &&
+    value !== undefined &&
+    typeof value === "object" &&
+    "_id" in value
+  );
 };
 
 // Extended submission type to handle potential API variations
@@ -23,31 +28,26 @@ type SubmissionWithProperty = EnquirySubmission & {
 // Helper to get the property ID string from submission
 const getPropertyId = (submission: EnquirySubmission): string | null => {
   const sub = submission as SubmissionWithProperty;
-  
-  // Debug logging to understand what's coming from API
-  console.log('Full submission keys:', Object.keys(sub));
-  console.log('Submission propertyId:', sub.propertyId, 'Type:', typeof sub.propertyId);
-  console.log('Submission property:', sub.property, 'Type:', typeof sub.property);
-  
+
   // Try propertyId field first
   if (sub.propertyId) {
-    if (typeof sub.propertyId === 'string') return sub.propertyId;
+    if (typeof sub.propertyId === "string") return sub.propertyId;
     if (isPopulatedProperty(sub.propertyId)) return sub.propertyId._id;
     // Check for 'id' instead of '_id'
-    if (typeof sub.propertyId === 'object' && 'id' in sub.propertyId) {
+    if (typeof sub.propertyId === "object" && "id" in sub.propertyId) {
       return (sub.propertyId as unknown as { id: string }).id;
     }
   }
-  
+
   // Try 'property' field as fallback (API might use this name)
   if (sub.property) {
-    if (typeof sub.property === 'string') return sub.property;
+    if (typeof sub.property === "string") return sub.property;
     if (isPopulatedProperty(sub.property)) return sub.property._id;
-    if (typeof sub.property === 'object' && 'id' in sub.property) {
+    if (typeof sub.property === "object" && "id" in sub.property) {
       return (sub.property as unknown as { id: string }).id;
     }
   }
-  
+
   return null;
 };
 
@@ -111,17 +111,9 @@ export const ReceivedProperties = ({
 
       <div className="space-y-3">
         {receivedProperties.map((submission) => {
-          // Debug: Log full submission to see all fields
-          console.log('=== SUBMISSION DEBUG ===');
-          console.log('Full submission object:', JSON.stringify(submission, null, 2));
-          
           const propertyIdStr = getPropertyId(submission);
           const property = getPopulatedProperty(submission);
-          
-          console.log('Resolved propertyIdStr:', propertyIdStr);
-          console.log('Button disabled?:', !propertyIdStr);
-          console.log('=== END DEBUG ===');
-          
+
           return (
             <Card
               key={submission._id}
@@ -161,7 +153,6 @@ export const ReceivedProperties = ({
                   size="sm"
                   className="w-full h-7 text-xs mt-1"
                   onClick={() => {
-                    console.log('Button clicked! propertyIdStr:', propertyIdStr);
                     if (propertyIdStr) {
                       setPreviewPropertyId(propertyIdStr);
                       setIsPreviewOpen(true);
@@ -170,7 +161,7 @@ export const ReceivedProperties = ({
                   disabled={!propertyIdStr}
                 >
                   <Eye className="h-3 w-3 mr-1.5" />
-                  View Property {!propertyIdStr && "(No ID)"}
+                  View Property
                 </Button>
               </CardContent>
             </Card>

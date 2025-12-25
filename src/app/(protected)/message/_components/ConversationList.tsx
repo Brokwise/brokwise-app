@@ -15,7 +15,7 @@ export const ConversationList = ({
   onSelect,
 }: ConversationListProps) => {
   return (
-    <div className="flex flex-col gap-2 p-4">
+    <div className="flex flex-col gap-1 pb-4">
       {conversations.map((conv) => {
         // Determine partner
         // If I am broker/company (currentUser), I see adminId
@@ -30,28 +30,42 @@ export const ConversationList = ({
           partnerInitials = partnerName.substring(0, 2).toUpperCase();
         }
 
+        const isSelected = selectedId === conv._id;
+
         return (
           <div
             key={conv._id}
             onClick={() => onSelect(conv._id)}
             className={cn(
-              "flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors",
-              selectedId === conv._id ? "bg-muted" : ""
+              "group relative flex cursor-pointer items-center gap-4 rounded-r-xl border-l-[3px] border-transparent p-4 transition-all hover:bg-muted/40",
+              isSelected
+                ? "bg-primary/5 border-primary"
+                : "border-transparent"
             )}
           >
-            <Avatar>
-              <AvatarFallback>{partnerInitials}</AvatarFallback>
+            <Avatar className="h-12 w-12 border border-border/40 transition-transform group-hover:scale-105">
+              <AvatarFallback className={cn("text-sm", isSelected ? "bg-primary/10 text-primary" : "bg-muted")}>
+                {partnerInitials}
+              </AvatarFallback>
             </Avatar>
-            <div className="flex-1 overflow-hidden">
-              <div className="flex justify-between items-center">
-                <span className="font-medium truncate">{partnerName}</span>
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <div className="flex items-center justify-between">
+                <span className={cn(
+                  "truncate font-instrument-serif text-base",
+                  isSelected ? "font-semibold text-primary" : "font-medium text-foreground"
+                )}>
+                  {partnerName}
+                </span>
                 {conv.lastMessageAt && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="shrink-0 text-[10px] font-medium text-muted-foreground/60">
                     {format(new Date(conv.lastMessageAt), "MMM d")}
                   </span>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground truncate">
+              <p className={cn(
+                "truncate text-sm transition-colors",
+                isSelected ? "text-primary/70" : "text-muted-foreground"
+              )}>
                 {conv.lastMessage || "No messages yet"}
               </p>
             </div>

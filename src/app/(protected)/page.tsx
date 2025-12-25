@@ -30,7 +30,7 @@ import {
 import { MarketplaceHeader } from "./_components/MarketplaceHeader";
 
 // Empty State Component
-const EmptyState = () => (
+const EmptyState = ({ onClearFilters }: { onClearFilters: () => void }) => (
   <div className="col-span-full flex flex-col items-center justify-center py-24 px-4 text-center">
     <div className="h-16 w-16 rounded-full bg-muted/30 flex items-center justify-center mb-6">
       <Building2 className="h-7 w-7 text-muted-foreground/60" />
@@ -39,7 +39,7 @@ const EmptyState = () => (
     <p className="text-muted-foreground max-w-sm font-light">
       We couldn&apos;t find any properties matching your criteria. Try adjusting your filters.
     </p>
-    <Button variant="link" className="mt-4 text-accent" onClick={() => window.location.reload()}>
+    <Button type="button" variant="link" className="mt-4 text-accent" onClick={onClearFilters}>
       Clear all filters
     </Button>
   </div>
@@ -601,7 +601,7 @@ const ProtectedPage = () => {
                       </motion.div>
                     ))
                   ) : (
-                    <EmptyState />
+                    <EmptyState onClearFilters={clearFilters} />
                   )}
                 </motion.div>
                 {renderPagination()}
