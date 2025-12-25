@@ -4,6 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { Property } from "@/types/property";
 import { Loader2, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
 
 interface MapBoxProps {
   properties: Property[];
@@ -20,19 +21,32 @@ const formatPrice = (price: number) => {
   }
 };
 
+// Map style options based on theme
+type MapStyleType = "streets" | "satellite";
+
+const getMapStyleUrl = (styleType: MapStyleType, isDark: boolean): string => {
+  if (styleType === "satellite") {
+    return "mapbox://styles/mapbox/satellite-streets-v12";
+  }
+  // Use dark style for dark mode
+  return isDark 
+    ? "mapbox://styles/mapbox/dark-v11" 
+    : "mapbox://styles/mapbox/streets-v12";
+};
+
 export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const appliedStyleRef = useRef<string>("");
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [mapStyle, setMapStyle] = useState<
-    "streets-v12" | "satellite-streets-v12"
-  >("streets-v12");
+  const [mapStyleType, setMapStyleType] = useState<MapStyleType>("streets");
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme === "dark";
 
   const toggleStyle = () => {
-    setMapStyle((prev) =>
-      prev === "streets-v12" ? "satellite-streets-v12" : "streets-v12"
+    setMapStyleType((prev) =>
+      prev === "streets" ? "satellite" : "streets"
     );
   };
 
@@ -51,16 +65,17 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
 
       // Default center (New Delhi)
       const defaultCenter: [number, number] = [77.209, 28.6139];
+      const initialStyle = getMapStyleUrl(mapStyleType, isDarkMode);
 
       const map = new mapboxgl.Map({
         container,
-        // Start with a default style; subsequent changes are handled by the style effect below.
-        style: `mapbox://styles/mapbox/streets-v12`,
+        // Start with theme-aware style
+        style: initialStyle,
         center: defaultCenter,
         zoom: 4,
       });
       mapRef.current = map;
-      appliedStyleRef.current = `mapbox://styles/mapbox/streets-v12`;
+      appliedStyleRef.current = initialStyle;
 
       map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
@@ -102,19 +117,21 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
       mapRef.current = null;
       appliedStyleRef.current = "";
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Apply map style without reinitializing the map (prevents flicker + loader loop).
+  // This effect now responds to both style type changes and theme changes.
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
-    const nextStyle = `mapbox://styles/mapbox/${mapStyle}`;
+    const nextStyle = getMapStyleUrl(mapStyleType, isDarkMode);
     if (appliedStyleRef.current === nextStyle) return;
 
     appliedStyleRef.current = nextStyle;
     map.setStyle(nextStyle);
-  }, [mapStyle]);
+  }, [mapStyleType, isDarkMode]);
 
   // Update markers when properties change (without recreating the map).
   useEffect(() => {
@@ -143,40 +160,38 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
       const [lng, lat] = property.location.coordinates;
       const priceFormatted = formatPrice(property.totalPrice);
 
-      // Create custom marker element
       const el = document.createElement("div");
       el.className = "custom-marker group cursor-pointer z-20";
       el.innerHTML = `
         <div class="transition-transform duration-200 group-hover:scale-110">
-          <div style="background-color: #0f172a; color: white; padding: 6px 10px; border-radius: 99px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3); font-weight: 600; font-size: 13px; white-space: nowrap; display: flex; align-items: center; justify-content: center; border: 2px solid white;">
+          <div style="background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 6px 10px; border-radius: 99px; box-shadow: 0 4px 12px hsl(var(--foreground) / 0.2); font-weight: 600; font-size: 13px; white-space: nowrap; display: flex; align-items: center; justify-content: center; border: 2px solid hsl(var(--background));">
             ${priceFormatted}
           </div>
-          <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #0f172a; margin: -2px auto 0 auto; filter: drop-shadow(0 2px 1px rgba(0,0,0,0.1));"></div>
+          <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid hsl(var(--primary)); margin: -2px auto 0 auto; filter: drop-shadow(0 2px 1px rgba(0,0,0,0.1));"></div>
         </div>
       `;
 
-      // Create popup
       const popup = new mapboxgl.Popup({
         offset: 25,
         closeButton: false,
         className: "custom-popup",
         maxWidth: "300px",
       }).setHTML(
-        `<div style="width: 260px; overflow: hidden; border-radius: 12px; background: white; box-shadow: 0 10px 40px rgba(0,0,0,0.12); border: 1px solid #f1f5f9; font-family: system-ui, -apple-system, sans-serif; cursor: pointer;">
-           <div style="height: 140px; width: 100%; overflow: hidden; background-color: #f1f5f9; position: relative;">
+        `<div style="width: 260px; overflow: hidden; border-radius: 12px; background: hsl(var(--card)); box-shadow: 0 10px 40px hsl(var(--foreground) / 0.15); border: 1px solid hsl(var(--border)); font-family: system-ui, -apple-system, sans-serif; cursor: pointer;">
+           <div style="height: 140px; width: 100%; overflow: hidden; background-color: hsl(var(--muted)); position: relative;">
              <img src="${property.featuredMedia}" alt="Property" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='/images/placeholder.webp'" />
-             <div style="position: absolute; top: 10px; left: 10px; padding: 3px 8px; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); border-radius: 6px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; border: 1px solid #f1f5f9;">
+             <div style="position: absolute; top: 10px; left: 10px; padding: 3px 8px; background: hsl(var(--background) / 0.9); backdrop-filter: blur(4px); border-radius: 6px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: hsl(var(--foreground)); border: 1px solid hsl(var(--border));">
                 ${property.propertyCategory}
              </div>
            </div>
            <div style="padding: 14px 16px;">
               <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px;">
-                <span style="font-size: 20px; color: #0f172a; font-weight: 600; letter-spacing: -0.3px;">${priceFormatted}</span>
-                <span style="font-size: 11px; color: #64748b; font-weight: 500;">₹${property.rate}/sqft</span>
+                <span style="font-size: 20px; color: hsl(var(--card-foreground)); font-weight: 600; letter-spacing: -0.3px;">${priceFormatted}</span>
+                <span style="font-size: 11px; color: hsl(var(--muted-foreground)); font-weight: 500;">₹${property.rate}/sqft</span>
               </div>
-              <p style="font-size: 12px; color: #64748b; margin: 0 0 12px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${property.address?.address || property.society || "Address available on request"}</p>
+              <p style="font-size: 12px; color: hsl(var(--muted-foreground)); margin: 0 0 12px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${property.address?.address || property.society || "Address available on request"}</p>
               
-              <button id="view-details-${property._id}" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; border-radius: 8px; background: #0f172a; color: white; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: none; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='#0f172a'">
+              <button id="view-details-${property._id}" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; border-radius: 8px; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: none; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                 View Details
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </button>
@@ -191,9 +206,6 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
         .addTo(map);
       markersRef.current.push(marker);
 
-      // Add click event listener to the button inside popup
-      // Note: We attach to the button ID, but the whole card interaction is handled via this button for now.
-      // We could also attach to the card itself if we gave it an ID.
       popup.on("open", () => {
         const button = document.getElementById(`view-details-${property._id}`);
         if (button) {
@@ -201,16 +213,6 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
             e.preventDefault();
             onSelectProperty?.(property._id);
           };
-        }
-        // Also attach to the image wrapper for better UX
-        const card = button?.closest('.group');
-        if (card) {
-             (card as HTMLElement).onclick = (e) => {
-                // Prevent double firing if button clicked
-                if ((e.target as HTMLElement).closest('button')) return;
-                e.preventDefault();
-                onSelectProperty?.(property._id);
-            };
         }
       });
 
@@ -242,7 +244,7 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
     <div className="relative w-full h-full min-h-[500px] rounded-lg overflow-hidden border bg-muted group">
       <div ref={mapContainerRef} className="w-full h-full" />
 
-      <div className="absolute top-4 left-4 z-10">
+      <div className="absolute top-4 left-4 z-10 flex gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -250,7 +252,7 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
           onClick={toggleStyle}
         >
           <Layers className="h-4 w-4 mr-2" />
-          <span className="font-medium">{mapStyle === "streets-v12" ? "Satellite" : "Map"}</span>
+          <span className="font-medium">{mapStyleType === "streets" ? "Satellite" : "Map"}</span>
         </Button>
       </div>
 

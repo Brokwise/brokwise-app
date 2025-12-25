@@ -13,7 +13,7 @@ import {
   AlertCircle,
   LayoutGridIcon,
   MapPin,
-  Search,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -33,7 +33,7 @@ import { MarketplaceHeader } from "./_components/MarketplaceHeader";
 const EmptyState = () => (
   <div className="col-span-full flex flex-col items-center justify-center py-24 px-4 text-center">
     <div className="h-16 w-16 rounded-full bg-muted/30 flex items-center justify-center mb-6">
-      <Search className="h-6 w-6 text-muted-foreground/60" />
+      <Building2 className="h-7 w-7 text-muted-foreground/60" />
     </div>
     <h3 className="text-2xl font-instrument-serif text-foreground mb-2">No properties found</h3>
     <p className="text-muted-foreground max-w-sm font-light">
@@ -48,7 +48,7 @@ const EmptyState = () => (
 const EmptyEnquiriesState = () => (
   <div className="col-span-full flex flex-col items-center justify-center py-24 px-4 text-center">
     <div className="h-16 w-16 rounded-full bg-muted/30 flex items-center justify-center mb-6">
-      <Search className="h-6 w-6 text-muted-foreground/60" />
+      <Building2 className="h-7 w-7 text-muted-foreground/60" />
     </div>
     <h3 className="text-2xl font-instrument-serif text-foreground mb-2">No enquiries found</h3>
     <p className="text-muted-foreground max-w-sm font-light">
@@ -90,6 +90,7 @@ const ProtectedPage = () => {
   /* Filter States */
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState<string>("ALL");
   const [sourceFilter, setSourceFilter] = useState<string>("ALL");
   const [priceRange, setPriceRange] = useState<number[] | null>(null); // null means "use full range"
   const [bhkFilter, setBhkFilter] = useState<string>("ALL");
@@ -223,6 +224,11 @@ const ProtectedPage = () => {
         categoryFilter === "ALL" ||
         property.propertyCategory === categoryFilter;
 
+      // Property Type Filter (sub-type within category)
+      const matchesPropertyType =
+        propertyTypeFilter === "ALL" ||
+        property.propertyType === propertyTypeFilter;
+
       // Price Filter
       const price = property.totalPrice;
       const matchesMinPrice = price >= debouncedPriceRange[0];
@@ -239,6 +245,7 @@ const ProtectedPage = () => {
       return (
         matchesSource &&
         matchesCategory &&
+        matchesPropertyType &&
         matchesMinPrice &&
         matchesMaxPrice &&
         matchesBhk
@@ -249,6 +256,7 @@ const ProtectedPage = () => {
     debouncedSearchQuery,
     sourceFilter,
     categoryFilter,
+    propertyTypeFilter,
     debouncedPriceRange,
     bhkFilter,
     fuse,
@@ -317,15 +325,18 @@ const ProtectedPage = () => {
   const clearFilters = () => {
     setSearchQuery("");
     setCategoryFilter("ALL");
+    setPropertyTypeFilter("ALL");
     setSourceFilter("ALL");
     setPriceRange(null); // Reset to full range
     setBhkFilter("ALL");
   };
 
   const hasActiveFilters =
+    categoryFilter !== "ALL" ||
     bhkFilter !== "ALL" ||
     sourceFilter !== "ALL" ||
-    priceRange !== null; // Only true if user explicitly set a price range
+    propertyTypeFilter !== "ALL" ||
+    priceRange !== null;
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
@@ -501,6 +512,8 @@ const ProtectedPage = () => {
         setSearchQuery={setSearchQuery}
         categoryFilter={categoryFilter}
         setCategoryFilter={setCategoryFilter}
+        propertyTypeFilter={propertyTypeFilter}
+        setPropertyTypeFilter={setPropertyTypeFilter}
         sourceFilter={sourceFilter}
         setSourceFilter={setSourceFilter}
         priceRange={priceRange}
@@ -510,6 +523,7 @@ const ProtectedPage = () => {
         view={view}
         setView={setView}
         filteredCount={filteredProperties.length}
+        filteredEnquiriesCount={filteredEnquiries.length}
         maxPropertyPrice={maxPropertyPrice}
         effectivePriceRange={effectivePriceRange}
         clearFilters={clearFilters}
@@ -528,7 +542,7 @@ const ProtectedPage = () => {
             flex-col h-full overflow-y-auto scrollbar-hide transition-all duration-300
             ${view === "map" ? "hidden" : "flex"}
             ${view === "grid" ? "w-full" : "w-full lg:w-[60%] xl:w-[55%] 2xl:w-[50%]"}
-            ${isMobileMapOpen && view === "split" ? 'hidden lg:flex' : ''}
+            ${isMobileMapOpen ? 'hidden lg:flex' : ''}
           `}
         >
           {/* Increased top padding for better breathing room */}
@@ -602,13 +616,13 @@ const ProtectedPage = () => {
           className={`
           flex-1 h-full bg-muted border-l border-border/50
           transition-all duration-300 relative
-          ${view === "grid" ? "hidden" : ""}
+          ${view === "grid" && !isMobileMapOpen ? "hidden" : ""}
           ${view === "map" ? "block w-full" : "hidden lg:block"}
-          ${isMobileMapOpen && view === "split" ? 'block w-full fixed inset-0 top-[120px] z-40' : ''}
+          ${isMobileMapOpen ? 'block lg:hidden w-full fixed inset-0 top-[120px] z-40' : ''}
         `}
         >
           {selectedProperty && (
-            <div className="absolute left-4 top-4 z-10 w-[380px] max-h-[calc(100%-2rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
+            <div className="absolute left-4 top-14 z-20 w-[calc(100%-2rem)] sm:w-[340px] lg:w-[380px] max-h-[calc(100%-4.5rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
               <PropertyDetails
                 property={selectedProperty}
                 onClose={() => setSelectedPropertyId(null)}

@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Loader2, MapPin, Search } from "lucide-react";
+import { useTheme } from "next-themes";
 import {
   Command,
   CommandEmpty,
@@ -53,6 +54,8 @@ export const LocationPicker = ({
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [open, setOpen] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme === "dark";
 
   const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
 
@@ -150,9 +153,13 @@ export const LocationPicker = ({
     const [lng, lat] =
       value[0] === 0 && value[1] === 0 ? [75.7873, 26.9124] : value; // Default to Jaipur if 0,0
 
+    const initialStyle = isDarkMode
+      ? "mapbox://styles/mapbox/dark-v11"
+      : "mapbox://styles/mapbox/streets-v12";
+
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/streets-v12",
+      style: initialStyle,
       center: [lng, lat],
       zoom: value[0] === 0 && value[1] === 0 ? 11 : 14,
     });
@@ -172,13 +179,26 @@ export const LocationPicker = ({
       "top-right"
     );
 
-    // Add marker
+    // Create custom marker element
+    const el = document.createElement("div");
+    el.className = "custom-marker cursor-move"; // cursor-move to indicate draggable
+    el.innerHTML = `
+      <div style="background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px hsl(var(--foreground) / 0.4); border: 3px solid hsl(var(--background)); transition: transform 0.2s;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+    `;
+
+    // Add draggable marker
     markerRef.current = new mapboxgl.Marker({
+      element: el,
       draggable: true,
-      color: "#0f172a",
     })
       .setLngLat([lng, lat])
       .addTo(mapRef.current);
+
+    // Add hover effect via JS since it's a DOM element
+    el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.1)'; });
+    el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)'; });
 
     // Handle marker drag
     markerRef.current.on("dragend", () => {
@@ -223,12 +243,18 @@ export const LocationPicker = ({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [token, value, onChange, onLocationSelect, reverseGeocode]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, /* value, */ onChange, onLocationSelect, reverseGeocode]); // Removed value to prevent re-init loops
 
-  // Update marker when value changes externally (if needed, but be careful of loops)
-  // We'll skip this for now to avoid conflict with internal updates,
-  // assuming value is controlled primarily by this component's interactions
-  // or we can check if the distance is significant.
+  // Update map style dynamically
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const style = isDarkMode
+      ? "mapbox://styles/mapbox/dark-v11"
+      : "mapbox://styles/mapbox/streets-v12";
+    map.setStyle(style);
+  }, [isDarkMode]);
 
   const handleSelectLocation = (result: SearchResult) => {
     const [lng, lat] = result.center;

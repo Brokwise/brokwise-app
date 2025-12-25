@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import {
     Search,
@@ -37,6 +37,44 @@ import { formatIndianNumber } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
 
+// Property type options based on category
+const PROPERTY_TYPE_OPTIONS: Record<string, { value: string; label: string }[]> = {
+    RESIDENTIAL: [
+        { value: "ALL", label: "All Types" },
+        { value: "FLAT", label: "Flat / Apartment" },
+        { value: "VILLA", label: "Villa" },
+        { value: "LAND", label: "Residential Land" },
+    ],
+    COMMERCIAL: [
+        { value: "ALL", label: "All Types" },
+        { value: "SHOWROOM", label: "Showroom" },
+        { value: "HOTEL", label: "Hotel" },
+        { value: "HOSTEL", label: "Hostel" },
+        { value: "SHOP", label: "Shop" },
+        { value: "OFFICE_SPACE", label: "Office Space" },
+        { value: "OTHER_SPACE", label: "Other Space" },
+    ],
+    INDUSTRIAL: [
+        { value: "ALL", label: "All Types" },
+        { value: "INDUSTRIAL_PARK", label: "Industrial Park" },
+        { value: "INDUSTRIAL_LAND", label: "Industrial Land" },
+        { value: "WAREHOUSE", label: "Warehouse" },
+    ],
+    AGRICULTURAL: [
+        { value: "ALL", label: "All Types" },
+        { value: "AGRICULTURAL_LAND", label: "Agricultural Land" },
+    ],
+    RESORT: [
+        { value: "ALL", label: "All Types" },
+        { value: "RESORT", label: "Resort" },
+    ],
+    FARM_HOUSE: [
+        { value: "ALL", label: "All Types" },
+        { value: "FARM_HOUSE", label: "Farm House" },
+        { value: "INDIVIDUAL", label: "Individual" },
+    ],
+};
+
 interface MarketplaceHeaderProps {
     viewMode: "PROPERTIES" | "ENQUIRIES";
     setViewMode: (val: "PROPERTIES" | "ENQUIRIES") => void;
@@ -44,6 +82,8 @@ interface MarketplaceHeaderProps {
     setSearchQuery: (val: string) => void;
     categoryFilter: string;
     setCategoryFilter: (val: string) => void;
+    propertyTypeFilter: string;
+    setPropertyTypeFilter: (val: string) => void;
     sourceFilter: string;
     setSourceFilter: (val: string) => void;
     priceRange: number[] | null;
@@ -53,6 +93,7 @@ interface MarketplaceHeaderProps {
     view: "grid" | "map" | "split";
     setView: (val: "grid" | "map" | "split") => void;
     filteredCount: number;
+    filteredEnquiriesCount: number;
     maxPropertyPrice: number;
     effectivePriceRange: number[];
     clearFilters: () => void;
@@ -67,6 +108,8 @@ export const MarketplaceHeader = ({
     setSearchQuery,
     categoryFilter,
     setCategoryFilter,
+    propertyTypeFilter,
+    setPropertyTypeFilter,
     sourceFilter,
     setSourceFilter,
     priceRange,
@@ -76,12 +119,15 @@ export const MarketplaceHeader = ({
     view,
     setView,
     filteredCount,
+    filteredEnquiriesCount,
     maxPropertyPrice,
     effectivePriceRange,
     clearFilters,
     hasActiveFilters,
     onClearPropertySelection,
 }: MarketplaceHeaderProps) => {
+    // Get the appropriate count based on view mode
+    const currentCount = viewMode === "PROPERTIES" ? filteredCount : filteredEnquiriesCount;
     const { userData } = useApp();
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [recentOpen, setRecentOpen] = useState(false);
@@ -102,6 +148,17 @@ export const MarketplaceHeader = ({
         { value: "RESORT", label: "Resort" },
         { value: "FARM_HOUSE", label: "Farmhouse" },
     ];
+
+    // Get property type options based on selected category
+    const propertyTypeOptions = useMemo(() => {
+        if (categoryFilter === "ALL") {
+            return [{ value: "ALL", label: "All Types" }];
+        }
+        return PROPERTY_TYPE_OPTIONS[categoryFilter] || [{ value: "ALL", label: "All Types" }];
+    }, [categoryFilter]);
+
+    // Check if BHK filter is relevant (only for Residential category)
+    const showBhkFilter = categoryFilter === "ALL" || categoryFilter === "RESIDENTIAL";
 
     const formatPriceShort = (price: number) => {
         if (price >= 10000000) {
@@ -252,112 +309,163 @@ export const MarketplaceHeader = ({
                 </Popover>
             </div>
 
-                {viewMode === "PROPERTIES" && (
-                    <>
-                        {/* Controls: Filter Pills + View Toggle */}
-                        <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full">
+            {/* Controls: Filter Pills + View Toggle */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full">
 
-                    {/* Category Pills (Scrollable) */}
-                    <div className="flex items-center gap-1 overflow-x-auto pb-2 w-full sm:w-auto scrollbar-thin sm:flex-1">
-                        {categoryPills.map((pill) => (
-                            <Button
-                                key={pill.value}
-                                variant={categoryFilter === pill.value ? "secondary" : "ghost"}
-                                size="sm"
-                                onClick={() => setCategoryFilter(pill.value)}
-                                className={`shrink-0 rounded-full px-3 sm:px-4 h-8 font-medium border text-xs sm:text-sm transition-all ${categoryFilter === pill.value
-                                    ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
-                                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary"
-                                    }`}
-                            >
-                                {pill.label}
+                {/* Category Pills (Scrollable) */}
+                <div className="flex items-center gap-1 overflow-x-auto pb-2 w-full sm:w-auto scrollbar-thin sm:flex-1">
+                    {categoryPills.map((pill) => (
+                        <Button
+                            key={pill.value}
+                            variant={categoryFilter === pill.value ? "secondary" : "ghost"}
+                            size="sm"
+                            onClick={() => {
+                                setCategoryFilter(pill.value);
+                                // Reset dependent filters when category changes via pills
+                                setPropertyTypeFilter("ALL");
+                                if (pill.value !== "ALL" && pill.value !== "RESIDENTIAL") {
+                                    setBhkFilter("ALL");
+                                }
+                            }}
+                            className={`shrink-0 rounded-full px-3 sm:px-4 h-8 font-medium border text-xs sm:text-sm transition-all ${categoryFilter === pill.value
+                                ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
+                                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary"
+                                }`}
+                        >
+                            {pill.label}
+                        </Button>
+                    ))}
+                </div>
+
+                <div className="w-px h-8 bg-border/40 mx-2 hidden sm:block" />
+
+                {/* Right Side Actions */}
+                <div className="flex items-center gap-3 shrink-0 ml-auto w-full sm:w-auto justify-end">
+
+                    {/* Advanced Filters Trigger */}
+                    <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className={`relative gap-2 h-8 rounded-full border-border/60 hover:bg-secondary hover:border-border ${hasActiveFilters ? "text-accent border-accent/30 bg-accent/5" : "text-muted-foreground hover:text-foreground"}`}>
+                                <FilterIcon className="h-3.5 w-3.5" />
+                                <span className="hidden sm:inline">Filters</span>
+                                {hasActiveFilters && (
+                                    <span className="flex h-1.5 w-1.5 rounded-full bg-accent" />
+                                )}
+                                <ChevronDown className="h-3 w-3 opacity-50" />
                             </Button>
-                        ))}
-                    </div>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Filter {viewMode === "PROPERTIES" ? "Properties" : "Enquiries"}</DialogTitle>
+                                <DialogDescription>
+                                    Refine your search with specific criteria.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-6 py-4">
+                                {/* Category */}
+                                <div className="space-y-2">
+                                    <Label>{viewMode === "PROPERTIES" ? "Property" : "Enquiry"} Category</Label>
+                                    <Select 
+                                        value={categoryFilter} 
+                                        onValueChange={(val) => {
+                                            setCategoryFilter(val);
+                                            setPropertyTypeFilter("ALL");
+                                            if (val !== "ALL" && val !== "RESIDENTIAL") {
+                                                setBhkFilter("ALL");
+                                            }
+                                        }}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Category" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {categoryPills.map((pill) => (
+                                                <SelectItem key={pill.value} value={pill.value}>
+                                                    {pill.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-                    <div className="w-px h-8 bg-border/40 mx-2 hidden sm:block" />
-
-                    {/* Right Side Actions */}
-                    <div className="flex items-center gap-3 shrink-0 ml-auto w-full sm:w-auto justify-end">
-
-                        {/* Advanced Filters Trigger */}
-                        <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-                            <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className={`relative gap-2 h-8 rounded-full border-border/60 hover:bg-secondary hover:border-border ${hasActiveFilters ? "text-accent border-accent/30 bg-accent/5" : "text-muted-foreground hover:text-foreground"}`}>
-                                    <FilterIcon className="h-3.5 w-3.5" />
-                                    <span className="hidden sm:inline">Filters</span>
-                                    {hasActiveFilters && (
-                                        <span className="flex h-1.5 w-1.5 rounded-full bg-accent" />
-                                    )}
-                                    <ChevronDown className="h-3 w-3 opacity-50" />
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
-                                <DialogHeader>
-                                    <DialogTitle>Filter Properties</DialogTitle>
-                                    <DialogDescription>
-                                        Refine your search with specific criteria.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="grid gap-6 py-4">
-                                    {/* Price Range */}
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-center">
-                                            <Label>Price Range</Label>
-                                            <div className="text-xs text-muted-foreground font-medium">
-                                                {formatPriceShort(effectivePriceRange[0])} - {formatPriceShort(effectivePriceRange[1])}
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="space-y-1">
-                                                <Label className="text-xs text-muted-foreground">Min</Label>
-                                                <Input
-                                                    inputMode="numeric"
-                                                    type="number"
-                                                    min={0}
-                                                    max={effectivePriceRange[1]}
-                                                    value={effectivePriceRange[0]}
-                                                    onChange={(e) => {
-                                                        const raw = e.target.value;
-                                                        const next = raw === "" ? 0 : Number(raw);
-                                                        if (!Number.isFinite(next)) return;
-                                                        setPriceRange([Math.max(0, Math.min(next, effectivePriceRange[1])), effectivePriceRange[1]]);
-                                                    }}
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <Label className="text-xs text-muted-foreground">Max</Label>
-                                                <Input
-                                                    inputMode="numeric"
-                                                    type="number"
-                                                    min={effectivePriceRange[0]}
-                                                    max={maxPropertyPrice}
-                                                    value={effectivePriceRange[1]}
-                                                    onChange={(e) => {
-                                                        const raw = e.target.value;
-                                                        const next = raw === "" ? maxPropertyPrice : Number(raw);
-                                                        if (!Number.isFinite(next)) return;
-                                                        setPriceRange([
-                                                            effectivePriceRange[0],
-                                                            Math.min(maxPropertyPrice, Math.max(next, effectivePriceRange[0])),
-                                                        ]);
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                        <Slider
-                                            min={0}
-                                            max={maxPropertyPrice}
-                                            step={100000}
-                                            value={effectivePriceRange}
-                                            onValueChange={(value) => setPriceRange(value)}
-                                            className="py-2"
-                                        />
-                                    </div>
-
-                                    {/* BHK */}
+                                {/* Property Type - Only for Properties view */}
+                                {viewMode === "PROPERTIES" && categoryFilter !== "ALL" && (
                                     <div className="space-y-2">
-                                        <Label>BHK (Residential)</Label>
+                                        <Label>Property Type</Label>
+                                        <Select value={propertyTypeFilter} onValueChange={setPropertyTypeFilter}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select Type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {propertyTypeOptions.map((option) => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+
+                                {/* Price/Budget Range */}
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <Label>{viewMode === "PROPERTIES" ? "Price" : "Budget"} Range</Label>
+                                        <div className="text-xs text-muted-foreground font-medium">
+                                            {formatPriceShort(effectivePriceRange[0])} - {formatPriceShort(effectivePriceRange[1])}
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-1">
+                                            <Label className="text-xs text-muted-foreground">Min</Label>
+                                            <Input
+                                                inputMode="numeric"
+                                                type="number"
+                                                min={0}
+                                                max={effectivePriceRange[1]}
+                                                value={effectivePriceRange[0]}
+                                                onChange={(e) => {
+                                                    const raw = e.target.value;
+                                                    const next = raw === "" ? 0 : Number(raw);
+                                                    if (!Number.isFinite(next)) return;
+                                                    setPriceRange([Math.max(0, Math.min(next, effectivePriceRange[1])), effectivePriceRange[1]]);
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-xs text-muted-foreground">Max</Label>
+                                            <Input
+                                                inputMode="numeric"
+                                                type="number"
+                                                min={effectivePriceRange[0]}
+                                                max={maxPropertyPrice}
+                                                value={effectivePriceRange[1]}
+                                                onChange={(e) => {
+                                                    const raw = e.target.value;
+                                                    const next = raw === "" ? maxPropertyPrice : Number(raw);
+                                                    if (!Number.isFinite(next)) return;
+                                                    setPriceRange([
+                                                        effectivePriceRange[0],
+                                                        Math.min(maxPropertyPrice, Math.max(next, effectivePriceRange[0])),
+                                                    ]);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                    <Slider
+                                        min={0}
+                                        max={maxPropertyPrice}
+                                        step={100000}
+                                        value={effectivePriceRange}
+                                        onValueChange={(value) => setPriceRange(value)}
+                                        className="py-2"
+                                    />
+                                </div>
+
+                                {/* BHK - Only shown for Residential */}
+                                {showBhkFilter && (
+                                    <div className="space-y-2">
+                                        <Label>BHK (Bedrooms)</Label>
                                         <Select value={bhkFilter} onValueChange={setBhkFilter}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="BHK" />
@@ -372,40 +480,42 @@ export const MarketplaceHeader = ({
                                             </SelectContent>
                                         </Select>
                                     </div>
+                                )}
 
-                                    {/* Source Filter for Companies */}
-                                    {userData?.userType === "company" && (
-                                        <div className="space-y-2">
-                                            <Label>Listed By</Label>
-                                            <Select value={sourceFilter} onValueChange={setSourceFilter}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Source" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="ALL">All Sources</SelectItem>
-                                                    <SelectItem value="BROKER">Broker Listed</SelectItem>
-                                                    <SelectItem value="COMPANY">Company Listed</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    )}
-                                </div>
-                                <DialogFooter className="gap-2 sm:gap-0">
-                                    <Button
-                                        variant="outline"
-                                        onClick={clearFilters}
-                                        disabled={!hasActiveFilters && searchQuery === ""}
-                                    >
-                                        Reset
-                                    </Button>
-                                    <Button onClick={() => setIsFilterOpen(false)}>
-                                        View {filteredCount} Properties
-                                    </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
+                                {/* Source Filter for Companies */}
+                                {userData?.userType === "company" && (
+                                    <div className="space-y-2">
+                                        <Label>Listed By</Label>
+                                        <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Source" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="ALL">All Sources</SelectItem>
+                                                <SelectItem value="BROKER">Broker Listed</SelectItem>
+                                                <SelectItem value="COMPANY">Company Listed</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                            </div>
+                            <DialogFooter className="gap-2 sm:gap-0">
+                                <Button
+                                    variant="outline"
+                                    onClick={clearFilters}
+                                    disabled={!hasActiveFilters && searchQuery === ""}
+                                >
+                                    Reset
+                                </Button>
+                                <Button onClick={() => setIsFilterOpen(false)}>
+                                    View {currentCount} {viewMode === "PROPERTIES" ? "Properties" : "Enquiries"}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
 
-                        {/* View Toggles */}
+                    {/* View Toggles - Only for Properties */}
+                    {viewMode === "PROPERTIES" && (
                         <div className="flex items-center gap-0.5 bg-secondary/50 p-0.5 rounded-full border border-border/40">
                             <Button
                                 variant={view === "grid" ? "default" : "ghost"}
@@ -435,13 +545,12 @@ export const MarketplaceHeader = ({
                                 <Columns className="h-3.5 w-3.5" />
                             </Button>
                         </div>
-                    </div>
-                        </div>
-                    </>
-                )}
+                    )}
+                </div>
+            </div>
 
             {/* 3. Active Filters Quick Row (if filters active) */}
-            {(searchQuery || (viewMode === "PROPERTIES" && hasActiveFilters)) && (
+            {(searchQuery || hasActiveFilters) && (
                 <div className="flex flex-wrap items-center gap-2 pt-1 animate-in fade-in slide-in-from-top-2 duration-300">
                     <span className="text-xs font-semibold text-muted-foreground mr-1">Active:</span>
                     {searchQuery && (
@@ -456,19 +565,47 @@ export const MarketplaceHeader = ({
                         </Button>
                     )}
 
-                    {viewMode === "PROPERTIES" && priceRange !== null && (
+                    {categoryFilter !== "ALL" && (
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => {
+                                setCategoryFilter("ALL");
+                                setPropertyTypeFilter("ALL");
+                                setBhkFilter("ALL");
+                            }}
+                            className="h-6 text-xs rounded-full gap-1.5 px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+                        >
+                            {categoryPills.find(p => p.value === categoryFilter)?.label || categoryFilter}
+                            <X className="h-3 w-3 opacity-70" />
+                        </Button>
+                    )}
+
+                    {viewMode === "PROPERTIES" && propertyTypeFilter !== "ALL" && (
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setPropertyTypeFilter("ALL")}
+                            className="h-6 text-xs rounded-full gap-1.5 px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+                        >
+                            {propertyTypeOptions.find(o => o.value === propertyTypeFilter)?.label || propertyTypeFilter}
+                            <X className="h-3 w-3 opacity-70" />
+                        </Button>
+                    )}
+
+                    {priceRange !== null && (
                         <Button
                             variant="secondary"
                             size="sm"
                             onClick={() => setPriceRange(null)}
                             className="h-6 text-xs rounded-full gap-1.5 px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
                         >
-                            Price: {formatPriceShort(effectivePriceRange[0])} - {formatPriceShort(effectivePriceRange[1])}
+                            {viewMode === "PROPERTIES" ? "Price" : "Budget"}: {formatPriceShort(effectivePriceRange[0])} - {formatPriceShort(effectivePriceRange[1])}
                             <X className="h-3 w-3 opacity-70" />
                         </Button>
                     )}
 
-                    {viewMode === "PROPERTIES" && bhkFilter !== "ALL" && (
+                    {bhkFilter !== "ALL" && (
                         <Button
                             variant="secondary"
                             size="sm"
@@ -480,7 +617,7 @@ export const MarketplaceHeader = ({
                         </Button>
                     )}
 
-                    {viewMode === "PROPERTIES" && userData?.userType === "company" && sourceFilter !== "ALL" && (
+                    {userData?.userType === "company" && sourceFilter !== "ALL" && (
                         <Button
                             variant="secondary"
                             size="sm"
@@ -495,13 +632,7 @@ export const MarketplaceHeader = ({
                     <Button
                         variant="link"
                         size="sm"
-                        onClick={() => {
-                            if (viewMode === "PROPERTIES") {
-                                clearFilters();
-                            } else {
-                                setSearchQuery("");
-                            }
-                        }}
+                        onClick={clearFilters}
                         className="h-6 text-xs px-2 text-muted-foreground hover:text-destructive transition-colors"
                     >
                         Clear all
