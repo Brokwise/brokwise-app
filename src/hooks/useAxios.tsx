@@ -42,6 +42,10 @@ const useAxios = () => {
           }
           toast.error("Session expired, please login again");
           routerRef.current.push("/login");
+          // Reset after a delay so fresh 401s (e.g., after re-login) are handled.
+          setTimeout(() => {
+            isHandlingAuthErrorRef.current = false;
+          }, 2000);
         }
         return Promise.reject(error);
       }
