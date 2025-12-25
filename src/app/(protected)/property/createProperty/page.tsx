@@ -150,7 +150,7 @@ const CreateProperty = () => {
           </div>
 
           {/* Categories Grid */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="flex items-center gap-2 text-accent">
               <Sparkles className="w-5 h-5" />
               <h2 className="text-xl font-instrument-serif font-medium">
@@ -158,13 +158,13 @@ const CreateProperty = () => {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {propertyCategories.map((category) => (
                 <motion.div
                   key={category.key}
                   variants={itemVariants}
                   onClick={() => handleCategorySelect(category.key)}
-                  className="group relative cursor-pointer overflow-hidden rounded-2xl aspect-[3/4] hover:shadow-2xl transition-all duration-500 ease-out"
+                  className="group relative cursor-pointer overflow-hidden rounded-xl h-48 hover:shadow-xl transition-all duration-300 ease-out"
                 >
                   {/* Background Image */}
                   <div
@@ -173,22 +173,23 @@ const CreateProperty = () => {
                   />
 
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300" />
 
                   {/* Border Highlight on Hover */}
-                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-accent/50 rounded-2xl transition-colors duration-300" />
+                  <div className="absolute inset-0 border border-white/10 group-hover:border-accent/50 rounded-xl transition-colors duration-300" />
 
                   {/* Content */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                    <h3 className="text-2xl font-instrument-serif text-white mb-2">
-                      {category.label}
-                    </h3>
-                    <p className="text-white/80 text-sm font-inter line-clamp-2 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
-                      {category.description}
-                    </p>
-                    <div className="mt-4 flex items-center gap-2 text-accent text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
-                      <span>Start Listing</span>
-                      <ChevronRight className="w-4 h-4" />
+                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                    <div className="transform transition-transform duration-300 translate-y-2 group-hover:translate-y-0">
+                      <h3 className="text-xl font-instrument-serif text-white mb-1 leading-tight">
+                        {category.label}
+                      </h3>
+                      <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
+                        <span className="text-white/80 text-xs font-inter line-clamp-1">
+                          {category.description}
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-accent" />
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -197,7 +198,7 @@ const CreateProperty = () => {
           </div>
 
           {/* Drafts Section */}
-          <div className="space-y-6 pt-8 border-t border-border/40">
+          <div className="space-y-6 pt-6 border-t border-border/40">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-muted-foreground" />
@@ -208,65 +209,67 @@ const CreateProperty = () => {
             </div>
 
             {isLoading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : drafts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {drafts.map((draft) => (
                   <motion.div
                     key={draft._id}
                     variants={itemVariants}
-                    className="group bg-card hover:bg-muted/50 border border-border/50 rounded-xl p-5 transition-all duration-300 hover:shadow-md cursor-pointer flex flex-col gap-4"
+                    className="group bg-card hover:bg-muted/50 border border-border/50 rounded-lg p-4 transition-all duration-200 hover:shadow-sm cursor-pointer flex flex-col gap-3 relative overflow-hidden"
                     onClick={() => handleDraftSelect(draft)}
                   >
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <h4 className="font-instrument-serif text-lg text-foreground">
-                          {propertyCategories.find(
-                            (c) => c.key === draft.propertyCategory
-                          )?.label || draft.propertyCategory}
-                        </h4>
-                        <p className="text-sm text-muted-foreground line-clamp-1 font-inter">
-                          {draft.address?.city
-                            ? `${draft.address.city}, ${draft.address.state}`
-                            : "Location not set"}
-                        </p>
-                      </div>
+                    <div className="absolute top-0 right-0 p-2">
                       <Badge
                         variant="secondary"
-                        className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 hover:bg-yellow-500/20"
+                        className="text-[10px] px-1.5 py-0 h-5 bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
                       >
                         Draft
                       </Badge>
                     </div>
 
-                    <div className="flex items-center justify-between mt-auto pt-2">
-                      <span className="text-xs text-muted-foreground/60 font-inter">
-                        Click to resume
+                    <div className="space-y-1 pr-6">
+                      <h4 className="font-instrument-serif text-base text-foreground font-medium">
+                        {propertyCategories.find(
+                          (c) => c.key === draft.propertyCategory
+                        )?.label || draft.propertyCategory}
+                      </h4>
+                      <div className="flex items-center text-xs text-muted-foreground font-inter">
+                        <span className="truncate max-w-[200px]">
+                          {draft.address?.city
+                            ? `${draft.address.city}, ${draft.address.state}`
+                            : "Location not set"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-border/30 mt-auto">
+                      <span className="text-[10px] text-muted-foreground/60 font-inter uppercase tracking-wider">
+                        Last edited recently
                       </span>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-accent hover:text-accent hover:bg-accent/10 p-0 h-auto font-medium"
+                        className="h-7 px-2 text-xs hover:bg-accent/10 hover:text-accent"
                       >
-                        Resume <ChevronRight className="w-4 h-4 ml-1" />
+                        Resume <ChevronRight className="w-3 h-3 ml-1" />
                       </Button>
                     </div>
                   </motion.div>
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
-                <div className="bg-background p-4 rounded-full shadow-sm mb-4">
-                  <FileText className="w-6 h-6 text-muted-foreground" />
+              <div className="flex flex-col items-center justify-center py-8 text-center bg-muted/20 rounded-xl border border-dashed border-border/60">
+                <div className="bg-background p-3 rounded-full shadow-sm mb-3">
+                  <FileText className="w-5 h-5 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-medium text-foreground mb-1">
+                <h3 className="text-base font-medium text-foreground mb-1">
                   No drafts found
                 </h3>
-                <p className="text-muted-foreground text-sm max-w-sm">
-                  You don&apos;t have any pending property listings. Start a new one
-                  from the categories above.
+                <p className="text-muted-foreground text-xs max-w-xs">
+                  Your pending listings will appear here.
                 </p>
               </div>
             )}

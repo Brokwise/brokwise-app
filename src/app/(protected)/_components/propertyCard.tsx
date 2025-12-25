@@ -39,14 +39,20 @@ import { exportElementAsPdf, makeSafeFilePart } from "@/utils/pdf";
 
 interface PropertyCardProps {
   property: Property;
+  hideShare?: boolean;
 }
 
-export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
+export const PropertyCard: React.FC<PropertyCardProps> = ({ property, hideShare = false }) => {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const { userData, brokerData, setBrokerData, companyData, setCompanyData } = useApp();
   const { toggleBookmarkAsync, isPending: isBookmarkPending } = useToggleBookmark();
 
   const isCompany = userData?.userType === "company";
+
+  // Check if property is private/enquiry-only
+  const isPrivateProperty = 
+    property.listingStatus === "ENQUIRY_ONLY" || 
+    !!property.submittedForEnquiryId;
 
   // Check bookmark status from the correct user data
   const isBookmarked = isCompany
@@ -95,7 +101,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     e.preventDefault();
     e.stopPropagation();
     const propertyTitle = `${property.bhk ? `${property.bhk} BHK ` : ""}${property.propertyType.replace(/_/g, " ")}`;
-    const message = `🏠 *${propertyTitle}*\n\n📍 ${formatAddress(property.address)}\n💰 ${formatCurrency(property.totalPrice)}\n\n🔗 ${propertyUrl}`;
+    
+    // Using Unicode escapes to ensure emojis render correctly regardless of file encoding
+    // \uD83C\uDFE0 = House
+    // \uD83D\uDCCD = Round Pushpin
+    // \uD83D\uDCB0 = Money Bag
+    // \uD83D\uDD17 = Link Symbol
+    
+    const message = `\uD83C\uDFE0 *${propertyTitle}*\n\n\uD83D\uDCCD ${formatAddress(property.address)}\n\uD83D\uDCB0 ${formatCurrency(property.totalPrice)}\n\n\uD83D\uDD17 ${propertyUrl}`;
+    
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
@@ -283,19 +297,23 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
-                <Link2 className="mr-2 h-4 w-4" />
-                Copy Link
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleShareWhatsApp} className="cursor-pointer">
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Share via WhatsApp
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleShareNative} className="cursor-pointer">
-                <Share2 className="mr-2 h-4 w-4" />
-                Share Property
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              {!hideShare && !isPrivateProperty && (
+                <>
+                  <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
+                    <Link2 className="mr-2 h-4 w-4" />
+                    Copy Link
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleShareWhatsApp} className="cursor-pointer">
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    Share via WhatsApp
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleShareNative} className="cursor-pointer">
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share Property
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem
                 onClick={handleExportPdf}
                 disabled={isExportingPdf}
