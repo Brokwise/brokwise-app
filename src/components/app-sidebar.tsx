@@ -59,6 +59,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             icon: FileText,
         },
         {
+            title: "Bookmarks",
+            url: "/bookmarks",
+            icon: Bookmark,
+        },
+        {
             title: "Messages",
             url: "/message",
             icon: MessageSquare,
