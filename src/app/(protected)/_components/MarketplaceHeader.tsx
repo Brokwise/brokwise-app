@@ -258,16 +258,16 @@ export const MarketplaceHeader = ({
                         <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full">
 
                     {/* Category Pills (Scrollable) */}
-                    <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto scrollbar-hide mask-linear-fade sm:flex-1">
+                    <div className="flex items-center gap-1 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto scrollbar-hide mask-linear-fade sm:flex-1">
                         {categoryPills.map((pill) => (
                             <Button
                                 key={pill.value}
                                 variant={categoryFilter === pill.value ? "secondary" : "ghost"}
                                 size="sm"
                                 onClick={() => setCategoryFilter(pill.value)}
-                                className={`shrink-0 rounded-full px-5 h-9 font-medium border text-sm transition-all ${categoryFilter === pill.value
+                                className={`shrink-0 rounded-full px-3 sm:px-4 h-8 font-medium border text-xs sm:text-sm transition-all ${categoryFilter === pill.value
                                     ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
-                                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary"
                                     }`}
                             >
                                 {pill.label}
@@ -283,7 +283,7 @@ export const MarketplaceHeader = ({
                         {/* Advanced Filters Trigger */}
                         <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
                             <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className={`relative gap-2 h-9 rounded-full border-border/60 hover:bg-muted/50 ${hasActiveFilters ? "text-accent border-accent/30 bg-accent/5" : "text-muted-foreground"}`}>
+                                <Button variant="outline" size="sm" className={`relative gap-2 h-8 rounded-full border-border/60 hover:bg-secondary hover:border-border ${hasActiveFilters ? "text-accent border-accent/30 bg-accent/5" : "text-muted-foreground hover:text-foreground"}`}>
                                     <FilterIcon className="h-3.5 w-3.5" />
                                     <span className="hidden sm:inline">Filters</span>
                                     {hasActiveFilters && (
@@ -406,12 +406,12 @@ export const MarketplaceHeader = ({
                         </Dialog>
 
                         {/* View Toggles */}
-                        <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-full border border-border/40">
+                        <div className="flex items-center gap-0.5 bg-secondary/50 p-0.5 rounded-full border border-border/40">
                             <Button
                                 variant={view === "grid" ? "default" : "ghost"}
                                 size="icon"
                                 onClick={() => { setView("grid"); onClearPropertySelection(); }}
-                                className={`h-8 w-8 rounded-full transition-all duration-300 ${view === 'grid' ? "shadow-sm" : "hover:bg-muted text-muted-foreground"}`}
+                                className={`h-8 w-8 rounded-full transition-all duration-300 ${view === 'grid' ? "shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
                                 title="Grid View"
                             >
                                 <LayoutGridIcon className="h-3.5 w-3.5" />
@@ -420,7 +420,7 @@ export const MarketplaceHeader = ({
                                 variant={view === "map" ? "default" : "ghost"}
                                 size="icon"
                                 onClick={() => { setView("map"); onClearPropertySelection(); }}
-                                className={`h-8 w-8 rounded-full transition-all duration-300 ${view === 'map' ? "shadow-sm" : "hover:bg-muted text-muted-foreground"}`}
+                                className={`h-8 w-8 rounded-full transition-all duration-300 ${view === 'map' ? "shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
                                 title="Map View"
                             >
                                 <MapPin className="h-3.5 w-3.5" />
@@ -429,7 +429,7 @@ export const MarketplaceHeader = ({
                                 variant={view === "split" ? "default" : "ghost"}
                                 size="icon"
                                 onClick={() => { setView("split"); onClearPropertySelection(); }}
-                                className={`h-8 w-8 rounded-full hidden md:flex transition-all duration-300 ${view === 'split' ? "shadow-sm" : "hover:bg-muted text-muted-foreground"}`}
+                                className={`h-8 w-8 rounded-full hidden md:flex transition-all duration-300 ${view === 'split' ? "shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}
                                 title="Split View"
                             >
                                 <Columns className="h-3.5 w-3.5" />
