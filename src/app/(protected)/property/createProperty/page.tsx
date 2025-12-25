@@ -4,8 +4,9 @@ import {
   useCreateCompanyProperty,
   useSaveCompanyPropertyDraft,
 } from "@/hooks/useCompany";
-import { Loader2, Edit } from "lucide-react";
+import { Loader2, ArrowLeft, Sparkles, FileText, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 import { PropertyFormData } from "@/validators/property";
 import { useApp } from "@/context/AppContext";
@@ -18,12 +19,25 @@ import { AgriculturalWizard } from "./agriculturalForm/wizard";
 import { IndustrialWizard } from "./industrialForm/wizard";
 import { CommercialWizard } from "./commercialForm/wizard";
 import { ResidentialWizard } from "./residentialForm/wizard";
-import { H2 } from "@/components/text/h2";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { propertyCategories } from "@/constants";
-import { H1 } from "@/components/text/h1";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
+};
 
 const CreateProperty = () => {
   const [selectedCategory, setSelectedCategory] =
@@ -116,89 +130,179 @@ const CreateProperty = () => {
   };
 
   return (
-    <main className="container mx-auto p-6 space-y-6 px-4 md:px-28 xl:px-80">
+    <main className="container mx-auto px-4 md:px-8 lg:px-12 py-8 min-h-screen">
       {!selectedCategory ? (
-        <>
-          <div className="flex items-center justify-between">
-            <H2 text="Create Property" />
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="space-y-12"
+        >
+          {/* Header Section */}
+          <div className="space-y-2">
+            <h1 className="text-4xl md:text-5xl font-instrument-serif text-foreground">
+              List a new property
+            </h1>
+            <p className="text-muted-foreground font-inter text-lg font-light max-w-2xl">
+              Select a category to begin listing your premium property on the
+              market.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {propertyCategories.map((category) => (
-              <Card
-                key={category.key}
-                onClick={() => handleCategorySelect(category.key)}
-                className="cursor-pointer transition-all duration-500 h-52  hover:scale-95 bg-cover bg-center"
-                style={{
-                  backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${category.image})`,
-                }}
-              >
-                <CardHeader>
-                  <CardTitle className="text-3xl text-white font-bold">
-                    {category.label}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg text-white">{category.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          {/* Categories Grid */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 text-accent">
+              <Sparkles className="w-5 h-5" />
+              <h2 className="text-xl font-instrument-serif font-medium">
+                Property Categories
+              </h2>
             </div>
-          ) : drafts.length > 0 ? (
-            <div className="space-y-4 pt-8 border-t">
-              <H2 text="Continue Drafting" />
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {drafts.map((draft) => (
-                  <Card key={draft._id} className="overflow-hidden">
-                    <CardHeader>
-                      <CardTitle className="text-lg">
-                        {propertyCategories.find(
-                          (c) => c.key === draft.propertyCategory
-                        )?.label || draft.propertyCategory}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {draft.address?.city
-                          ? `${draft.address.city}, ${draft.address.state}`
-                          : "Location not set"}
-                      </p>
-                      <Button
-                        onClick={() => handleDraftSelect(draft)}
-                        className="w-full"
-                        variant="secondary"
-                      >
-                        <Edit className="w-4 h-4 mr-2" /> Continue Editing
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {propertyCategories.map((category) => (
+                <motion.div
+                  key={category.key}
+                  variants={itemVariants}
+                  onClick={() => handleCategorySelect(category.key)}
+                  className="group relative cursor-pointer overflow-hidden rounded-2xl aspect-[3/4] hover:shadow-2xl transition-all duration-500 ease-out"
+                >
+                  {/* Background Image */}
+                  <div
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                    style={{ backgroundImage: `url(${category.image})` }}
+                  />
+
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
+
+                  {/* Border Highlight on Hover */}
+                  <div className="absolute inset-0 border-2 border-transparent group-hover:border-accent/50 rounded-2xl transition-colors duration-300" />
+
+                  {/* Content */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                    <h3 className="text-2xl font-instrument-serif text-white mb-2">
+                      {category.label}
+                    </h3>
+                    <p className="text-white/80 text-sm font-inter line-clamp-2 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
+                      {category.description}
+                    </p>
+                    <div className="mt-4 flex items-center gap-2 text-accent text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
+                      <span>Start Listing</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Drafts Section */}
+          <div className="space-y-6 pt-8 border-t border-border/40">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-muted-foreground" />
+                <h2 className="text-2xl font-instrument-serif text-foreground">
+                  Continue Drafting
+                </h2>
               </div>
             </div>
-          ) : null}
-        </>
+
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : drafts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {drafts.map((draft) => (
+                  <motion.div
+                    key={draft._id}
+                    variants={itemVariants}
+                    className="group bg-card hover:bg-muted/50 border border-border/50 rounded-xl p-5 transition-all duration-300 hover:shadow-md cursor-pointer flex flex-col gap-4"
+                    onClick={() => handleDraftSelect(draft)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <h4 className="font-instrument-serif text-lg text-foreground">
+                          {propertyCategories.find(
+                            (c) => c.key === draft.propertyCategory
+                          )?.label || draft.propertyCategory}
+                        </h4>
+                        <p className="text-sm text-muted-foreground line-clamp-1 font-inter">
+                          {draft.address?.city
+                            ? `${draft.address.city}, ${draft.address.state}`
+                            : "Location not set"}
+                        </p>
+                      </div>
+                      <Badge
+                        variant="secondary"
+                        className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 hover:bg-yellow-500/20"
+                      >
+                        Draft
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-auto pt-2">
+                      <span className="text-xs text-muted-foreground/60 font-inter">
+                        Click to resume
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-accent hover:text-accent hover:bg-accent/10 p-0 h-auto font-medium"
+                      >
+                        Resume <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
+                <div className="bg-background p-4 rounded-full shadow-sm mb-4">
+                  <FileText className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-1">
+                  No drafts found
+                </h3>
+                <p className="text-muted-foreground text-sm max-w-sm">
+                  You don&apos;t have any pending property listings. Start a new one
+                  from the categories above.
+                </p>
+              </div>
+            )}
+          </div>
+        </motion.div>
       ) : (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          className="space-y-8"
+        >
+          <div className="flex items-center justify-between pb-6 border-b border-border/40">
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={handleBack}>
-                ← Back to Categories
+              <Button
+                variant="ghost"
+                onClick={handleBack}
+                className="group pl-0 hover:pl-2 transition-all hover:bg-transparent hover:text-accent"
+              >
+                <ArrowLeft className="w-5 h-5 mr-1 group-hover:-translate-x-1 transition-transform" />
+                Back to Categories
               </Button>
-              <H1
-                text={`Create ${
+            </div>
+            <div className="text-right">
+              <h1 className="text-2xl font-instrument-serif text-foreground">
+                Create{" "}
+                {
                   propertyCategories.find((cat) => cat.key === selectedCategory)
                     ?.label
-                } Property`}
-              />
+                }
+              </h1>
+              <p className="text-sm text-muted-foreground">step 1 of 4</p>
             </div>
           </div>
           {renderCategoryForm()}
-        </div>
+        </motion.div>
       )}
     </main>
   );

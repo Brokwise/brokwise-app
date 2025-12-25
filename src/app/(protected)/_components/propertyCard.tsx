@@ -26,6 +26,7 @@ import {
   CheckCircle2,
   Loader2,
   Bookmark,
+  MessageCircle,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -88,6 +89,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
       // Fallback: copy to clipboard
       await handleCopyLink(e);
     }
+  };
+
+  const handleShareWhatsApp = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const propertyTitle = `${property.bhk ? `${property.bhk} BHK ` : ""}${property.propertyType.replace(/_/g, " ")}`;
+    const message = `🏠 *${propertyTitle}*\n\n📍 ${formatAddress(property.address)}\n💰 ${formatCurrency(property.totalPrice)}\n\n🔗 ${propertyUrl}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleExportPdf = async (e: React.MouseEvent) => {
@@ -276,6 +286,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
               <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
                 <Link2 className="mr-2 h-4 w-4" />
                 Copy Link
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleShareWhatsApp} className="cursor-pointer">
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Share via WhatsApp
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleShareNative} className="cursor-pointer">
                 <Share2 className="mr-2 h-4 w-4" />
