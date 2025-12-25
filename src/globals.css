@@ -32,6 +32,66 @@ h6 {
     display: none;
     /* Chrome, Safari, Opera */
   }
+
+  /* Elegant thin scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    /* Firefox */
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 100px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 100px;
+    transition: background 0.2s ease;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Hide scrollbar until hover (elegant reveal) */
+  .scrollbar-thin-hover {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .scrollbar-thin-hover::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
+  }
+
+  .scrollbar-thin-hover::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin-hover::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 100px;
+    transition: background 0.3s ease;
+  }
+
+  .scrollbar-thin-hover:hover {
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .scrollbar-thin-hover:hover::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+  }
+
+  .scrollbar-thin-hover:hover::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
 }
 
 

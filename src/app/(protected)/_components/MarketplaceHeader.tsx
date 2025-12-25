@@ -258,7 +258,7 @@ export const MarketplaceHeader = ({
                         <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full">
 
                     {/* Category Pills (Scrollable) */}
-                    <div className="flex items-center gap-1 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto scrollbar-hide mask-linear-fade sm:flex-1">
+                    <div className="flex items-center gap-1 overflow-x-auto pb-1.5 w-full sm:w-auto scrollbar-thin-hover sm:flex-1">
                         {categoryPills.map((pill) => (
                             <Button
                                 key={pill.value}
