@@ -11,35 +11,11 @@ import {
   AlertCircle,
   LayoutGridIcon,
   MapPin,
-  Columns,
   Search,
-  X,
-  Filter as FilterIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
 import { useDebounce } from "@/hooks/useDebounce";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import Fuse from "fuse.js";
-import { formatIndianNumber } from "@/utils/helper";
-import { useApp } from "@/context/AppContext";
 import {
   Pagination,
   PaginationContent,
@@ -49,9 +25,22 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { MarketplaceHeader } from "./_components/MarketplaceHeader";
+
+// Empty State Component
+const EmptyState = () => (
+  <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 bg-muted/20 rounded-2xl border border-dashed">
+    <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+      <Search className="h-8 w-8 text-muted-foreground/50" />
+    </div>
+    <h3 className="text-lg font-semibold text-foreground">No properties found</h3>
+    <p className="text-muted-foreground text-center mt-1 max-w-sm">
+      Try adjusting your filters or search terms to find what you&apos;re looking for.
+    </p>
+  </div>
+);
 
 const ProtectedPage = () => {
-  const { userData } = useApp();
   const [currentPage, setCurrentPage] = useState(1);
   const { properties, pagination, isLoading, error } = useGetAllProperties(
     currentPage,
@@ -72,7 +61,10 @@ const ProtectedPage = () => {
   const [sourceFilter, setSourceFilter] = useState<string>("ALL");
   const [priceRange, setPriceRange] = useState<number[] | null>(null); // null means "use full range"
   const [bhkFilter, setBhkFilter] = useState<string>("ALL");
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  // Removed local isFilterOpen state as it's now handled in the header or needs to be lifted if controlled externally
+  // Keeping it simple: Header manages its own dialog state or we can lift it if needed.
+  // The MarketplaceHeader component handles the Dialog state internally.
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
@@ -183,16 +175,6 @@ const ProtectedPage = () => {
     setSourceFilter("ALL");
     setPriceRange(null); // Reset to full range
     setBhkFilter("ALL");
-  };
-
-  const formatPriceShort = (price: number) => {
-    if (price >= 10000000) {
-      return `₹${(price / 10000000).toFixed(1)} Cr`;
-    } else if (price >= 100000) {
-      return `₹${(price / 100000).toFixed(1)} L`;
-    } else {
-      return `${formatIndianNumber(price)}`;
-    }
   };
 
   const hasActiveFilters =
@@ -333,17 +315,6 @@ const ProtectedPage = () => {
     );
   }
 
-  // Category Pills Data
-  const categoryPills = [
-    { value: "ALL", label: "All" },
-    { value: "RESIDENTIAL", label: "Residential" },
-    { value: "COMMERCIAL", label: "Commercial" },
-    { value: "INDUSTRIAL", label: "Industrial" },
-    { value: "AGRICULTURAL", label: "Agricultural" },
-    { value: "RESORT", label: "Resort" },
-    { value: "FARM_HOUSE", label: "Farmhouse" },
-  ];
-
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -363,302 +334,27 @@ const ProtectedPage = () => {
     // Main Container - Viewport minus Header (approx 64px/4rem)
     <div className="flex flex-col h-full min-h-0 overflow-hidden relative">
 
-      {/* 1. TOP CONTROL BAR (Always Visible) */}
-      <div className="shrink-0 z-30 bg-background border-b border-border/40">
-        <div className="px-4 py-3 space-y-3">
-
-          {/* Hero Section (Compact) */}
-          <div className="bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-lg p-3 border border-border/50 relative overflow-hidden">
-            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div>
-                <h1 className="text-lg font-bold tracking-tight text-foreground">
-                  Welcome back{userData?.fullName ? `, ${userData.fullName.split(' ')[0]}` : ''} 👋
-                </h1>
-              </div>
-
-              {/* Search Input */}
-              <div className="relative flex-1 lg:max-w-xs">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search properties..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9 text-sm bg-background/80 backdrop-blur border-border/60 shadow-sm rounded-lg"
-                />
-                {searchQuery && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 hover:bg-background/50 rounded-md"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Filter Bar (Moved Here) */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-
-            {/* Category Pills - Horizontal Scroll */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full scrollbar-hide mask-linear-fade">
-              {categoryPills.map((pill) => (
-                <Button
-                  key={pill.value}
-                  variant={categoryFilter === pill.value ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={() => setCategoryFilter(pill.value)}
-                  className={`shrink-0 rounded-full px-4 font-medium transition-all ${categoryFilter === pill.value
-                    ? "bg-accent/10 text-accent hover:bg-accent/20 border-accent/20 border"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    }`}
-                >
-                  {pill.label}
-                </Button>
-              ))}
-            </div>
-
-            {/* View Toggle & Advanced Filters */}
-            <div className="flex items-center gap-2 shrink-0 ml-auto w-full sm:w-auto justify-end">
-              {/* Results Count (Mobile Only) */}
-              <span className="text-xs text-muted-foreground sm:hidden mr-auto">
-                {filteredProperties.length} results
-              </span>
-
-              {/* Advanced Filters Button */}
-              <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="relative gap-2 rounded-full border-border/60">
-                    <FilterIcon className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Filters</span>
-                    {hasActiveFilters && (
-                      <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-accent border-2 border-background" />
-                    )}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Advanced Filters</DialogTitle>
-                    <DialogDescription>
-                      Refine your property search results.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-6 py-4">
-                    {/* Price Range */}
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <Label>Price Range</Label>
-                        <div className="text-xs text-muted-foreground font-medium">
-                          {formatPriceShort(effectivePriceRange[0])} - {formatPriceShort(effectivePriceRange[1])}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Min</Label>
-                          <Input
-                            inputMode="numeric"
-                            type="number"
-                            min={0}
-                            max={effectivePriceRange[1]}
-                            value={effectivePriceRange[0]}
-                            onChange={(e) => {
-                              const raw = e.target.value;
-                              const next = raw === "" ? 0 : Number(raw);
-                              if (!Number.isFinite(next)) return;
-                              setPriceRange([Math.max(0, Math.min(next, effectivePriceRange[1])), effectivePriceRange[1]]);
-                            }}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Max</Label>
-                          <Input
-                            inputMode="numeric"
-                            type="number"
-                            min={effectivePriceRange[0]}
-                            max={maxPropertyPrice}
-                            value={effectivePriceRange[1]}
-                            onChange={(e) => {
-                              const raw = e.target.value;
-                              const next = raw === "" ? maxPropertyPrice : Number(raw);
-                              if (!Number.isFinite(next)) return;
-                              setPriceRange([
-                                effectivePriceRange[0],
-                                Math.min(maxPropertyPrice, Math.max(next, effectivePriceRange[0])),
-                              ]);
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <Slider
-                        min={0}
-                        max={maxPropertyPrice}
-                        step={100000}
-                        value={effectivePriceRange}
-                        onValueChange={(value) => setPriceRange(value)}
-                        className="py-2"
-                      />
-                    </div>
-
-                    {/* BHK */}
-                    <div className="space-y-2">
-                      <Label>BHK (Residential)</Label>
-                      <Select value={bhkFilter} onValueChange={setBhkFilter}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="BHK" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ALL">Any BHK</SelectItem>
-                          <SelectItem value="1">1 BHK</SelectItem>
-                          <SelectItem value="2">2 BHK</SelectItem>
-                          <SelectItem value="3">3 BHK</SelectItem>
-                          <SelectItem value="4">4 BHK</SelectItem>
-                          <SelectItem value="5+">5+ BHK</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Source Filter for Companies */}
-                    {userData?.userType === "company" && (
-                      <div className="space-y-2">
-                        <Label>Listed By</Label>
-                        <Select value={sourceFilter} onValueChange={setSourceFilter}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Source" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="ALL">All Sources</SelectItem>
-                            <SelectItem value="BROKER">Broker Listed</SelectItem>
-                            <SelectItem value="COMPANY">Company Listed</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                  </div>
-                  <DialogFooter className="gap-2 sm:gap-0">
-                    <Button
-                      variant="outline"
-                      onClick={clearFilters}
-                      disabled={!hasActiveFilters && searchQuery === ""}
-                    >
-                      Clear All
-                    </Button>
-                    <Button onClick={() => setIsFilterOpen(false)}>
-                      Apply Filters
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              <div className="w-px h-6 bg-border/60 mx-1 hidden sm:block" />
-
-              {/* View Toggle Buttons */}
-              <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-full border border-border/40">
-                <Button
-                  variant={view === "grid" ? "default" : "ghost"}
-                  size="icon"
-                  onClick={() => { setView("grid"); setSelectedPropertyId(null); }}
-                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'grid' ? 'shadow-md scale-105 ring-1 ring-background' : ''}`}
-                  title="Grid View"
-                >
-                  <LayoutGridIcon className="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  variant={view === "map" ? "default" : "ghost"}
-                  size="icon"
-                  onClick={() => { setView("map"); setSelectedPropertyId(null); }}
-                  className={`h-7 w-7 rounded-full transition-all duration-300 ${view === 'map' ? 'shadow-md scale-105 ring-1 ring-background' : ''}`}
-                  title="Map View"
-                >
-                  <MapPin className="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  variant={view === "split" ? "default" : "ghost"}
-                  size="icon"
-                  onClick={() => { setView("split"); setSelectedPropertyId(null); }}
-                  className={`h-7 w-7 rounded-full hidden md:flex transition-all duration-300 ${view === 'split' ? 'shadow-md scale-105 ring-1 ring-background' : ''}`}
-                  title="Split View"
-                >
-                  <Columns className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Active Filters (Quick Clear) */}
-          {(hasActiveFilters || searchQuery) && (
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              {searchQuery && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setSearchQuery("")}
-                  className="h-7 rounded-full gap-2 px-3 bg-muted/60 text-foreground hover:bg-muted"
-                >
-                  <span className="max-w-[14rem] truncate">
-                    Search: {searchQuery}
-                  </span>
-                  <X className="h-3 w-3 opacity-70" />
-                </Button>
-              )}
-
-              {priceRange !== null && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setPriceRange(null)}
-                  className="h-7 rounded-full gap-2 px-3 bg-muted/60 text-foreground hover:bg-muted"
-                >
-                  <span className="max-w-[14rem] truncate">
-                    Price: {formatPriceShort(effectivePriceRange[0])} -{" "}
-                    {formatPriceShort(effectivePriceRange[1])}
-                  </span>
-                  <X className="h-3 w-3 opacity-70" />
-                </Button>
-              )}
-
-              {bhkFilter !== "ALL" && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setBhkFilter("ALL")}
-                  className="h-7 rounded-full gap-2 px-3 bg-muted/60 text-foreground hover:bg-muted"
-                >
-                  <span className="max-w-[14rem] truncate">
-                    BHK: {bhkFilter === "5+" ? "5+ BHK" : `${bhkFilter} BHK`}
-                  </span>
-                  <X className="h-3 w-3 opacity-70" />
-                </Button>
-              )}
-
-              {userData?.userType === "company" && sourceFilter !== "ALL" && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setSourceFilter("ALL")}
-                  className="h-7 rounded-full gap-2 px-3 bg-muted/60 text-foreground hover:bg-muted"
-                >
-                  <span className="max-w-[14rem] truncate">
-                    Listed by:{" "}
-                    {sourceFilter === "BROKER" ? "Broker" : "Company"}
-                  </span>
-                  <X className="h-3 w-3 opacity-70" />
-                </Button>
-              )}
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="h-7 rounded-full px-3 text-muted-foreground hover:text-foreground"
-              >
-                Clear all
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* 1. TOP CONTROL BAR (Replaced with Component) */}
+      <MarketplaceHeader
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        categoryFilter={categoryFilter}
+        setCategoryFilter={setCategoryFilter}
+        sourceFilter={sourceFilter}
+        setSourceFilter={setSourceFilter}
+        priceRange={priceRange}
+        setPriceRange={setPriceRange}
+        bhkFilter={bhkFilter}
+        setBhkFilter={setBhkFilter}
+        view={view}
+        setView={setView}
+        filteredCount={filteredProperties.length}
+        maxPropertyPrice={maxPropertyPrice}
+        effectivePriceRange={effectivePriceRange}
+        clearFilters={clearFilters}
+        hasActiveFilters={hasActiveFilters}
+        onClearPropertySelection={() => setSelectedPropertyId(null)}
+      />
 
       {/* 2. MAIN SPLIT CONTENT */}
       <div className="flex-1 flex overflow-hidden relative">
@@ -672,7 +368,8 @@ const ProtectedPage = () => {
             ${isMobileMapOpen && view === "split" ? 'hidden lg:flex' : ''}
           `}
         >
-          <div className="p-4 space-y-4 pb-24">
+          {/* Increased top padding for better breathing room */}
+          <div className="p-6 md:p-8 space-y-4 pb-24">
 
             {/* Results Count (Desktop) */}
             {!isLoading && (
@@ -762,7 +459,7 @@ const ProtectedPage = () => {
         </div>
 
         {/* Floating Mobile Toggle Button */}
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 lg:hidden filter drop-shadow-xl">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 lg:hidden filter drop-shadow-xl animate-bounce-in">
           <Button
             onClick={() => setIsMobileMapOpen(!isMobileMapOpen)}
             className="rounded-full bg-foreground text-background hover:bg-foreground/90 px-6 py-6 h-auto shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-2"
@@ -786,18 +483,4 @@ const ProtectedPage = () => {
   );
 };
 
-// Empty State Component
-const EmptyState = () => (
-  <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 bg-muted/20 rounded-2xl border border-dashed">
-    <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-      <Search className="h-8 w-8 text-muted-foreground/50" />
-    </div>
-    <h3 className="text-lg font-semibold text-foreground">No properties found</h3>
-    <p className="text-muted-foreground text-center mt-1 max-w-sm">
-      Try adjusting your filters or search terms to find what you&apos;re looking for.
-    </p>
-  </div>
-);
-
 export default ProtectedPage;
-
