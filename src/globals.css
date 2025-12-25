@@ -187,6 +187,30 @@ h6 {
   }
 }
 
+/* Mapbox popup dark mode support */
+.mapboxgl-popup-content {
+  background: hsl(var(--card)) !important;
+  padding: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px hsl(var(--foreground) / 0.15) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+.mapboxgl-popup-tip {
+  border-top-color: hsl(var(--card)) !important;
+  border-bottom-color: hsl(var(--card)) !important;
+}
+
+/* Hide default close button since our custom popups handle interaction */
+.mapboxgl-popup-close-button {
+  display: none;
+}
+
+/* Ensure popup content respects theme */
+.theme-aware-popup .mapboxgl-popup-content {
+  padding: 0 !important;
+}
+
 @media print {
 
   /* Hide sidebar, header, and non-content elements */

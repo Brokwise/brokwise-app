@@ -156,62 +156,46 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
 
     const bounds = new mapboxgl.LngLatBounds();
 
-    // Theme-aware colors for markers
-    const markerBgColor = isDarkMode ? "#ffffff" : "#0f172a";
-    const markerTextColor = isDarkMode ? "#0f172a" : "#ffffff";
-    const markerBorderColor = isDarkMode ? "#0f172a" : "#ffffff";
-    const markerShadow = isDarkMode 
-      ? "0 4px 12px rgba(0, 0, 0, 0.5)" 
-      : "0 4px 12px rgba(15, 23, 42, 0.3)";
-
+    // Theme-aware colors handled via CSS variables
     validProperties.forEach((property) => {
       const [lng, lat] = property.location.coordinates;
       const priceFormatted = formatPrice(property.totalPrice);
 
-      // Create custom marker element with theme-aware styling
+      // Create custom marker element with theme-aware styling using CSS variables
       const el = document.createElement("div");
       el.className = "custom-marker group cursor-pointer z-20";
+      // We use hsl(var(--variable)) to automatically adapt to theme changes without JS logic
       el.innerHTML = `
         <div class="transition-transform duration-200 group-hover:scale-110">
-          <div style="background-color: ${markerBgColor}; color: ${markerTextColor}; padding: 6px 10px; border-radius: 99px; box-shadow: ${markerShadow}; font-weight: 600; font-size: 13px; white-space: nowrap; display: flex; align-items: center; justify-content: center; border: 2px solid ${markerBorderColor};">
+          <div style="background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 6px 10px; border-radius: 99px; box-shadow: 0 4px 12px hsl(var(--foreground) / 0.2); font-weight: 600; font-size: 13px; white-space: nowrap; display: flex; align-items: center; justify-content: center; border: 2px solid hsl(var(--background));">
             ${priceFormatted}
           </div>
-          <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid ${markerBgColor}; margin: -2px auto 0 auto; filter: drop-shadow(0 2px 1px rgba(0,0,0,0.1));"></div>
+          <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid hsl(var(--primary)); margin: -2px auto 0 auto; filter: drop-shadow(0 2px 1px rgba(0,0,0,0.1));"></div>
         </div>
       `;
 
-      // Theme-aware popup styling
-      const popupBgColor = isDarkMode ? "#1e293b" : "#ffffff";
-      const popupTextColor = isDarkMode ? "#f8fafc" : "#0f172a";
-      const popupSubTextColor = isDarkMode ? "#94a3b8" : "#64748b";
-      const popupBorderColor = isDarkMode ? "#334155" : "#f1f5f9";
-      const popupImageBgColor = isDarkMode ? "#0f172a" : "#f1f5f9";
-      const buttonBgColor = isDarkMode ? "#f8fafc" : "#0f172a";
-      const buttonTextColor = isDarkMode ? "#0f172a" : "#ffffff";
-      const buttonHoverBgColor = isDarkMode ? "#e2e8f0" : "#1e293b";
-
-      // Create popup
+      // Create popup with CSS variables
       const popup = new mapboxgl.Popup({
         offset: 25,
         closeButton: false,
         className: "custom-popup",
         maxWidth: "300px",
       }).setHTML(
-        `<div style="width: 260px; overflow: hidden; border-radius: 12px; background: ${popupBgColor}; box-shadow: 0 10px 40px rgba(0,0,0,${isDarkMode ? '0.4' : '0.12'}); border: 1px solid ${popupBorderColor}; font-family: system-ui, -apple-system, sans-serif; cursor: pointer;">
-           <div style="height: 140px; width: 100%; overflow: hidden; background-color: ${popupImageBgColor}; position: relative;">
+        `<div style="width: 260px; overflow: hidden; border-radius: 12px; background: hsl(var(--card)); box-shadow: 0 10px 40px hsl(var(--foreground) / 0.15); border: 1px solid hsl(var(--border)); font-family: system-ui, -apple-system, sans-serif; cursor: pointer;">
+           <div style="height: 140px; width: 100%; overflow: hidden; background-color: hsl(var(--muted)); position: relative;">
              <img src="${property.featuredMedia}" alt="Property" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='/images/placeholder.webp'" />
-             <div style="position: absolute; top: 10px; left: 10px; padding: 3px 8px; background: ${isDarkMode ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255,255,255,0.95)'}; backdrop-filter: blur(4px); border-radius: 6px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: ${popupTextColor}; border: 1px solid ${popupBorderColor};">
+             <div style="position: absolute; top: 10px; left: 10px; padding: 3px 8px; background: hsl(var(--background) / 0.9); backdrop-filter: blur(4px); border-radius: 6px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: hsl(var(--foreground)); border: 1px solid hsl(var(--border));">
                 ${property.propertyCategory}
              </div>
            </div>
            <div style="padding: 14px 16px;">
               <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px;">
-                <span style="font-size: 20px; color: ${popupTextColor}; font-weight: 600; letter-spacing: -0.3px;">${priceFormatted}</span>
-                <span style="font-size: 11px; color: ${popupSubTextColor}; font-weight: 500;">₹${property.rate}/sqft</span>
+                <span style="font-size: 20px; color: hsl(var(--card-foreground)); font-weight: 600; letter-spacing: -0.3px;">${priceFormatted}</span>
+                <span style="font-size: 11px; color: hsl(var(--muted-foreground)); font-weight: 500;">₹${property.rate}/sqft</span>
               </div>
-              <p style="font-size: 12px; color: ${popupSubTextColor}; margin: 0 0 12px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${property.address?.address || property.society || "Address available on request"}</p>
+              <p style="font-size: 12px; color: hsl(var(--muted-foreground)); margin: 0 0 12px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${property.address?.address || property.society || "Address available on request"}</p>
               
-              <button id="view-details-${property._id}" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; border-radius: 8px; background: ${buttonBgColor}; color: ${buttonTextColor}; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: none; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='${buttonHoverBgColor}'" onmouseout="this.style.background='${buttonBgColor}'">
+              <button id="view-details-${property._id}" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; border-radius: 8px; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: none; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                 View Details
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </button>
@@ -271,7 +255,7 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
     return () => {
       map.off("style.load", fitToMarkers);
     };
-  }, [properties, onSelectProperty, mapLoaded, isDarkMode]);
+  }, [properties, onSelectProperty, mapLoaded]);
 
   return (
     <div className="relative w-full h-full min-h-[500px] rounded-lg overflow-hidden border bg-muted group">
