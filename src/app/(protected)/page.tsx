@@ -622,7 +622,7 @@ const ProtectedPage = () => {
         `}
         >
           {selectedProperty && (
-            <div className="absolute left-4 top-4 z-10 w-[380px] max-h-[calc(100%-2rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
+            <div className="absolute left-4 top-14 z-20 w-[calc(100%-2rem)] sm:w-[340px] lg:w-[380px] max-h-[calc(100%-4.5rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
               <PropertyDetails
                 property={selectedProperty}
                 onClose={() => setSelectedPropertyId(null)}
