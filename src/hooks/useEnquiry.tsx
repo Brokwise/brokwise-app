@@ -8,15 +8,72 @@ import {
   EnquiryMessage,
 } from "@/models/types/enquiry";
 
-export const useGetMarketPlaceEnquiries = () => {
+export type MarketplaceEnquiriesResponse = {
+  enquiries: MarketplaceEnquiry[];
+  total: number;
+  page: number;
+  totalPages: number;
+};
+
+export const useGetMarketPlaceEnquiries = (
+  page: number = 1,
+  limit: number = 100,
+  options?: { enabled?: boolean }
+) => {
+  const api = useAxios();
+  const { data, isPending, error } = useQuery<MarketplaceEnquiriesResponse>({
+    queryKey: ["market-place-enquiries", page, limit],
+    queryFn: async () => {
+      return (
+        await api.get(`/broker/enquiry/marketplace?page=${page}&limit=${limit}`)
+      ).data.data as MarketplaceEnquiriesResponse;
+    },
+    enabled: options?.enabled ?? true,
+  });
+  return {
+    marketPlaceEnquiries: data?.enquiries ?? [],
+    pagination: {
+      total: data?.total ?? 0,
+      page: data?.page ?? page,
+      totalPages: data?.totalPages ?? 1,
+    },
+    isPending,
+    error,
+  };
+};
+
+/**
+ * Fetches ALL marketplace enquiries by paging through the backend (limit capped server-side).
+ * Use sparingly (e.g., Unified Home toggle) to keep UX "show all" without manual pagination.
+ */
+export const useGetAllMarketPlaceEnquiries = (options?: { enabled?: boolean }) => {
   const api = useAxios();
   const { data, isPending, error } = useQuery<MarketplaceEnquiry[]>({
-    queryKey: ["market-place-enquiries"],
+    queryKey: ["market-place-enquiries", "all"],
     queryFn: async () => {
-      return (await api.get("/broker/enquiry/marketplace")).data.data.enquiries;
+      const limit = 100;
+      const first = await api.get(
+        `/broker/enquiry/marketplace?page=1&limit=${limit}`
+      );
+      const firstData = first.data.data as MarketplaceEnquiriesResponse;
+
+      let all = [...(firstData.enquiries || [])];
+      const totalPages = firstData.totalPages || 1;
+
+      for (let p = 2; p <= totalPages; p++) {
+        const resp = await api.get(
+          `/broker/enquiry/marketplace?page=${p}&limit=${limit}`
+        );
+        const pageData = resp.data.data as MarketplaceEnquiriesResponse;
+        all = all.concat(pageData.enquiries || []);
+      }
+
+      return all;
     },
+    enabled: options?.enabled ?? true,
   });
-  return { marketPlaceEnquiries: data, isPending, error };
+
+  return { marketPlaceEnquiries: data ?? [], isPending, error };
 };
 
 export const useCreateEnquiry = () => {
