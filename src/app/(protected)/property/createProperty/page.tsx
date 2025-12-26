@@ -4,6 +4,7 @@ import {
   useCreateCompanyProperty,
   useSaveCompanyPropertyDraft,
 } from "@/hooks/useCompany";
+import { Button as MovingBorderCard } from "@/components/ui/moving-border";
 import { Loader2, ArrowLeft, Sparkles, FileText, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -259,39 +260,45 @@ const CreateProperty = () => {
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {propertyCategories.map((category) => (
-                <motion.div
+                <MovingBorderCard
                   key={category.key}
+                  duration={3000}
+                  borderRadius="0.75rem"
+                  rx="12px"
+                  ry="12px"
+                  as={motion.div}
                   variants={itemVariants}
                   onClick={() => handleCategorySelect(category.key)}
-                  className="group relative cursor-pointer overflow-hidden rounded-xl h-40 hover:shadow-lg transition-all duration-300 ease-out"
+                  containerClassName="h-40 w-full overflow-hidden bg-transparent p-[2px]"
+                  className="bg-transparent border-none p-0 items-start justify-start"
+                  borderClassName="h-24 w-24 opacity-100 bg-[radial-gradient(#3b82f6_30%,#06b6d4_50%,transparent_70%)]"
                 >
-                  {/* Background Image */}
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                    style={{ backgroundImage: `url(${category.image})` }}
-                  />
+                  <div className="relative w-full h-full group cursor-pointer overflow-hidden rounded-xl">
+                    {/* Background Image */}
+                    <div
+                      className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                      style={{ backgroundImage: `url(${category.image})` }}
+                    />
 
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300" />
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300" />
 
-                  {/* Border Highlight on Hover */}
-                  <div className="absolute inset-0 border border-white/10 group-hover:border-accent/50 rounded-xl transition-colors duration-300" />
-
-                  {/* Content */}
-                  <div className="absolute inset-0 p-3 flex flex-col justify-end">
-                    <div className="transform transition-transform duration-300 translate-y-1 group-hover:translate-y-0">
-                      <h3 className="text-base font-instrument-serif text-white leading-tight">
-                        {category.label}
-                      </h3>
-                      <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
-                        <span className="text-white/80 text-[11px] line-clamp-1">
-                          {category.description}
-                        </span>
-                        <ChevronRight className="w-3.5 h-3.5 text-accent" />
+                    {/* Content */}
+                    <div className="absolute inset-0 p-3 flex flex-col justify-end">
+                      <div className="transform transition-transform duration-300 translate-y-1 group-hover:translate-y-0">
+                        <h3 className="text-base font-instrument-serif text-white leading-tight">
+                          {category.label}
+                        </h3>
+                        <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
+                          <span className="text-white/80 text-[11px] line-clamp-1">
+                            {category.description}
+                          </span>
+                          <ChevronRight className="w-3.5 h-3.5 text-accent" />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </MovingBorderCard>
               ))}
             </div>
           </section>
