@@ -55,7 +55,7 @@ const EmptyEnquiriesState = () => (
     </div>
     <h3 className="text-2xl font-instrument-serif text-foreground mb-2">No enquiries found</h3>
     <p className="text-muted-foreground max-w-sm font-light">
-       We couldn&apos;t find any enquiries matching your search.
+      We couldn&apos;t find any enquiries matching your search.
     </p>
   </div>
 );
@@ -581,131 +581,132 @@ const ProtectedPage = () => {
           {/* 2. MAIN SPLIT CONTENT */}
           <div className="flex-1 flex overflow-hidden relative">
 
-        {/* Left Panel - Property List Only */}
-        <div
-          className={`
+            {/* Left Panel - Property List Only */}
+            <div
+              className={`
             flex-col h-full overflow-y-auto scrollbar-hide transition-all duration-300
             ${view === "map" ? "hidden" : "flex"}
             ${view === "grid" ? "w-full" : "w-full lg:w-[60%] xl:w-[55%] 2xl:w-[50%]"}
             ${isMapOverlayActive ? 'hidden lg:flex' : ''}
           `}
-        >
-          {/* Increased top padding for better breathing room */}
-          <div className="p-6 md:p-8 space-y-4 pb-24">
+            >
+              {/* Increased top padding for better breathing room */}
+              <div className="p-6 md:p-8 space-y-4 pb-24">
 
-            {/* Results Count (Desktop) */}
-            {!isLoading && (
-              <div className="hidden sm:flex items-center justify-between px-1">
-                <p className="text-sm text-muted-foreground">
-                  Showing <span className="font-medium text-foreground">{filteredProperties.length}</span> properties
-                  {categoryFilter !== "ALL" && <span className="text-accent"> in {categoryFilter.toLowerCase().replace('_', ' ')}</span>}
-                </p>
-              </div>
-            )}
-
-            {/* Property Grid */}
-            {isLoading ? (
-              <div className={`grid gap-6 ${view === 'split'
-                ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
-                : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                }`}>
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="space-y-3">
-                    <Skeleton className="aspect-[4/3] w-full rounded-xl" />
-                    <div className="space-y-2 px-1">
-                      <Skeleton className="h-5 w-24" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-3/4" />
-                    </div>
+                {/* Results Count (Desktop) */}
+                {!isLoading && (
+                  <div className="hidden sm:flex items-center justify-between px-1">
+                    <p className="text-sm text-muted-foreground">
+                      Showing <span className="font-medium text-foreground">{filteredProperties.length}</span> properties
+                      {categoryFilter !== "ALL" && <span className="text-accent"> in {categoryFilter.toLowerCase().replace('_', ' ')}</span>}
+                    </p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <>
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="show"
-                  className={`grid gap-6 ${view === 'split'
+                )}
+
+                {/* Property Grid */}
+                {isLoading ? (
+                  <div className={`grid gap-6 ${view === 'split'
                     ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
                     : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                    }`}
-                >
-                  {filteredProperties.length > 0 ? (
-                    filteredProperties.map((property) => (
-                      <motion.div
-                        key={property._id}
-                        variants={itemVariants}
-                        ref={(el: HTMLDivElement | null) => { propertyRefs.current[property._id] = el; }}
-                        className={`rounded-3xl transition-all duration-300 ${selectedPropertyId === property._id
-                          ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
-                          : ""
-                          }`}
-                      >
-                        <PropertyCard 
-                          property={property} 
-                          showMapButton={true}
-                          onShowOnMap={handleShowOnMap}
-                        />
-                      </motion.div>
-                    ))
-                  ) : (
-                    <EmptyState onClearFilters={clearFilters} />
-                  )}
-                </motion.div>
-                {renderPagination()}
-              </>
-            )}
+                    }`}>
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="space-y-3">
+                        <Skeleton className="aspect-[4/3] w-full rounded-xl" />
+                        <div className="space-y-2 px-1">
+                          <Skeleton className="h-5 w-24" />
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-4 w-3/4" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <motion.div
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="show"
+                      className={`grid gap-6 ${view === 'split'
+                        ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
+                        : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                        }`}
+                    >
+                      {filteredProperties.length > 0 ? (
+                        filteredProperties.map((property) => (
+                          <motion.div
+                            key={property._id}
+                            variants={itemVariants}
+                            ref={(el: HTMLDivElement | null) => { propertyRefs.current[property._id] = el; }}
+                            className={`rounded-3xl transition-all duration-300 ${selectedPropertyId === property._id
+                              ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
+                              : ""
+                              }`}
+                          >
+                            <PropertyCard
+                              property={property}
+                              showMapButton={true}
+                              onShowOnMap={handleShowOnMap}
+                            />
+                          </motion.div>
+                        ))
+                      ) : (
+                        <EmptyState onClearFilters={clearFilters} />
+                      )}
+                    </motion.div>
+                    {renderPagination()}
+                  </>
+                )}
 
-          </div>
-        </div>
+              </div>
+            </div>
 
-        {/* Right Panel - Map */}
-        <div
-          className={`
-          flex-1 h-full bg-muted border-l border-border/50
+            {/* Right Panel - Map (Sticky on desktop, only visible in split/map views) */}
+            <div
+              className={`
+          h-full bg-muted border-l border-border/50
           transition-all duration-300 relative
-          ${view === "grid" && !isMapOverlayActive ? "hidden" : ""}
-          ${view === "map" ? "block w-full" : "hidden lg:block"}
-          ${isMapOverlayActive ? 'block lg:hidden w-full fixed inset-0 top-[120px] z-40' : ''}
+          ${view === "grid" ? "hidden" : ""}
+          ${view === "map" ? "block w-full" : ""}
+          ${view === "split" && !isMapOverlayActive ? "hidden lg:block lg:w-[40%] xl:w-[45%] 2xl:w-[50%] lg:sticky lg:top-0 lg:self-start" : ""}
+          ${isMapOverlayActive ? 'block w-full fixed inset-0 top-[120px] z-40' : ''}
         `}
-        >
-          {selectedProperty && (
-            <div className="absolute left-4 top-14 z-20 w-[calc(100%-2rem)] sm:w-[340px] lg:w-[380px] max-h-[calc(100%-4.5rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
-              <PropertyDetails
-                property={selectedProperty}
-                onClose={() => setSelectedPropertyId(null)}
+            >
+              {selectedProperty && (
+                <div className="absolute left-4 top-14 z-20 w-[calc(100%-2rem)] sm:w-[340px] lg:w-[380px] max-h-[calc(100%-4.5rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
+                  <PropertyDetails
+                    property={selectedProperty}
+                    onClose={() => setSelectedPropertyId(null)}
+                  />
+                </div>
+              )}
+              <MapBox
+                properties={filteredProperties}
+                onSelectProperty={setSelectedPropertyId}
+                highlightedPropertyId={highlightedPropertyId}
+                highlightRequestId={highlightRequestId}
+                onHighlightComplete={handleHighlightComplete}
               />
             </div>
-          )}
-          <MapBox
-            properties={filteredProperties}
-            onSelectProperty={setSelectedPropertyId}
-            highlightedPropertyId={highlightedPropertyId}
-            highlightRequestId={highlightRequestId}
-            onHighlightComplete={handleHighlightComplete}
-          />
-        </div>
 
-        {/* Floating Mobile Toggle Button */}
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 lg:hidden">
-          <Button
-            onClick={() => setIsMobileMapOpen((open) => !open)}
-            className="rounded-full bg-primary/95 text-primary-foreground backdrop-blur-md border border-white/10 px-6 py-6 h-auto shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
-          >
-            {isMobileMapOpen ? (
-              <>
-                <LayoutGridIcon className="h-5 w-5" />
-                <span className="font-medium tracking-wide">List View</span>
-              </>
-            ) : (
-              <>
-                <MapPin className="h-5 w-5" />
-                <span className="font-medium tracking-wide">Map View</span>
-              </>
-            )}
-          </Button>
-        </div>
+            {/* Floating Mobile Toggle Button */}
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 lg:hidden">
+              <Button
+                onClick={() => setIsMobileMapOpen((open) => !open)}
+                className="rounded-full bg-primary/95 text-primary-foreground backdrop-blur-md border border-white/10 px-6 py-6 h-auto shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
+              >
+                {isMobileMapOpen ? (
+                  <>
+                    <LayoutGridIcon className="h-5 w-5" />
+                    <span className="font-medium tracking-wide">List View</span>
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="h-5 w-5" />
+                    <span className="font-medium tracking-wide">Map View</span>
+                  </>
+                )}
+              </Button>
+            </div>
 
           </div>
         </>
