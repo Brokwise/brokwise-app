@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useGetAllProperties } from "@/hooks/useProperty";
 import { useGetAllMarketPlaceEnquiries } from "@/hooks/useEnquiry";
@@ -28,6 +28,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { MarketplaceHeader } from "./_components/MarketplaceHeader";
+
+// Keep in sync with Tailwind `theme.screens.lg` (see `tailwind.config.ts`).
+const LG_BREAKPOINT_PX = 1350;
 
 // Empty State Component
 const EmptyState = ({ onClearFilters }: { onClearFilters: () => void }) => (
@@ -74,15 +77,56 @@ const ProtectedPage = () => {
   const [isMobileMapOpen, setIsMobileMapOpen] = useState(false);
   const [view, setView] = useState<"grid" | "map" | "split">("grid"); // Default to grid property-only view
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+  // Separate state for highlighted marker (triggered by "Show on Map" button)
+  const [highlightedPropertyId, setHighlightedPropertyId] = useState<string | null>(null);
+  const [highlightRequestId, setHighlightRequestId] = useState(0);
+
+  // The marketplace uses `lg` as the breakpoint for switching between split layout and map overlay.
+  const [isBelowLg, setIsBelowLg] = useState(false);
+  const isMapOverlayActive = isBelowLg && isMobileMapOpen;
 
   // When switching to Enquiries mode, ensure property-specific panels are reset/closed.
   useEffect(() => {
     if (viewMode === "ENQUIRIES") {
       setView("grid");
       setSelectedPropertyId(null);
+      setHighlightedPropertyId(null);
       setIsMobileMapOpen(false);
     }
   }, [viewMode]);
+
+  // Track whether we are below the `lg` breakpoint (used for the map overlay layout).
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${LG_BREAKPOINT_PX - 1}px)`);
+    const onChange = (e: MediaQueryListEvent) => setIsBelowLg(e.matches);
+    setIsBelowLg(mql.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  // If we move to a viewport where split layout is available, force-close the overlay mode
+  // so it doesn't unintentionally hide the right map panel on desktop.
+  useEffect(() => {
+    if (!isBelowLg) {
+      setIsMobileMapOpen(false);
+    }
+  }, [isBelowLg]);
+
+  // Handle "Show on Map" button click from PropertyCard
+  const handleShowOnMap = useCallback((propertyId: string) => {
+    // Switch to split view (desktop) or enable map context (overlay layouts)
+    setView("split");
+    // Trigger marker highlight
+    setHighlightedPropertyId(propertyId);
+    // Ensure re-trigger even if the same property is clicked again
+    setHighlightRequestId((n) => n + 1);
+    // On overlay layouts (< lg), open the map overlay; on desktop, ensure overlay is closed.
+    setIsMobileMapOpen(isBelowLg);
+  }, [isBelowLg]);
+
+  const handleHighlightComplete = useCallback(() => {
+    setHighlightedPropertyId(null);
+  }, []);
 
   /* Scroll Refs - Using Record type for cleaner typing */
   const propertyRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -542,7 +586,7 @@ const ProtectedPage = () => {
             flex-col h-full overflow-y-auto scrollbar-hide transition-all duration-300
             ${view === "map" ? "hidden" : "flex"}
             ${view === "grid" ? "w-full" : "w-full lg:w-[60%] xl:w-[55%] 2xl:w-[50%]"}
-            ${isMobileMapOpen ? 'hidden lg:flex' : ''}
+            ${isMapOverlayActive ? 'hidden lg:flex' : ''}
           `}
         >
           {/* Increased top padding for better breathing room */}
@@ -592,12 +636,16 @@ const ProtectedPage = () => {
                         key={property._id}
                         variants={itemVariants}
                         ref={(el: HTMLDivElement | null) => { propertyRefs.current[property._id] = el; }}
-                        className={`rounded-xl transition-all duration-300 ${selectedPropertyId === property._id
+                        className={`rounded-3xl transition-all duration-300 ${selectedPropertyId === property._id
                           ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
                           : ""
                           }`}
                       >
-                        <PropertyCard property={property} />
+                        <PropertyCard 
+                          property={property} 
+                          showMapButton={true}
+                          onShowOnMap={handleShowOnMap}
+                        />
                       </motion.div>
                     ))
                   ) : (
@@ -616,9 +664,9 @@ const ProtectedPage = () => {
           className={`
           flex-1 h-full bg-muted border-l border-border/50
           transition-all duration-300 relative
-          ${view === "grid" && !isMobileMapOpen ? "hidden" : ""}
+          ${view === "grid" && !isMapOverlayActive ? "hidden" : ""}
           ${view === "map" ? "block w-full" : "hidden lg:block"}
-          ${isMobileMapOpen ? 'block lg:hidden w-full fixed inset-0 top-[120px] z-40' : ''}
+          ${isMapOverlayActive ? 'block lg:hidden w-full fixed inset-0 top-[120px] z-40' : ''}
         `}
         >
           {selectedProperty && (
@@ -632,13 +680,16 @@ const ProtectedPage = () => {
           <MapBox
             properties={filteredProperties}
             onSelectProperty={setSelectedPropertyId}
+            highlightedPropertyId={highlightedPropertyId}
+            highlightRequestId={highlightRequestId}
+            onHighlightComplete={handleHighlightComplete}
           />
         </div>
 
         {/* Floating Mobile Toggle Button */}
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 lg:hidden">
           <Button
-            onClick={() => setIsMobileMapOpen(!isMobileMapOpen)}
+            onClick={() => setIsMobileMapOpen((open) => !open)}
             className="rounded-full bg-primary/95 text-primary-foreground backdrop-blur-md border border-white/10 px-6 py-6 h-auto shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
           >
             {isMobileMapOpen ? (

@@ -9,6 +9,9 @@ import { useTheme } from "next-themes";
 interface MapBoxProps {
   properties: Property[];
   onSelectProperty?: (propertyId: string) => void;
+  highlightedPropertyId?: string | null;
+  highlightRequestId?: number;
+  onHighlightComplete?: () => void;
 }
 
 const formatPrice = (price: number) => {
@@ -34,15 +37,52 @@ const getMapStyleUrl = (styleType: MapStyleType, isDark: boolean): string => {
     : "mapbox://styles/mapbox/streets-v12";
 };
 
-export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
+// CSS for marker jump animation - injected once
+const MARKER_ANIMATION_STYLES = `
+@keyframes markerJump {
+  0% { transform: scale(1) translateY(0); }
+  20% { transform: scale(1.3) translateY(-15px); }
+  40% { transform: scale(1.25) translateY(-8px); }
+  60% { transform: scale(1.28) translateY(-12px); }
+  80% { transform: scale(1.25) translateY(-5px); }
+  100% { transform: scale(1.25) translateY(0); }
+}
+
+.marker-highlighted {
+  animation: markerJump 0.6s ease-out forwards;
+}
+`;
+
+export const MapBox = ({
+  properties,
+  onSelectProperty,
+  highlightedPropertyId,
+  highlightRequestId,
+  onHighlightComplete,
+}: MapBoxProps) => {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  // Map property IDs to their marker elements for targeted updates
+  const markerElementsRef = useRef<Map<string, HTMLElement>>(new Map());
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previousHighlightedIdRef = useRef<string | null>(null);
   const appliedStyleRef = useRef<string>("");
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapStyleType, setMapStyleType] = useState<MapStyleType>("streets");
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
+
+  // Inject marker animation styles once
+  useEffect(() => {
+    const styleId = "mapbox-marker-animation-styles";
+    if (!document.getElementById(styleId)) {
+      const styleSheet = document.createElement("style");
+      styleSheet.id = styleId;
+      styleSheet.textContent = MARKER_ANIMATION_STYLES;
+      document.head.appendChild(styleSheet);
+    }
+  }, []);
 
   const toggleStyle = () => {
     setMapStyleType((prev) =>
@@ -138,9 +178,10 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
-    // Clear old markers
+    // Clear old markers and element references
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
+    markerElementsRef.current.clear();
 
     // Filter properties with valid coordinates
     const validProperties = properties.filter(
@@ -162,14 +203,18 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
 
       const el = document.createElement("div");
       el.className = "custom-marker group cursor-pointer z-20";
+      el.setAttribute("data-property-id", property._id);
       el.innerHTML = `
-        <div class="transition-transform duration-200 group-hover:scale-110">
-          <div style="background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 6px 10px; border-radius: 99px; box-shadow: 0 4px 12px hsl(var(--foreground) / 0.2); font-weight: 600; font-size: 13px; white-space: nowrap; display: flex; align-items: center; justify-content: center; border: 2px solid hsl(var(--background));">
+        <div class="marker-inner transition-all duration-300 group-hover:scale-110" style="transform-origin: bottom center;">
+          <div class="marker-bubble" style="background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 6px 10px; border-radius: 99px; box-shadow: 0 4px 12px hsl(var(--foreground) / 0.2); font-weight: 600; font-size: 13px; white-space: nowrap; display: flex; align-items: center; justify-content: center; border: 2px solid hsl(var(--background)); transition: all 0.3s ease;">
             ${priceFormatted}
           </div>
-          <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid hsl(var(--primary)); margin: -2px auto 0 auto; filter: drop-shadow(0 2px 1px rgba(0,0,0,0.1));"></div>
+          <div class="marker-arrow" style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid hsl(var(--primary)); margin: -2px auto 0 auto; filter: drop-shadow(0 2px 1px rgba(0,0,0,0.1)); transition: border-top-color 0.3s ease;"></div>
         </div>
       `;
+
+      // Store element reference for highlighting
+      markerElementsRef.current.set(property._id, el);
 
       const popup = new mapboxgl.Popup({
         offset: 25,
@@ -239,6 +284,118 @@ export const MapBox = ({ properties, onSelectProperty }: MapBoxProps) => {
       map.off("style.load", fitToMarkers);
     };
   }, [properties, onSelectProperty, mapLoaded]);
+
+  // Handle marker highlighting with jump animation
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    // Helper function to reset a marker to its default state
+    const resetMarker = (propertyId: string) => {
+      const el = markerElementsRef.current.get(propertyId);
+      if (!el) return;
+
+      const markerInner = el.querySelector(".marker-inner") as HTMLElement;
+      const markerBubble = el.querySelector(".marker-bubble") as HTMLElement;
+      const markerArrow = el.querySelector(".marker-arrow") as HTMLElement;
+
+      if (markerInner) {
+        markerInner.style.transform = "";
+        markerInner.style.animation = "";
+        markerInner.classList.remove("marker-highlighted");
+      }
+      if (markerBubble) {
+        markerBubble.style.backgroundColor = "hsl(var(--primary))";
+        markerBubble.style.boxShadow = "0 4px 12px hsl(var(--foreground) / 0.2)";
+        markerBubble.style.border = "2px solid hsl(var(--background))";
+      }
+      if (markerArrow) {
+        markerArrow.style.borderTopColor = "hsl(var(--primary))";
+      }
+      el.style.zIndex = "20";
+    };
+
+    // Helper function to highlight a marker with jump animation
+    const highlightMarker = (propertyId: string) => {
+      const el = markerElementsRef.current.get(propertyId);
+      if (!el) return;
+
+      const markerInner = el.querySelector(".marker-inner") as HTMLElement;
+      const markerBubble = el.querySelector(".marker-bubble") as HTMLElement;
+      const markerArrow = el.querySelector(".marker-arrow") as HTMLElement;
+
+      // Bring marker to front
+      el.style.zIndex = "100";
+
+      if (markerInner) {
+        // Restart the jump animation deterministically (even if the same marker is highlighted again).
+        markerInner.classList.remove("marker-highlighted");
+        // Force a reflow so the animation can be re-triggered.
+        void markerInner.offsetHeight;
+        markerInner.classList.add("marker-highlighted");
+        markerInner.style.transform = "scale(1.25)";
+      }
+      if (markerBubble) {
+        // Change to accent color (highlighted state)
+        markerBubble.style.backgroundColor = "hsl(var(--accent))";
+        markerBubble.style.boxShadow = "0 6px 20px hsl(var(--accent) / 0.4)";
+        markerBubble.style.border = "3px solid hsl(var(--background))";
+      }
+      if (markerArrow) {
+        markerArrow.style.borderTopColor = "hsl(var(--accent))";
+      }
+    };
+
+    // Clear any existing timeout
+    if (highlightTimeoutRef.current) {
+      clearTimeout(highlightTimeoutRef.current);
+      highlightTimeoutRef.current = null;
+    }
+
+    // Reset previous marker if there was one (exclusive selection)
+    if (previousHighlightedIdRef.current && previousHighlightedIdRef.current !== highlightedPropertyId) {
+      resetMarker(previousHighlightedIdRef.current);
+    }
+
+    // Highlight the new marker
+    if (highlightedPropertyId) {
+      highlightMarker(highlightedPropertyId);
+      previousHighlightedIdRef.current = highlightedPropertyId;
+
+      // Find the property to center the map on it
+      const property = properties.find((p) => p._id === highlightedPropertyId);
+      if (property?.location?.coordinates) {
+        const [lng, lat] = property.location.coordinates;
+        map.easeTo({ 
+          center: [lng, lat], 
+          zoom: Math.max(map.getZoom(), 14),
+          duration: 800
+        });
+      }
+
+      // Auto-reset after 5 seconds
+      highlightTimeoutRef.current = setTimeout(() => {
+        resetMarker(highlightedPropertyId);
+        previousHighlightedIdRef.current = null;
+        if (onHighlightComplete) {
+          onHighlightComplete();
+        }
+      }, 5000);
+    } else {
+      // If highlight is cleared externally, ensure any previously highlighted marker is reset immediately.
+      if (previousHighlightedIdRef.current) {
+        resetMarker(previousHighlightedIdRef.current);
+      }
+      previousHighlightedIdRef.current = null;
+    }
+
+    return () => {
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+        highlightTimeoutRef.current = null;
+      }
+    };
+  }, [highlightedPropertyId, highlightRequestId, mapLoaded, properties, onHighlightComplete]);
 
   return (
     <div className="relative w-full h-full min-h-[500px] rounded-lg overflow-hidden border bg-muted group">
