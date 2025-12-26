@@ -28,7 +28,8 @@ export const useGetProjects = (
       if (filters?.page) params.append("page", filters.page.toString());
       if (filters?.limit) params.append("limit", filters.limit.toString());
 
-      return (await api.get(`/projects?${params.toString()}`)).data.data;
+      return (await api.get(`/projects/broker/list?${params.toString()}`)).data
+        .data;
     },
     enabled: options?.enabled ?? true,
   });

@@ -16,6 +16,7 @@ import { Loader2, Plus, Search, MapPin, LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { formatAddress } from "@/utils/helper";
 import { useDebounce } from "@/hooks/useDebounce";
+import Image from "next/image";
 
 const ProjectsPage = () => {
   const [search, setSearch] = useState("");
@@ -29,17 +30,7 @@ const ProjectsPage = () => {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Projects</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your real estate projects
-          </p>
         </div>
-        <Link href="/projects/create">
-          {/* Assuming there will be a create page, though not implemented yet */}
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Project
-          </Button>
-        </Link>
       </div>
 
       {/* Filters */}
@@ -74,8 +65,9 @@ const ProjectsPage = () => {
             <Link key={project._id} href={`/projects/${project._id}`}>
               <Card className="h-full hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
                 <div className="aspect-video relative bg-muted">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
+                    width={100}
+                    height={100}
                     src={project.images?.[0] || "/images/placeholder.webp"}
                     alt={project.name}
                     className="w-full h-full object-cover"

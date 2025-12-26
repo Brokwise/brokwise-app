@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useGetProject } from "@/hooks/useProject";
+import { useGetProject, useGetProjectPlots } from "@/hooks/useProject";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -29,11 +29,17 @@ import { formatCurrency, formatAddress } from "@/utils/helper";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AxiosError } from "axios";
+import { Plot } from "@/models/types/project";
+import { BookingDialog } from "./_components/BookingDialog";
 
 const ProjectPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
   const router = useRouter();
   const { project, stats, isLoading, error } = useGetProject(id);
+  const { plots, isLoading: isLoadingPlots } = useGetProjectPlots(id, {
+    limit: 100, // Show first 100 plots
+  });
+  const [selectedPlot, setSelectedPlot] = React.useState<Plot | null>(null);
 
   if (isLoading) {
     return (
@@ -162,6 +168,75 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Plots Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Plots</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoadingPlots ? (
+                <div className="flex justify-center p-4">
+                  <Loader2 className="animate-spin text-primary" />
+                </div>
+              ) : plots && plots.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {plots.map((plot) => (
+                    <div
+                      key={plot._id}
+                      className={`p-4 border rounded-lg flex flex-col items-center gap-2 relative group ${
+                        plot.status === "available"
+                          ? "bg-card hover:border-primary cursor-pointer transition-all hover:shadow-sm"
+                          : "bg-muted/50 opacity-80"
+                      }`}
+                      onClick={() => {
+                        if (plot.status === "available") {
+                          setSelectedPlot(plot);
+                        }
+                      }}
+                    >
+                      <span className="font-bold text-lg">
+                        {plot.plotNumber}
+                      </span>
+                      <div className="text-xs text-muted-foreground text-center space-y-0.5">
+                        <div>
+                          {plot.area} {plot.areaUnit}
+                        </div>
+                        <div>{plot.facing}</div>
+                      </div>
+                      <Badge
+                        variant={
+                          plot.status === "available" ? "outline" : "secondary"
+                        }
+                        className={`mt-1 text-[10px] px-2 py-0.5 h-5 ${
+                          plot.status === "available"
+                            ? "border-green-500 text-green-600 bg-green-50"
+                            : plot.status === "booked"
+                            ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        {plot.status.toUpperCase()}
+                      </Badge>
+                      {plot.status === "available" && (
+                        <div className="text-sm font-semibold mt-1 text-primary">
+                          {formatCurrency(plot.price)}
+                        </div>
+                      )}
+
+                      {plot.status === "available" && (
+                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  No plots found for this project.
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -352,6 +427,13 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
           </Card>
         </div>
       </div>
+
+      <BookingDialog
+        open={!!selectedPlot}
+        onOpenChange={(open) => !open && setSelectedPlot(null)}
+        plot={selectedPlot}
+        projectId={id}
+      />
     </main>
   );
 };
