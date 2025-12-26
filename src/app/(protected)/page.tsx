@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useGetAllProperties } from "@/hooks/useProperty";
 import { useGetAllMarketPlaceEnquiries } from "@/hooks/useEnquiry";
@@ -29,6 +29,9 @@ import {
 } from "@/components/ui/pagination";
 import { MarketplaceHeader } from "./_components/MarketplaceHeader";
 
+// Keep in sync with Tailwind `theme.screens.lg` (see `tailwind.config.ts`).
+const LG_BREAKPOINT_PX = 1350;
+
 // Empty State Component
 const EmptyState = ({ onClearFilters }: { onClearFilters: () => void }) => (
   <div className="col-span-full flex flex-col items-center justify-center py-24 px-4 text-center">
@@ -52,7 +55,7 @@ const EmptyEnquiriesState = () => (
     </div>
     <h3 className="text-2xl font-instrument-serif text-foreground mb-2">No enquiries found</h3>
     <p className="text-muted-foreground max-w-sm font-light">
-       We couldn&apos;t find any enquiries matching your search.
+      We couldn&apos;t find any enquiries matching your search.
     </p>
   </div>
 );
@@ -74,15 +77,56 @@ const ProtectedPage = () => {
   const [isMobileMapOpen, setIsMobileMapOpen] = useState(false);
   const [view, setView] = useState<"grid" | "map" | "split">("grid"); // Default to grid property-only view
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+  // Separate state for highlighted marker (triggered by "Show on Map" button)
+  const [highlightedPropertyId, setHighlightedPropertyId] = useState<string | null>(null);
+  const [highlightRequestId, setHighlightRequestId] = useState(0);
+
+  // The marketplace uses `lg` as the breakpoint for switching between split layout and map overlay.
+  const [isBelowLg, setIsBelowLg] = useState(false);
+  const isMapOverlayActive = isBelowLg && isMobileMapOpen;
 
   // When switching to Enquiries mode, ensure property-specific panels are reset/closed.
   useEffect(() => {
     if (viewMode === "ENQUIRIES") {
       setView("grid");
       setSelectedPropertyId(null);
+      setHighlightedPropertyId(null);
       setIsMobileMapOpen(false);
     }
   }, [viewMode]);
+
+  // Track whether we are below the `lg` breakpoint (used for the map overlay layout).
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${LG_BREAKPOINT_PX - 1}px)`);
+    const onChange = (e: MediaQueryListEvent) => setIsBelowLg(e.matches);
+    setIsBelowLg(mql.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  // If we move to a viewport where split layout is available, force-close the overlay mode
+  // so it doesn't unintentionally hide the right map panel on desktop.
+  useEffect(() => {
+    if (!isBelowLg) {
+      setIsMobileMapOpen(false);
+    }
+  }, [isBelowLg]);
+
+  // Handle "Show on Map" button click from PropertyCard
+  const handleShowOnMap = useCallback((propertyId: string) => {
+    // Switch to split view (desktop) or enable map context (overlay layouts)
+    setView("split");
+    // Trigger marker highlight
+    setHighlightedPropertyId(propertyId);
+    // Ensure re-trigger even if the same property is clicked again
+    setHighlightRequestId((n) => n + 1);
+    // On overlay layouts (< lg), open the map overlay; on desktop, ensure overlay is closed.
+    setIsMobileMapOpen(isBelowLg);
+  }, [isBelowLg]);
+
+  const handleHighlightComplete = useCallback(() => {
+    setHighlightedPropertyId(null);
+  }, []);
 
   /* Scroll Refs - Using Record type for cleaner typing */
   const propertyRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -501,8 +545,9 @@ const ProtectedPage = () => {
   };
 
   return (
-    // Main Container - Viewport minus Header (approx 64px/4rem)
-    <div className="flex flex-col h-full min-h-0 overflow-hidden relative">
+    // Main Container - Cancel parent padding and fill viewport height
+    // The layout wrapper has p-4 pt-[3px] pb-24 md:pb-[3px], we cancel it with negative margins
+    <div className="-m-4 -mt-[3px] -mb-24 md:-mb-[3px] flex flex-col h-[calc(100vh-4rem)] overflow-hidden relative">
 
       {/* 1. TOP CONTROL BAR (Replaced with Component) */}
       <MarketplaceHeader
@@ -536,124 +581,132 @@ const ProtectedPage = () => {
           {/* 2. MAIN SPLIT CONTENT */}
           <div className="flex-1 flex overflow-hidden relative">
 
-        {/* Left Panel - Property List Only */}
-        <div
-          className={`
+            {/* Left Panel - Property List Only */}
+            <div
+              className={`
             flex-col h-full overflow-y-auto scrollbar-hide transition-all duration-300
             ${view === "map" ? "hidden" : "flex"}
             ${view === "grid" ? "w-full" : "w-full lg:w-[60%] xl:w-[55%] 2xl:w-[50%]"}
-            ${isMobileMapOpen ? 'hidden lg:flex' : ''}
+            ${isMapOverlayActive ? 'hidden lg:flex' : ''}
           `}
-        >
-          {/* Increased top padding for better breathing room */}
-          <div className="p-6 md:p-8 space-y-4 pb-24">
+            >
+              {/* Increased top padding for better breathing room */}
+              <div className="p-6 md:p-8 space-y-4 pb-24">
 
-            {/* Results Count (Desktop) */}
-            {!isLoading && (
-              <div className="hidden sm:flex items-center justify-between px-1">
-                <p className="text-sm text-muted-foreground">
-                  Showing <span className="font-medium text-foreground">{filteredProperties.length}</span> properties
-                  {categoryFilter !== "ALL" && <span className="text-accent"> in {categoryFilter.toLowerCase().replace('_', ' ')}</span>}
-                </p>
-              </div>
-            )}
-
-            {/* Property Grid */}
-            {isLoading ? (
-              <div className={`grid gap-6 ${view === 'split'
-                ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
-                : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                }`}>
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="space-y-3">
-                    <Skeleton className="aspect-[4/3] w-full rounded-xl" />
-                    <div className="space-y-2 px-1">
-                      <Skeleton className="h-5 w-24" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-3/4" />
-                    </div>
+                {/* Results Count (Desktop) */}
+                {!isLoading && (
+                  <div className="hidden sm:flex items-center justify-between px-1">
+                    <p className="text-sm text-muted-foreground">
+                      Showing <span className="font-medium text-foreground">{filteredProperties.length}</span> properties
+                      {categoryFilter !== "ALL" && <span className="text-accent"> in {categoryFilter.toLowerCase().replace('_', ' ')}</span>}
+                    </p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <>
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="show"
-                  className={`grid gap-6 ${view === 'split'
+                )}
+
+                {/* Property Grid */}
+                {isLoading ? (
+                  <div className={`grid gap-6 ${view === 'split'
                     ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
                     : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                    }`}
-                >
-                  {filteredProperties.length > 0 ? (
-                    filteredProperties.map((property) => (
-                      <motion.div
-                        key={property._id}
-                        variants={itemVariants}
-                        ref={(el: HTMLDivElement | null) => { propertyRefs.current[property._id] = el; }}
-                        className={`rounded-xl transition-all duration-300 ${selectedPropertyId === property._id
-                          ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
-                          : ""
-                          }`}
-                      >
-                        <PropertyCard property={property} />
-                      </motion.div>
-                    ))
-                  ) : (
-                    <EmptyState onClearFilters={clearFilters} />
-                  )}
-                </motion.div>
-                {renderPagination()}
-              </>
-            )}
+                    }`}>
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="space-y-3">
+                        <Skeleton className="aspect-[4/3] w-full rounded-xl" />
+                        <div className="space-y-2 px-1">
+                          <Skeleton className="h-5 w-24" />
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-4 w-3/4" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <motion.div
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="show"
+                      className={`grid gap-6 ${view === 'split'
+                        ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
+                        : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                        }`}
+                    >
+                      {filteredProperties.length > 0 ? (
+                        filteredProperties.map((property) => (
+                          <motion.div
+                            key={property._id}
+                            variants={itemVariants}
+                            ref={(el: HTMLDivElement | null) => { propertyRefs.current[property._id] = el; }}
+                            className={`rounded-3xl transition-all duration-300 ${selectedPropertyId === property._id
+                              ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
+                              : ""
+                              }`}
+                          >
+                            <PropertyCard
+                              property={property}
+                              showMapButton={true}
+                              onShowOnMap={handleShowOnMap}
+                            />
+                          </motion.div>
+                        ))
+                      ) : (
+                        <EmptyState onClearFilters={clearFilters} />
+                      )}
+                    </motion.div>
+                    {renderPagination()}
+                  </>
+                )}
 
-          </div>
-        </div>
+              </div>
+            </div>
 
-        {/* Right Panel - Map */}
-        <div
-          className={`
-          flex-1 h-full bg-muted border-l border-border/50
+            {/* Right Panel - Map (Sticky on desktop, only visible in split/map views) */}
+            <div
+              className={`
+          h-full bg-muted border-l border-border/50
           transition-all duration-300 relative
-          ${view === "grid" && !isMobileMapOpen ? "hidden" : ""}
-          ${view === "map" ? "block w-full" : "hidden lg:block"}
-          ${isMobileMapOpen ? 'block lg:hidden w-full fixed inset-0 top-[120px] z-40' : ''}
+          ${view === "grid" ? "hidden" : ""}
+          ${view === "map" ? "block w-full" : ""}
+          ${view === "split" && !isMapOverlayActive ? "hidden lg:block lg:w-[40%] xl:w-[45%] 2xl:w-[50%] lg:sticky lg:top-0 lg:self-start" : ""}
+          ${isMapOverlayActive ? 'block w-full fixed inset-0 top-[120px] z-40' : ''}
         `}
-        >
-          {selectedProperty && (
-            <div className="absolute left-4 top-14 z-20 w-[calc(100%-2rem)] sm:w-[340px] lg:w-[380px] max-h-[calc(100%-4.5rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
-              <PropertyDetails
-                property={selectedProperty}
-                onClose={() => setSelectedPropertyId(null)}
+            >
+              {selectedProperty && (
+                <div className="absolute left-4 top-14 z-20 w-[calc(100%-2rem)] sm:w-[340px] lg:w-[380px] max-h-[calc(100%-4.5rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
+                  <PropertyDetails
+                    property={selectedProperty}
+                    onClose={() => setSelectedPropertyId(null)}
+                  />
+                </div>
+              )}
+              <MapBox
+                properties={filteredProperties}
+                onSelectProperty={setSelectedPropertyId}
+                highlightedPropertyId={highlightedPropertyId}
+                highlightRequestId={highlightRequestId}
+                onHighlightComplete={handleHighlightComplete}
               />
             </div>
-          )}
-          <MapBox
-            properties={filteredProperties}
-            onSelectProperty={setSelectedPropertyId}
-          />
-        </div>
 
-        {/* Floating Mobile Toggle Button */}
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 lg:hidden">
-          <Button
-            onClick={() => setIsMobileMapOpen(!isMobileMapOpen)}
-            className="rounded-full bg-primary/95 text-primary-foreground backdrop-blur-md border border-white/10 px-6 py-6 h-auto shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
-          >
-            {isMobileMapOpen ? (
-              <>
-                <LayoutGridIcon className="h-5 w-5" />
-                <span className="font-medium tracking-wide">List View</span>
-              </>
-            ) : (
-              <>
-                <MapPin className="h-5 w-5" />
-                <span className="font-medium tracking-wide">Map View</span>
-              </>
-            )}
-          </Button>
-        </div>
+            {/* Floating Mobile Toggle Button */}
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 lg:hidden">
+              <Button
+                onClick={() => setIsMobileMapOpen((open) => !open)}
+                className="rounded-full bg-primary/95 text-primary-foreground backdrop-blur-md border border-white/10 px-6 py-6 h-auto shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
+              >
+                {isMobileMapOpen ? (
+                  <>
+                    <LayoutGridIcon className="h-5 w-5" />
+                    <span className="font-medium tracking-wide">List View</span>
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="h-5 w-5" />
+                    <span className="font-medium tracking-wide">Map View</span>
+                  </>
+                )}
+              </Button>
+            </div>
 
           </div>
         </>

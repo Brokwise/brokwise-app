@@ -27,6 +27,7 @@ import {
   Loader2,
   Bookmark,
   MessageCircle,
+  Map,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -40,9 +41,16 @@ import { exportElementAsPdf, makeSafeFilePart } from "@/utils/pdf";
 interface PropertyCardProps {
   property: Property;
   hideShare?: boolean;
+  onShowOnMap?: (propertyId: string) => void;
+  showMapButton?: boolean;
 }
 
-export const PropertyCard: React.FC<PropertyCardProps> = ({ property, hideShare = false }) => {
+export const PropertyCard: React.FC<PropertyCardProps> = ({ 
+  property, 
+  hideShare = false,
+  onShowOnMap,
+  showMapButton = false,
+}) => {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const { userData, brokerData, setBrokerData, companyData, setCompanyData } = useApp();
   const { toggleBookmarkAsync, isPending: isBookmarkPending } = useToggleBookmark();
@@ -172,8 +180,24 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, hideShare 
     }
   };
 
+  const handleShowOnMap = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onShowOnMap && hasValidCoordinates) {
+      onShowOnMap(property._id);
+    }
+  };
+
+  // Check if property has valid coordinates for map display
+  const coordinates = property.location?.coordinates;
+  const hasValidCoordinates =
+    Array.isArray(coordinates) &&
+    coordinates.length === 2 &&
+    typeof coordinates[0] === "number" &&
+    typeof coordinates[1] === "number";
+
   return (
-    <Card className="group overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 bg-card h-full flex flex-col rounded-xl">
+    <Card className="group overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 bg-card h-full flex flex-col rounded-3xl">
       {/* Image Section */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
         <Link
@@ -209,8 +233,21 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, hideShare 
           </Badge>
         </div>
 
-        {/* Bookmark + Share */}
+        {/* Map + Bookmark + Share */}
         <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+          {/* Show on Map Button */}
+          {showMapButton && hasValidCoordinates && (
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-md shadow-sm text-foreground/70 hover:bg-background hover:text-accent transition-colors"
+              onClick={handleShowOnMap}
+              title="Show on Map"
+            >
+              <Map className="h-4 w-4" />
+            </Button>
+          )}
+
           <Button
             size="icon"
             variant="secondary"
