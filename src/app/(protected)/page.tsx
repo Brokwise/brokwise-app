@@ -545,8 +545,9 @@ const ProtectedPage = () => {
   };
 
   return (
-    // Main Container - Viewport minus Header (approx 64px/4rem)
-    <div className="flex flex-col h-full min-h-0 overflow-hidden relative">
+    // Main Container - Cancel parent padding and fill viewport height
+    // The layout wrapper has p-4 pt-[3px] pb-24 md:pb-[3px], we cancel it with negative margins
+    <div className="-m-4 -mt-[3px] -mb-24 md:-mb-[3px] flex flex-col h-[calc(100vh-4rem)] overflow-hidden relative">
 
       {/* 1. TOP CONTROL BAR (Replaced with Component) */}
       <MarketplaceHeader

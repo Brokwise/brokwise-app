@@ -69,6 +69,8 @@ export const MapBox = ({
   const previousHighlightedIdRef = useRef<string | null>(null);
   const appliedStyleRef = useRef<string>("");
   const [mapLoaded, setMapLoaded] = useState(false);
+  // Incremented each time markers are recreated so highlight effect can sync
+  const [markersVersion, setMarkersVersion] = useState(0);
   const [mapStyleType, setMapStyleType] = useState<MapStyleType>("streets");
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
@@ -279,6 +281,9 @@ export const MapBox = ({
       map.once("style.load", fitToMarkers);
     }
 
+    // Signal that markers are now ready for highlighting
+    setMarkersVersion((v) => v + 1);
+
     // Cleanup: remove the style.load listener if effect re-runs or component unmounts
     return () => {
       map.off("style.load", fitToMarkers);
@@ -395,7 +400,7 @@ export const MapBox = ({
         highlightTimeoutRef.current = null;
       }
     };
-  }, [highlightedPropertyId, highlightRequestId, mapLoaded, properties, onHighlightComplete]);
+  }, [highlightedPropertyId, highlightRequestId, mapLoaded, markersVersion, properties, onHighlightComplete]);
 
   return (
     <div className="relative w-full h-full min-h-[500px] rounded-lg overflow-hidden border bg-muted group">
