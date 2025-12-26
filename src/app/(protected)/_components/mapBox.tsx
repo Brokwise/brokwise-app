@@ -37,8 +37,8 @@ const getMapStyleUrl = (styleType: MapStyleType, isDark: boolean): string => {
 };
 
 // Zoom threshold for switching between clusters and individual markers
-const CLUSTER_MAX_ZOOM = 11;
-const INDIVIDUAL_MIN_ZOOM = 12;
+const CLUSTER_MAX_ZOOM = 8;
+const INDIVIDUAL_MIN_ZOOM = 9;
 
 // CSS for marker animations
 const MARKER_ANIMATION_STYLES = `
@@ -94,11 +94,11 @@ export const MapBox = ({
   const appliedStyleRef = useRef<string>("");
   const propertiesDataRef = useRef<Property[]>([]);
   const currentZoomRef = useRef<number>(4); // Track zoom without re-renders
-  
+
   const [mapLoaded, setMapLoaded] = useState(false);
   const [markersVersion, setMarkersVersion] = useState(0);
   const [mapStyleType, setMapStyleType] = useState<MapStyleType>("streets");
-  
+
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
 
@@ -155,7 +155,7 @@ export const MapBox = ({
   const updateMarkerVisibility = useCallback((forceShow?: string) => {
     const zoom = currentZoomRef.current;
     const shouldShowMarkers = zoom >= INDIVIDUAL_MIN_ZOOM;
-    
+
     markerElementsRef.current.forEach((el, id) => {
       // Force show a specific marker (for highlighting)
       if (forceShow && id === forceShow) {
@@ -163,7 +163,7 @@ export const MapBox = ({
         el.classList.add("marker-visible");
         return;
       }
-      
+
       if (shouldShowMarkers) {
         el.classList.remove("marker-hidden");
         el.classList.add("marker-visible");
@@ -386,7 +386,7 @@ export const MapBox = ({
         const wasAboveThreshold = currentZoomRef.current >= INDIVIDUAL_MIN_ZOOM;
         const isAboveThreshold = newZoom >= INDIVIDUAL_MIN_ZOOM;
         currentZoomRef.current = newZoom;
-        
+
         // Only update visibility when crossing the threshold
         if (wasAboveThreshold !== isAboveThreshold) {
           updateMarkerVisibility();
@@ -410,19 +410,32 @@ export const MapBox = ({
         if (clusterId === undefined) return;
 
         const source = map.getSource(SOURCE_ID) as mapboxgl.GeoJSONSource;
-        try {
-          const zoom = await source.getClusterExpansionZoom(clusterId);
+        if (!source) return;
+
+        // Use callback API for getClusterExpansionZoom
+        source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+          if (err) {
+            // Fallback: just zoom in a bit
+            const geometry = features[0].geometry;
+            if (geometry.type === "Point") {
+              map.easeTo({
+                center: geometry.coordinates as [number, number],
+                zoom: map.getZoom() + 2,
+                duration: 500,
+              });
+            }
+            return;
+          }
+
           const geometry = features[0].geometry;
-          if (geometry.type === "Point") {
+          if (geometry.type === "Point" && zoom !== null && zoom !== undefined) {
             map.easeTo({
               center: geometry.coordinates as [number, number],
               zoom: zoom,
               duration: 500,
             });
           }
-        } catch (err) {
-          console.error("Error getting cluster expansion zoom:", err);
-        }
+        });
       });
 
       // Handle unclustered point clicks at medium zoom
@@ -484,7 +497,7 @@ export const MapBox = ({
       mapRef.current = null;
       appliedStyleRef.current = "";
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Apply map style changes
@@ -496,14 +509,14 @@ export const MapBox = ({
     if (appliedStyleRef.current === nextStyle) return;
 
     appliedStyleRef.current = nextStyle;
-    
+
     map.once("style.load", () => {
       const geojson = createGeoJSON(propertiesDataRef.current);
       if (geojson.features.length > 0) {
         setupClusterLayers(map, geojson);
       }
     });
-    
+
     map.setStyle(nextStyle);
   }, [mapStyleType, isDarkMode, createGeoJSON, setupClusterLayers]);
 
