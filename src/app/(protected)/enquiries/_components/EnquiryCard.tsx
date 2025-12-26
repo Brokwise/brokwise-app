@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useApp } from "@/context/AppContext";
+// import { useApp } from "@/context/AppContext";
 import {
   MapPin,
   BedDouble,
@@ -29,10 +29,9 @@ interface EnquiryCardProps {
 
 export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
   const router = useRouter();
-  const { userData } =
-    useApp();
+  // const { userData } = useApp();
 
-  const isCompany = userData?.userType === "company";
+  // const isCompany = userData?.userType === "company";
   const locationTitle = formatEnquiryLocation(enquiry);
 
   const formatCurrency = (amount: number) => {
