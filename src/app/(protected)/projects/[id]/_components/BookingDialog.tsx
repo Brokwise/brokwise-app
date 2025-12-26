@@ -22,9 +22,8 @@ import { Button } from "@/components/ui/button";
 import { bookingFormSchema, BookingFormValues } from "@/validators/booking";
 import { useCreateBooking } from "@/hooks/useBooking";
 import { Plot } from "@/models/types/project";
-import { Loader2, User, History } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useApp } from "@/context/AppContext";
-import { toast } from "sonner";
 
 interface BookingDialogProps {
   open: boolean;
@@ -32,8 +31,6 @@ interface BookingDialogProps {
   plot: Plot | null;
   projectId: string;
 }
-
-const STORAGE_KEY = "lastBookingDetails";
 
 export const BookingDialog = ({
   open,

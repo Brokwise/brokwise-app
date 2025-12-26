@@ -19,8 +19,6 @@ import {
   ArrowLeft,
   Loader2,
   Building2,
-  Ruler,
-  CheckCircle2,
   Layers,
   LayoutGrid,
 } from "lucide-react";
@@ -28,7 +26,6 @@ import { format } from "date-fns";
 import { formatCurrency, formatAddress } from "@/utils/helper";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { AxiosError } from "axios";
 import { Plot } from "@/models/types/project";
 import { BookingDialog } from "./_components/BookingDialog";
 

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxios from "./useAxios";
 import { toast } from "sonner";
-import { BookingFormValues } from "@/validators/booking";
+import { AxiosError } from "axios";
 
 interface CreateBookingParams {
   plotId: string;
@@ -30,7 +30,7 @@ export const useCreateBooking = () => {
       queryClient.invalidateQueries({ queryKey: ["project-plots"] });
       queryClient.invalidateQueries({ queryKey: ["project"] });
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message: string }>) => {
       toast.error(error.response?.data?.message || "Failed to create booking");
     },
   });

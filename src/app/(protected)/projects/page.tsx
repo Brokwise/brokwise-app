@@ -10,9 +10,8 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Search, MapPin, LayoutGrid } from "lucide-react";
+import { Loader2, Search, MapPin, LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { formatAddress } from "@/utils/helper";
 import { useDebounce } from "@/hooks/useDebounce";

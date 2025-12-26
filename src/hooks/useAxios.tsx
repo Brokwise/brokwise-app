@@ -1,14 +1,12 @@
 "use client";
 
 import axios from "axios";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { firebaseAuth } from "@/config/firebase";
 import { useEffect, useMemo, useRef } from "react";
 const useAxios = () => {
   const router = useRouter();
   const routerRef = useRef(router);
-  const isHandlingAuthErrorRef = useRef(false);
 
   // Keep the latest router instance for interceptors without re-creating axios.
   useEffect(() => {

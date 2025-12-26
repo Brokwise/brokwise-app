@@ -9,8 +9,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/context/AppContext";
-import { useToggleBookmark } from "@/hooks/useBookmarks";
-import { toast } from "sonner";
 import {
   MapPin,
   BedDouble,
@@ -31,17 +29,10 @@ interface EnquiryCardProps {
 
 export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
   const router = useRouter();
-  const { userData, brokerData, setBrokerData, companyData, setCompanyData } =
+  const { userData } =
     useApp();
-  const { toggleBookmarkAsync, isPending: isBookmarkPending } =
-    useToggleBookmark();
 
   const isCompany = userData?.userType === "company";
-
-  // Check bookmark status from the correct user data
-  const isBookmarked = isCompany
-    ? !!companyData?.bookmarkedEnquiryIds?.includes(enquiry._id)
-    : !!brokerData?.bookmarkedEnquiryIds?.includes(enquiry._id);
   const locationTitle = formatEnquiryLocation(enquiry);
 
   const formatCurrency = (amount: number) => {

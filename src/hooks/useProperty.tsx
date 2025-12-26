@@ -264,7 +264,7 @@ export const useGetBrokerOffers = (options?: { enabled?: boolean }) => {
     data: offers,
     isLoading,
     error,
-  } = useQuery<{ property: any; offer: PropertyOffer }[]>({
+  } = useQuery<{ property: Property; offer: PropertyOffer }[]>({
     queryKey: ["broker-offers"],
     queryFn: async () => {
       return (await api.get("/property/broker/offers")).data.data;

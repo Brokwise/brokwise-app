@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { Property, PropertyOffer } from "@/types/property";
+import { Property } from "@/types/property";
 import { useOfferPrice, useSubmitFinalOffer } from "@/hooks/useProperty";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +12,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +19,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/utils/helper";
 import {
-  AlertCircle,
   CheckCircle2,
   Clock,
   XCircle,
@@ -59,6 +57,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
     const offerById =
       typeof offer.offerBy === "string"
         ? offer.offerBy
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         : (offer.offerBy as any)._id;
     return offerById === brokerData._id;
   });
@@ -99,7 +98,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
         });
       }
       setOpen(false);
-    } catch (error) {
+    } catch {
       // Error is handled by the hook
     }
   };
@@ -125,7 +124,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
       return (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            You haven't made an offer on this property yet. The asking rate is{" "}
+            You haven&apos;t made an offer on this property yet. The asking rate is{" "}
             <span className="font-semibold text-foreground">
               {formatCurrency(property.rate)}
             </span>
