@@ -19,8 +19,6 @@ import {
   Sun,
   Moon,
   Computer,
-  Loader2,
-  Upload,
 } from "lucide-react";
 import { submitUserDetails, updateProfileDetails } from "@/models/api/user";
 import { useApp } from "@/context/AppContext";
@@ -37,8 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
+
 
 // Required field indicator component
 const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
@@ -58,7 +55,7 @@ export const OnboardingDetails = ({
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
+
   const { brokerData, setBrokerData } = useApp();
   const [user] = useAuthState(firebaseAuth);
   const [signOut] = useSignOut(firebaseAuth);
@@ -203,23 +200,7 @@ export const OnboardingDetails = ({
   // Calculate progress
   const totalSteps = 3;
   const progress = (step / totalSteps) * 100;
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        setUploading(true);
-        const path = generateFilePath(file.name, "profile-photos");
-        const downloadURL = await uploadFileToFirebase(file, path);
-        form.setValue("profilePhoto", downloadURL);
-        toast.success("Profile photo uploaded successfully");
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        toast.error("Failed to upload profile photo");
-      } finally {
-        setUploading(false);
-      }
-    }
-  };
+
 
   return (
     <section className="min-h-screen flex items-center justify-center p-4  transition-colors duration-500">
@@ -230,11 +211,10 @@ export const OnboardingDetails = ({
             variant="ghost"
             size="icon"
             onClick={() => setTheme("light")}
-            className={`h-7 w-7 rounded-full transition-all ${
-              activeTheme === "light"
+            className={`h-7 w-7 rounded-full transition-all ${activeTheme === "light"
                 ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
                 : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-            }`}
+              }`}
           >
             <Sun className="h-3.5 w-3.5" />
           </Button>
@@ -242,11 +222,10 @@ export const OnboardingDetails = ({
             variant="ghost"
             size="icon"
             onClick={() => setTheme("dark")}
-            className={`h-7 w-7 rounded-full transition-all ${
-              activeTheme === "dark"
+            className={`h-7 w-7 rounded-full transition-all ${activeTheme === "dark"
                 ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
                 : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-            }`}
+              }`}
           >
             <Moon className="h-3.5 w-3.5" />
           </Button>
@@ -254,11 +233,10 @@ export const OnboardingDetails = ({
             variant="ghost"
             size="icon"
             onClick={() => setTheme("system")}
-            className={`h-7 w-7 rounded-full transition-all ${
-              isSystemTheme
+            className={`h-7 w-7 rounded-full transition-all ${isSystemTheme
                 ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
                 : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-            }`}
+              }`}
           >
             <Computer className="h-3.5 w-3.5" />
           </Button>
@@ -588,10 +566,9 @@ export const OnboardingDetails = ({
                   bg-[#0F172A] text-white hover:bg-[#1E293B]
                   dark:bg-white dark:text-[#0F172A] dark:hover:bg-slate-200
                   transition-all duration-300
-                  ${
-                    step === 3 && !isValid && !loading
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:shadow-lg hover:-translate-y-0.5"
+                  ${step === 3 && !isValid && !loading
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:shadow-lg hover:-translate-y-0.5"
                   }
                 `}
               >
