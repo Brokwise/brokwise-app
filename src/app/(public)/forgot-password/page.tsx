@@ -221,7 +221,7 @@ export default function ForgotPasswordPage() {
       setLoading(true);
 
       // First check if user exists in our database via API
-      // NOTE: This requires the backend /broker/checkEmail endpoint to be implemented
+      // This checks both broker and company accounts
       try {
         const { exists } = await checkUserExistsByEmail(data.email);
         if (!exists) {
@@ -231,7 +231,6 @@ export default function ForgotPasswordPage() {
         }
       } catch (apiError) {
         // Backend endpoint not available - fall back to Firebase
-        // TODO: Implement /broker/checkEmail endpoint on backend to prevent emails to non-existent users
         console.warn(
           "[Password Reset] /broker/checkEmail endpoint not available. Falling back to Firebase behavior.",
           apiError

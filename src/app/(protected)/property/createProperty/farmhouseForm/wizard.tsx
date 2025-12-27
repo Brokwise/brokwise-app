@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { PincodeInput } from "@/components/ui/pincode-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PROPERTY_LIMITS, parseRoadWidthInput } from "@/utils/helper";
+import { PROPERTY_LIMITS, parseRoadWidthInput, formatIndianNumber } from "@/utils/helper";
 
 import {
   Form,
@@ -937,11 +937,11 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
           </div>
           <div>
             <strong>Rate:</strong> ₹
-            {form.watch("rate")?.toLocaleString() || "0"}
+            {formatIndianNumber(form.watch("rate") || 0)}
           </div>
           <div>
             <strong>Total Price:</strong> ₹
-            {form.watch("totalPrice")?.toLocaleString() || "0"}
+            {formatIndianNumber(form.watch("totalPrice") || 0)}
           </div>
           <div>
             <strong>Price Negotiable:</strong>{" "}

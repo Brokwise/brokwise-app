@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { formatIndianNumber } from "@/utils/helper";
 import { FieldValues, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -1218,11 +1219,11 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           </div>
           <div>
             <strong>Rate:</strong> ₹
-            {form.watch("rate")?.toLocaleString() || "0"}
+            {formatIndianNumber(form.watch("rate") || 0)}
           </div>
           <div>
             <strong>Total Price:</strong> ₹
-            {form.watch("totalPrice")?.toLocaleString() || "0"}
+            {formatIndianNumber(form.watch("totalPrice") || 0)}
           </div>
           <div>
             <strong>Price Negotiable:</strong>{" "}
