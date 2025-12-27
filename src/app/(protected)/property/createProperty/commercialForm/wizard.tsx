@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { PincodeInput } from "@/components/ui/pincode-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PROPERTY_LIMITS, parseRoadWidthInput } from "@/utils/helper";
+import { PROPERTY_LIMITS, parseRoadWidthInput, formatIndianNumber } from "@/utils/helper";
 
 import {
   Form,
@@ -711,53 +711,53 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         {(propertyType === "SHOWROOM" ||
           propertyType === "HOTEL" ||
           propertyType === "HOSTEL") && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Rental Income (Optional)</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="rentalIncome.min"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Minimum Rental Income (₹)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        max="2500000"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormDescription>Range: 0 to 25L</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Rental Income (Optional)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="rentalIncome.min"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Minimum Rental Income (₹)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          max="2500000"
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormDescription>Range: 0 to 25L</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="rentalIncome.max"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Maximum Rental Income (₹)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="2500000"
-                        max="2500000"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormDescription>Range: 0 to 25L</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="rentalIncome.max"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maximum Rental Income (₹)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="2500000"
+                          max="2500000"
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormDescription>Range: 0 to 25L</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         <FormField
           control={form.control}
@@ -945,8 +945,8 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
               propertyType === "SHOWROOM"
                 ? "e.g., Retail, Display, Sales"
                 : propertyType === "HOTEL"
-                ? "e.g., Hospitality, Tourism, Business"
-                : "Enter purpose"
+                  ? "e.g., Hospitality, Tourism, Business"
+                  : "Enter purpose"
             }
             {...field}
           />
@@ -1061,17 +1061,17 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
                     </div>
                   )
                 ) || (
-                  <Textarea
-                    placeholder="Enter amenities"
-                    {...field}
-                    value={field.value?.join(", ") || ""}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value.split(", ").filter((item) => item.trim())
-                      )
-                    }
-                  />
-                )}
+                    <Textarea
+                      placeholder="Enter amenities"
+                      {...field}
+                      value={field.value?.join(", ") || ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value.split(", ").filter((item) => item.trim())
+                        )
+                      }
+                    />
+                  )}
               </div>
             </FormControl>
             <FormDescription>Select available amenities</FormDescription>
@@ -1330,26 +1330,26 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
           )}
           <div>
             <strong>Rate:</strong> ₹
-            {form.watch("rate")?.toLocaleString() || "0"}
+            {formatIndianNumber(form.watch("rate") || 0)}
           </div>
           <div>
             <strong>Total Price:</strong> ₹
-            {form.watch("totalPrice")?.toLocaleString() || "0"}
+            {formatIndianNumber(form.watch("totalPrice") || 0)}
           </div>
           {(propertyType === "SHOWROOM" ||
             propertyType === "HOTEL" ||
             propertyType === "HOSTEL") && (
-            <>
-              <div>
-                <strong>Min Rental Income:</strong> ₹
-                {form.watch("rentalIncome.min")?.toLocaleString() || "0"}
-              </div>
-              <div>
-                <strong>Max Rental Income:</strong> ₹
-                {form.watch("rentalIncome.max")?.toLocaleString() || "0"}
-              </div>
-            </>
-          )}
+              <>
+                <div>
+                  <strong>Min Rental Income:</strong> ₹
+                  {formatIndianNumber(form.watch("rentalIncome.min") || 0)}
+                </div>
+                <div>
+                  <strong>Max Rental Income:</strong> ₹
+                  {formatIndianNumber(form.watch("rentalIncome.max") || 0)}
+                </div>
+              </>
+            )}
           <div>
             <strong>Price Negotiable:</strong>{" "}
             {form.watch("isPriceNegotiable") ? "Yes" : "No"}
