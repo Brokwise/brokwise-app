@@ -89,8 +89,6 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
         coordinates: [0, 0],
       },
       featuredMedia: "",
-      images: [],
-      floorPlans: [],
       ...initialData,
       images: coerceStringArray(initialData?.images),
       floorPlans: coerceStringArray(initialData?.floorPlans),

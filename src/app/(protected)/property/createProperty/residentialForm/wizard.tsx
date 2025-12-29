@@ -165,8 +165,6 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         coordinates: [0, 0],
       },
       featuredMedia: "",
-      images: [],
-      floorPlans: [],
       ...initialData,
       images: coerceStringArray(initialData?.images),
       floorPlans: coerceStringArray(initialData?.floorPlans),
@@ -1335,9 +1333,12 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
 
           <div className="col-span-2">
             <strong>Amenities:</strong>{" "}
-            {Array.isArray(form.watch("amenities")) && form.watch("amenities").length
-              ? form.watch("amenities").join(", ")
-              : "None selected"}
+            {(() => {
+              const amenities = form.watch("amenities");
+              return Array.isArray(amenities) && amenities.length
+                ? amenities.join(", ")
+                : "None selected";
+            })()}
           </div>
 
           <div className="col-span-2">

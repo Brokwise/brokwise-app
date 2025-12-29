@@ -97,8 +97,6 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         coordinates: [0, 0],
       },
       featuredMedia: "",
-      images: [],
-      floorPlans: [],
       ...initialData,
       images: initialImages,
       floorPlans: initialFloorPlans,
@@ -394,6 +392,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
                   { value: "HOSTEL", label: "Hostel" },
                   { value: "SHOP", label: "Shop" },
                   { value: "OFFICE_SPACE", label: "Office Space" },
+                  { value: "OTHER_SPACE", label: "Other Space" },
                 ].map((item) => (
                   <Button
                     key={item.value}
@@ -1521,9 +1520,12 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
 
           <div className="col-span-2">
             <strong>Amenities:</strong>{" "}
-            {Array.isArray(form.watch("amenities")) && form.watch("amenities").length
-              ? form.watch("amenities").join(", ")
-              : "None selected"}
+            {(() => {
+              const amenities = form.watch("amenities");
+              return Array.isArray(amenities) && amenities.length
+                ? amenities.join(", ")
+                : "None selected";
+            })()}
           </div>
 
           <div className="col-span-2">

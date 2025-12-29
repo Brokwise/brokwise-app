@@ -89,7 +89,6 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
         coordinates: [0, 0],
       },
       featuredMedia: "",
-      images: [],
       ...initialData,
       images: coerceStringArray(initialData?.images),
       floorPlans: coerceStringArray(initialData?.floorPlans),
@@ -980,9 +979,12 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
           </div>
           <div className="col-span-2">
             <strong>Amenities:</strong>{" "}
-            {Array.isArray(form.watch("amenities")) && form.watch("amenities").length
-              ? form.watch("amenities").join(", ")
-              : "None selected"}
+            {(() => {
+              const amenities = form.watch("amenities");
+              return Array.isArray(amenities) && amenities.length
+                ? amenities.join(", ")
+                : "None selected";
+            })()}
           </div>
           <div className="col-span-2">
             <strong>Description:</strong>{" "}
