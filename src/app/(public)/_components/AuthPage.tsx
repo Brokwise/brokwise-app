@@ -81,23 +81,29 @@ const AccountTypeCard = ({
       ${
         selected
           ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2 ring-offset-background"
-          : "border-border bg-card hover:border-primary/50 hover:bg-accent"
+          : "border-border bg-card hover:border-primary/50"
       }
     `}
   >
     {selected && (
-      <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-        <Check size={12} className="text-white" />
+      <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center z-10">
+        <Check size={12} className="text-primary-foreground" />
       </div>
     )}
     <div
       className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
-        selected ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+        selected
+          ? "bg-primary/20 text-primary"
+          : "bg-muted text-muted-foreground"
       }`}
     >
       {icon}
     </div>
-    <p className={`font-semibold ${selected ? "text-primary" : "text-foreground"}`}>
+    <p
+      className={`font-semibold ${
+        selected ? "text-primary" : "text-foreground"
+      }`}
+    >
       {title}
     </p>
     <p className="text-xs text-muted-foreground mt-1">{description}</p>
