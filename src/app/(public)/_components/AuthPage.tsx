@@ -80,20 +80,20 @@ const AccountTypeCard = ({
       relative flex flex-col items-center justify-center p-5 rounded-xl border-2 transition-all duration-200 w-full
       ${
         selected
-          ? "border-accent bg-accent/5 ring-2 ring-accent ring-offset-2 ring-offset-background"
+          ? "border-accent bg-primary/5 ring-2 ring-accent ring-offset-2 ring-offset-background"
           : "border-border bg-card hover:border-accent/50"
       }
     `}
   >
     {selected && (
-      <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center z-10">
-        <Check size={12} className="text-accent-foreground" />
+      <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center z-10">
+        <Check size={12} className="text-primary-foreground" />
       </div>
     )}
     <div
       className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
         selected
-          ? "bg-accent/20 text-accent"
+          ? "bg-primary/20 text-primary"
           : "bg-muted text-muted-foreground"
       }`}
     >
@@ -101,7 +101,7 @@ const AccountTypeCard = ({
     </div>
     <p
       className={`font-semibold ${
-        selected ? "text-accent" : "text-foreground"
+        selected ? "text-primary" : "text-foreground"
       }`}
     >
       {title}
