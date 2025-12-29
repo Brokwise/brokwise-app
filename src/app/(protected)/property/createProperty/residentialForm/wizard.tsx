@@ -319,7 +319,9 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       } else {
         toast.error("Please fill in all required fields before proceeding.");
       }
-      console.log("Step validation errors:", errors);
+      if (process.env.NODE_ENV !== "production") {
+        console.log("Step validation errors:", errors);
+      }
     }
   };
 
@@ -379,7 +381,9 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       } else {
         toast.error("Please complete all required fields before submitting.");
       }
-      console.log("Form validation errors:", errors);
+      if (process.env.NODE_ENV !== "production") {
+        console.log("Form validation errors:", errors);
+      }
     }
   };
 

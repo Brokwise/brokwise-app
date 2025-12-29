@@ -232,7 +232,9 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
       } else {
         toast.error("Please fill in all required fields before proceeding.");
       }
-      console.log("Step validation errors:", errors);
+      if (process.env.NODE_ENV !== "production") {
+        console.log("Step validation errors:", errors);
+      }
     }
   };
 
@@ -274,7 +276,9 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
       } else {
         toast.error("Please complete all required fields before submitting.");
       }
-      console.log("Form validation errors:", errors);
+      if (process.env.NODE_ENV !== "production") {
+        console.log("Form validation errors:", errors);
+      }
     }
   };
 
