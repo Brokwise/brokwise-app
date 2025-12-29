@@ -38,7 +38,7 @@ export const columns: ColumnDef<Property>[] = [
               className="object-cover"
               sizes="64px"
               onError={(e) => {
-                e.currentTarget.src = "/placeholder.webp";
+                e.currentTarget.src = "/images/placeholder.webp";
               }}
             />
           ) : (

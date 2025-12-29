@@ -66,16 +66,23 @@ export function PropertyActions({ property }: { property: Property }) {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             {/* Media Preview */}
-            <div className="relative h-48 w-full overflow-hidden rounded-lg">
+            <div className="relative h-48 w-full overflow-hidden rounded-lg bg-muted">
               {property.featuredMedia ? (
                 <Image
-                  src={property.featuredMedia}
+                  src={
+                    property.featuredMedia.includes("firebasestorage.googleapis.com")
+                      ? property.featuredMedia
+                      : "/images/placeholder.webp"
+                  }
                   alt="Featured"
                   fill
                   className="object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = "/images/placeholder.webp";
+                  }}
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center bg-muted">
+                <div className="flex h-full w-full items-center justify-center text-muted-foreground text-sm">
                   No Image
                 </div>
               )}
