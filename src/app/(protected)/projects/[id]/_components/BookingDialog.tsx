@@ -77,6 +77,7 @@ export const BookingDialog = ({
     createBooking(
       {
         plotId: plot._id,
+        blockId: plot.blockId,
         projectId,
         customerDetails: {
           name: values.customerName,

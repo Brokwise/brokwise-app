@@ -1,7 +1,9 @@
 export interface Project {
   _id: string;
   name: string;
-  developerId: string | { _id: string; firstName: string; lastName: string; email: string };
+  developerId:
+    | string
+    | { _id: string; firstName: string; lastName: string; email: string };
   reraNumber: string;
   projectType: "land";
   projectUse: "residential" | "commercial" | "agricultural";
@@ -20,13 +22,24 @@ export interface Project {
   possessionDate: string; // Date string
   description: string;
   approvalDocuments: string[];
+  sitePlan?: string;
   images: string[];
   amenities: string[];
-  developmentStatus: "ready-to-develop" | "ready-to-move" | "under-development" | "phase-info";
+  developmentStatus:
+    | "ready-to-develop"
+    | "ready-to-move"
+    | "under-development"
+    | "phase-info";
   projectStatus: "draft" | "active" | "delisted" | "completed";
   projectId: string;
   totalArea?: number;
-  totalAreaUnit?: "SQ_FT" | "SQ_METER" | "SQ_YARDS" | "ACRES" | "HECTARE" | "BIGHA";
+  totalAreaUnit?:
+    | "SQ_FT"
+    | "SQ_METER"
+    | "SQ_YARDS"
+    | "ACRES"
+    | "HECTARE"
+    | "BIGHA";
   priceRange?: {
     min?: number;
     max?: number;
@@ -38,6 +51,7 @@ export interface Project {
 export interface Plot {
   _id: string;
   projectId: string;
+  blockId: string;
   plotNumber: string;
   area: number;
   areaUnit: "SQ_FT" | "SQ_METER" | "SQ_YARDS" | "ACRES";
@@ -48,7 +62,15 @@ export interface Plot {
   };
   price: number;
   pricePerUnit: number;
-  facing: "NORTH" | "SOUTH" | "EAST" | "WEST" | "NORTH_EAST" | "NORTH_WEST" | "SOUTH_EAST" | "SOUTH_WEST";
+  facing:
+    | "NORTH"
+    | "SOUTH"
+    | "EAST"
+    | "WEST"
+    | "NORTH_EAST"
+    | "NORTH_WEST"
+    | "SOUTH_EAST"
+    | "SOUTH_WEST";
   plotType: "CORNER" | "ROAD" | "REGULAR";
   frontRoadWidth?: number;
   status: "available" | "booked" | "reserved" | "sold";

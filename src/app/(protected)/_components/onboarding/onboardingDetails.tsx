@@ -13,13 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Sun,
-  Moon,
-  Computer,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Sun, Moon, Computer } from "lucide-react";
 import { submitUserDetails, updateProfileDetails } from "@/models/api/user";
 import { useApp } from "@/context/AppContext";
 import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
@@ -35,7 +29,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { cities } from "@/constants/cities";
+import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 
 // Required field indicator component
 const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
@@ -61,6 +73,8 @@ export const OnboardingDetails = ({
   const [signOut] = useSignOut(firebaseAuth);
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [openCity, setOpenCity] = useState(false);
+  const [cityQuery, setCityQuery] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -201,7 +215,6 @@ export const OnboardingDetails = ({
   const totalSteps = 3;
   const progress = (step / totalSteps) * 100;
 
-
   return (
     <section className="min-h-screen flex items-center justify-center p-4  transition-colors duration-500">
       {/* Theme Toggles - Absolute Positioning preserved but styled better */}
@@ -211,10 +224,11 @@ export const OnboardingDetails = ({
             variant="ghost"
             size="icon"
             onClick={() => setTheme("light")}
-            className={`h-7 w-7 rounded-full transition-all ${activeTheme === "light"
+            className={`h-7 w-7 rounded-full transition-all ${
+              activeTheme === "light"
                 ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
                 : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
+            }`}
           >
             <Sun className="h-3.5 w-3.5" />
           </Button>
@@ -222,10 +236,11 @@ export const OnboardingDetails = ({
             variant="ghost"
             size="icon"
             onClick={() => setTheme("dark")}
-            className={`h-7 w-7 rounded-full transition-all ${activeTheme === "dark"
+            className={`h-7 w-7 rounded-full transition-all ${
+              activeTheme === "dark"
                 ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
                 : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
+            }`}
           >
             <Moon className="h-3.5 w-3.5" />
           </Button>
@@ -233,10 +248,11 @@ export const OnboardingDetails = ({
             variant="ghost"
             size="icon"
             onClick={() => setTheme("system")}
-            className={`h-7 w-7 rounded-full transition-all ${isSystemTheme
+            className={`h-7 w-7 rounded-full transition-all ${
+              isSystemTheme
                 ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
                 : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
+            }`}
           >
             <Computer className="h-3.5 w-3.5" />
           </Button>
@@ -478,17 +494,82 @@ export const OnboardingDetails = ({
                         control={form.control}
                         name="city"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="flex flex-col">
                             <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
                               City
                             </FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
-                                placeholder="Operating City"
-                              />
-                            </FormControl>
+                            <Popover open={openCity} onOpenChange={setOpenCity}>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={openCity}
+                                    className={cn(
+                                      "w-full justify-between h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                  >
+                                    {field.value
+                                      ? field.value
+                                      : "Select city..."}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                  <CommandInput
+                                    placeholder="Search city..."
+                                    onValueChange={setCityQuery}
+                                  />
+                                  <CommandList>
+                                    <CommandEmpty>
+                                      <p className="p-2 text-sm text-muted-foreground">
+                                        No city found.
+                                      </p>
+                                      <Button
+                                        variant="ghost"
+                                        className="w-full justify-start h-auto p-2 text-sm"
+                                        onClick={() => {
+                                          field.onChange(cityQuery);
+                                          setOpenCity(false);
+                                        }}
+                                      >
+                                        Use &quot;{cityQuery}&quot;
+                                      </Button>
+                                    </CommandEmpty>
+                                    <CommandGroup>
+                                      {cities.map((city) => (
+                                        <CommandItem
+                                          key={city}
+                                          value={city}
+                                          onSelect={(currentValue) => {
+                                            field.onChange(
+                                              currentValue === field.value
+                                                ? ""
+                                                : currentValue
+                                            );
+                                            setOpenCity(false);
+                                          }}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              "mr-2 h-4 w-4",
+                                              field.value?.toLowerCase() ===
+                                                city.toLowerCase()
+                                                ? "opacity-100"
+                                                : "opacity-0"
+                                            )}
+                                          />
+                                          {city}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -502,10 +583,15 @@ export const OnboardingDetails = ({
                               Office Address
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                {...field}
+                              <AddressAutocomplete
+                                valueLabel={field.value || ""}
+                                valueId={field.value || ""}
+                                placeholder="Search office address..."
                                 className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
-                                placeholder="Full address"
+                                onSelect={(item) =>
+                                  field.onChange(item.place_name)
+                                }
+                                onClear={() => field.onChange("")}
                               />
                             </FormControl>
                             <FormMessage />
@@ -566,9 +652,10 @@ export const OnboardingDetails = ({
                   bg-[#0F172A] text-white hover:bg-[#1E293B]
                   dark:bg-white dark:text-[#0F172A] dark:hover:bg-slate-200
                   transition-all duration-300
-                  ${step === 3 && !isValid && !loading
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:shadow-lg hover:-translate-y-0.5"
+                  ${
+                    step === 3 && !isValid && !loading
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:shadow-lg hover:-translate-y-0.5"
                   }
                 `}
               >

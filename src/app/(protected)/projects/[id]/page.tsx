@@ -29,6 +29,9 @@ import { Button } from "@/components/ui/button";
 import { Plot } from "@/models/types/project";
 import { BookingDialog } from "./_components/BookingDialog";
 
+import { ProjectMap } from "./_components/ProjectMap";
+import { ProjectSitePlan } from "./_components/ProjectSitePlan";
+
 const ProjectPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
   const router = useRouter();
@@ -236,6 +239,39 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
               )}
             </CardContent>
           </Card>
+
+          {/* Location Map */}
+          {project.location?.coordinates && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Location
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6 sm:pt-0">
+                <ProjectMap
+                  coordinates={project.location.coordinates}
+                  name={project.name}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Site Plan */}
+          {project.sitePlan && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Site Plan
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6 sm:pt-0">
+                <ProjectSitePlan url={project.sitePlan} />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Description */}
           <Card>
