@@ -451,7 +451,9 @@ export default function AuthPage({
 
       {/* Right Side - Auth Form (Scrollable) */}
       <div
-        className="flex-1 h-full overflow-hidden relative bg-background"
+        className={`flex-1 h-full overflow-hidden relative transition-colors duration-500 ${
+          activeTheme === "light" ? "bg-[#FDFCF8]" : "bg-background"
+        }`}
       >
         <div className="h-full w-full flex flex-col items-center px-6 lg:px-16">
           {/* Fixed header area (prevents the Brokwise title from jumping when mode changes) */}
