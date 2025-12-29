@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { formatIndianNumber } from "@/utils/helper";
+import { coerceStringArray, formatIndianNumber } from "@/utils/helper";
 import { FieldValues, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -168,6 +168,9 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       images: [],
       floorPlans: [],
       ...initialData,
+      images: coerceStringArray(initialData?.images),
+      floorPlans: coerceStringArray(initialData?.floorPlans),
+      amenities: coerceStringArray(initialData?.amenities),
     },
     mode: "onChange",
   });
@@ -295,8 +298,30 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       setCompletedSteps((prev) => new Set([...Array.from(prev), currentStep]));
       setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
     } else {
-      // Show feedback when validation fails
-      toast.error("Please fill in all required fields before proceeding.");
+      // Show feedback when validation fails with specific field errors
+      const errors = form.formState.errors;
+      const errorMessages: string[] = [];
+      
+      const flattenErrors = (obj: Record<string, unknown>, prefix = ""): void => {
+        for (const key in obj) {
+          const value = obj[key] as Record<string, unknown>;
+          const fullKey = prefix ? `${prefix}.${key}` : key;
+          if (value?.message && typeof value.message === "string") {
+            errorMessages.push(value.message);
+          } else if (typeof value === "object" && value !== null) {
+            flattenErrors(value, fullKey);
+          }
+        }
+      };
+      
+      flattenErrors(errors as Record<string, unknown>);
+      
+      if (errorMessages.length > 0) {
+        toast.error(`Please fix: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3 ? ` (+${errorMessages.length - 3} more)` : ""}`);
+      } else {
+        toast.error("Please fill in all required fields before proceeding.");
+      }
+      console.log("Step validation errors:", errors);
     }
   };
 
@@ -333,8 +358,30 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     if (isValid) {
       form.handleSubmit(onSubmit)();
     } else {
-      // Show feedback when validation fails
-      toast.error("Please complete all required fields before submitting.");
+      // Show feedback when validation fails with specific field errors
+      const errors = form.formState.errors;
+      const errorMessages: string[] = [];
+      
+      const flattenErrors = (obj: Record<string, unknown>, prefix = ""): void => {
+        for (const key in obj) {
+          const value = obj[key] as Record<string, unknown>;
+          const fullKey = prefix ? `${prefix}.${key}` : key;
+          if (value?.message && typeof value.message === "string") {
+            errorMessages.push(value.message);
+          } else if (typeof value === "object" && value !== null) {
+            flattenErrors(value, fullKey);
+          }
+        }
+      };
+      
+      flattenErrors(errors as Record<string, unknown>);
+      
+      if (errorMessages.length > 0) {
+        toast.error(`Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3 ? ` (+${errorMessages.length - 3} more)` : ""}`);
+      } else {
+        toast.error("Please complete all required fields before submitting.");
+      }
+      console.log("Form validation errors:", errors);
     }
   };
 
@@ -800,7 +847,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
 
   // Step 3: Features & Amenities
   const toggleAmenity = (amenity: string, field: FieldValues) => {
-    const current = (field.value || []) as string[];
+    const current = coerceStringArray(field.value);
     if (current.includes(amenity)) {
       field.onChange(current.filter((a) => a !== amenity));
     } else {
@@ -810,7 +857,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
 
   const handleAddCustomAmenity = (field: FieldValues) => {
     if (!customAmenity.trim()) return;
-    const current = (field.value || []) as string[];
+    const current = coerceStringArray(field.value);
     if (!current.includes(customAmenity.trim())) {
       field.onChange([...current, customAmenity.trim()]);
     }
@@ -883,8 +930,11 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       <FormField
         control={form.control}
         name="amenities"
-        render={({ field }) => (
-          <FormItem>
+        render={({ field }) => {
+          const amenities = coerceStringArray(field.value);
+
+          return (
+            <FormItem>
             <FormLabel>
               {propertyType === "FLAT"
                 ? "Flat"
@@ -898,9 +948,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                 {getAmenitiesList().length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {getAmenitiesList().map((item) => {
-                      const isSelected = (field.value || []).includes(
-                        item.label
-                      );
+                      const isSelected = amenities.includes(item.label);
                       return (
                         <Button
                           key={item.label}
@@ -943,7 +991,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {(field.value || [])
+                  {amenities
                     .filter(
                       (amenity: string) =>
                         !getAmenitiesList().some((i) => i.label === amenity)
@@ -970,8 +1018,9 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
               Select from the list or add your own amenities.
             </FormDescription>
             <FormMessage />
-          </FormItem>
-        )}
+            </FormItem>
+          );
+        }}
       />
     </div>
   );
@@ -1286,8 +1335,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
 
           <div className="col-span-2">
             <strong>Amenities:</strong>{" "}
-            {form.watch("amenities")?.length
-              ? form.watch("amenities")?.join(", ")
+            {Array.isArray(form.watch("amenities")) && form.watch("amenities").length
+              ? form.watch("amenities").join(", ")
               : "None selected"}
           </div>
 

@@ -8,7 +8,13 @@ import { Input } from "@/components/ui/input";
 import { PincodeInput } from "@/components/ui/pincode-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PROPERTY_LIMITS, parseRoadWidthInput, formatIndianNumber } from "@/utils/helper";
+import {
+  PROPERTY_LIMITS,
+  coerceStringArray,
+  formatIndianNumber,
+  parseIntegerWithMax,
+  parseRoadWidthInput,
+} from "@/utils/helper";
 
 import {
   Form,
@@ -36,7 +42,6 @@ import Image from "next/image";
 import { LocationPicker } from "../_components/locationPicker";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
-import { parseIntegerWithMax } from "@/utils/helper";
 
 interface CommercialWizardProps {
   onBack: () => void;
@@ -66,6 +71,11 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
   const [generatingDescription, setGeneratingDescription] = useState(false);
 
+  // Normalize any legacy / draft payloads where arrays may come through as strings.
+  const initialAmenities = coerceStringArray(initialData?.amenities);
+  const initialImages = coerceStringArray(initialData?.images);
+  const initialFloorPlans = coerceStringArray(initialData?.floorPlans);
+
   const form = useForm<CommercialPropertyFormData>({
     resolver: zodResolver(commercialPropertySchema),
     defaultValues: {
@@ -88,7 +98,11 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
       },
       featuredMedia: "",
       images: [],
+      floorPlans: [],
       ...initialData,
+      images: initialImages,
+      floorPlans: initialFloorPlans,
+      amenities: initialAmenities,
     },
     mode: "onChange",
   });
@@ -212,8 +226,30 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
       });
       setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
     } else {
-      // Show feedback when validation fails
-      toast.error("Please fill in all required fields before proceeding.");
+      // Show feedback when validation fails with specific field errors
+      const errors = form.formState.errors;
+      const errorMessages: string[] = [];
+      
+      const flattenErrors = (obj: Record<string, unknown>, prefix = ""): void => {
+        for (const key in obj) {
+          const value = obj[key] as Record<string, unknown>;
+          const fullKey = prefix ? `${prefix}.${key}` : key;
+          if (value?.message && typeof value.message === "string") {
+            errorMessages.push(value.message);
+          } else if (typeof value === "object" && value !== null) {
+            flattenErrors(value, fullKey);
+          }
+        }
+      };
+      
+      flattenErrors(errors as Record<string, unknown>);
+      
+      if (errorMessages.length > 0) {
+        toast.error(`Please fix: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3 ? ` (+${errorMessages.length - 3} more)` : ""}`);
+      } else {
+        toast.error("Please fill in all required fields before proceeding.");
+      }
+      console.log("Step validation errors:", errors);
     }
   };
 
@@ -287,8 +323,30 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     if (isValid) {
       form.handleSubmit(onSubmit)();
     } else {
-      // Show feedback when validation fails
-      toast.error("Please complete all required fields before submitting.");
+      // Show feedback when validation fails with specific field errors
+      const errors = form.formState.errors;
+      const errorMessages: string[] = [];
+      
+      const flattenErrors = (obj: Record<string, unknown>, prefix = ""): void => {
+        for (const key in obj) {
+          const value = obj[key] as Record<string, unknown>;
+          const fullKey = prefix ? `${prefix}.${key}` : key;
+          if (value?.message && typeof value.message === "string") {
+            errorMessages.push(value.message);
+          } else if (typeof value === "object" && value !== null) {
+            flattenErrors(value, fullKey);
+          }
+        }
+      };
+      
+      flattenErrors(errors as Record<string, unknown>);
+      
+      if (errorMessages.length > 0) {
+        toast.error(`Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3 ? ` (+${errorMessages.length - 3} more)` : ""}`);
+      } else {
+        toast.error("Please complete all required fields before submitting.");
+      }
+      console.log("Form validation errors:", errors);
     }
   };
 
@@ -1048,11 +1106,17 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
                       className="flex flex-row items-start space-x-3 space-y-0"
                     >
                       <Checkbox
-                        checked={field.value?.includes(amenity)}
+                        checked={
+                          Array.isArray(field.value) &&
+                          field.value.includes(amenity)
+                        }
                         onCheckedChange={(checked) => {
-                          const current = field.value || [];
-                          const updated = checked
-                            ? [...current, amenity]
+                          const isChecked = checked === true;
+                          const current = Array.isArray(field.value)
+                            ? field.value
+                            : [];
+                          const updated = isChecked
+                            ? Array.from(new Set([...current, amenity]))
                             : current.filter((value) => value !== amenity);
                           field.onChange(updated);
                         }}
@@ -1064,10 +1128,13 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
                     <Textarea
                       placeholder="Enter amenities"
                       {...field}
-                      value={field.value?.join(", ") || ""}
+                      value={coerceStringArray(field.value).join(", ")}
                       onChange={(e) =>
                         field.onChange(
-                          e.target.value.split(", ").filter((item) => item.trim())
+                          e.target.value
+                            .split(",")
+                            .map((item) => item.trim())
+                            .filter(Boolean)
                         )
                       }
                     />
@@ -1418,8 +1485,8 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
 
           <div className="col-span-2">
             <strong>Amenities:</strong>{" "}
-            {form.watch("amenities")?.length
-              ? form.watch("amenities")?.join(", ")
+            {Array.isArray(form.watch("amenities")) && form.watch("amenities").length
+              ? form.watch("amenities").join(", ")
               : "None selected"}
           </div>
 

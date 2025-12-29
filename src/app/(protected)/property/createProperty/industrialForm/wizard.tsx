@@ -8,7 +8,12 @@ import { Input } from "@/components/ui/input";
 import { PincodeInput } from "@/components/ui/pincode-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PROPERTY_LIMITS, parseRoadWidthInput, formatIndianNumber } from "@/utils/helper";
+import {
+  PROPERTY_LIMITS,
+  coerceStringArray,
+  formatIndianNumber,
+  parseRoadWidthInput,
+} from "@/utils/helper";
 
 import {
   Form,
@@ -85,7 +90,11 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
       },
       featuredMedia: "",
       images: [],
+      floorPlans: [],
       ...initialData,
+      images: coerceStringArray(initialData?.images),
+      floorPlans: coerceStringArray(initialData?.floorPlans),
+      amenities: coerceStringArray(initialData?.amenities),
     },
     mode: "onChange",
   });
@@ -204,8 +213,30 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
       setCompletedSteps((prev) => new Set([...Array.from(prev), currentStep]));
       setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
     } else {
-      // Show feedback when validation fails
-      toast.error("Please fill in all required fields before proceeding.");
+      // Show feedback when validation fails with specific field errors
+      const errors = form.formState.errors;
+      const errorMessages: string[] = [];
+      
+      const flattenErrors = (obj: Record<string, unknown>, prefix = ""): void => {
+        for (const key in obj) {
+          const value = obj[key] as Record<string, unknown>;
+          const fullKey = prefix ? `${prefix}.${key}` : key;
+          if (value?.message && typeof value.message === "string") {
+            errorMessages.push(value.message);
+          } else if (typeof value === "object" && value !== null) {
+            flattenErrors(value, fullKey);
+          }
+        }
+      };
+      
+      flattenErrors(errors as Record<string, unknown>);
+      
+      if (errorMessages.length > 0) {
+        toast.error(`Please fix: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3 ? ` (+${errorMessages.length - 3} more)` : ""}`);
+      } else {
+        toast.error("Please fill in all required fields before proceeding.");
+      }
+      console.log("Step validation errors:", errors);
     }
   };
 
@@ -261,8 +292,30 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
     if (isValid) {
       form.handleSubmit(onSubmit)();
     } else {
-      // Show feedback when validation fails
-      toast.error("Please complete all required fields before submitting.");
+      // Show feedback when validation fails with specific field errors
+      const errors = form.formState.errors;
+      const errorMessages: string[] = [];
+      
+      const flattenErrors = (obj: Record<string, unknown>, prefix = ""): void => {
+        for (const key in obj) {
+          const value = obj[key] as Record<string, unknown>;
+          const fullKey = prefix ? `${prefix}.${key}` : key;
+          if (value?.message && typeof value.message === "string") {
+            errorMessages.push(value.message);
+          } else if (typeof value === "object" && value !== null) {
+            flattenErrors(value, fullKey);
+          }
+        }
+      };
+      
+      flattenErrors(errors as Record<string, unknown>);
+      
+      if (errorMessages.length > 0) {
+        toast.error(`Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3 ? ` (+${errorMessages.length - 3} more)` : ""}`);
+      } else {
+        toast.error("Please complete all required fields before submitting.");
+      }
+      console.log("Form validation errors:", errors);
     }
   };
 

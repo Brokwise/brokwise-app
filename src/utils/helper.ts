@@ -143,3 +143,37 @@ export const sanitizePincode = (value: string) => {
   if (!value) return "";
   return value.replace(/\D/g, "").slice(0, PROPERTY_LIMITS.PINCODE_LENGTH);
 };
+
+// Coerces unknown values into a string array.
+// - Accepts: string[] | string (comma-separated or JSON array string)
+// - Returns: string[] (trimmed, non-empty)
+export const coerceStringArray = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .filter((v): v is string => typeof v === "string")
+      .map((v) => v.trim())
+      .filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    // If it's a JSON array string, try to parse it.
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      try {
+        const parsed = JSON.parse(trimmed) as unknown;
+        return coerceStringArray(parsed);
+      } catch {
+        // Fall back to comma-separated parsing.
+      }
+    }
+
+    return trimmed
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
