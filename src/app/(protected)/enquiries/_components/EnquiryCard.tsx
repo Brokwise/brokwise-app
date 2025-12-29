@@ -170,9 +170,9 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
           </div>
           {/* Responses Indicator */}
           {submissionCount > 0 && (
-            <div className="flex items-center text-primary font-medium">
-                <MessageSquare className="mr-1.5 h-3.5 w-3.5" />
-                {submissionCount} {submissionCount === 1 ? 'Response' : 'Responses'}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500 text-white text-xs font-semibold shadow-sm">
+              <MessageSquare className="h-3.5 w-3.5" />
+              <span>{submissionCount}</span>
             </div>
           )}
         </div>
