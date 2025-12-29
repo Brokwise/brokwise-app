@@ -43,6 +43,7 @@ interface PropertyCardProps {
   hideShare?: boolean;
   onShowOnMap?: (propertyId: string) => void;
   showMapButton?: boolean;
+  actionSlot?: React.ReactNode;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ 
@@ -50,6 +51,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   hideShare = false,
   onShowOnMap,
   showMapButton = false,
+  actionSlot,
 }) => {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const { userData, brokerData, setBrokerData, companyData, setCompanyData } = useApp();
@@ -448,7 +450,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         </div>
       </CardContent>
 
-      <CardFooter className="p-4 pt-0">
+      <CardFooter className="p-4 pt-0 gap-2">
         <Button
           asChild
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
@@ -457,6 +459,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             View Details
           </Link>
         </Button>
+        {actionSlot}
       </CardFooter>
     </Card>
   );

@@ -1,15 +1,14 @@
 "use client";
 
 import { useGetMyListings } from "@/hooks/useProperty";
-import React from "react";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 
-const MyListings = () => {
+export default function MyListings() {
   const { myListings, isLoading, error } = useGetMyListings();
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="p-6 md:p-8 pb-24">
       <DataTable
         columns={columns}
         data={myListings || []}
@@ -18,6 +17,4 @@ const MyListings = () => {
       />
     </div>
   );
-};
-
-export default MyListings;
+}
