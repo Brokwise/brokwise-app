@@ -76,9 +76,8 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
 
   const statusConfig = getStatusConfig(enquiry.status);
 
-  // Use type assertion to safely access submissionCount if it exists, default to 0
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const submissionCount = (enquiry as any).submissionCount || 0;
+  // submissionCount exists on Enquiry but not MarketplaceEnquiry - check safely
+  const submissionCount = "submissionCount" in enquiry ? (enquiry.submissionCount ?? 0) : 0;
 
   return (
     <Card

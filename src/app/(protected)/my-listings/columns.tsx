@@ -182,15 +182,12 @@ export const columns: ColumnDef<Property>[] = [
   {
     accessorKey: "propertyType",
     header: "Property Type",
-    // Default hidden since we have the combined column, but needed for filtering
-    enableHiding: true,
+    // Hidden by default since category_type column shows this info. Needed for filtering.
+    enableHiding: false, // Don't show in column visibility dropdown
     filterFn: (row, id, value) => {
         return value === "all" || row.getValue(id) === value;
     },
-    cell: ({ row }) => {
-        const type = row.getValue("propertyType") as string;
-        return <span className="capitalize">{type?.replace(/_/g, " ").toLowerCase()}</span>;
-    }
+    cell: () => null, // Don't render - only used for filtering
   },
   {
     accessorKey: "category_type",

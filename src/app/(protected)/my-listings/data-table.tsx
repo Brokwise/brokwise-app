@@ -58,6 +58,7 @@ import {
   Plus,
 } from "lucide-react";
 import { formatAddress } from "@/utils/helper";
+import { PROPERTY_TYPES } from "@/constants";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -65,26 +66,6 @@ interface DataTableProps<TData, TValue> {
   isLoading?: boolean;
   error?: Error | null;
 }
-
-// Define property types for filter
-const PROPERTY_TYPES = [
-  { label: "Flat", value: "FLAT" },
-  { label: "Villa", value: "VILLA" },
-  { label: "Land", value: "LAND" },
-  { label: "Showroom", value: "SHOWROOM" },
-  { label: "Hotel", value: "HOTEL" },
-  { label: "Hostel", value: "HOSTEL" },
-  { label: "Shop", value: "SHOP" },
-  { label: "Office Space", value: "OFFICE_SPACE" },
-  { label: "Other Space", value: "OTHER_SPACE" },
-  { label: "Industrial Park", value: "INDUSTRIAL_PARK" },
-  { label: "Industrial Land", value: "INDUSTRIAL_LAND" },
-  { label: "Warehouse", value: "WAREHOUSE" },
-  { label: "Agricultural Land", value: "AGRICULTURAL_LAND" },
-  { label: "Resort", value: "RESORT" },
-  { label: "Farm House", value: "FARM_HOUSE" },
-  { label: "Individual", value: "INDIVIDUAL" },
-];
 
 export function DataTable<TData, TValue>({
   columns,

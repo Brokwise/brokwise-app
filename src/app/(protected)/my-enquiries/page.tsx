@@ -18,47 +18,40 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatEnquiryLocation } from "@/utils/helper";
+import { PROPERTY_TYPES } from "@/constants";
 
-// Define property types for filter
-const PROPERTY_TYPES = [
-    { label: "Flat", value: "FLAT" },
-    { label: "Villa", value: "VILLA" },
-    { label: "Land", value: "LAND" },
-    { label: "Showroom", value: "SHOWROOM" },
-    { label: "Hotel", value: "HOTEL" },
-    { label: "Hostel", value: "HOSTEL" },
-    { label: "Shop", value: "SHOP" },
-    { label: "Office Space", value: "OFFICE_SPACE" },
-    { label: "Other Space", value: "OTHER_SPACE" },
-    { label: "Industrial Park", value: "INDUSTRIAL_PARK" },
-    { label: "Industrial Land", value: "INDUSTRIAL_LAND" },
-    { label: "Warehouse", value: "WAREHOUSE" },
-    { label: "Agricultural Land", value: "AGRICULTURAL_LAND" },
-    { label: "Resort", value: "RESORT" },
-    { label: "Farm House", value: "FARM_HOUSE" },
-    { label: "Individual", value: "INDIVIDUAL" },
-  ];
+const STORAGE_KEY = "myEnquiriesView";
 
 const MyEnquiriesPage = () => {
   const router = useRouter();
   const { myEnquiries, isPending, error } = useGetMyEnquiries();
-  const [view, setView] = useState<"grid" | "list">("grid");
+  const [view, setView] = useState<"grid" | "list" | null>(null); // null = loading from storage
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [propertyTypeFilter, setPropertyTypeFilter] = useState("all");
 
-  // Load view preference from local storage
+  // Load view preference from local storage (client-side only)
   useEffect(() => {
-    const savedView = localStorage.getItem("myEnquiriesView");
-    if (savedView === "grid" || savedView === "list") {
-      setView(savedView);
+    try {
+      const savedView = localStorage.getItem(STORAGE_KEY);
+      setView(savedView === "list" ? "list" : "grid");
+    } catch {
+      // localStorage not available (SSR or privacy mode)
+      setView("grid");
     }
   }, []);
 
   const handleSetView = (newView: "grid" | "list") => {
     setView(newView);
-    localStorage.setItem("myEnquiriesView", newView);
+    try {
+      localStorage.setItem(STORAGE_KEY, newView);
+    } catch {
+      // localStorage not available
+    }
   };
+
+  // Derive effective view for rendering (default to grid while loading)
+  const effectiveView = view ?? "grid";
 
   const filteredEnquiries = useMemo(() => {
     if (!myEnquiries) return [];
@@ -120,7 +113,7 @@ const MyEnquiriesPage = () => {
           <div className="flex items-center gap-2">
             <div className="flex items-center bg-muted/50 p-1 rounded-md border">
               <Button
-                variant={view === "grid" ? "secondary" : "ghost"}
+                variant={effectiveView === "grid" ? "secondary" : "ghost"}
                 size="sm"
                 className="h-8 w-8 p-0"
                 onClick={() => handleSetView("grid")}
@@ -129,7 +122,7 @@ const MyEnquiriesPage = () => {
                 <LayoutGrid className="h-4 w-4" />
               </Button>
               <Button
-                variant={view === "list" ? "secondary" : "ghost"}
+                variant={effectiveView === "list" ? "secondary" : "ghost"}
                 size="sm"
                 className="h-8 w-8 p-0"
                 onClick={() => handleSetView("list")}
@@ -242,7 +235,7 @@ const MyEnquiriesPage = () => {
         </div>
       ) : (
         <>
-          {view === "grid" ? (
+          {effectiveView === "grid" ? (
             filteredEnquiries.length === 0 ? (
                  <div className="flex flex-col items-center justify-center py-20 text-center border rounded-xl bg-muted/20 border-dashed">
                   <Inbox className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
