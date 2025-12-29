@@ -202,7 +202,14 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         "address.pincode",
         "address.address",
       ],
-      1: ["size", "sizeUnit", "rate", "totalPrice"],
+      1: [
+        "size",
+        "sizeUnit",
+        "rate",
+        "totalPrice",
+        ...(propertyType === "HOTEL" ? ["rooms"] : []),
+        ...(propertyType === "HOSTEL" ? ["beds"] : []),
+      ],
       2: [], // Location step
       3: [], // Features step
       4: ["description", "featuredMedia", "images"],
@@ -595,6 +602,35 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
                   ))}
                 </div>
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
+      {/* Hotel specific - Rooms */}
+      {propertyType === "HOTEL" && (
+        <FormField
+          control={form.control}
+          name="rooms"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Number of Rooms</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="1-1000"
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) =>
+                    field.onChange(parseIntegerWithMax(e.target.value, 1000))
+                  }
+                />
+              </FormControl>
+              <FormDescription>
+                Required for hotel listings (minimum 1)
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
