@@ -66,6 +66,26 @@ interface DataTableProps<TData, TValue> {
   error?: Error | null;
 }
 
+// Define property types for filter
+const PROPERTY_TYPES = [
+  { label: "Flat", value: "FLAT" },
+  { label: "Villa", value: "VILLA" },
+  { label: "Land", value: "LAND" },
+  { label: "Showroom", value: "SHOWROOM" },
+  { label: "Hotel", value: "HOTEL" },
+  { label: "Hostel", value: "HOSTEL" },
+  { label: "Shop", value: "SHOP" },
+  { label: "Office Space", value: "OFFICE_SPACE" },
+  { label: "Other Space", value: "OTHER_SPACE" },
+  { label: "Industrial Park", value: "INDUSTRIAL_PARK" },
+  { label: "Industrial Land", value: "INDUSTRIAL_LAND" },
+  { label: "Warehouse", value: "WAREHOUSE" },
+  { label: "Agricultural Land", value: "AGRICULTURAL_LAND" },
+  { label: "Resort", value: "RESORT" },
+  { label: "Farm House", value: "FARM_HOUSE" },
+  { label: "Individual", value: "INDIVIDUAL" },
+];
+
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -77,6 +97,7 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState<string>("all");
 
   const table = useReactTable({
     data,
@@ -130,6 +151,15 @@ export function DataTable<TData, TValue>({
     }
   };
 
+  const handlePropertyTypeFilter = (value: string) => {
+    setPropertyTypeFilter(value);
+    if (value === "all") {
+        table.getColumn("propertyType")?.setFilterValue(undefined);
+    } else {
+        table.getColumn("propertyType")?.setFilterValue(value);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -157,6 +187,23 @@ export function DataTable<TData, TValue>({
                 onChange={(e) => setGlobalFilter(e.target.value)}
                 className="pl-10"
               />
+            </div>
+
+            <div className="w-full sm:w-48">
+              <Select value={propertyTypeFilter} onValueChange={handlePropertyTypeFilter}>
+                <SelectTrigger>
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Property Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  {PROPERTY_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="w-full sm:w-48">

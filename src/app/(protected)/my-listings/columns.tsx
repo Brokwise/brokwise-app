@@ -180,6 +180,19 @@ export const columns: ColumnDef<Property>[] = [
     ),
   },
   {
+    accessorKey: "propertyType",
+    header: "Property Type",
+    // Default hidden since we have the combined column, but needed for filtering
+    enableHiding: true,
+    filterFn: (row, id, value) => {
+        return value === "all" || row.getValue(id) === value;
+    },
+    cell: ({ row }) => {
+        const type = row.getValue("propertyType") as string;
+        return <span className="capitalize">{type?.replace(/_/g, " ").toLowerCase()}</span>;
+    }
+  },
+  {
     accessorKey: "category_type",
     header: ({ column }) => {
       return (
@@ -187,7 +200,7 @@ export const columns: ColumnDef<Property>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Type
+          Category & Type
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );

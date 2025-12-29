@@ -19,12 +19,33 @@ import {
 } from "@/components/ui/select";
 import { formatEnquiryLocation } from "@/utils/helper";
 
+// Define property types for filter
+const PROPERTY_TYPES = [
+    { label: "Flat", value: "FLAT" },
+    { label: "Villa", value: "VILLA" },
+    { label: "Land", value: "LAND" },
+    { label: "Showroom", value: "SHOWROOM" },
+    { label: "Hotel", value: "HOTEL" },
+    { label: "Hostel", value: "HOSTEL" },
+    { label: "Shop", value: "SHOP" },
+    { label: "Office Space", value: "OFFICE_SPACE" },
+    { label: "Other Space", value: "OTHER_SPACE" },
+    { label: "Industrial Park", value: "INDUSTRIAL_PARK" },
+    { label: "Industrial Land", value: "INDUSTRIAL_LAND" },
+    { label: "Warehouse", value: "WAREHOUSE" },
+    { label: "Agricultural Land", value: "AGRICULTURAL_LAND" },
+    { label: "Resort", value: "RESORT" },
+    { label: "Farm House", value: "FARM_HOUSE" },
+    { label: "Individual", value: "INDIVIDUAL" },
+  ];
+
 const MyEnquiriesPage = () => {
   const router = useRouter();
   const { myEnquiries, isPending, error } = useGetMyEnquiries();
   const [view, setView] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState("all");
 
   // Load view preference from local storage
   useEffect(() => {
@@ -45,6 +66,9 @@ const MyEnquiriesPage = () => {
       // Status Filter
       if (statusFilter !== "all" && enquiry.status !== statusFilter) return false;
 
+      // Property Type Filter
+      if (propertyTypeFilter !== "all" && enquiry.enquiryType !== propertyTypeFilter) return false;
+
       // Search Filter
       if (!searchQuery) return true;
       const search = searchQuery.toLowerCase();
@@ -64,7 +88,7 @@ const MyEnquiriesPage = () => {
 
       return descriptionMatch || locationMatch || categoryMatch || typeMatch;
     });
-  }, [myEnquiries, searchQuery, statusFilter]);
+  }, [myEnquiries, searchQuery, statusFilter, propertyTypeFilter]);
 
   if (isPending) {
     return (
@@ -135,6 +159,23 @@ const MyEnquiriesPage = () => {
             </div>
 
             <div className="w-full sm:w-48">
+              <Select value={propertyTypeFilter} onValueChange={setPropertyTypeFilter}>
+                <SelectTrigger className="h-10 bg-background">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Property Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  {PROPERTY_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="w-full sm:w-48">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="h-10 bg-background">
                   <Filter className="h-4 w-4 mr-2" />
@@ -174,7 +215,7 @@ const MyEnquiriesPage = () => {
           <CardContent className="p-6 flex flex-col items-center justify-center space-y-2">
             <div className="text-2xl font-bold text-blue-600">
               {myEnquiries?.reduce(
-                (acc, curr) => acc + (curr.responses || 0),
+                (acc, curr) => acc + (curr.submissionCount || 0),
                 0
               ) || 0}
             </div>
@@ -211,6 +252,7 @@ const MyEnquiriesPage = () => {
                     onClick={() => {
                         setSearchQuery("");
                         setStatusFilter("all");
+                        setPropertyTypeFilter("all");
                     }}
                   >
                     Clear Filters

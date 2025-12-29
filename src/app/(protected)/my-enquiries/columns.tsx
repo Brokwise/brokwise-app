@@ -19,6 +19,7 @@ import {
     Building2,
     BedDouble,
     Bath,
+    MessageSquare,
 } from "lucide-react";
 import { formatEnquiryLocation } from "@/utils/helper";
 import { formatDistanceToNow } from "date-fns";
@@ -160,6 +161,27 @@ export const columns: ColumnDef<Enquiry>[] = [
         }
     },
     {
+        accessorKey: "submissionCount",
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+                Responses
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
+        cell: ({ row }) => {
+            const count = row.getValue("submissionCount") as number;
+            return (
+                <div className="flex items-center gap-2 pl-4">
+                    <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="font-medium">{count || 0}</span>
+                </div>
+            );
+        },
+    },
+    {
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => getStatusBadge(row.getValue("status")),
@@ -218,4 +240,3 @@ const ActionCell = ({ enquiry }: { enquiry: Enquiry }) => {
         </DropdownMenu>
     );
 };
-

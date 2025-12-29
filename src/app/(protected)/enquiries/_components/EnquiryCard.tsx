@@ -17,6 +17,7 @@ import {
   ArrowRight,
   Clock,
   IndianRupee,
+  MessageSquare,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -75,6 +76,10 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
 
   const statusConfig = getStatusConfig(enquiry.status);
 
+  // Use type assertion to safely access submissionCount if it exists, default to 0
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const submissionCount = (enquiry as any).submissionCount || 0;
+
   return (
     <Card
       className="group relative overflow-hidden border border-border/50 bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/20 cursor-pointer"
@@ -132,7 +137,7 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 text-sm">
+        <div className="flex items-center gap-3 text-sm flex-wrap">
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
             <Building2 className="h-3.5 w-3.5" />
             <span className="font-medium capitalize text-xs">
@@ -157,11 +162,20 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
       </CardContent>
 
       <CardFooter className="p-5 pt-0 flex items-center justify-between">
-        <div className="flex items-center text-xs text-muted-foreground">
-          <Clock className="mr-1.5 h-3.5 w-3.5" />
-          {formatDistanceToNow(new Date(enquiry.createdAt), {
-            addSuffix: true,
-          })}
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center">
+            <Clock className="mr-1.5 h-3.5 w-3.5" />
+            {formatDistanceToNow(new Date(enquiry.createdAt), {
+              addSuffix: true,
+            })}
+          </div>
+          {/* Responses Indicator */}
+          {submissionCount > 0 && (
+            <div className="flex items-center text-primary font-medium">
+                <MessageSquare className="mr-1.5 h-3.5 w-3.5" />
+                {submissionCount} {submissionCount === 1 ? 'Response' : 'Responses'}
+            </div>
+          )}
         </div>
 
         <Button

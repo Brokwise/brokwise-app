@@ -158,9 +158,10 @@ export interface Property {
 
   // Commercial - Hotel
   rooms?: number;
+  beds?: number;
 
   // Commercial - Hostel
-  beds?: number;
+  // beds?: number; // Duplicate in source, removed
 
   // Amenities
   amenities?: string[];
@@ -171,6 +172,8 @@ export interface Property {
   deletingStatus?: "pending" | "approved" | "rejected" | null;
 
   submittedForEnquiryId?: string;
+  // added responses field here but commented out as we use submissionCount in Enquiry,
+  // this is Property interface.
 }
 
 export interface PropertyDeleteRequest {
