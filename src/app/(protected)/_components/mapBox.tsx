@@ -89,7 +89,9 @@ export const MapBox = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const markerElementsRef = useRef<Map<string, HTMLElement>>(new Map());
-  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
   const previousHighlightedIdRef = useRef<string | null>(null);
   const appliedStyleRef = useRef<string>("");
   const propertiesDataRef = useRef<Property[]>([]);
@@ -118,38 +120,44 @@ export const MapBox = ({
   };
 
   // Create GeoJSON from properties
-  const createGeoJSON = useCallback((props: Property[]): GeoJSON.FeatureCollection => {
-    const features: GeoJSON.Feature[] = props
-      .filter(
-        (p) =>
-          p.location?.coordinates &&
-          Array.isArray(p.location.coordinates) &&
-          p.location.coordinates.length === 2 &&
-          typeof p.location.coordinates[0] === "number" &&
-          typeof p.location.coordinates[1] === "number"
-      )
-      .map((property) => ({
-        type: "Feature",
-        properties: {
-          id: property._id,
-          price: property.totalPrice,
-          priceFormatted: formatPrice(property.totalPrice),
-          category: property.propertyCategory,
-          address: property.address?.address || property.society || "Address available",
-          rate: property.rate,
-          featuredMedia: property.featuredMedia,
-        },
-        geometry: {
-          type: "Point",
-          coordinates: property.location.coordinates,
-        },
-      }));
+  const createGeoJSON = useCallback(
+    (props: Property[]): GeoJSON.FeatureCollection => {
+      const features: GeoJSON.Feature[] = props
+        .filter(
+          (p) =>
+            p.location?.coordinates &&
+            Array.isArray(p.location.coordinates) &&
+            p.location.coordinates.length === 2 &&
+            typeof p.location.coordinates[0] === "number" &&
+            typeof p.location.coordinates[1] === "number"
+        )
+        .map((property) => ({
+          type: "Feature",
+          properties: {
+            id: property._id,
+            price: property.totalPrice,
+            priceFormatted: formatPrice(property.totalPrice),
+            category: property.propertyCategory,
+            address:
+              property.address?.address ||
+              property.society ||
+              "Address available",
+            rate: property.rate,
+            featuredMedia: property.featuredMedia,
+          },
+          geometry: {
+            type: "Point",
+            coordinates: property.location.coordinates,
+          },
+        }));
 
-    return {
-      type: "FeatureCollection",
-      features,
-    };
-  }, []);
+      return {
+        type: "FeatureCollection",
+        features,
+      };
+    },
+    []
+  );
 
   // Update marker visibility based on current zoom
   const updateMarkerVisibility = useCallback((forceShow?: string) => {
@@ -175,118 +183,133 @@ export const MapBox = ({
   }, []);
 
   // Setup clustering layers
-  const setupClusterLayers = useCallback((map: mapboxgl.Map, geojson: GeoJSON.FeatureCollection) => {
-    // Remove existing source and layers if they exist
-    if (map.getLayer(CLUSTER_COUNT_LAYER_ID)) map.removeLayer(CLUSTER_COUNT_LAYER_ID);
-    if (map.getLayer(CLUSTER_LAYER_ID)) map.removeLayer(CLUSTER_LAYER_ID);
-    if (map.getLayer(UNCLUSTERED_POINT_LAYER_ID)) map.removeLayer(UNCLUSTERED_POINT_LAYER_ID);
-    if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID);
+  const setupClusterLayers = useCallback(
+    (map: mapboxgl.Map, geojson: GeoJSON.FeatureCollection) => {
+      // Remove existing source and layers if they exist
+      if (map.getLayer(CLUSTER_COUNT_LAYER_ID))
+        map.removeLayer(CLUSTER_COUNT_LAYER_ID);
+      if (map.getLayer(CLUSTER_LAYER_ID)) map.removeLayer(CLUSTER_LAYER_ID);
+      if (map.getLayer(UNCLUSTERED_POINT_LAYER_ID))
+        map.removeLayer(UNCLUSTERED_POINT_LAYER_ID);
+      if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID);
 
-    // Add source with clustering
-    map.addSource(SOURCE_ID, {
-      type: "geojson",
-      data: geojson,
-      cluster: true,
-      clusterMaxZoom: CLUSTER_MAX_ZOOM,
-      clusterRadius: 60,
-    });
+      // Add source with clustering
+      map.addSource(SOURCE_ID, {
+        type: "geojson",
+        data: geojson,
+        cluster: true,
+        clusterMaxZoom: CLUSTER_MAX_ZOOM,
+        clusterRadius: 60,
+      });
 
-    // Cluster circles layer
-    map.addLayer({
-      id: CLUSTER_LAYER_ID,
-      type: "circle",
-      source: SOURCE_ID,
-      filter: ["has", "point_count"],
-      paint: {
-        "circle-radius": [
-          "step",
-          ["get", "point_count"],
-          22,  // base size
-          10, 26,
-          50, 30,
-          100, 36,
-        ],
-        "circle-color": "#6366f1", // Indigo-500 for visibility
-        "circle-stroke-width": 3,
-        "circle-stroke-color": "#ffffff",
-        "circle-opacity": 1,
-      },
-    });
+      // Cluster circles layer
+      map.addLayer({
+        id: CLUSTER_LAYER_ID,
+        type: "circle",
+        source: SOURCE_ID,
+        filter: ["has", "point_count"],
+        paint: {
+          "circle-radius": [
+            "step",
+            ["get", "point_count"],
+            22, // base size
+            10,
+            26,
+            50,
+            30,
+            100,
+            36,
+          ],
+          "circle-color": "#6366f1", // Indigo-500 for visibility
+          "circle-stroke-width": 3,
+          "circle-stroke-color": "#ffffff",
+          "circle-opacity": 1,
+        },
+      });
 
-    // Cluster count text layer
-    map.addLayer({
-      id: CLUSTER_COUNT_LAYER_ID,
-      type: "symbol",
-      source: SOURCE_ID,
-      filter: ["has", "point_count"],
-      layout: {
-        "text-field": ["get", "point_count_abbreviated"],
-        "text-font": ["DIN Offc Pro Bold", "Arial Unicode MS Bold"],
-        "text-size": 14,
-        "text-allow-overlap": true,
-      },
-      paint: {
-        "text-color": "#ffffff",
-      },
-    });
+      // Cluster count text layer
+      map.addLayer({
+        id: CLUSTER_COUNT_LAYER_ID,
+        type: "symbol",
+        source: SOURCE_ID,
+        filter: ["has", "point_count"],
+        layout: {
+          "text-field": ["get", "point_count_abbreviated"],
+          "text-font": ["DIN Offc Pro Bold", "Arial Unicode MS Bold"],
+          "text-size": 14,
+          "text-allow-overlap": true,
+        },
+        paint: {
+          "text-color": "#ffffff",
+        },
+      });
 
-    // Unclustered point layer - visible at medium zoom, fades at high zoom where DOM markers appear
-    map.addLayer({
-      id: UNCLUSTERED_POINT_LAYER_ID,
-      type: "circle",
-      source: SOURCE_ID,
-      filter: ["!", ["has", "point_count"]],
-      paint: {
-        "circle-radius": 10,
-        "circle-color": "#6366f1",
-        "circle-stroke-width": 2,
-        "circle-stroke-color": "#ffffff",
-        "circle-opacity": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          CLUSTER_MAX_ZOOM, 1,
-          INDIVIDUAL_MIN_ZOOM, 0,
-        ],
-        "circle-stroke-opacity": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          CLUSTER_MAX_ZOOM, 1,
-          INDIVIDUAL_MIN_ZOOM, 0,
-        ],
-      },
-    });
-  }, []);
+      // Unclustered point layer - visible at medium zoom, fades at high zoom where DOM markers appear
+      map.addLayer({
+        id: UNCLUSTERED_POINT_LAYER_ID,
+        type: "circle",
+        source: SOURCE_ID,
+        filter: ["!", ["has", "point_count"]],
+        paint: {
+          "circle-radius": 10,
+          "circle-color": "#6366f1",
+          "circle-stroke-width": 2,
+          "circle-stroke-color": "#ffffff",
+          "circle-opacity": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            CLUSTER_MAX_ZOOM,
+            1,
+            INDIVIDUAL_MIN_ZOOM,
+            0,
+          ],
+          "circle-stroke-opacity": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            CLUSTER_MAX_ZOOM,
+            1,
+            INDIVIDUAL_MIN_ZOOM,
+            0,
+          ],
+        },
+      });
+    },
+    []
+  );
 
   // Create individual DOM markers for high zoom
-  const createIndividualMarkers = useCallback((map: mapboxgl.Map, props: Property[]) => {
-    // Clear existing markers
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
-    markerElementsRef.current.clear();
+  const createIndividualMarkers = useCallback(
+    (map: mapboxgl.Map, props: Property[]) => {
+      // Clear existing markers
+      markersRef.current.forEach((m) => m.remove());
+      markersRef.current = [];
+      markerElementsRef.current.clear();
 
-    const validProperties = props.filter(
-      (p) =>
-        p.location?.coordinates &&
-        Array.isArray(p.location.coordinates) &&
-        p.location.coordinates.length === 2 &&
-        typeof p.location.coordinates[0] === "number" &&
-        typeof p.location.coordinates[1] === "number"
-    );
+      const validProperties = props.filter(
+        (p) =>
+          p.location?.coordinates &&
+          Array.isArray(p.location.coordinates) &&
+          p.location.coordinates.length === 2 &&
+          typeof p.location.coordinates[0] === "number" &&
+          typeof p.location.coordinates[1] === "number"
+      );
 
-    const shouldShowMarkers = currentZoomRef.current >= INDIVIDUAL_MIN_ZOOM;
+      const shouldShowMarkers = currentZoomRef.current >= INDIVIDUAL_MIN_ZOOM;
 
-    validProperties.forEach((property) => {
-      const [lng, lat] = property.location.coordinates;
-      const priceFormatted = formatPrice(property.totalPrice);
+      validProperties.forEach((property) => {
+        const [lng, lat] = property.location.coordinates;
+        const priceFormatted = formatPrice(property.totalPrice);
 
-      const el = document.createElement("div");
-      // Start hidden if zoom is below threshold
-      el.className = `price-marker group cursor-pointer ${shouldShowMarkers ? "marker-visible" : "marker-hidden"}`;
-      el.setAttribute("data-property-id", property._id);
-      el.style.zIndex = "20";
-      el.innerHTML = `
+        const el = document.createElement("div");
+        // Start hidden if zoom is below threshold
+        el.className = `price-marker group cursor-pointer ${
+          shouldShowMarkers ? "marker-visible" : "marker-hidden"
+        }`;
+        el.setAttribute("data-property-id", property._id);
+        el.style.zIndex = "20";
+        el.innerHTML = `
         <div class="marker-inner transition-all duration-300 group-hover:scale-110" style="transform-origin: bottom center;">
           <div class="marker-bubble" style="background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 6px 10px; border-radius: 99px; box-shadow: 0 4px 12px hsl(var(--foreground) / 0.2); font-weight: 600; font-size: 13px; white-space: nowrap; display: flex; align-items: center; justify-content: center; border: 2px solid hsl(var(--background)); transition: all 0.3s ease;">
             ${priceFormatted}
@@ -295,17 +318,19 @@ export const MapBox = ({
         </div>
       `;
 
-      markerElementsRef.current.set(property._id, el);
+        markerElementsRef.current.set(property._id, el);
 
-      const popup = new mapboxgl.Popup({
-        offset: 25,
-        closeButton: false,
-        className: "custom-popup",
-        maxWidth: "300px",
-      }).setHTML(
-        `<div style="width: 260px; overflow: hidden; border-radius: 12px; background: hsl(var(--card)); box-shadow: 0 10px 40px hsl(var(--foreground) / 0.15); border: 1px solid hsl(var(--border)); font-family: system-ui, -apple-system, sans-serif; cursor: pointer;">
+        const popup = new mapboxgl.Popup({
+          offset: 25,
+          closeButton: false,
+          className: "custom-popup",
+          maxWidth: "300px",
+        }).setHTML(
+          `<div style="width: 260px; overflow: hidden; border-radius: 12px; background: hsl(var(--card)); box-shadow: 0 10px 40px hsl(var(--foreground) / 0.15); border: 1px solid hsl(var(--border)); font-family: system-ui, -apple-system, sans-serif; cursor: pointer;">
            <div style="height: 140px; width: 100%; overflow: hidden; background-color: hsl(var(--muted)); position: relative;">
-             <img src="${property.featuredMedia}" alt="Property" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='/images/placeholder.webp'" />
+             <img src="${
+               property.featuredMedia
+             }" alt="Property" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='/images/placeholder.webp'" />
              <div style="position: absolute; top: 10px; left: 10px; padding: 3px 8px; background: hsl(var(--background) / 0.9); backdrop-filter: blur(4px); border-radius: 6px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: hsl(var(--foreground)); border: 1px solid hsl(var(--border));">
                 ${property.propertyCategory}
              </div>
@@ -313,38 +338,50 @@ export const MapBox = ({
            <div style="padding: 14px 16px;">
               <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px;">
                 <span style="font-size: 20px; color: hsl(var(--card-foreground)); font-weight: 600; letter-spacing: -0.3px;">${priceFormatted}</span>
-                <span style="font-size: 11px; color: hsl(var(--muted-foreground)); font-weight: 500;">₹${property.rate}/sqft</span>
+                <span style="font-size: 11px; color: hsl(var(--muted-foreground)); font-weight: 500;">₹${
+                  property.rate
+                }/sqft</span>
               </div>
-              <p style="font-size: 12px; color: hsl(var(--muted-foreground)); margin: 0 0 12px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${property.address?.address || property.society || "Address available on request"}</p>
+              <p style="font-size: 12px; color: hsl(var(--muted-foreground)); margin: 0 0 12px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${
+                property.address?.address ||
+                property.society ||
+                "Address available on request"
+              }</p>
               
-              <button id="view-details-${property._id}" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; border-radius: 8px; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: none; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+              <button id="view-details-${
+                property._id
+              }" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; border-radius: 8px; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: none; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                 View Details
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </button>
            </div>
          </div>`
-      );
+        );
 
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([lng, lat])
-        .setPopup(popup)
-        .addTo(map);
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat([lng, lat])
+          .setPopup(popup)
+          .addTo(map);
 
-      markersRef.current.push(marker);
+        markersRef.current.push(marker);
 
-      popup.on("open", () => {
-        const button = document.getElementById(`view-details-${property._id}`);
-        if (button) {
-          button.onclick = (e) => {
-            e.preventDefault();
-            onSelectProperty?.(property._id);
-          };
-        }
+        popup.on("open", () => {
+          const button = document.getElementById(
+            `view-details-${property._id}`
+          );
+          if (button) {
+            button.onclick = (e) => {
+              e.preventDefault();
+              onSelectProperty?.(property._id);
+            };
+          }
+        });
       });
-    });
 
-    setMarkersVersion((v) => v + 1);
-  }, [onSelectProperty]);
+      setMarkersVersion((v) => v + 1);
+    },
+    [onSelectProperty]
+  );
 
   // Initialize map
   useEffect(() => {
@@ -428,7 +465,11 @@ export const MapBox = ({
           }
 
           const geometry = features[0].geometry;
-          if (geometry.type === "Point" && zoom !== null && zoom !== undefined) {
+          if (
+            geometry.type === "Point" &&
+            zoom !== null &&
+            zoom !== undefined
+          ) {
             map.easeTo({
               center: geometry.coordinates as [number, number],
               zoom: zoom,
@@ -497,7 +538,6 @@ export const MapBox = ({
       mapRef.current = null;
       appliedStyleRef.current = "";
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Apply map style changes
@@ -544,7 +584,10 @@ export const MapBox = ({
         if (geojson.features.length === 1) {
           const coords = geojson.features[0].geometry;
           if (coords.type === "Point") {
-            map.easeTo({ center: coords.coordinates as [number, number], zoom: 14 });
+            map.easeTo({
+              center: coords.coordinates as [number, number],
+              zoom: 14,
+            });
           }
         } else {
           map.fitBounds(bounds, { padding: 50, maxZoom: 14 });
@@ -561,7 +604,13 @@ export const MapBox = ({
     return () => {
       map.off("style.load", setupLayers);
     };
-  }, [properties, mapLoaded, createGeoJSON, setupClusterLayers, createIndividualMarkers]);
+  }, [
+    properties,
+    mapLoaded,
+    createGeoJSON,
+    setupClusterLayers,
+    createIndividualMarkers,
+  ]);
 
   // Handle marker highlighting
   useEffect(() => {
@@ -583,7 +632,8 @@ export const MapBox = ({
       }
       if (markerBubble) {
         markerBubble.style.backgroundColor = "hsl(var(--primary))";
-        markerBubble.style.boxShadow = "0 4px 12px hsl(var(--foreground) / 0.2)";
+        markerBubble.style.boxShadow =
+          "0 4px 12px hsl(var(--foreground) / 0.2)";
         markerBubble.style.border = "2px solid hsl(var(--background))";
       }
       if (markerArrow) {
@@ -626,7 +676,10 @@ export const MapBox = ({
       highlightTimeoutRef.current = null;
     }
 
-    if (previousHighlightedIdRef.current && previousHighlightedIdRef.current !== highlightedPropertyId) {
+    if (
+      previousHighlightedIdRef.current &&
+      previousHighlightedIdRef.current !== highlightedPropertyId
+    ) {
       resetMarker(previousHighlightedIdRef.current);
       // Restore visibility state for the reset marker
       updateMarkerVisibility();
@@ -665,7 +718,15 @@ export const MapBox = ({
         highlightTimeoutRef.current = null;
       }
     };
-  }, [highlightedPropertyId, highlightRequestId, mapLoaded, markersVersion, properties, onHighlightComplete, updateMarkerVisibility]);
+  }, [
+    highlightedPropertyId,
+    highlightRequestId,
+    mapLoaded,
+    markersVersion,
+    properties,
+    onHighlightComplete,
+    updateMarkerVisibility,
+  ]);
 
   return (
     <div className="relative w-full h-full min-h-[500px] rounded-lg overflow-hidden border bg-muted group">
@@ -679,7 +740,9 @@ export const MapBox = ({
           onClick={toggleStyle}
         >
           <Layers className="h-4 w-4 mr-2" />
-          <span className="font-medium">{mapStyleType === "streets" ? "Satellite" : "Map"}</span>
+          <span className="font-medium">
+            {mapStyleType === "streets" ? "Satellite" : "Map"}
+          </span>
         </Button>
       </div>
 

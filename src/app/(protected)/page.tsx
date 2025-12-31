@@ -268,7 +268,6 @@ const ProtectedPage = () => {
 
     let baseProperties = properties;
 
-    // Fuzzy Search
     if (debouncedSearchQuery) {
       if (fuse) {
         const searchResults = fuse.search(debouncedSearchQuery);
@@ -277,18 +276,16 @@ const ProtectedPage = () => {
     }
 
     return baseProperties.filter((property) => {
-      // Source Filter
+      const isNotEnquiryProperty = property.listingStatus !== "ENQUIRY_ONLY";
       const matchesSource =
         sourceFilter === "ALL" ||
         (sourceFilter === "BROKER" && property.listedBy) ||
         (sourceFilter === "COMPANY" && !property.listedBy);
 
-      // Category Filter
       const matchesCategory =
         categoryFilter === "ALL" ||
         property.propertyCategory === categoryFilter;
 
-      // Property Type Filter (sub-type within category)
       const matchesPropertyType =
         propertyTypeFilter === "ALL" ||
         property.propertyType === propertyTypeFilter;
@@ -307,6 +304,7 @@ const ProtectedPage = () => {
           : property.bhk === Number(bhkFilter));
 
       return (
+        isNotEnquiryProperty &&
         matchesSource &&
         matchesCategory &&
         matchesPropertyType &&
@@ -324,12 +322,12 @@ const ProtectedPage = () => {
     debouncedPriceRange,
     bhkFilter,
     fuse,
+    ,
   ]);
 
   const filteredEnquiries = useMemo(() => {
     let baseEnquiries = marketPlaceEnquiries || [];
 
-    // Fuzzy Search (Enquiries)
     if (debouncedSearchQuery) {
       if (enquiryFuse) {
         const searchResults = enquiryFuse.search(debouncedSearchQuery);

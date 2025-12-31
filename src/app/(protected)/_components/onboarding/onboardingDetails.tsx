@@ -13,7 +13,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Sun, Moon, Computer } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Sun,
+  Moon,
+  Computer,
+  Camera,
+  User,
+} from "lucide-react";
 import { submitUserDetails, updateProfileDetails } from "@/models/api/user";
 import { useApp } from "@/context/AppContext";
 import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
@@ -67,6 +75,7 @@ export const OnboardingDetails = ({
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
 
   const { brokerData, setBrokerData } = useApp();
   const [user] = useAuthState(firebaseAuth);
@@ -171,6 +180,32 @@ export const OnboardingDetails = ({
       toast.error("Failed to submit profile details. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size should be less than 5MB");
+      return;
+    }
+
+    try {
+      setImageUploading(true);
+      const path = generateFilePath(file.name, `users/${user?.uid}/profile`);
+      const url = await uploadFileToFirebase(file, path);
+      form.setValue("profilePhoto", url, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      toast.success("Profile photo uploaded");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to upload photo");
+    } finally {
+      setImageUploading(false);
     }
   };
 
@@ -321,6 +356,46 @@ export const OnboardingDetails = ({
                 >
                   {step === 1 && (
                     <div className="space-y-5">
+                      <div className="flex flex-col items-center justify-center gap-4 mb-6">
+                        <div className="relative group">
+                          <Avatar className="h-24 w-24 border-4 border-white shadow-lg dark:border-slate-800">
+                            <AvatarImage
+                              src={form.watch("profilePhoto")}
+                              className="object-cover"
+                            />
+                            <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-slate-400">
+                              <User className="h-10 w-10" />
+                            </AvatarFallback>
+                          </Avatar>
+                          <label
+                            htmlFor="profile-photo-upload"
+                            className="absolute bottom-0 right-0 p-2 bg-[#0F172A] text-white rounded-full cursor-pointer hover:bg-[#1E293B] transition-colors shadow-sm dark:bg-white dark:text-slate-900"
+                          >
+                            {imageUploading ? (
+                              <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Camera className="h-4 w-4" />
+                            )}
+                            <input
+                              id="profile-photo-upload"
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleImageUpload}
+                              disabled={imageUploading}
+                            />
+                          </label>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                            Profile Photo
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            Click the camera icon to upload
+                          </p>
+                        </div>
+                      </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <FormField
                           control={form.control}

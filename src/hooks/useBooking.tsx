@@ -40,7 +40,6 @@ import { BookingResponse } from "@/models/types/booking";
 
 export const useGetAllBookings = () => {
   const api = useAxios();
-  const queryClient = useQueryClient();
 
   return useQuery({
     queryKey: ["bookings"],

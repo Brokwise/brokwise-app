@@ -5,7 +5,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Building2, User2, ArrowRight, Check, Sun, Moon, Computer } from "lucide-react";
+import {
+  Loader2,
+  Building2,
+  User2,
+  ArrowRight,
+  Check,
+  Sun,
+  Moon,
+  Computer,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -132,7 +141,7 @@ export default function AuthPage({
     setMounted(true);
   }, []);
 
-  const activeTheme = mounted ? (resolvedTheme ?? theme) : undefined;
+  const activeTheme = mounted ? resolvedTheme ?? theme : undefined;
   const isSystemTheme = mounted && theme === "system";
 
   const contentConfig = useMemo(() => {
@@ -433,7 +442,9 @@ export default function AuthPage({
                   <div>
                     <p
                       className={`font-semibold transition-colors duration-500 ${
-                        activeTheme === "light" ? "text-slate-900" : "text-white"
+                        activeTheme === "light"
+                          ? "text-slate-900"
+                          : "text-white"
                       }`}
                     >
                       Brokwise Team
@@ -465,7 +476,7 @@ export default function AuthPage({
           {/* Fixed header area (prevents the Brokwise title from jumping when mode changes) */}
           <div className="w-full max-w-md shrink-0 pt-7 lg:pt-10">
             <div className="flex items-center gap-2 mb-4 absolute top-2 right-2 z-50">
-               <div className="flex gap-1 border rounded-full px-2 py-1 bg-background/50 backdrop-blur-sm shadow-sm">
+              <div className="flex gap-1 border rounded-full px-2 py-1 bg-background/50 backdrop-blur-sm shadow-sm">
                 <Button
                   variant="ghost"
                   size="icon"
