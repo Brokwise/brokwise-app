@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useAxios from "./useAxios";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import { BookingResponse } from "@/models/types/booking";
 
 interface CreateBookingParams {
   plotId: string;
@@ -36,7 +37,26 @@ export const useCreateBooking = () => {
     },
   });
 };
-import { BookingResponse } from "@/models/types/booking";
+
+export const useHoldPlot = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateBookingParams) => {
+      const response = await api.post("/bookings/hold", data);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Plot held successfully");
+      queryClient.invalidateQueries({ queryKey: ["project-plots"] });
+      queryClient.invalidateQueries({ queryKey: ["project"] });
+    },
+    onError: (error: AxiosError<{ message: string }>) => {
+      toast.error(error.response?.data?.message || "Failed to hold plot");
+    },
+  });
+};
 
 export const useGetAllBookings = () => {
   const api = useAxios();

@@ -76,7 +76,7 @@ export interface Plot {
     | "SOUTH_WEST";
   plotType: "CORNER" | "ROAD" | "REGULAR";
   frontRoadWidth?: number;
-  status: "available" | "booked" | "reserved" | "sold";
+  status: "available" | "booked" | "reserved" | "sold" | "on_hold";
   canvasPosition?: {
     x: number;
     y: number;
@@ -92,6 +92,7 @@ export interface Plot {
   bookingDate?: string;
   soldDate?: string;
   createdAt: string;
+  holdExpiresAt?: string;
   updatedAt: string;
 }
 

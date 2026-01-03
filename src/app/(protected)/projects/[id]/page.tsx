@@ -23,7 +23,6 @@ import {
   Building2,
   Layers,
   LayoutGrid,
-  Check,
   X,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -32,9 +31,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Plot } from "@/models/types/project";
 import { BookingDialog } from "./_components/BookingDialog";
-
 import { ProjectMap } from "./_components/ProjectMap";
 import { ProjectSitePlan } from "./_components/ProjectSitePlan";
+import { useApp } from "@/context/AppContext";
+import { CountdownTimer } from "@/components/ui/countdown-timer";
 
 const ProjectPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
@@ -43,10 +43,12 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
   const { plots, isLoading: isLoadingPlots } = useGetProjectPlots(id, {
     limit: 100,
   });
+  const { brokerData } = useApp();
 
   const [selectedPlots, setSelectedPlots] = React.useState<Plot[]>([]);
   const [activeBlock, setActiveBlock] = React.useState<string>("all");
   const [isBookingOpen, setIsBookingOpen] = React.useState(false);
+  const [bookingMode, setBookingMode] = React.useState<"book" | "hold">("book");
 
   const blocks = React.useMemo(() => {
     if (!plots) return [];
@@ -286,14 +288,24 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
                               ? "border-green-500 text-green-600 bg-green-50"
                               : plot.status === "booked"
                               ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                              : plot.status === "on_hold"
+                              ? "bg-orange-100 text-orange-700 hover:bg-orange-200"
                               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                           }`}
                         >
-                          {plot.status.toUpperCase()}
+                          {plot.status.replace("_", " ").toUpperCase()}
                         </Badge>
                         {plot.status === "available" && (
                           <div className="text-sm font-semibold mt-1 text-primary">
                             {formatCurrency(plot.price)}
+                          </div>
+                        )}
+                        {plot.status === "on_hold" && plot.holdExpiresAt && (
+                          <div className="mt-1">
+                            <CountdownTimer
+                              expiresAt={plot.holdExpiresAt}
+                              className="text-orange-600 justify-center font-bold"
+                            />
                           </div>
                         )}
                       </div>
@@ -557,10 +569,26 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
               <Button
                 size="sm"
                 className="rounded-full px-6"
-                onClick={() => setIsBookingOpen(true)}
+                onClick={() => {
+                  setBookingMode("book");
+                  setIsBookingOpen(true);
+                }}
               >
                 Book Now
               </Button>
+              {brokerData && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="rounded-full px-6 text-foreground"
+                  onClick={() => {
+                    setBookingMode("hold");
+                    setIsBookingOpen(true);
+                  }}
+                >
+                  Hold
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -572,6 +600,7 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
         plots={selectedPlots}
         projectId={id}
         onSuccess={() => setSelectedPlots([])}
+        mode={bookingMode}
       />
     </main>
   );

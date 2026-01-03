@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { bookingFormSchema, BookingFormValues } from "@/validators/booking";
-import { useCreateBooking } from "@/hooks/useBooking";
+import { useCreateBooking, useHoldPlot } from "@/hooks/useBooking";
 import { Plot } from "@/models/types/project";
 import { Loader2 } from "lucide-react";
 import { useApp } from "@/context/AppContext";
@@ -31,6 +31,7 @@ interface BookingDialogProps {
   plots: Plot[];
   projectId: string;
   onSuccess?: () => void;
+  mode?: "book" | "hold";
 }
 
 export const BookingDialog = ({
@@ -39,9 +40,14 @@ export const BookingDialog = ({
   plots,
   projectId,
   onSuccess,
+  mode = "book",
 }: BookingDialogProps) => {
-  const { mutateAsync: createBooking, isPending } = useCreateBooking();
+  const { mutateAsync: createBooking, isPending: isBookingPending } =
+    useCreateBooking();
+  const { mutateAsync: holdPlot, isPending: isHoldPending } = useHoldPlot();
   const { brokerData } = useApp();
+
+  const isPending = mode === "book" ? isBookingPending : isHoldPending;
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
@@ -77,9 +83,11 @@ export const BookingDialog = ({
     if (plots.length === 0) return;
 
     try {
+      const mutation = mode === "book" ? createBooking : holdPlot;
+
       await Promise.all(
         plots.map((plot) =>
-          createBooking({
+          mutation({
             plotId: plot._id,
             blockId: plot.blockId._id,
             projectId,
@@ -99,7 +107,7 @@ export const BookingDialog = ({
       form.reset();
       if (onSuccess) onSuccess();
     } catch (error) {
-      console.error("Error booking plots:", error);
+      console.error(`Error ${mode}ing plots:`, error);
     }
   };
 
@@ -108,18 +116,20 @@ export const BookingDialog = ({
   const totalAmount = plots.reduce((sum, plot) => sum + plot.price, 0);
   const totalArea = plots.reduce((sum, plot) => sum + plot.area, 0);
   const areaUnit = plots[0]?.areaUnit || "SQ_FT";
+  const actionLabel = mode === "book" ? "Book" : "Hold";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
+            {actionLabel}{" "}
             {plots.length > 1
-              ? `Book ${plots.length} Plots`
-              : `Book Plot ${plots[0].plotNumber}`}
+              ? `${plots.length} Plots`
+              : `Plot ${plots[0].plotNumber}`}
           </DialogTitle>
           <DialogDescription>
-            Enter customer details to book{" "}
+            Enter customer details to {mode}{" "}
             {plots.length > 1 ? "these plots" : "this plot"}.
             <div className="mt-2 text-sm font-medium text-foreground p-3 bg-muted rounded-md space-y-1">
               <div className="flex justify-between">
@@ -264,7 +274,7 @@ export const BookingDialog = ({
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPending ? "Booking..." : "Confirm Booking"}
+                {isPending ? `${actionLabel}ing...` : `Confirm ${actionLabel}`}
               </Button>
             </div>
           </form>

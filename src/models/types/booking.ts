@@ -37,8 +37,10 @@ export interface Booking {
     address?: string;
     _id: string;
   };
-  bookingStatus: "pending" | "confirmed" | "cancelled" | "rejected";
+  bookingStatus: "pending" | "confirmed" | "cancelled" | "rejected" | "on_hold";
   bookingDate: string;
+  holdExpiresAt?: Date;
+
   notes?: string;
   createdAt: string;
   updatedAt: string;
