@@ -77,6 +77,10 @@ import Image from "next/image";
 import { LocationPicker } from "../_components/locationPicker";
 import { cn } from "@/lib/utils";
 import { Enquiry } from "@/models/types/enquiry";
+import {
+  AmenitiesSelector,
+  AmenityOption,
+} from "@/components/property/amenities-selector";
 
 interface ResidentialWizardProps {
   onBack: () => void;
@@ -150,14 +154,10 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   const [draftId, setDraftId] = useState<string | undefined>(initialData?._id);
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
   const [generatingDescription, setGeneratingDescription] = useState(false);
-  const [customAmenity, setCustomAmenity] = useState("");
-  const [amenitySearch, setAmenitySearch] = useState("");
-  const [showAllAmenities, setShowAllAmenities] = useState(false);
   const form = useForm<ResidentialPropertyFormData>({
     resolver: zodResolver(residentialPropertySchema),
     defaultValues: {
       propertyCategory: "RESIDENTIAL",
-      propertyType: "FLAT",
       address: {
         state: "",
         city: "",
@@ -175,6 +175,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       },
       featuredMedia: "",
       ...initialData,
+      // Ensure propertyType is never undefined (fallback after spread)
+      propertyType: initialData?.propertyType || "FLAT",
       images: coerceStringArray(initialData?.images),
       floorPlans: coerceStringArray(initialData?.floorPlans),
       amenities: coerceStringArray(initialData?.amenities),
@@ -182,9 +184,17 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     mode: "onChange",
   });
 
-  const propertyType = form.watch("propertyType");
+  const watchedPropertyType = form.watch("propertyType");
+  const propertyType = watchedPropertyType || "FLAT";
   const size = form.watch("size");
   const rate = form.watch("rate");
+
+  // Ensure propertyType is always set in the form
+  React.useEffect(() => {
+    if (!watchedPropertyType) {
+      form.setValue("propertyType", "FLAT", { shouldValidate: false });
+    }
+  }, [watchedPropertyType, form]);
 
   React.useEffect(() => {
     const calculatedPrice = (size || 0) * (rate || 0);
@@ -940,24 +950,6 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   );
 
   // Step 3: Features & Amenities
-  const toggleAmenity = (amenity: string, field: FieldValues) => {
-    const current = coerceStringArray(field.value);
-    if (current.includes(amenity)) {
-      field.onChange(current.filter((a) => a !== amenity));
-    } else {
-      field.onChange([...current, amenity]);
-    }
-  };
-
-  const handleAddCustomAmenity = (field: FieldValues) => {
-    if (!customAmenity.trim()) return;
-    const current = coerceStringArray(field.value);
-    if (!current.includes(customAmenity.trim())) {
-      field.onChange([...current, customAmenity.trim()]);
-    }
-    setCustomAmenity("");
-  };
-
   const getAmenitiesList = () => {
     if (propertyType === "FLAT") return FLAT_AMENITIES;
     if (propertyType === "VILLA") return VILLA_AMENITIES;
@@ -1024,165 +1016,20 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       <FormField
         control={form.control}
         name="amenities"
-        render={({ field }) => {
-          const amenities = coerceStringArray(field.value);
-          const allAmenitiesList = getAmenitiesList();
-
-          const filteredAmenities = allAmenitiesList.filter((item) =>
-            item.label.toLowerCase().includes(amenitySearch.toLowerCase())
-          );
-
-          const displayedAmenities =
-            showAllAmenities || amenitySearch.length > 0
-              ? filteredAmenities
-              : filteredAmenities.slice(0, 6);
-
-          return (
-            <FormItem>
-              <FormLabel>
-                {propertyType === "FLAT"
-                  ? "Flat"
-                  : propertyType === "VILLA"
-                  ? "Villa"
-                  : "Property"}{" "}
-                Amenities
-              </FormLabel>
-              <FormControl>
-                <div className="space-y-4">
-                  {allAmenitiesList.length > 0 && (
-                    <div className="space-y-4">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Search amenities..."
-                          value={amenitySearch}
-                          onChange={(e) => setAmenitySearch(e.target.value)}
-                          className="pl-9"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {displayedAmenities.map((item) => {
-                          const isSelected = amenities.includes(item.label);
-                          return (
-                            <Button
-                              key={item.label}
-                              type="button"
-                              variant="outline"
-                              className={cn(
-                                "justify-start h-auto py-3 px-4 w-full border-muted hover:border-primary/50 transition-all group",
-                                isSelected
-                                  ? "border-primary bg-primary/5 text-primary hover:bg-primary/10"
-                                  : "bg-background text-foreground hover:bg-accent/50"
-                              )}
-                              onClick={() => toggleAmenity(item.label, field)}
-                            >
-                              <div
-                                className={cn(
-                                  "p-2 rounded-full mr-3 transition-colors",
-                                  isSelected
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-muted text-muted-foreground group-hover:bg-muted/80"
-                                )}
-                              >
-                                <item.icon className="h-4 w-4" />
-                              </div>
-                              <span className="font-normal text-base">
-                                {item.label}
-                              </span>
-                              {isSelected && (
-                                <div className="ml-auto w-2 h-2 rounded-full bg-primary" />
-                              )}
-                            </Button>
-                          );
-                        })}
-                      </div>
-
-                      {!amenitySearch && filteredAmenities.length > 6 && (
-                        <div className="flex justify-center pt-2">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={() =>
-                              setShowAllAmenities(!showAllAmenities)
-                            }
-                            className="text-muted-foreground hover:text-foreground"
-                          >
-                            {showAllAmenities ? (
-                              <>
-                                Show Less <ChevronUp className="ml-2 h-4 w-4" />
-                              </>
-                            ) : (
-                              <>
-                                Show More{" "}
-                                <ChevronDown className="ml-2 h-4 w-4" />
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      )}
-
-                      {filteredAmenities.length === 0 && amenitySearch && (
-                        <div className="text-center py-8 text-muted-foreground">
-                          No amenities found matching &quot;{amenitySearch}
-                          &quot;
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 pt-2">
-                    <Input
-                      placeholder="Add custom amenity..."
-                      value={customAmenity}
-                      onChange={(e) => setCustomAmenity(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddCustomAmenity(field);
-                        }
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      onClick={() => handleAddCustomAmenity(field)}
-                      variant="secondary"
-                    >
-                      <Plus className="h-4 w-4 mr-2" /> Add
-                    </Button>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {amenities
-                      .filter(
-                        (amenity: string) =>
-                          !getAmenitiesList().some((i) => i.label === amenity)
-                      )
-                      .map((amenity: string, index: number) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-1 bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm"
-                        >
-                          <span>{amenity}</span>
-                          <button
-                            type="button"
-                            onClick={() => toggleAmenity(amenity, field)}
-                            className="text-muted-foreground hover:text-foreground"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              </FormControl>
-              <FormDescription>
-                Select from the list or add your own amenities.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          );
-        }}
+        render={({ field }) => (
+          <AmenitiesSelector
+            value={coerceStringArray(field.value)}
+            onChange={field.onChange}
+            options={getAmenitiesList()}
+            label={
+              propertyType === "FLAT"
+                ? "Flat Amenities"
+                : propertyType === "VILLA"
+                ? "Villa Amenities"
+                : "Property Amenities"
+            }
+          />
+        )}
       />
     </div>
   );

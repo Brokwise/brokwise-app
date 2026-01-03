@@ -3,7 +3,15 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useGetMyEnquiries } from "@/hooks/useEnquiry";
 import { EnquiryCard } from "@/app/(protected)/enquiries/_components/EnquiryCard";
-import { Loader2, Plus, Inbox, LayoutGrid, List, Search, Filter } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  Inbox,
+  LayoutGrid,
+  List,
+  Search,
+  Filter,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,25 +65,34 @@ const MyEnquiriesPage = () => {
     if (!myEnquiries) return [];
     return myEnquiries.filter((enquiry) => {
       // Status Filter
-      if (statusFilter !== "all" && enquiry.status !== statusFilter) return false;
+      if (statusFilter !== "all" && enquiry.status !== statusFilter)
+        return false;
 
       // Property Type Filter
-      if (propertyTypeFilter !== "all" && enquiry.enquiryType !== propertyTypeFilter) return false;
+      if (
+        propertyTypeFilter !== "all" &&
+        enquiry.enquiryType !== propertyTypeFilter
+      )
+        return false;
 
       // Search Filter
       if (!searchQuery) return true;
       const search = searchQuery.toLowerCase();
-      
+
       // Check if description matches
-      const descriptionMatch = enquiry.description?.toLowerCase().includes(search);
-      
+      const descriptionMatch = enquiry.description
+        ?.toLowerCase()
+        .includes(search);
+
       // Check if location matches
       const locationString = formatEnquiryLocation(enquiry);
       const locationMatch = locationString.toLowerCase().includes(search);
-      
+
       // Check if category matches
-      const categoryMatch = enquiry.enquiryCategory?.toLowerCase().includes(search);
-      
+      const categoryMatch = enquiry.enquiryCategory
+        ?.toLowerCase()
+        .includes(search);
+
       // Check if type matches
       const typeMatch = enquiry.enquiryType?.toLowerCase().includes(search);
 
@@ -139,7 +156,7 @@ const MyEnquiriesPage = () => {
         </div>
 
         {/* Filters Section - Visible in both views */}
-        {(myEnquiries && myEnquiries.length > 0) && (
+        {myEnquiries && myEnquiries.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-4 mt-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -152,7 +169,10 @@ const MyEnquiriesPage = () => {
             </div>
 
             <div className="w-full sm:w-48">
-              <Select value={propertyTypeFilter} onValueChange={setPropertyTypeFilter}>
+              <Select
+                value={propertyTypeFilter}
+                onValueChange={setPropertyTypeFilter}
+              >
                 <SelectTrigger className="h-10 bg-background">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Property Type" />
@@ -161,7 +181,7 @@ const MyEnquiriesPage = () => {
                   <SelectItem value="all">All Types</SelectItem>
                   {PROPERTY_TYPES.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
-                        {type.label}
+                      {type.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -190,9 +210,7 @@ const MyEnquiriesPage = () => {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardContent className="p-6 flex flex-col items-center justify-center space-y-2">
-            <div className="text-2xl font-bold">
-              {myEnquiries?.length || 0}
-            </div>
+            <div className="text-2xl font-bold">{myEnquiries?.length || 0}</div>
             <div className="text-sm text-muted-foreground">Total Enquiries</div>
           </CardContent>
         </Card>
@@ -220,7 +238,9 @@ const MyEnquiriesPage = () => {
       {!myEnquiries || myEnquiries.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center border rounded-xl bg-muted/20 border-dashed">
           <Inbox className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
-          <h3 className="text-lg font-medium">No enquiries yet</h3>
+          <h3 className="text-lg font-medium font-instrument-serif">
+            No enquiries yet
+          </h3>
           <p className="text-muted-foreground max-w-sm mx-auto mt-2">
             You haven&apos;t created any enquiries yet. Start by creating one to
             find properties.
@@ -237,26 +257,28 @@ const MyEnquiriesPage = () => {
         <>
           {effectiveView === "grid" ? (
             filteredEnquiries.length === 0 ? (
-                 <div className="flex flex-col items-center justify-center py-20 text-center border rounded-xl bg-muted/20 border-dashed">
-                  <Inbox className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium">No enquiries match your filters</h3>
-                  <Button 
-                    variant="link" 
-                    onClick={() => {
-                        setSearchQuery("");
-                        setStatusFilter("all");
-                        setPropertyTypeFilter("all");
-                    }}
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
+              <div className="flex flex-col items-center justify-center py-20 text-center border rounded-xl bg-muted/20 border-dashed">
+                <Inbox className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
+                <h3 className="text-lg font-medium">
+                  No enquiries match your filters
+                </h3>
+                <Button
+                  variant="link"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setStatusFilter("all");
+                    setPropertyTypeFilter("all");
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredEnquiries.map((enquiry) => (
-                    <EnquiryCard key={enquiry._id} enquiry={enquiry} />
+                  <EnquiryCard key={enquiry._id} enquiry={enquiry} />
                 ))}
-                </div>
+              </div>
             )
           ) : (
             <DataTable columns={columns} data={filteredEnquiries} />

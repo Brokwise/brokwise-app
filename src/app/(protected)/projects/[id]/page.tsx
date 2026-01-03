@@ -115,7 +115,7 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
   const allImages = project.images || [];
 
   return (
-    <main className="container mx-auto py-8 px-4 max-w-7xl space-y-8 relative mb-20">
+    <main className="container mx-auto py-8  space-y-8 relative mb-20">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
         <div className="flex items-center gap-4">

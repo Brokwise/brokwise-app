@@ -277,12 +277,12 @@ const CreateProperty = () => {
                     />
 
                     {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300" />
 
                     {/* Content */}
                     <div className="absolute inset-0 p-3 flex flex-col justify-end">
                       <div className="transform transition-transform duration-300 translate-y-1 group-hover:translate-y-0">
-                        <h3 className="text-base font-instrument-serif text-white leading-tight">
+                        <h3 className="text-base font-instrument-serif text-white leading-tight text-3xl">
                           {category.label}
                         </h3>
                         <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">

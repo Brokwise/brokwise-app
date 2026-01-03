@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { LocationPicker } from "../_components/locationPicker";
 import { cn } from "@/lib/utils";
+import { AmenitiesSelector, AmenityOption } from "@/components/property/amenities-selector";
 
 interface FarmHouseWizardProps {
   onBack: () => void;
@@ -728,6 +729,23 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
   // Step 4: Pricing
   // Pricing merged into Specifications
 
+  const FARMHOUSE_AMENITIES: AmenityOption[] = [
+    { label: "Garden" },
+    { label: "Parking" },
+    { label: "Security" },
+    { label: "Water Tank" },
+    { label: "Electricity" },
+    { label: "Bore Well" },
+    { label: "Swimming Pool" },
+    { label: "Guest Rooms" },
+    { label: "Kitchen" },
+    { label: "Caretaker Room" },
+    { label: "Boundary Wall" },
+    { label: "Gate" },
+    { label: "CCTV" },
+    { label: "Generator" },
+  ];
+
   // Step 5: Farm House Amenities
   const AmenitiesStep = (
     <div className="space-y-6">
@@ -735,29 +753,12 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
         control={form.control}
         name="amenities"
         render={({ field }) => (
-          <FormItem>
-            <FormLabel>Farm House Amenities</FormLabel>
-            <FormControl>
-              <Textarea
-                placeholder="List amenities separated by commas (e.g., Garden, Parking, Security, Water Tank, Electricity, Bore Well, Swimming Pool, Guest Rooms, Kitchen, Caretaker Room, Boundary Wall, Gate, CCTV, Generator)"
-                className="min-h-[100px]"
-                {...field}
-                value={coerceStringArray(field.value).join(", ")}
-                onChange={(e) =>
-                  field.onChange(
-                    e.target.value
-                      .split(",")
-                      .map((item) => item.trim())
-                      .filter(Boolean)
-                  )
-                }
-              />
-            </FormControl>
-            <FormDescription>
-              Enter amenities separated by commas
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
+          <AmenitiesSelector
+            value={coerceStringArray(field.value)}
+            onChange={field.onChange}
+            options={FARMHOUSE_AMENITIES}
+            label="Farm House Amenities"
+          />
         )}
       />
     </div>

@@ -42,6 +42,10 @@ import Image from "next/image";
 import { LocationPicker } from "../_components/locationPicker";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
+import {
+  AmenitiesSelector,
+  AmenityOption,
+} from "@/components/property/amenities-selector";
 
 interface CommercialWizardProps {
   onBack: () => void;
@@ -80,7 +84,6 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     resolver: zodResolver(commercialPropertySchema),
     defaultValues: {
       propertyCategory: "COMMERCIAL",
-      propertyType: "SHOP",
       address: {
         state: "",
         city: "",
@@ -98,17 +101,28 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
       },
       featuredMedia: "",
       ...initialData,
+      // Ensure propertyType is never undefined (fallback after spread)
+      propertyType: initialData?.propertyType || "SHOP",
       images: initialImages,
       floorPlans: initialFloorPlans,
       amenities: initialAmenities,
     },
     mode: "onChange",
+    shouldUnregister: false,
   });
 
-  const propertyType = form.watch("propertyType");
+  const watchedPropertyType = form.watch("propertyType");
+  const propertyType = watchedPropertyType || "SHOP";
   const plotType = form.watch("plotType");
   const size = form.watch("size");
   const rate = form.watch("rate");
+
+  // Ensure propertyType is always set in the form
+  React.useEffect(() => {
+    if (!watchedPropertyType) {
+      form.setValue("propertyType", "SHOP", { shouldValidate: false });
+    }
+  }, [watchedPropertyType, form]);
 
   React.useEffect(() => {
     const calculatedPrice = (size || 0) * (rate || 0);
@@ -199,19 +213,27 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         "address.city",
         "address.pincode",
         "address.address",
-      ],
-      1: [
         "size",
         "sizeUnit",
         "rate",
         "totalPrice",
         ...(propertyType === "HOTEL" ? ["rooms"] : []),
-        ...(propertyType === "HOSTEL" ? ["beds"] : []),
+        ...(propertyType === "HOSTEL" ? ["beds", "rooms"] : []),
+        ...(propertyType === "SHOWROOM" || propertyType === "HOTEL"
+          ? ["floor"]
+          : []),
+        ...(propertyType === "SHOP" ? ["propertyStatus"] : []),
+        ...(propertyType === "OFFICE_SPACE" ? ["projectArea"] : []),
+        ...(propertyType === "SHOP"
+          ? ["plotType", "facing", "frontRoadWidth"]
+          : []),
+        ...(propertyType === "SHOP" && plotType === "CORNER"
+          ? ["sideFacing", "sideRoadWidth"]
+          : []),
+        "purpose",
       ],
-      2: [], // Location step
-      3: [], // Features step
-      4: ["description", "featuredMedia", "images"],
-      5: [], // Review step
+      1: ["amenities", "description", "featuredMedia", "images"],
+      2: [], // Review step
     };
 
     const fieldsToValidate = stepValidations[currentStep] || [];
@@ -234,8 +256,11 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
       // Show feedback when validation fails with specific field errors
       const errors = form.formState.errors;
       const errorMessages: string[] = [];
-      
-      const flattenErrors = (obj: Record<string, unknown>, prefix = ""): void => {
+
+      const flattenErrors = (
+        obj: Record<string, unknown>,
+        prefix = ""
+      ): void => {
         for (const key in obj) {
           const value = obj[key] as Record<string, unknown>;
           const fullKey = prefix ? `${prefix}.${key}` : key;
@@ -246,11 +271,17 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
           }
         }
       };
-      
+
       flattenErrors(errors as Record<string, unknown>);
-      
+
       if (errorMessages.length > 0) {
-        toast.error(`Please fix: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3 ? ` (+${errorMessages.length - 3} more)` : ""}`);
+        toast.error(
+          `Please fix: ${errorMessages.slice(0, 3).join(", ")}${
+            errorMessages.length > 3
+              ? ` (+${errorMessages.length - 3} more)`
+              : ""
+          }`
+        );
       } else {
         toast.error("Please fill in all required fields before proceeding.");
       }
@@ -303,7 +334,9 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
 
     // Use the extracted pincode directly if available
     if (details.pincode) {
-      form.setValue("address.pincode", details.pincode, { shouldValidate: true });
+      form.setValue("address.pincode", details.pincode, {
+        shouldValidate: true,
+      });
     }
 
     if (details.context) {
@@ -318,7 +351,9 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         if (!details.pincode && item.id.startsWith("postcode")) {
           const numericPincode = item.text.replace(/\D/g, "").slice(0, 6);
           if (numericPincode.length === 6) {
-            form.setValue("address.pincode", numericPincode, { shouldValidate: true });
+            form.setValue("address.pincode", numericPincode, {
+              shouldValidate: true,
+            });
           }
         }
       });
@@ -333,8 +368,11 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
       // Show feedback when validation fails with specific field errors
       const errors = form.formState.errors;
       const errorMessages: string[] = [];
-      
-      const flattenErrors = (obj: Record<string, unknown>, prefix = ""): void => {
+
+      const flattenErrors = (
+        obj: Record<string, unknown>,
+        prefix = ""
+      ): void => {
         for (const key in obj) {
           const value = obj[key] as Record<string, unknown>;
           const fullKey = prefix ? `${prefix}.${key}` : key;
@@ -345,11 +383,17 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
           }
         }
       };
-      
+
       flattenErrors(errors as Record<string, unknown>);
-      
+
       if (errorMessages.length > 0) {
-        toast.error(`Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3 ? ` (+${errorMessages.length - 3} more)` : ""}`);
+        toast.error(
+          `Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${
+            errorMessages.length > 3
+              ? ` (+${errorMessages.length - 3} more)`
+              : ""
+          }`
+        );
       } else {
         toast.error("Please complete all required fields before submitting.");
       }
@@ -379,59 +423,167 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     }
   };
 
-  // Step 1: Basic Information
-  const BasicInfoStep = (
-    <div className="space-y-6">
-      <FormField
-        control={form.control}
-        name="propertyType"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Commercial Property Type</FormLabel>
-            <FormControl>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { value: "SHOWROOM", label: "Showroom" },
-                  { value: "HOTEL", label: "Hotel" },
-                  { value: "HOSTEL", label: "Hostel" },
-                  { value: "SHOP", label: "Shop" },
-                  { value: "OFFICE_SPACE", label: "Office Space" },
-                  { value: "OTHER_SPACE", label: "Other Space" },
-                ].map((item) => (
-                  <Button
-                    key={item.value}
-                    type="button"
-                    variant="selection"
-                    onClick={() => field.onChange(item.value)}
-                    className={cn(
-                      field.value === item.value
-                        ? "bg-primary text-primary-foreground"
-                        : ""
-                    )}
-                  >
-                    {item.label}
-                  </Button>
-                ))}
-              </div>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+  const AmenitiesList: Record<string, AmenityOption[]> = {
+    HOTEL: [
+      { label: "Reception Lobby Area" },
+      { label: "Daily Housekeeping" },
+      { label: "On Site Dining Restaurant" },
+      { label: "Conference Meeting Rooms" },
+      { label: "Elevator Lift" },
+      { label: "Fitness Center" },
+      { label: "Spa Massage Services" },
+      { label: "Laundry Service" },
+      { label: "Business Center" },
+      { label: "High Speed Wi Fi" },
+      { label: "Parking Space" },
+      { label: "Airport Shuttle" },
+      { label: "Cctv Surveillance" },
+      { label: "Fire Safety Equipment" },
+    ],
+    HOSTEL: [
+      { label: "Shared Kitchen" },
+      { label: "Common Lounge Area" },
+      { label: "Dormitory Private Rooms" },
+      { label: "Study Work Zones" },
+      { label: "Lockers For Each Bed" },
+      { label: "Shared Bathrooms" },
+      { label: "24 7 Security" },
+      { label: "Laundry Facilities" },
+      { label: "Wi Fi" },
+      { label: "Housekeeping" },
+      { label: "Cctv Surveillance" },
+      { label: "Bicycle Parking" },
+      { label: "Social Activities Zone" },
+      { label: "Meal Options Available" },
+      { label: "Air Conditioning Fans" },
+    ],
+    OFFICE_SPACE: [
+      { label: "Furnished Cabins Workstations" },
+      { label: "Conference Meeting Rooms" },
+      { label: "High Speed Internet" },
+      { label: "Air Conditioning" },
+      { label: "24 7 Security Surveillance" },
+      { label: "Reception Front Desk" },
+      { label: "Pantry Cafeteria" },
+      { label: "Power Backup" },
+      { label: "Printing Scanning Services" },
+      { label: "Parking Area" },
+      { label: "Elevator Lift" },
+      { label: "Fire Safety Exit Routes" },
+      { label: "Cleaning Maintenance" },
+      { label: "Access Control System" },
+      { label: "Networking It Support Infrastructure" },
+    ],
+    SHOWROOM: [
+      { label: "Large Display Windows" },
+      { label: "High Ceilings" },
+      { label: "Air Conditioning" },
+      { label: "Parking Space" },
+      { label: "Security System" },
+      { label: "Storage Area" },
+      { label: "Restrooms" },
+      { label: "Loading/Unloading Area" },
+      { label: "Power Backup" },
+      { label: "Fire Safety System" },
+    ],
+    SHOP: [
+      { label: "Display Area" },
+      { label: "Storage Space" },
+      { label: "Shutters" },
+      { label: "Power Backup" },
+      { label: "Water Connection" },
+      { label: "Parking Availability" },
+      { label: "Security" },
+    ],
+  };
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column: Address Fields */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Property Address</h3>
-          <div className="grid grid-cols-2 gap-4">
+  // Step 1: Property Details (Basic Info + Specs + Location/Plot + Purpose)
+  const Step1PropertyDetails = (
+    <div className="space-y-8">
+      {/* Basic Info Section */}
+      <div className="space-y-6">
+        <h3 className="text-lg font-semibold">Basic Information</h3>
+        <FormField
+          control={form.control}
+          name="propertyType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Commercial Property Type</FormLabel>
+              <FormControl>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: "SHOWROOM", label: "Showroom" },
+                    { value: "HOTEL", label: "Hotel" },
+                    { value: "HOSTEL", label: "Hostel" },
+                    { value: "SHOP", label: "Shop" },
+                    { value: "OFFICE_SPACE", label: "Office Space" },
+                    { value: "OTHER_SPACE", label: "Other Space" },
+                  ].map((item) => (
+                    <Button
+                      key={item.value}
+                      type="button"
+                      variant="selection"
+                      onClick={() => field.onChange(item.value)}
+                      className={cn(
+                        field.value === item.value
+                          ? "bg-primary text-primary-foreground"
+                          : ""
+                      )}
+                    >
+                      {item.label}
+                    </Button>
+                  ))}
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column: Address Fields */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Property Address</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="address.state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>State</FormLabel>
+                    <FormControl>
+                      <Input placeholder="State" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="address.city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City</FormLabel>
+                    <FormControl>
+                      <Input placeholder="City" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
-              name="address.state"
+              name="address.pincode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>State</FormLabel>
+                  <FormLabel>Pincode</FormLabel>
                   <FormControl>
-                    <Input placeholder="State" {...field} />
+                    <PincodeInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Enter 6-digit pincode"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -439,338 +591,61 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
             />
             <FormField
               control={form.control}
-              name="address.city"
+              name="address.address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>City</FormLabel>
+                  <FormLabel>Full Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="City" {...field} />
+                    <Textarea
+                      placeholder="Enter complete property address"
+                      className="min-h-[100px]"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
-          <FormField
-            control={form.control}
-            name="address.pincode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Pincode</FormLabel>
-                <FormControl>
-                  <PincodeInput
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder="Enter 6-digit pincode"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="address.address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Full Address</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Enter complete property address"
-                    className="min-h-[100px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
 
-        {/* Right Column: Map */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Locate on Map</h3>
-          <FormField
-            control={form.control}
-            name="location.coordinates"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <LocationPicker
-                    value={field.value as [number, number]}
-                    onChange={field.onChange}
-                    onLocationSelect={handleLocationSelect}
-                    className="h-full"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Right Column: Map */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Locate on Map</h3>
+            <FormField
+              control={form.control}
+              name="location.coordinates"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <LocationPicker
+                      value={field.value as [number, number]}
+                      onChange={field.onChange}
+                      onLocationSelect={handleLocationSelect}
+                      className="h-full"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
       </div>
-    </div>
-  );
 
-  // Step 2: Property Specifications
-  const PropertySpecsStep = (
-    <div className="space-y-6">
-      {/* Size and Unit */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="size"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Property Size</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter size"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="sizeUnit"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Size Unit</FormLabel>
-              <FormControl>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: "SQ_FT", label: "Square Feet" },
-                    { value: "SQ_METER", label: "Square Meter" },
-                  ].map((item) => (
-                    <Button
-                      key={item.value}
-                      type="button"
-                      variant="selection"
-                      onClick={() => field.onChange(item.value)}
-                      className={cn(
-                        field.value === item.value
-                          ? "bg-primary text-primary-foreground"
-                          : ""
-                      )}
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-
-      {/* Floor for Showroom/Hotel */}
-      {(propertyType === "SHOWROOM" || propertyType === "HOTEL") && (
-        <FormField
-          control={form.control}
-          name="floor"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Floor</FormLabel>
-              <FormControl>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: "Ground", label: "Ground Floor" },
-                    { value: "1", label: "1st Floor" },
-                    { value: "2", label: "2nd Floor" },
-                    { value: "3", label: "3rd Floor" },
-                    { value: "4", label: "4th Floor" },
-                    { value: "5", label: "5th Floor" },
-                    { value: "Custom", label: "Custom" },
-                  ].map((item) => (
-                    <Button
-                      key={item.value}
-                      type="button"
-                      variant="selection"
-                      onClick={() => field.onChange(item.value)}
-                      className={cn(
-                        field.value === item.value
-                          ? "bg-primary text-primary-foreground"
-                          : ""
-                      )}
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
-
-      {/* Hotel specific - Rooms */}
-      {propertyType === "HOTEL" && (
-        <FormField
-          control={form.control}
-          name="rooms"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Number of Rooms</FormLabel>
-              <FormControl>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="1-1000"
-                  {...field}
-                  value={field.value ?? ""}
-                  onChange={(e) =>
-                    field.onChange(parseIntegerWithMax(e.target.value, 1000))
-                  }
-                />
-              </FormControl>
-              <FormDescription>
-                Required for hotel listings (minimum 1)
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
-
-      {/* Hostel specific - Beds and Rooms */}
-      {propertyType === "HOSTEL" && (
+      <div className="border-t pt-6 space-y-6">
+        <h3 className="text-lg font-semibold">Property Specifications</h3>
+        {/* Size and Unit */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="beds"
+            name="size"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Number of Beds</FormLabel>
-                <FormControl>
-                  <div className="flex flex-wrap gap-2">
-                    {[1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50].map(
-                      (num) => (
-                        <Button
-                          key={num}
-                          type="button"
-                          variant="selection"
-                          onClick={() => field.onChange(num)}
-                          className={cn(
-                            field.value === num
-                              ? "bg-primary text-primary-foreground"
-                              : "w-12"
-                          )}
-                        >
-                          {num}
-                        </Button>
-                      )
-                    )}
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="rooms"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Number of Rooms</FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="1-1000"
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(parseIntegerWithMax(e.target.value, 1000))
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-      )}
-
-      {/* Shop specific - Property Status */}
-      {propertyType === "SHOP" && (
-        <FormField
-          control={form.control}
-          name="propertyStatus"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Property Status</FormLabel>
-              <FormControl>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: "Land", label: "Land" },
-                    { value: "Constructed", label: "Constructed" },
-                  ].map((item) => (
-                    <Button
-                      key={item.value}
-                      type="button"
-                      variant="selection"
-                      onClick={() => field.onChange(item.value)}
-                      className={cn(
-                        field.value === item.value
-                          ? "bg-primary text-primary-foreground"
-                          : ""
-                      )}
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
-
-      {/* Office Space - Project Area */}
-      {propertyType === "OFFICE_SPACE" && (
-        <FormField
-          control={form.control}
-          name="projectArea"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Project Area (sq ft)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter project area"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
-
-      <div className="pt-6 border-t space-y-6">
-        <h3 className="text-lg font-medium">Pricing Details</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="rate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Rate per Unit (₹)</FormLabel>
+                <FormLabel>Property Size</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="Enter rate per unit"
+                    placeholder="Enter size"
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />
@@ -782,121 +657,15 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
 
           <FormField
             control={form.control}
-            name="totalPrice"
+            name="sizeUnit"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Total Price (₹)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Enter total price"
-                    {...field}
-                    disabled
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Auto-calculated based on size and rate
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Rental Income for Showroom/Hotel */}
-        {(propertyType === "SHOWROOM" ||
-          propertyType === "HOTEL" ||
-          propertyType === "HOSTEL") && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Rental Income (Optional)</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="rentalIncome.min"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Minimum Rental Income (₹)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          max="2500000"
-                          {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormDescription>Range: 0 to 25L</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="rentalIncome.max"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Maximum Rental Income (₹)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="2500000"
-                          max="2500000"
-                          {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormDescription>Range: 0 to 25L</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          )}
-
-        <FormField
-          control={form.control}
-          name="isPriceNegotiable"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Price Negotiable</FormLabel>
-                <FormDescription>
-                  Check if the price is open for negotiation
-                </FormDescription>
-              </div>
-            </FormItem>
-          )}
-        />
-      </div>
-    </div>
-  );
-
-  // Step 3: Location & Plot Details
-  const LocationStep = (
-    <div className="space-y-6">
-      {/* Shop specific plot details */}
-      {propertyType === "SHOP" && (
-        <>
-          <FormField
-            control={form.control}
-            name="plotType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Plot Type</FormLabel>
+                <FormLabel>Size Unit</FormLabel>
                 <FormControl>
                   <div className="flex flex-wrap gap-2">
                     {[
-                      { value: "ROAD", label: "Road Facing" },
-                      { value: "CORNER", label: "Corner Plot" },
+                      { value: "SQ_FT", label: "Square Feet" },
+                      { value: "SQ_METER", label: "Square Meter" },
                     ].map((item) => (
                       <Button
                         key={item.value}
@@ -918,28 +687,39 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
               </FormItem>
             )}
           />
+        </div>
 
+        {/* Floor for Showroom/Hotel */}
+        {(propertyType === "SHOWROOM" || propertyType === "HOTEL") && (
           <FormField
             control={form.control}
-            name="facing"
+            name="floor"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Front Facing</FormLabel>
+                <FormLabel>Floor</FormLabel>
                 <FormControl>
                   <div className="flex flex-wrap gap-2">
-                    {["NORTH", "SOUTH", "EAST", "WEST"].map((dir) => (
+                    {[
+                      { value: "Ground", label: "Ground Floor" },
+                      { value: "1", label: "1st Floor" },
+                      { value: "2", label: "2nd Floor" },
+                      { value: "3", label: "3rd Floor" },
+                      { value: "4", label: "4th Floor" },
+                      { value: "5", label: "5th Floor" },
+                      { value: "Custom", label: "Custom" },
+                    ].map((item) => (
                       <Button
-                        key={dir}
+                        key={item.value}
                         type="button"
                         variant="selection"
-                        onClick={() => field.onChange(dir)}
+                        onClick={() => field.onChange(item.value)}
                         className={cn(
-                          field.value === dir
+                          field.value === item.value
                             ? "bg-primary text-primary-foreground"
                             : ""
                         )}
                       >
-                        {dir.charAt(0) + dir.slice(1).toLowerCase()}
+                        {item.label}
                       </Button>
                     ))}
                   </div>
@@ -948,447 +728,448 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
               </FormItem>
             )}
           />
+        )}
 
+        {/* Hotel specific - Rooms */}
+        {propertyType === "HOTEL" && (
           <FormField
             control={form.control}
-            name="frontRoadWidth"
+            name="rooms"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Front Road Width (in feet)</FormLabel>
+                <FormLabel>Number of Rooms</FormLabel>
                 <FormControl>
                   <Input
                     type="text"
                     inputMode="numeric"
-                    placeholder={`Enter front road width (max ${PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)`}
+                    placeholder="1-1000"
+                    {...field}
                     value={field.value ?? ""}
-                    onChange={(e) => field.onChange(parseRoadWidthInput(e.target.value))}
+                    onChange={(e) =>
+                      field.onChange(parseIntegerWithMax(e.target.value, 1000))
+                    }
+                  />
+                </FormControl>
+                <FormDescription>
+                  Required for hotel listings (minimum 1)
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Hostel specific - Beds and Rooms */}
+        {propertyType === "HOSTEL" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="beds"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Number of Beds</FormLabel>
+                  <FormControl>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50,
+                      ].map((num) => (
+                        <Button
+                          key={num}
+                          type="button"
+                          variant="selection"
+                          onClick={() => field.onChange(num)}
+                          className={cn(
+                            field.value === num
+                              ? "bg-primary text-primary-foreground"
+                              : "w-12"
+                          )}
+                        >
+                          {num}
+                        </Button>
+                      ))}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="rooms"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Number of Rooms</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="1-1000"
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          parseIntegerWithMax(e.target.value, 1000)
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
+
+        {/* Shop specific - Property Status */}
+        {propertyType === "SHOP" && (
+          <FormField
+            control={form.control}
+            name="propertyStatus"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Property Status</FormLabel>
+                <FormControl>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: "Land", label: "Land" },
+                      { value: "Constructed", label: "Constructed" },
+                    ].map((item) => (
+                      <Button
+                        key={item.value}
+                        type="button"
+                        variant="selection"
+                        onClick={() => field.onChange(item.value)}
+                        className={cn(
+                          field.value === item.value
+                            ? "bg-primary text-primary-foreground"
+                            : ""
+                        )}
+                      >
+                        {item.label}
+                      </Button>
+                    ))}
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Office Space - Project Area */}
+        {propertyType === "OFFICE_SPACE" && (
+          <FormField
+            control={form.control}
+            name="projectArea"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Project Area (sq ft)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter project area"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+        )}
 
-          {plotType === "CORNER" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="sideFacing"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Side Facing</FormLabel>
-                    <FormControl>
-                      <div className="flex flex-wrap gap-2">
-                        {["NORTH", "SOUTH", "EAST", "WEST"].map((dir) => (
-                          <Button
-                            key={dir}
-                            type="button"
-                            variant="selection"
-                            onClick={() => field.onChange(dir)}
-                            className={cn(
-                              field.value === dir
-                                ? "bg-primary text-primary-foreground"
-                                : ""
-                            )}
-                          >
-                            {dir.charAt(0) + dir.slice(1).toLowerCase()}
-                          </Button>
-                        ))}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <div className="pt-6 border-t space-y-6">
+          <h3 className="text-lg font-medium">Pricing Details</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="rate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rate per Unit (₹)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Enter rate per unit"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="sideRoadWidth"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Side Road Width (in feet)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        placeholder={`Enter side road width (max ${PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)`}
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(parseRoadWidthInput(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="totalPrice"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Total Price (₹)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Enter total price"
+                      {...field}
+                      disabled
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Auto-calculated based on size and rate
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Rental Income for Showroom/Hotel */}
+          {(propertyType === "SHOWROOM" ||
+            propertyType === "HOTEL" ||
+            propertyType === "HOSTEL") && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Rental Income (Optional)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="rentalIncome.min"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Minimum Rental Income (₹)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          max="2500000"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormDescription>Range: 0 to 25L</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="rentalIncome.max"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maximum Rental Income (₹)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="2500000"
+                          max="2500000"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormDescription>Range: 0 to 25L</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
           )}
-        </>
-      )}
-    </div>
-  );
 
-  {
-    /* Purpose */
-  }
-  <FormField
-    control={form.control}
-    name="purpose"
-    render={({ field }) => (
-      <FormItem>
-        <FormLabel>Purpose</FormLabel>
-        <FormControl>
-          <Input
-            placeholder={
-              propertyType === "SHOWROOM"
-                ? "e.g., Retail, Display, Sales"
-                : propertyType === "HOTEL"
-                  ? "e.g., Hospitality, Tourism, Business"
-                  : "Enter purpose"
-            }
-            {...field}
+          <FormField
+            control={form.control}
+            name="isPriceNegotiable"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Price Negotiable</FormLabel>
+                  <FormDescription>
+                    Check if the price is open for negotiation
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
           />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    )}
-  />;
+        </div>
+      </div>
 
-  // Step 5: Features & Amenities
-  const AmenitiesList = {
-    HOTEL: [
-      "Reception Lobby Area",
-      "Daily Housekeeping",
-      "On Site Dining Restaurant",
-      "Conference Meeting Rooms",
-      "Elevator Lift",
-      "Fitness Center",
-      "Spa Massage Services",
-      "Laundry Service",
-      "Business Center",
-      "High Speed Wi Fi",
-      "Parking Space",
-      "Airport Shuttle",
-      "Cctv Surveillance",
-      "Fire Safety Equipment",
-    ],
-    HOSTEL: [
-      "Shared Kitchen",
-      "Common Lounge Area",
-      "Dormitory Private Rooms",
-      "Study Work Zones",
-      "Lockers For Each Bed",
-      "Shared Bathrooms",
-      "24 7 Security",
-      "Laundry Facilities",
-      "Wi Fi",
-      "Housekeeping",
-      "Cctv Surveillance",
-      "Bicycle Parking",
-      "Social Activities Zone",
-      "Meal Options Available",
-      "Air Conditioning Fans",
-    ],
-    OFFICE_SPACE: [
-      "Furnished Cabins Workstations",
-      "Conference Meeting Rooms",
-      "High Speed Internet",
-      "Air Conditioning",
-      "24 7 Security Surveillance",
-      "Reception Front Desk",
-      "Pantry Cafeteria",
-      "Power Backup",
-      "Printing Scanning Services",
-      "Parking Area",
-      "Elevator Lift",
-      "Fire Safety Exit Routes",
-      "Cleaning Maintenance",
-      "Access Control System",
-      "Networking It Support Infrastructure",
-    ],
-    SHOWROOM: [
-      "Large Display Windows",
-      "High Ceilings",
-      "Air Conditioning",
-      "Parking Space",
-      "Security System",
-      "Storage Area",
-      "Restrooms",
-      "Loading/Unloading Area",
-      "Power Backup",
-      "Fire Safety System",
-    ],
-    SHOP: [
-      "Display Area",
-      "Storage Space",
-      "Shutters",
-      "Power Backup",
-      "Water Connection",
-      "Parking Availability",
-      "Security",
-    ],
-  };
-
-  const FeaturesStep = (
-    <div className="space-y-6">
-      <FormField
-        control={form.control}
-        name="amenities"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{propertyType} Amenities</FormLabel>
-            <FormControl>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                {AmenitiesList[propertyType as keyof typeof AmenitiesList]?.map(
-                  (amenity) => (
-                    <div
-                      key={amenity}
-                      className="flex flex-row items-start space-x-3 space-y-0"
-                    >
-                      <Checkbox
-                        checked={
-                          Array.isArray(field.value) &&
-                          field.value.includes(amenity)
-                        }
-                        onCheckedChange={(checked) => {
-                          const isChecked = checked === true;
-                          const current = Array.isArray(field.value)
-                            ? field.value
-                            : [];
-                          const updated = isChecked
-                            ? Array.from(new Set([...current, amenity]))
-                            : current.filter((value) => value !== amenity);
-                          field.onChange(updated);
-                        }}
-                      />
-                      <FormLabel className="font-normal">{amenity}</FormLabel>
+      <div className="border-t pt-6 space-y-6">
+        <h3 className="text-lg font-semibold">Additional Details</h3>
+        {/* Shop specific plot details */}
+        {propertyType === "SHOP" && (
+          <>
+            <FormField
+              control={form.control}
+              name="plotType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Plot Type</FormLabel>
+                  <FormControl>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { value: "ROAD", label: "Road Facing" },
+                        { value: "CORNER", label: "Corner Plot" },
+                      ].map((item) => (
+                        <Button
+                          key={item.value}
+                          type="button"
+                          variant="selection"
+                          onClick={() => field.onChange(item.value)}
+                          className={cn(
+                            field.value === item.value
+                              ? "bg-primary text-primary-foreground"
+                              : ""
+                          )}
+                        >
+                          {item.label}
+                        </Button>
+                      ))}
                     </div>
-                  )
-                ) || (
-                    <Textarea
-                      placeholder="Enter amenities"
-                      {...field}
-                      value={coerceStringArray(field.value).join(", ")}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="facing"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Front Facing</FormLabel>
+                  <FormControl>
+                    <div className="flex flex-wrap gap-2">
+                      {["NORTH", "SOUTH", "EAST", "WEST"].map((dir) => (
+                        <Button
+                          key={dir}
+                          type="button"
+                          variant="selection"
+                          onClick={() => field.onChange(dir)}
+                          className={cn(
+                            field.value === dir
+                              ? "bg-primary text-primary-foreground"
+                              : ""
+                          )}
+                        >
+                          {dir.charAt(0) + dir.slice(1).toLowerCase()}
+                        </Button>
+                      ))}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="frontRoadWidth"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Front Road Width (in feet)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder={`Enter front road width (max ${PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)`}
+                      value={field.value ?? ""}
                       onChange={(e) =>
-                        field.onChange(
-                          e.target.value
-                            .split(",")
-                            .map((item) => item.trim())
-                            .filter(Boolean)
-                        )
+                        field.onChange(parseRoadWidthInput(e.target.value))
                       }
                     />
-                  )}
-              </div>
-            </FormControl>
-            <FormDescription>Select available amenities</FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
-  );
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-  // Step 6: Media & Description
-  const MediaStep = (
-    <div className="space-y-6">
-      <FormField
-        control={form.control}
-        name="description"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>About Property</FormLabel>
-            <FormControl>
-              <div className="relative">
-                <Textarea
-                  placeholder="Describe the property features, amenities, and other details"
-                  className="min-h-[120px]"
+            {plotType === "CORNER" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="sideFacing"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Side Facing</FormLabel>
+                      <FormControl>
+                        <div className="flex flex-wrap gap-2">
+                          {["NORTH", "SOUTH", "EAST", "WEST"].map((dir) => (
+                            <Button
+                              key={dir}
+                              type="button"
+                              variant="selection"
+                              onClick={() => field.onChange(dir)}
+                              className={cn(
+                                field.value === dir
+                                  ? "bg-primary text-primary-foreground"
+                                  : ""
+                              )}
+                            >
+                              {dir.charAt(0) + dir.slice(1).toLowerCase()}
+                            </Button>
+                          ))}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="sideRoadWidth"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Side Road Width (in feet)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder={`Enter side road width (max ${PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)`}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(parseRoadWidthInput(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Purpose */}
+        <FormField
+          control={form.control}
+          name="purpose"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Purpose</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder={
+                    propertyType === "SHOWROOM"
+                      ? "e.g., Retail, Display, Sales"
+                      : propertyType === "HOTEL"
+                      ? "e.g., Hospitality, Tourism, Business"
+                      : "Enter purpose"
+                  }
                   {...field}
                 />
-                <Button
-                  disabled={generatingDescription}
-                  onClick={() => handleGenerateDescription()}
-                  className="absolute bottom-2 right-2 h-8 text-sm "
-                >
-                  {generatingDescription ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      Generate Description <Wand2Icon />
-                    </>
-                  )}
-                </Button>
-              </div>
-            </FormControl>
-            <FormDescription>
-              Provide detailed information about the property (minimum 10
-              characters)
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      {/* Media Files */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Media Files</h3>
-
-        <FormField
-          control={form.control}
-          name="featuredMedia"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Featured Media</FormLabel>
-              <FormControl>
-                <div className="space-y-2">
-                  {!field.value ? (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="file"
-                        accept="image/*,video/*"
-                        disabled={uploading["featuredMedia"]}
-                        onChange={(e) =>
-                          handleFileUpload(e.target.files, "featuredMedia")
-                        }
-                      />
-                      {uploading["featuredMedia"] && (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="relative w-full max-w-sm aspect-video rounded-lg border overflow-hidden">
-                      <Image
-                        src={field.value as string}
-                        alt="Featured Media"
-                        className="object-cover w-full h-full"
-                        width={100}
-                        height={100}
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2 h-6 w-6"
-                        onClick={() => removeFile("featuredMedia")}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="images"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Images</FormLabel>
-              <FormControl>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      disabled={uploading["images"]}
-                      onChange={(e) =>
-                        handleFileUpload(e.target.files, "images")
-                      }
-                    />
-                    {uploading["images"] && (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    )}
-                  </div>
-
-                  {field.value && field.value.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {field.value.map((url, index) => (
-                        <div
-                          key={index}
-                          className="relative aspect-square rounded-lg border overflow-hidden group"
-                        >
-                          <Image
-                            src={url}
-                            alt={`Property image ${index + 1}`}
-                            className="object-cover w-full h-full"
-                            width={100}
-                            height={100}
-                          />
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="icon"
-                            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => removeFile("images", index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="floorPlans"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Floor Plans</FormLabel>
-              <FormControl>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      disabled={uploading["floorPlans"]}
-                      onChange={(e) =>
-                        handleFileUpload(e.target.files, "floorPlans")
-                      }
-                    />
-                    {uploading["floorPlans"] && (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    )}
-                  </div>
-
-                  {field.value && field.value.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {field.value.map((url, index) => (
-                        <div
-                          key={index}
-                          className="relative aspect-square rounded-lg border overflow-hidden group"
-                        >
-                          <Image
-                            src={url}
-                            alt={`Floor plan ${index + 1}`}
-                            className="object-cover w-full h-full"
-                            width={100}
-                            height={100}
-                          />
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="icon"
-                            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => removeFile("floorPlans", index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -1398,8 +1179,239 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     </div>
   );
 
-  // Step 7: Review
-  const ReviewStep = (
+  // Step 2: Features & Media (Merged Features + Media)
+  const Step2FeaturesMedia = (
+    <div className="space-y-8">
+      <div className="space-y-6">
+        <h3 className="text-lg font-semibold">Features & Amenities</h3>
+        <FormField
+          control={form.control}
+          name="amenities"
+          render={({ field }) => (
+            <AmenitiesSelector
+              value={coerceStringArray(field.value)}
+              onChange={field.onChange}
+              options={
+                AmenitiesList[propertyType as keyof typeof AmenitiesList] || []
+              }
+              label={`${propertyType} Amenities`}
+            />
+          )}
+        />
+      </div>
+
+      <div className="border-t pt-6 space-y-6">
+        <h3 className="text-lg font-semibold">Media & Description</h3>
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>About Property</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Textarea
+                    placeholder="Describe the property features, amenities, and other details"
+                    className="min-h-[120px]"
+                    {...field}
+                  />
+                  <Button
+                    disabled={generatingDescription}
+                    onClick={() => handleGenerateDescription()}
+                    className="absolute bottom-2 right-2 h-8 text-sm "
+                  >
+                    {generatingDescription ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        Generate Description <Wand2Icon />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </FormControl>
+              <FormDescription>
+                Provide detailed information about the property (minimum 10
+                characters)
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Media Files */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Media Files</h3>
+
+          <FormField
+            control={form.control}
+            name="featuredMedia"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Featured Media</FormLabel>
+                <FormControl>
+                  <div className="space-y-2">
+                    {!field.value ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="file"
+                          accept="image/*,video/*"
+                          disabled={uploading["featuredMedia"]}
+                          onChange={(e) =>
+                            handleFileUpload(e.target.files, "featuredMedia")
+                          }
+                        />
+                        {uploading["featuredMedia"] && (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        )}
+                      </div>
+                    ) : (
+                      <div className="relative w-full max-w-sm aspect-video rounded-lg border overflow-hidden">
+                        <Image
+                          src={field.value as string}
+                          alt="Featured Media"
+                          className="object-cover w-full h-full"
+                          width={100}
+                          height={100}
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2 h-6 w-6"
+                          onClick={() => removeFile("featuredMedia")}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="images"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Images</FormLabel>
+                <FormControl>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        disabled={uploading["images"]}
+                        onChange={(e) =>
+                          handleFileUpload(e.target.files, "images")
+                        }
+                      />
+                      {uploading["images"] && (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      )}
+                    </div>
+
+                    {field.value && field.value.length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {field.value.map((url, index) => (
+                          <div
+                            key={index}
+                            className="relative aspect-square rounded-lg border overflow-hidden group"
+                          >
+                            <Image
+                              src={url}
+                              alt={`Property image ${index + 1}`}
+                              className="object-cover w-full h-full"
+                              width={100}
+                              height={100}
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeFile("images", index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="floorPlans"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Floor Plans</FormLabel>
+                <FormControl>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        disabled={uploading["floorPlans"]}
+                        onChange={(e) =>
+                          handleFileUpload(e.target.files, "floorPlans")
+                        }
+                      />
+                      {uploading["floorPlans"] && (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      )}
+                    </div>
+
+                    {field.value && field.value.length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {field.value.map((url, index) => (
+                          <div
+                            key={index}
+                            className="relative aspect-square rounded-lg border overflow-hidden group"
+                          >
+                            <Image
+                              src={url}
+                              alt={`Floor plan ${index + 1}`}
+                              className="object-cover w-full h-full"
+                              width={100}
+                              height={100}
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeFile("floorPlans", index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  // Step 3: Review
+  const Step3Review = (
     <div className="space-y-6">
       <div className="bg-muted/50 p-6 rounded-lg">
         <h3 className="text-lg font-medium mb-4">
@@ -1445,17 +1457,17 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
           {(propertyType === "SHOWROOM" ||
             propertyType === "HOTEL" ||
             propertyType === "HOSTEL") && (
-              <>
-                <div>
-                  <strong>Min Rental Income:</strong> ₹
-                  {formatIndianNumber(form.watch("rentalIncome.min") || 0)}
-                </div>
-                <div>
-                  <strong>Max Rental Income:</strong> ₹
-                  {formatIndianNumber(form.watch("rentalIncome.max") || 0)}
-                </div>
-              </>
-            )}
+            <>
+              <div>
+                <strong>Min Rental Income:</strong> ₹
+                {formatIndianNumber(form.watch("rentalIncome.min") || 0)}
+              </div>
+              <div>
+                <strong>Max Rental Income:</strong> ₹
+                {formatIndianNumber(form.watch("rentalIncome.max") || 0)}
+              </div>
+            </>
+          )}
           <div>
             <strong>Price Negotiable:</strong>{" "}
             {form.watch("isPriceNegotiable") ? "Yes" : "No"}
@@ -1550,46 +1562,25 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
 
   const steps: WizardStep[] = [
     {
-      id: "basic-info",
-      title: "Basic Info",
-      description: "Property type and address",
-      component: BasicInfoStep,
+      id: "property-details",
+      title: "Property Details",
+      description: "Basic info, specs & location",
+      component: Step1PropertyDetails,
       isCompleted: completedSteps.has(0),
     },
     {
-      id: "specifications",
-      title: "Specifications",
-      description: "Size, pricing and property details",
-      component: PropertySpecsStep,
+      id: "features-media",
+      title: "Features & Media",
+      description: "Amenities, photos & video",
+      component: Step2FeaturesMedia,
       isCompleted: completedSteps.has(1),
-    },
-    {
-      id: "location",
-      title: "Location",
-      description: "Location and accessibility",
-      component: LocationStep,
-      isCompleted: completedSteps.has(2),
-    },
-    {
-      id: "features",
-      title: "Features",
-      description: "Amenities and special features",
-      component: FeaturesStep,
-      isCompleted: completedSteps.has(3),
-    },
-    {
-      id: "media",
-      title: "Media",
-      description: "Photos, videos, and description",
-      component: MediaStep,
-      isCompleted: completedSteps.has(4),
     },
     {
       id: "review",
       title: "Review",
       description: "Review and submit",
-      component: ReviewStep,
-      isCompleted: completedSteps.has(5),
+      component: Step3Review,
+      isCompleted: completedSteps.has(2),
     },
   ];
 

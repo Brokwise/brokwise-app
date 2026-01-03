@@ -46,10 +46,9 @@ const ProjectsPage = () => {
   });
 
   return (
-    <main className="container mx-auto py-8 px-4 max-w-7xl space-y-8">
-      <div className="shrink-0 sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40 pb-4 pt-2 px-6 lg:px-8 space-y-4">
+    <main className="container mx-auto py-8 space-y-8">
+      <div className="shrink-0 sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40 pb-4 pt-2 space-y-4">
         <div className="flex items-center justify-between gap-4">
-          {/* Left: Title + Segmented Control */}
           <div className="flex items-center gap-4 md:gap-6 min-w-0">
             <h1 className="text-2xl md:text-3xl font-instrument-serif text-foreground tracking-tight shrink-0">
               Projects
