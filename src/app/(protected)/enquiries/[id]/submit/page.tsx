@@ -18,6 +18,10 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { ResidentialWizard } from "@/app/(protected)/property/createProperty/residentialForm/wizard";
 import { CommercialWizard } from "@/app/(protected)/property/createProperty/commercialForm/wizard";
+import { IndustrialWizard } from "@/app/(protected)/property/createProperty/industrialForm/wizard";
+import { AgriculturalWizard } from "@/app/(protected)/property/createProperty/agriculturalForm/wizard";
+import { ResortWizard } from "@/app/(protected)/property/createProperty/resortForm/wizard";
+import { FarmHouseWizard } from "@/app/(protected)/property/createProperty/farmhouseForm/wizard";
 import { PropertyPreviewModal } from "../_components/PropertyPreviewModal";
 import { formatEnquiryLocation } from "@/utils/helper";
 import { FilteredProperties } from "./filteredProperties";
@@ -164,57 +168,17 @@ export default function SubmitEnquiryPage() {
 
     switch (enquiry.enquiryCategory) {
       case "RESIDENTIAL":
-        return <ResidentialWizard {...commonProps} />;
+        return <ResidentialWizard {...commonProps} enquiry={enquiry} />;
       case "COMMERCIAL":
-        return <CommercialWizard {...commonProps} />;
+        return <CommercialWizard {...commonProps} enquiry={enquiry} />;
       case "INDUSTRIAL":
-        return (
-          <div className="p-4 text-center">
-            <p className="mb-4">
-              Creating fresh Industrial properties during submission is not
-              fully supported yet.
-            </p>
-            <Button variant="outline" onClick={() => setActiveTab("existing")}>
-              Go back
-            </Button>
-          </div>
-        );
+        return <IndustrialWizard {...commonProps} enquiry={enquiry} />;
       case "AGRICULTURAL":
-        return (
-          <div className="p-4 text-center">
-            <p className="mb-4">
-              Creating fresh Agricultural properties during submission is not
-              fully supported yet.
-            </p>
-            <Button variant="outline" onClick={() => setActiveTab("existing")}>
-              Go back
-            </Button>
-          </div>
-        );
+        return <AgriculturalWizard {...commonProps} enquiry={enquiry} />;
       case "RESORT":
-        return (
-          <div className="p-4 text-center">
-            <p className="mb-4">
-              Creating fresh Resort properties during submission is not fully
-              supported yet.
-            </p>
-            <Button variant="outline" onClick={() => setActiveTab("existing")}>
-              Go back
-            </Button>
-          </div>
-        );
+        return <ResortWizard {...commonProps} enquiry={enquiry} />;
       case "FARM_HOUSE":
-        return (
-          <div className="p-4 text-center">
-            <p className="mb-4">
-              Creating fresh Farm House properties during submission is not
-              fully supported yet.
-            </p>
-            <Button variant="outline" onClick={() => setActiveTab("existing")}>
-              Go back
-            </Button>
-          </div>
-        );
+        return <FarmHouseWizard {...commonProps} enquiry={enquiry} />;
       default:
         return <div>Unsupported category</div>;
     }

@@ -35,11 +35,12 @@ import {
   generateFilePath,
   convertImageToWebP,
 } from "@/utils/upload";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { LocationPicker } from "../_components/locationPicker";
 import { cn } from "@/lib/utils";
+import { Enquiry } from "@/models/types/enquiry";
 
 interface AgriculturalWizardProps {
   onBack: () => void;
@@ -48,6 +49,7 @@ interface AgriculturalWizardProps {
   onSaveDraft?: (data: AgriculturalPropertyFormData) => void;
   submitLabel?: string;
   externalIsLoading?: boolean;
+  enquiry?: Enquiry;
 }
 
 export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
@@ -57,6 +59,7 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
   onSaveDraft: onSaveDraftProp,
   submitLabel,
   externalIsLoading,
+  enquiry,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -188,12 +191,13 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
         "address.city",
         "address.pincode",
         "address.address",
+        "size",
+        "sizeUnit",
+        "rate",
+        "totalPrice",
       ],
-      1: ["size", "sizeUnit", "rate", "totalPrice"],
-      2: [], // Location step
-      3: [], // Legal documents step
-      4: ["description", "featuredMedia", "images"],
-      5: [], // Review step
+      1: ["description", "featuredMedia", "images"],
+      2: [], // Review step
     };
 
     const fieldsToValidate = stepValidations[currentStep] || [];
@@ -212,8 +216,11 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
       // Show feedback when validation fails with specific field errors
       const errors = form.formState.errors;
       const errorMessages: string[] = [];
-      
-      const flattenErrors = (obj: Record<string, unknown>, prefix = ""): void => {
+
+      const flattenErrors = (
+        obj: Record<string, unknown>,
+        prefix = ""
+      ): void => {
         for (const key in obj) {
           const value = obj[key] as Record<string, unknown>;
           const fullKey = prefix ? `${prefix}.${key}` : key;
@@ -224,11 +231,17 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
           }
         }
       };
-      
+
       flattenErrors(errors as Record<string, unknown>);
-      
+
       if (errorMessages.length > 0) {
-        toast.error(`Please fix: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3 ? ` (+${errorMessages.length - 3} more)` : ""}`);
+        toast.error(
+          `Please fix: ${errorMessages.slice(0, 3).join(", ")}${
+            errorMessages.length > 3
+              ? ` (+${errorMessages.length - 3} more)`
+              : ""
+          }`
+        );
       } else {
         toast.error("Please fill in all required fields before proceeding.");
       }
@@ -256,8 +269,11 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
       // Show feedback when validation fails with specific field errors
       const errors = form.formState.errors;
       const errorMessages: string[] = [];
-      
-      const flattenErrors = (obj: Record<string, unknown>, prefix = ""): void => {
+
+      const flattenErrors = (
+        obj: Record<string, unknown>,
+        prefix = ""
+      ): void => {
         for (const key in obj) {
           const value = obj[key] as Record<string, unknown>;
           const fullKey = prefix ? `${prefix}.${key}` : key;
@@ -268,11 +284,17 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
           }
         }
       };
-      
+
       flattenErrors(errors as Record<string, unknown>);
-      
+
       if (errorMessages.length > 0) {
-        toast.error(`Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3 ? ` (+${errorMessages.length - 3} more)` : ""}`);
+        toast.error(
+          `Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${
+            errorMessages.length > 3
+              ? ` (+${errorMessages.length - 3} more)`
+              : ""
+          }`
+        );
       } else {
         toast.error("Please complete all required fields before submitting.");
       }
@@ -317,7 +339,9 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
 
     // Use the extracted pincode directly if available
     if (details.pincode) {
-      form.setValue("address.pincode", details.pincode, { shouldValidate: true });
+      form.setValue("address.pincode", details.pincode, {
+        shouldValidate: true,
+      });
     }
 
     if (details.context) {
@@ -332,7 +356,9 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
         if (!details.pincode && item.id.startsWith("postcode")) {
           const numericPincode = item.text.replace(/\D/g, "").slice(0, 6);
           if (numericPincode.length === 6) {
-            form.setValue("address.pincode", numericPincode, { shouldValidate: true });
+            form.setValue("address.pincode", numericPincode, {
+              shouldValidate: true,
+            });
           }
         }
       });
@@ -472,6 +498,18 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
                 />
               </FormControl>
               <FormMessage />
+              {enquiry?.size &&
+                field.value &&
+                (field.value < enquiry.size.min ||
+                  field.value > enquiry.size.max) && (
+                  <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>
+                      Enquiry size range: {enquiry.size.min} -{" "}
+                      {enquiry.size.max}.
+                    </span>
+                  </div>
+                )}
             </FormItem>
           )}
         />
@@ -558,6 +596,19 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
                   Auto-calculated based on size and rate
                 </FormDescription>
                 <FormMessage />
+                {enquiry?.budget &&
+                  field.value &&
+                  (field.value < enquiry.budget.min ||
+                    field.value > enquiry.budget.max) && (
+                    <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      <span>
+                        Enquiry budget range:{" "}
+                        {formatIndianNumber(enquiry.budget.min)} -{" "}
+                        {formatIndianNumber(enquiry.budget.max)}.
+                      </span>
+                    </div>
+                  )}
               </FormItem>
             )}
           />
@@ -677,11 +728,14 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
                 inputMode="numeric"
                 placeholder={`Enter road width (max ${PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)`}
                 value={field.value ?? ""}
-                onChange={(e) => field.onChange(parseRoadWidthInput(e.target.value))}
+                onChange={(e) =>
+                  field.onChange(parseRoadWidthInput(e.target.value))
+                }
               />
             </FormControl>
             <FormDescription>
-              Width of the road adjacent to the agricultural land (max {PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)
+              Width of the road adjacent to the agricultural land (max{" "}
+              {PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -1021,48 +1075,62 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
     </div>
   );
 
+  // Combined Step Components
+  const PropertyDetailsStep = (
+    <div className="space-y-10">
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Basic Information</h2>
+        {BasicInfoStep}
+      </div>
+
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold border-t pt-8">Land Details</h2>
+        {LandSpecsStep}
+      </div>
+
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold border-t pt-8">
+          Location & Accessibility
+        </h2>
+        {LocationStep}
+      </div>
+    </div>
+  );
+
+  const MediaAndDocsStep = (
+    <div className="space-y-10">
+      <div className="space-y-4">{LegalDocumentsStep}</div>
+
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold border-t pt-8">
+          Media & Description
+        </h2>
+        {MediaStep}
+      </div>
+    </div>
+  );
+
   const steps: WizardStep[] = [
     {
-      id: "basic-info",
-      title: "Basic Info",
-      description: "Property title and address",
-      component: BasicInfoStep,
+      id: "property-details",
+      title: "Property Details",
+      description: "Basic info, specs & location",
+      component: PropertyDetailsStep,
       isCompleted: completedSteps.has(0),
     },
     {
-      id: "land-specs",
-      title: "Land Details",
-      description: "Size, pricing and specifications",
-      component: LandSpecsStep,
+      id: "media-docs",
+      title: "Media & Docs",
+      description: "Uploads and legal info",
+      component: MediaAndDocsStep,
       isCompleted: completedSteps.has(1),
-    },
-    {
-      id: "location",
-      title: "Location",
-      description: "Location and accessibility details",
-      component: LocationStep,
-      isCompleted: completedSteps.has(2),
-    },
-    {
-      id: "legal",
-      title: "Legal Docs",
-      description: "Legal documents and features",
-      component: LegalDocumentsStep,
-      isCompleted: completedSteps.has(3),
-    },
-    {
-      id: "media",
-      title: "Media",
-      description: "Photos, videos, and description",
-      component: MediaStep,
-      isCompleted: completedSteps.has(4),
     },
     {
       id: "review",
       title: "Review",
       description: "Review and submit",
       component: ReviewStep,
-      isCompleted: completedSteps.has(5),
+      isCompleted: completedSteps.has(2),
     },
   ];
 

@@ -36,12 +36,12 @@ import {
   generateFilePath,
   convertImageToWebP,
 } from "@/utils/upload";
-import { Loader2, Wand2Icon } from "lucide-react";
+import { Loader2, Wand2Icon, AlertTriangle, X } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { LocationPicker } from "../_components/locationPicker";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
+import { Enquiry } from "@/models/types/enquiry";
 import {
   AmenitiesSelector,
   AmenityOption,
@@ -54,6 +54,7 @@ interface CommercialWizardProps {
   onSaveDraft?: (data: CommercialPropertyFormData) => void;
   submitLabel?: string;
   externalIsLoading?: boolean;
+  enquiry?: Enquiry;
 }
 
 export const CommercialWizard: React.FC<CommercialWizardProps> = ({
@@ -63,6 +64,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   onSaveDraft: onSaveDraftProp,
   submitLabel,
   externalIsLoading,
+  enquiry,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -518,21 +520,27 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
                     { value: "SHOP", label: "Shop" },
                     { value: "OFFICE_SPACE", label: "Office Space" },
                     { value: "OTHER_SPACE", label: "Other Space" },
-                  ].map((item) => (
-                    <Button
-                      key={item.value}
-                      type="button"
-                      variant="selection"
-                      onClick={() => field.onChange(item.value)}
-                      className={cn(
-                        field.value === item.value
-                          ? "bg-primary text-primary-foreground"
-                          : ""
-                      )}
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
+                  ].map((item) => {
+                    const isDisabled =
+                      enquiry && enquiry.enquiryType !== item.value;
+                    return (
+                      <Button
+                        key={item.value}
+                        type="button"
+                        variant="selection"
+                        disabled={isDisabled}
+                        onClick={() => field.onChange(item.value)}
+                        className={cn(
+                          field.value === item.value
+                            ? "bg-primary text-primary-foreground"
+                            : "",
+                          isDisabled && "opacity-50 cursor-not-allowed"
+                        )}
+                      >
+                        {item.label}
+                      </Button>
+                    );
+                  })}
                 </div>
               </FormControl>
               <FormMessage />
@@ -651,6 +659,18 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
                   />
                 </FormControl>
                 <FormMessage />
+                {enquiry?.size &&
+                  field.value &&
+                  (field.value < enquiry.size.min ||
+                    field.value > enquiry.size.max) && (
+                    <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      <span>
+                        Enquiry size range: {enquiry.size.min} -{" "}
+                        {enquiry.size.max}.
+                      </span>
+                    </div>
+                  )}
               </FormItem>
             )}
           />
@@ -920,6 +940,19 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
                     Auto-calculated based on size and rate
                   </FormDescription>
                   <FormMessage />
+                  {enquiry?.budget &&
+                    field.value &&
+                    (field.value < enquiry.budget.min ||
+                      field.value > enquiry.budget.max) && (
+                      <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
+                        <AlertTriangle className="h-4 w-4" />
+                        <span>
+                          Enquiry budget range:{" "}
+                          {formatIndianNumber(enquiry.budget.min)} -{" "}
+                          {formatIndianNumber(enquiry.budget.max)}.
+                        </span>
+                      </div>
+                    )}
                 </FormItem>
               )}
             />
