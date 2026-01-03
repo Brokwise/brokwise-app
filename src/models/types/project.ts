@@ -51,7 +51,10 @@ export interface Project {
 export interface Plot {
   _id: string;
   projectId: string;
-  blockId: string;
+  blockId: {
+    _id: string;
+    name: string;
+  };
   plotNumber: string;
   area: number;
   areaUnit: "SQ_FT" | "SQ_METER" | "SQ_YARDS" | "ACRES";

@@ -5,7 +5,13 @@ import {
   useSaveCompanyPropertyDraft,
 } from "@/hooks/useCompany";
 import { Button as MovingBorderCard } from "@/components/ui/moving-border";
-import { Loader2, ArrowLeft, Sparkles, FileText, ChevronRight } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Sparkles,
+  FileText,
+  ChevronRight,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
@@ -146,108 +152,98 @@ const CreateProperty = () => {
               List a new property
             </h1>
             <p className="text-muted-foreground text-sm md:text-base font-light max-w-2xl">
-              Select a category to begin listing your premium property on the market.
+              Select a category to begin listing your premium property on the
+              market.
             </p>
           </div>
 
           {/* Continue Drafting - Always on top */}
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-muted-foreground" />
-                <h2 className="text-lg font-instrument-serif text-foreground tracking-tight">
-                  Continue Drafting
-                </h2>
+          {drafts.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-muted-foreground" />
+                  <h2 className="text-lg font-instrument-serif text-foreground tracking-tight">
+                    Continue Drafting
+                  </h2>
+                </div>
+                {drafts.length > 0 && (
+                  <Badge variant="secondary" className="rounded-full text-xs">
+                    {drafts.length}
+                  </Badge>
+                )}
               </div>
-              {drafts.length > 0 && (
-                <Badge variant="secondary" className="rounded-full text-xs">
-                  {drafts.length}
-                </Badge>
-              )}
-            </div>
 
-            {isLoading ? (
-              <div className="flex justify-center py-4">
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
-              </div>
-            ) : drafts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {drafts.map((draft) => {
-                  const lastEdited =
-                    draft.updatedAt
+              {isLoading ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                </div>
+              ) : drafts.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {drafts.map((draft) => {
+                    const lastEdited = draft.updatedAt
                       ? formatDistanceToNow(new Date(draft.updatedAt), {
-                        addSuffix: true,
-                      })
+                          addSuffix: true,
+                        })
                       : "recently";
 
-                  return (
-                    <motion.div
-                      key={draft._id}
-                      variants={itemVariants}
-                      className="group bg-card hover:bg-muted/40 border border-border/60 rounded-xl p-3 transition-all duration-200 hover:shadow-sm cursor-pointer flex flex-col gap-2 relative overflow-hidden"
-                      onClick={() => handleDraftSelect(draft)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          handleDraftSelect(draft);
-                        }
-                      }}
-                    >
-                      <div className="absolute top-2 right-2">
-                        <Badge
-                          variant="secondary"
-                          className="text-[10px] px-1.5 py-0 h-5 bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
-                        >
-                          Draft
-                        </Badge>
-                      </div>
+                    return (
+                      <motion.div
+                        key={draft._id}
+                        variants={itemVariants}
+                        className="group bg-card hover:bg-muted/40 border border-border/60 rounded-xl p-3 transition-all duration-200 hover:shadow-sm cursor-pointer flex flex-col gap-2 relative overflow-hidden"
+                        onClick={() => handleDraftSelect(draft)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleDraftSelect(draft);
+                          }
+                        }}
+                      >
+                        <div className="absolute top-2 right-2">
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] px-1.5 py-0 h-5 bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
+                          >
+                            Draft
+                          </Badge>
+                        </div>
 
-                      <div className="space-y-0.5 pr-12">
-                        <h3 className="font-medium text-sm text-foreground leading-tight">
-                          {propertyCategories.find(
-                            (c) => c.key === draft.propertyCategory
-                          )?.label || draft.propertyCategory}
-                        </h3>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {draft.address?.city
-                            ? `${draft.address.city}, ${draft.address.state}`
-                            : "Location not set"}
-                        </p>
-                      </div>
+                        <div className="space-y-0.5 pr-12">
+                          <h3 className="font-medium text-sm text-foreground leading-tight">
+                            {propertyCategories.find(
+                              (c) => c.key === draft.propertyCategory
+                            )?.label || draft.propertyCategory}
+                          </h3>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {draft.address?.city
+                              ? `${draft.address.city}, ${draft.address.state}`
+                              : "Location not set"}
+                          </p>
+                        </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto">
-                        <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider">
-                          {lastEdited}
-                        </span>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          className="h-6 px-2 text-xs hover:bg-accent/10 hover:text-accent"
-                        >
-                          Resume <ChevronRight className="w-3 h-3 ml-0.5" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="rounded-lg border border-dashed border-border/60 bg-muted/10 px-4 py-3 flex items-center gap-3">
-                <div className="p-2 rounded-full bg-background border border-border/40">
-                  <FileText className="w-4 h-4 text-muted-foreground" />
+                        <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto">
+                          <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider">
+                            {lastEdited}
+                          </span>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2 text-xs hover:bg-accent/10 hover:text-accent"
+                          >
+                            Resume <ChevronRight className="w-3 h-3 ml-0.5" />
+                          </Button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">No drafts yet</p>
-                  <p className="text-xs text-muted-foreground">
-                    Saved drafts will appear here so you can resume quickly.
-                  </p>
-                </div>
-              </div>
-            )}
-          </section>
+              ) : null}
+            </section>
+          )}
 
           {/* Categories Grid */}
           <section className="space-y-3 pt-2">

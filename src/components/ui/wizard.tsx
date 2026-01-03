@@ -95,7 +95,7 @@ export const Wizard: React.FC<WizardProps> = ({
 
       {/* Current Step Content */}
       <Card className="relative overflow-hidden">
-        <div className="h-96 w-full absolute -top-1/3 right-1/2 translate-x-1/2 bg-primary/50 rounded-full blur-3xl"></div>
+        {/* <div className="h-96 w-full absolute -top-1/3 right-1/2 translate-x-1/2 bg-primary/50 rounded-full blur-3xl"></div> */}
         <CardHeader className="relative">
           <CardTitle className="flex items-center gap-2">
             <span className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
@@ -139,11 +139,7 @@ export const Wizard: React.FC<WizardProps> = ({
 
         <div className="flex gap-2">
           {!isLastStep ? (
-            <Button
-              type="button"
-              onClick={onNext}
-              disabled={!canProceed}
-            >
+            <Button type="button" onClick={onNext} disabled={!canProceed}>
               Next
             </Button>
           ) : (

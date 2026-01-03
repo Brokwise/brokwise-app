@@ -365,7 +365,8 @@ export const SubmitEnquiry = ({ enquiry }: { enquiry: Enquiry }) => {
                                       <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                                         <MapPin className="h-3 w-3" />
                                         <span className="truncate">
-                                          {property.address?.city || "Unknown City"}
+                                          {property.address?.city ||
+                                            "Unknown City"}
                                         </span>
                                       </div>
                                     </div>

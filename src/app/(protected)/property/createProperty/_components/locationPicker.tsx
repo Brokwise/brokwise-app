@@ -36,7 +36,7 @@ interface LocationPickerProps {
 interface SearchResult {
   id: string;
   place_name: string;
-  center: [number, number];
+  center?: [number, number];
   context?: { id: string; text: string }[];
 }
 
@@ -70,9 +70,7 @@ export const LocationPicker = ({
       setIsSearching(true);
       try {
         const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-            searchQuery
-          )}.json?access_token=${token}&limit=5`
+          `/api/places?q=${encodeURIComponent(searchQuery)}`
         );
         const data = await response.json();
         setSearchResults(data.features || []);
@@ -85,11 +83,14 @@ export const LocationPicker = ({
 
     const timeoutId = setTimeout(searchLocation, 500);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, token]);
+  }, [searchQuery]);
 
   // Helper function to extract pincode from Mapbox context or place_name
   const extractPincode = React.useCallback(
-    (context?: { id: string; text: string }[], placeName?: string): string | undefined => {
+    (
+      context?: { id: string; text: string }[],
+      placeName?: string
+    ): string | undefined => {
       // First, try to find pincode in context
       if (context) {
         for (const item of context) {
@@ -106,7 +107,7 @@ export const LocationPicker = ({
           }
         }
       }
-      
+
       // Fallback: try to extract 6-digit pincode from place_name
       if (placeName) {
         const pincodeMatch = placeName.match(/\b(\d{6})\b/);
@@ -114,7 +115,7 @@ export const LocationPicker = ({
           return pincodeMatch[1];
         }
       }
-      
+
       return undefined;
     },
     []
@@ -197,8 +198,12 @@ export const LocationPicker = ({
       .addTo(mapRef.current);
 
     // Add hover effect via JS since it's a DOM element
-    el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.1)'; });
-    el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)'; });
+    el.addEventListener("mouseenter", () => {
+      el.style.transform = "scale(1.1)";
+    });
+    el.addEventListener("mouseleave", () => {
+      el.style.transform = "scale(1)";
+    });
 
     // Handle marker drag
     markerRef.current.on("dragend", () => {
@@ -243,7 +248,7 @@ export const LocationPicker = ({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, /* value, */ onChange, onLocationSelect, reverseGeocode]); // Removed value to prevent re-init loops
 
   // Update map style dynamically
@@ -256,8 +261,29 @@ export const LocationPicker = ({
     map.setStyle(style);
   }, [isDarkMode]);
 
-  const handleSelectLocation = (result: SearchResult) => {
-    const [lng, lat] = result.center;
+  const handleSelectLocation = async (result: SearchResult) => {
+    let lng: number;
+    let lat: number;
+    let fetchedPincode: string | undefined;
+
+    if (result.center) {
+      [lng, lat] = result.center;
+    } else {
+      try {
+        const response = await fetch(`/api/places?placeId=${result.id}`);
+        const data = await response.json();
+        if (data.center) {
+          [lng, lat] = data.center;
+          fetchedPincode = data.pincode;
+        } else {
+          console.error("Could not get coordinates for place");
+          return;
+        }
+      } catch (e) {
+        console.error("Error fetching place details:", e);
+        return;
+      }
+    }
 
     // Update map
     mapRef.current?.flyTo({
@@ -273,7 +299,8 @@ export const LocationPicker = ({
     onChange([lng, lat]);
 
     if (onLocationSelect) {
-      const pincode = extractPincode(result.context, result.place_name);
+      const pincode =
+        fetchedPincode || extractPincode(result.context, result.place_name);
       onLocationSelect({
         coordinates: [lng, lat],
         placeName: result.place_name,

@@ -83,7 +83,8 @@ const SingleEnquiry = () => {
   const { enquiry, isPending, error } = useGetEnquiryById(id as string);
   const { myEnquiries } = useGetMyEnquiries();
   const { enquirySubmissions } = useGetEnquirySubmissions(id as string);
-  const { closeEnquiryAsync, isPending: isPendingCloseEnquiry } = useCloseEnquiry();
+  const { closeEnquiryAsync, isPending: isPendingCloseEnquiry } =
+    useCloseEnquiry();
   const isMyEnquiry =
     myEnquiries &&
     myEnquiries.length > 0 &&
@@ -228,7 +229,9 @@ const SingleEnquiry = () => {
                         setConfirmationText("");
                         toast.success("Enquiry closed successfully");
                       } catch {
-                        toast.error("Failed to close enquiry. Please try again.");
+                        toast.error(
+                          "Failed to close enquiry. Please try again."
+                        );
                       }
                     }
                   }}
@@ -397,7 +400,7 @@ const SingleEnquiry = () => {
                         <CardContent className="p-4 pt-0 space-y-3">
                           {property?.totalPrice && (
                             <div className="font-medium text-sm text-primary">
-                              ₹{formatPrice(property.totalPrice)}
+                              {formatPrice(property.totalPrice)}
                             </div>
                           )}
 

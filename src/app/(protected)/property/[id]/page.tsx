@@ -147,6 +147,9 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
+            {property.deletingStatus && (
+              <div>This Property will deleted from the platform soon.</div>
+            )}
             <h1 className="text-2xl font-bold flex items-center gap-2">
               Property Details
               <span className="text-muted-foreground font-normal text-sm bg-muted px-2 py-1 rounded-md">
@@ -390,11 +393,10 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
 
         {/* Right Column - Sidebar */}
         <div className="lg:col-span-1 space-y-6">
-          {property.listedBy._id !== brokerData?._id && (
-            <ContactSeller property={property} />
-          )}
+          {property.listedBy._id !== brokerData?._id &&
+            !property.deletingStatus && <ContactSeller property={property} />}
 
-          <MakeOffer property={property} />
+          {!property.deletingStatus && <MakeOffer property={property} />}
 
           <Card>
             <CardHeader>

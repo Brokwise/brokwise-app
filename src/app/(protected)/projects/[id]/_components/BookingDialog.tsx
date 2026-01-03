@@ -28,17 +28,19 @@ import { useApp } from "@/context/AppContext";
 interface BookingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  plot: Plot | null;
+  plots: Plot[];
   projectId: string;
+  onSuccess?: () => void;
 }
 
 export const BookingDialog = ({
   open,
   onOpenChange,
-  plot,
+  plots,
   projectId,
+  onSuccess,
 }: BookingDialogProps) => {
-  const { mutate: createBooking, isPending } = useCreateBooking();
+  const { mutateAsync: createBooking, isPending } = useCreateBooking();
   const { brokerData } = useApp();
 
   const form = useForm<BookingFormValues>({
@@ -71,43 +73,69 @@ export const BookingDialog = ({
     }
   }, [open, form, brokerData]);
 
-  const onSubmit = (values: BookingFormValues) => {
-    if (!plot) return;
+  const onSubmit = async (values: BookingFormValues) => {
+    if (plots.length === 0) return;
 
-    createBooking(
-      {
-        plotId: plot._id,
-        blockId: plot.blockId,
-        projectId,
-        customerDetails: {
-          name: values.customerName,
-          email: values.customerEmail,
-          phone: values.customerPhone,
-          alternatePhone: values.customerAlternatePhone,
-          address: values.customerAddress,
-        },
-        notes: values.notes,
-      },
-      {
-        onSuccess: () => {
-          onOpenChange(false);
-          form.reset();
-        },
-      }
-    );
+    try {
+      await Promise.all(
+        plots.map((plot) =>
+          createBooking({
+            plotId: plot._id,
+            blockId: plot.blockId._id,
+            projectId,
+            customerDetails: {
+              name: values.customerName,
+              email: values.customerEmail,
+              phone: values.customerPhone,
+              alternatePhone: values.customerAlternatePhone,
+              address: values.customerAddress,
+            },
+            notes: values.notes,
+          })
+        )
+      );
+
+      onOpenChange(false);
+      form.reset();
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error("Error booking plots:", error);
+    }
   };
 
-  if (!plot) return null;
+  if (plots.length === 0) return null;
+
+  const totalAmount = plots.reduce((sum, plot) => sum + plot.price, 0);
+  const totalArea = plots.reduce((sum, plot) => sum + plot.area, 0);
+  const areaUnit = plots[0]?.areaUnit || "SQ_FT";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Book Plot {plot.plotNumber}</DialogTitle>
+          <DialogTitle>
+            {plots.length > 1
+              ? `Book ${plots.length} Plots`
+              : `Book Plot ${plots[0].plotNumber}`}
+          </DialogTitle>
           <DialogDescription>
-            Enter customer details to book this plot.
-            <div className="mt-2 text-sm font-medium text-foreground">
-              Plot Area: {plot.area} {plot.areaUnit} • Price: ₹{plot.price}
+            Enter customer details to book{" "}
+            {plots.length > 1 ? "these plots" : "this plot"}.
+            <div className="mt-2 text-sm font-medium text-foreground p-3 bg-muted rounded-md space-y-1">
+              <div className="flex justify-between">
+                <span>Selected Plots:</span>
+                <span>{plots.map((p) => p.plotNumber).join(", ")}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Total Area:</span>
+                <span>
+                  {totalArea} {areaUnit}
+                </span>
+              </div>
+              <div className="flex justify-between border-t pt-1 mt-1">
+                <span>Total Price:</span>
+                <span>₹{totalAmount.toLocaleString()}</span>
+              </div>
             </div>
           </DialogDescription>
         </DialogHeader>
@@ -125,7 +153,6 @@ export const BookingDialog = ({
                       <Input
                         placeholder="John Doe"
                         autoComplete="name"
-                        readOnly
                         className="bg-muted"
                         {...field}
                       />
@@ -145,7 +172,6 @@ export const BookingDialog = ({
                         placeholder="john@example.com"
                         type="email"
                         autoComplete="email"
-                        readOnly
                         className="bg-muted"
                         {...field}
                       />
@@ -167,7 +193,6 @@ export const BookingDialog = ({
                       <Input
                         placeholder="+91 9876543210"
                         autoComplete="tel"
-                        readOnly
                         className="bg-muted"
                         {...field}
                       />
@@ -205,7 +230,6 @@ export const BookingDialog = ({
                     <Textarea
                       placeholder="Full address"
                       autoComplete="street-address"
-                      readOnly
                       className="bg-muted"
                       {...field}
                     />

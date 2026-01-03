@@ -63,7 +63,7 @@ export const useGetProperty = (
   return { property, isLoading, error };
 };
 
-export const useGetAllProperties = (page = 1, limit = 1000) => {
+export const useGetAllProperties = (page = 1, limit = 100) => {
   const api = useAxios();
   const { data, isLoading, error } = useQuery<PaginatedPropertyResponse>({
     queryKey: ["properties", page, limit],

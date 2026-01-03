@@ -24,11 +24,9 @@ type AddressSuggestion = {
 };
 
 export async function GET(req: NextRequest) {
-  const q = req.nextUrl.searchParams.get("q")?.trim() ?? "";
-
-  if (q.length < 3) {
-    return NextResponse.json({ features: [] });
-  }
+  const { searchParams } = req.nextUrl;
+  const q = searchParams.get("q")?.trim();
+  const placeId = searchParams.get("placeId")?.trim();
 
   const apiKey =
     process.env.GOOGLE_MAPS_API_KEY ||
@@ -39,6 +37,66 @@ export async function GET(req: NextRequest) {
       { error: "Missing Google Maps API key", features: [] },
       { status: 500 }
     );
+  }
+
+  // Handle Place Details (Get Coordinates)
+  if (placeId) {
+    const url = `https://places.googleapis.com/v1/places/${placeId}`;
+    try {
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": apiKey,
+          "X-Goog-FieldMask": "location,formattedAddress,addressComponents",
+        },
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        console.error("Google Place Details failed:", res.status);
+        return NextResponse.json(
+          { error: "Failed to fetch place details" },
+          { status: 502 }
+        );
+      }
+
+      const data = await res.json();
+      // data.location = { latitude: ..., longitude: ... }
+      if (data.location) {
+        let pincode = "";
+        if (data.addressComponents) {
+          const postalCodeComponent = data.addressComponents.find(
+            (c: { types: string[]; longText: string }) =>
+              c.types.includes("postal_code")
+          );
+          if (postalCodeComponent) {
+            pincode = postalCodeComponent.longText;
+          }
+        }
+
+        return NextResponse.json({
+          center: [data.location.longitude, data.location.latitude], // [lng, lat]
+          place_name: data.formattedAddress,
+          pincode,
+        });
+      } else {
+        return NextResponse.json(
+          { error: "No location found for this place" },
+          { status: 404 }
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching place details:", error);
+      return NextResponse.json(
+        { error: "Internal Server Error" },
+        { status: 500 }
+      );
+    }
+  }
+
+  if (!q || q.length < 3) {
+    return NextResponse.json({ features: [] });
   }
 
   // Google Places API (New) Autocomplete

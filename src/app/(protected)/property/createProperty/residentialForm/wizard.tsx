@@ -67,11 +67,16 @@ import {
   Dog,
   Plus,
   Flame,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { LocationPicker } from "../_components/locationPicker";
 import { cn } from "@/lib/utils";
+import { Enquiry } from "@/models/types/enquiry";
 
 interface ResidentialWizardProps {
   onBack: () => void;
@@ -80,6 +85,7 @@ interface ResidentialWizardProps {
   onSaveDraft?: (data: ResidentialPropertyFormData) => void;
   submitLabel?: string;
   externalIsLoading?: boolean;
+  enquiry?: Enquiry;
 }
 
 const FLAT_AMENITIES = [
@@ -132,6 +138,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   onSaveDraft: onSaveDraftProp,
   submitLabel,
   externalIsLoading,
+  enquiry,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -144,6 +151,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const [customAmenity, setCustomAmenity] = useState("");
+  const [amenitySearch, setAmenitySearch] = useState("");
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
   const form = useForm<ResidentialPropertyFormData>({
     resolver: zodResolver(residentialPropertySchema),
     defaultValues: {
@@ -257,7 +266,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   };
 
   useEffect(() => {
-    if (currentStep === 4 && !propertyType) {
+    if (currentStep === 2 && !propertyType) {
       setCurrentStep(0);
     }
   }, [currentStep, propertyType]);
@@ -270,17 +279,14 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         "address.city",
         "address.address",
         "address.pincode",
-      ],
-      1: [
         ...(propertyType === "FLAT"
           ? ["size", "sizeUnit", "bhk", "washrooms"]
           : ["size", "sizeUnit", "plotType", "facing", "frontRoadWidth"]),
         "rate",
         "totalPrice",
       ],
-      2: [], // Features
-      3: ["description", "featuredMedia", "images"], // Media
-      4: [], // Review step
+      1: ["description", "featuredMedia", "images"],
+      2: [], // Review step
     };
 
     const fieldsToValidate = stepValidations[currentStep] || [];
@@ -299,8 +305,11 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       // Show feedback when validation fails with specific field errors
       const errors = form.formState.errors;
       const errorMessages: string[] = [];
-      
-      const flattenErrors = (obj: Record<string, unknown>, prefix = ""): void => {
+
+      const flattenErrors = (
+        obj: Record<string, unknown>,
+        prefix = ""
+      ): void => {
         for (const key in obj) {
           const value = obj[key] as Record<string, unknown>;
           const fullKey = prefix ? `${prefix}.${key}` : key;
@@ -311,11 +320,17 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           }
         }
       };
-      
+
       flattenErrors(errors as Record<string, unknown>);
-      
+
       if (errorMessages.length > 0) {
-        toast.error(`Please fix: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3 ? ` (+${errorMessages.length - 3} more)` : ""}`);
+        toast.error(
+          `Please fix: ${errorMessages.slice(0, 3).join(", ")}${
+            errorMessages.length > 3
+              ? ` (+${errorMessages.length - 3} more)`
+              : ""
+          }`
+        );
       } else {
         toast.error("Please fill in all required fields before proceeding.");
       }
@@ -361,8 +376,11 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       // Show feedback when validation fails with specific field errors
       const errors = form.formState.errors;
       const errorMessages: string[] = [];
-      
-      const flattenErrors = (obj: Record<string, unknown>, prefix = ""): void => {
+
+      const flattenErrors = (
+        obj: Record<string, unknown>,
+        prefix = ""
+      ): void => {
         for (const key in obj) {
           const value = obj[key] as Record<string, unknown>;
           const fullKey = prefix ? `${prefix}.${key}` : key;
@@ -373,11 +391,17 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           }
         }
       };
-      
+
       flattenErrors(errors as Record<string, unknown>);
-      
+
       if (errorMessages.length > 0) {
-        toast.error(`Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3 ? ` (+${errorMessages.length - 3} more)` : ""}`);
+        toast.error(
+          `Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${
+            errorMessages.length > 3
+              ? ` (+${errorMessages.length - 3} more)`
+              : ""
+          }`
+        );
       } else {
         toast.error("Please complete all required fields before submitting.");
       }
@@ -422,7 +446,9 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
 
     // Use the extracted pincode directly if available
     if (details.pincode) {
-      form.setValue("address.pincode", details.pincode, { shouldValidate: true });
+      form.setValue("address.pincode", details.pincode, {
+        shouldValidate: true,
+      });
     }
 
     if (details.context) {
@@ -437,7 +463,9 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         if (!details.pincode && item.id.startsWith("postcode")) {
           const numericPincode = item.text.replace(/\D/g, "").slice(0, 6);
           if (numericPincode.length === 6) {
-            form.setValue("address.pincode", numericPincode, { shouldValidate: true });
+            form.setValue("address.pincode", numericPincode, {
+              shouldValidate: true,
+            });
           }
         }
       });
@@ -460,22 +488,28 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                     { value: "FLAT", label: "Flat/Apartment", icon: House },
                     { value: "VILLA", label: "Villa", icon: Building2 },
                     { value: "LAND", label: "Land", icon: LandPlot },
-                  ].map((item) => (
-                    <Button
-                      key={item.value}
-                      type="button"
-                      variant="selection"
-                      onClick={() => field.onChange(item.value)}
-                      className={cn(
-                        field.value === item.value
-                          ? "bg-primary text-primary-foreground"
-                          : ""
-                      )}
-                    >
-                      {item.icon && <item.icon className="h-4 w-4" />}
-                      {item.label}
-                    </Button>
-                  ))}
+                  ].map((item) => {
+                    const isDisabled =
+                      enquiry && enquiry.enquiryType !== item.value;
+                    return (
+                      <Button
+                        key={item.value}
+                        type="button"
+                        variant="selection"
+                        disabled={isDisabled}
+                        onClick={() => field.onChange(item.value)}
+                        className={cn(
+                          field.value === item.value
+                            ? "bg-primary text-primary-foreground"
+                            : "",
+                          isDisabled && "opacity-50 cursor-not-allowed"
+                        )}
+                      >
+                        {item.icon && <item.icon className="h-4 w-4" />}
+                        {item.label}
+                      </Button>
+                    );
+                  })}
                 </div>
               </FormControl>
             </Select>
@@ -596,6 +630,18 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                 />
               </FormControl>
               <FormMessage />
+              {enquiry?.size &&
+                field.value &&
+                (field.value < enquiry.size.min ||
+                  field.value > enquiry.size.max) && (
+                  <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>
+                      Enquiry size range: {enquiry.size.min} -{" "}
+                      {enquiry.size.max}.
+                    </span>
+                  </div>
+                )}
             </FormItem>
           )}
         />
@@ -610,17 +656,17 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                 <div className="flex flex-wrap gap-2">
                   {(propertyType === "FLAT"
                     ? [
-                      { value: "SQ_FT", label: "Square Feet" },
-                      { value: "SQ_METER", label: "Square Meter" },
-                    ]
+                        { value: "SQ_FT", label: "Square Feet" },
+                        { value: "SQ_METER", label: "Square Meter" },
+                      ]
                     : [
-                      { value: "SQ_FT", label: "Square Feet" },
-                      { value: "SQ_YARDS", label: "Square Yards" },
-                      { value: "ACRES", label: "Acres" },
-                      { value: "BIGHA", label: "Bigha" },
-                      { value: "SQ_METER", label: "Square Meter" },
-                      { value: "HECTARE", label: "Hectare" },
-                    ]
+                        { value: "SQ_FT", label: "Square Feet" },
+                        { value: "SQ_YARDS", label: "Square Yards" },
+                        { value: "ACRES", label: "Acres" },
+                        { value: "BIGHA", label: "Bigha" },
+                        { value: "SQ_METER", label: "Square Meter" },
+                        { value: "HECTARE", label: "Hectare" },
+                      ]
                   ).map((item) => (
                     <Button
                       key={item.value}
@@ -674,6 +720,17 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                     </div>
                   </FormControl>
                   <FormMessage />
+                  {enquiry?.bhk &&
+                    field.value &&
+                    field.value !== enquiry.bhk && (
+                      <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
+                        <AlertTriangle className="h-4 w-4" />
+                        <span>
+                          Enquiry requirement is {enquiry.bhk} BHK. You selected{" "}
+                          {field.value} BHK.
+                        </span>
+                      </div>
+                    )}
                 </FormItem>
               )}
             />
@@ -704,6 +761,17 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                     </div>
                   </FormControl>
                   <FormMessage />
+                  {enquiry?.washrooms &&
+                    field.value &&
+                    field.value !== enquiry.washrooms && (
+                      <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
+                        <AlertTriangle className="h-4 w-4" />
+                        <span>
+                          Enquiry requirement is {enquiry.washrooms} Washrooms.
+                          You selected {field.value} Washrooms.
+                        </span>
+                      </div>
+                    )}
                 </FormItem>
               )}
             />
@@ -774,6 +842,17 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                 </div>
               </FormControl>
               <FormMessage />
+              {enquiry?.plotType &&
+                field.value &&
+                field.value !== enquiry.plotType && (
+                  <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>
+                      Enquiry requires {enquiry.plotType}. You selected{" "}
+                      {field.value}.
+                    </span>
+                  </div>
+                )}
             </FormItem>
           )}
         />
@@ -818,6 +897,19 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                   Auto-calculated based on size and rate
                 </FormDescription>
                 <FormMessage />
+                {enquiry?.budget &&
+                  field.value &&
+                  (field.value < enquiry.budget.min ||
+                    field.value > enquiry.budget.max) && (
+                    <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      <span>
+                        Enquiry budget range:{" "}
+                        {formatIndianNumber(enquiry.budget.min)} -{" "}
+                        {formatIndianNumber(enquiry.budget.max)}.
+                      </span>
+                    </div>
+                  )}
               </FormItem>
             )}
           />
@@ -934,92 +1026,160 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         name="amenities"
         render={({ field }) => {
           const amenities = coerceStringArray(field.value);
+          const allAmenitiesList = getAmenitiesList();
+
+          const filteredAmenities = allAmenitiesList.filter((item) =>
+            item.label.toLowerCase().includes(amenitySearch.toLowerCase())
+          );
+
+          const displayedAmenities =
+            showAllAmenities || amenitySearch.length > 0
+              ? filteredAmenities
+              : filteredAmenities.slice(0, 6);
 
           return (
             <FormItem>
-            <FormLabel>
-              {propertyType === "FLAT"
-                ? "Flat"
-                : propertyType === "VILLA"
+              <FormLabel>
+                {propertyType === "FLAT"
+                  ? "Flat"
+                  : propertyType === "VILLA"
                   ? "Villa"
                   : "Property"}{" "}
-              Amenities
-            </FormLabel>
-            <FormControl>
-              <div className="space-y-4">
-                {getAmenitiesList().length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {getAmenitiesList().map((item) => {
-                      const isSelected = amenities.includes(item.label);
-                      return (
-                        <Button
-                          key={item.label}
-                          type="button"
-                          variant="selection"
-                          className={cn(
-                            isSelected
-                              ? "bg-primary text-primary-foreground"
-                              : ""
-                          )}
-                          onClick={() => toggleAmenity(item.label, field)}
-                        >
-                          <item.icon className="h-4 w-4" />
-                          {item.label}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add custom amenity..."
-                    value={customAmenity}
-                    onChange={(e) => setCustomAmenity(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddCustomAmenity(field);
-                      }
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => handleAddCustomAmenity(field)}
-                    variant="secondary"
-                  >
-                    <Plus className="h-4 w-4 mr-2" /> Add
-                  </Button>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {amenities
-                    .filter(
-                      (amenity: string) =>
-                        !getAmenitiesList().some((i) => i.label === amenity)
-                    )
-                    .map((amenity: string, index: number) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-1 bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm"
-                      >
-                        <span>{amenity}</span>
-                        <button
-                          type="button"
-                          onClick={() => toggleAmenity(amenity, field)}
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
+                Amenities
+              </FormLabel>
+              <FormControl>
+                <div className="space-y-4">
+                  {allAmenitiesList.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search amenities..."
+                          value={amenitySearch}
+                          onChange={(e) => setAmenitySearch(e.target.value)}
+                          className="pl-9"
+                        />
                       </div>
-                    ))}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {displayedAmenities.map((item) => {
+                          const isSelected = amenities.includes(item.label);
+                          return (
+                            <Button
+                              key={item.label}
+                              type="button"
+                              variant="outline"
+                              className={cn(
+                                "justify-start h-auto py-3 px-4 w-full border-muted hover:border-primary/50 transition-all group",
+                                isSelected
+                                  ? "border-primary bg-primary/5 text-primary hover:bg-primary/10"
+                                  : "bg-background text-foreground hover:bg-accent/50"
+                              )}
+                              onClick={() => toggleAmenity(item.label, field)}
+                            >
+                              <div
+                                className={cn(
+                                  "p-2 rounded-full mr-3 transition-colors",
+                                  isSelected
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted text-muted-foreground group-hover:bg-muted/80"
+                                )}
+                              >
+                                <item.icon className="h-4 w-4" />
+                              </div>
+                              <span className="font-normal text-base">
+                                {item.label}
+                              </span>
+                              {isSelected && (
+                                <div className="ml-auto w-2 h-2 rounded-full bg-primary" />
+                              )}
+                            </Button>
+                          );
+                        })}
+                      </div>
+
+                      {!amenitySearch && filteredAmenities.length > 6 && (
+                        <div className="flex justify-center pt-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() =>
+                              setShowAllAmenities(!showAllAmenities)
+                            }
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            {showAllAmenities ? (
+                              <>
+                                Show Less <ChevronUp className="ml-2 h-4 w-4" />
+                              </>
+                            ) : (
+                              <>
+                                Show More{" "}
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+
+                      {filteredAmenities.length === 0 && amenitySearch && (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No amenities found matching &quot;{amenitySearch}
+                          &quot;
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-2">
+                    <Input
+                      placeholder="Add custom amenity..."
+                      value={customAmenity}
+                      onChange={(e) => setCustomAmenity(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddCustomAmenity(field);
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => handleAddCustomAmenity(field)}
+                      variant="secondary"
+                    >
+                      <Plus className="h-4 w-4 mr-2" /> Add
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {amenities
+                      .filter(
+                        (amenity: string) =>
+                          !getAmenitiesList().some((i) => i.label === amenity)
+                      )
+                      .map((amenity: string, index: number) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-1 bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm"
+                        >
+                          <span>{amenity}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleAmenity(amenity, field)}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                  </div>
                 </div>
-              </div>
-            </FormControl>
-            <FormDescription>
-              Select from the list or add your own amenities.
-            </FormDescription>
-            <FormMessage />
+              </FormControl>
+              <FormDescription>
+                Select from the list or add your own amenities.
+              </FormDescription>
+              <FormMessage />
             </FormItem>
           );
         }}
@@ -1363,39 +1523,57 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
 
   const steps: WizardStep[] = [
     {
-      id: "basic-info",
-      title: "Basic Info",
-      description: "Property type and address",
-      component: BasicInfoStep,
+      id: "property-details",
+      title: "Property Details",
+      description: "Basic info, specs and pricing",
+      component: (
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-primary">
+              Basic Information
+            </h3>
+            {BasicInfoStep}
+          </div>
+          <div className="w-full h-px bg-border" />
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-primary">
+              Specifications & Pricing
+            </h3>
+            {PropertySpecsStep}
+          </div>
+        </div>
+      ),
       isCompleted: completedSteps.has(0),
     },
     {
-      id: "specifications",
-      title: "Specifications & Pricing",
-      description: "Size, details, and pricing",
-      component: PropertySpecsStep,
+      id: "features-media",
+      title: "Features & Media",
+      description: "Amenities, photos and description",
+      component: (
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-primary">
+              Features & Amenities
+            </h3>
+            {FeaturesStep}
+          </div>
+          <div className="w-full h-px bg-border" />
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-primary">
+              Media & Description
+            </h3>
+            {MediaStep}
+          </div>
+        </div>
+      ),
       isCompleted: completedSteps.has(1),
-    },
-    {
-      id: "features",
-      title: "Features",
-      description: "Amenities and special features",
-      component: FeaturesStep,
-      isCompleted: completedSteps.has(2),
-    },
-    {
-      id: "media",
-      title: "Media",
-      description: "Photos, videos, and description",
-      component: MediaStep,
-      isCompleted: completedSteps.has(3),
     },
     {
       id: "review",
       title: "Review",
       description: "Review and submit",
       component: ReviewStep,
-      isCompleted: completedSteps.has(4),
+      isCompleted: completedSteps.has(2),
     },
   ];
 

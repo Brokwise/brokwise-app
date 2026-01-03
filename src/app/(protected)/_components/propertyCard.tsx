@@ -46,22 +46,25 @@ interface PropertyCardProps {
   actionSlot?: React.ReactNode;
 }
 
-export const PropertyCard: React.FC<PropertyCardProps> = ({ 
-  property, 
+export const PropertyCard: React.FC<PropertyCardProps> = ({
+  property,
   hideShare = false,
   onShowOnMap,
   showMapButton = false,
   actionSlot,
 }) => {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
-  const { userData, brokerData, setBrokerData, companyData, setCompanyData } = useApp();
-  const { toggleBookmarkAsync, isPending: isBookmarkPending } = useToggleBookmark();
+  const { userData, brokerData, setBrokerData, companyData, setCompanyData } =
+    useApp();
+  const { toggleBookmarkAsync, isPending: isBookmarkPending } =
+    useToggleBookmark();
 
   const isCompany = userData?.userType === "company";
 
   // Check if property is private/enquiry-only
   const isPrivateProperty =
-    property.listingStatus === "ENQUIRY_ONLY" || !!property.submittedForEnquiryId;
+    property.listingStatus === "ENQUIRY_ONLY" ||
+    !!property.submittedForEnquiryId;
   const canShareExternally = !hideShare && !isPrivateProperty;
 
   // Check bookmark status from the correct user data
@@ -69,9 +72,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     ? !!companyData?.bookmarkedPropertyIds?.includes(property._id)
     : !!brokerData?.bookmarkedPropertyIds?.includes(property._id);
 
-  const propertyUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/property/${property._id}`
-    : `/property/${property._id}`;
+  const propertyUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/property/${property._id}`
+      : `/property/${property._id}`;
 
   const handleCopyLink = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -90,8 +94,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     e.preventDefault();
     e.stopPropagation();
     const shareData = {
-      title: `${property.bhk ? `${property.bhk} BHK ` : ""}${property.propertyType.replace(/_/g, " ")}`,
-      text: `Check out this property: ${formatAddress(property.address)} - ${formatCurrency(property.totalPrice)}`,
+      title: `${
+        property.bhk ? `${property.bhk} BHK ` : ""
+      }${property.propertyType.replace(/_/g, " ")}`,
+      text: `Check out this property: ${formatAddress(
+        property.address
+      )} - ${formatCurrency(property.totalPrice)}`,
       url: propertyUrl,
     };
 
@@ -110,16 +118,22 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const handleShareWhatsApp = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const propertyTitle = `${property.bhk ? `${property.bhk} BHK ` : ""}${property.propertyType.replace(/_/g, " ")}`;
-    
+    const propertyTitle = `${
+      property.bhk ? `${property.bhk} BHK ` : ""
+    }${property.propertyType.replace(/_/g, " ")}`;
+
     // Using Unicode escapes to ensure emojis render correctly regardless of file encoding
     // \uD83C\uDFE0 = House
     // \uD83D\uDCCD = Round Pushpin
     // \uD83D\uDCB0 = Money Bag
     // \uD83D\uDD17 = Link Symbol
-    
-    const message = `\uD83C\uDFE0 *${propertyTitle}*\n\n\uD83D\uDCCD ${formatAddress(property.address)}\n\uD83D\uDCB0 ${formatCurrency(property.totalPrice)}\n\n\uD83D\uDD17 ${propertyUrl}`;
-    
+
+    const message = `\uD83C\uDFE0 *${propertyTitle}*\n\n\uD83D\uDCCD ${formatAddress(
+      property.address
+    )}\n\uD83D\uDCB0 ${formatCurrency(
+      property.totalPrice
+    )}\n\n\uD83D\uDD17 ${propertyUrl}`;
+
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
@@ -149,19 +163,26 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       root = createRoot(host);
       root.render(
         <div className="w-[794px] bg-white text-black">
-          <PropertyPdfLayout property={property} exportedOnLabel={exportedOnLabel} />
+          <PropertyPdfLayout
+            property={property}
+            exportedOnLabel={exportedOnLabel}
+          />
         </div>
       );
 
       // Ensure layout is painted before capture.
       await new Promise((r) => setTimeout(r, 75));
 
-      const element = host.querySelector("[data-property-pdf]") as HTMLElement | null;
+      const element = host.querySelector(
+        "[data-property-pdf]"
+      ) as HTMLElement | null;
       if (!element) {
         throw new Error("PDF layout failed to render");
       }
 
-      const safeId = makeSafeFilePart(property.propertyId || property._id || "property");
+      const safeId = makeSafeFilePart(
+        property.propertyId || property._id || "property"
+      );
       await exportElementAsPdf({
         element,
         fileName: `Brokwise_Property_${safeId}.pdf`,
@@ -212,7 +233,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 property.featuredMedia.includes(
                   "firebasestorage.googleapis.com"
                 )) ||
-                property.featuredMedia?.includes("picsum.photos")
+              property.featuredMedia?.includes("picsum.photos")
                 ? property.featuredMedia
                 : "/images/placeholder.webp"
             }
@@ -226,18 +247,21 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Status Badge */}
         <div className="absolute top-3 left-3 flex gap-2 z-10">
           <Badge
-            className={`shadow-sm backdrop-blur-md border-none ${property.listingStatus === "ACTIVE"
-              ? "bg-emerald-600/90 text-white"
-              : "bg-background/80 text-foreground"
-              }`}
+            className={`shadow-sm backdrop-blur-md border-none ${
+              property.listingStatus === "ACTIVE" && !property.deletingStatus
+                ? "bg-emerald-600/90 text-white"
+                : property.deletingStatus
+                ? "bg-red-600/90 text-white"
+                : "bg-background/80 text-foreground"
+            }`}
           >
-            {property.listingStatus.replace("_", " ")}
+            {property.deletingStatus
+              ? "DELETION REQUEST PENDING"
+              : property.listingStatus.replace("_", " ")}
           </Badge>
         </div>
 
-        {/* Map + Bookmark + Share */}
         <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
-          {/* Show on Map Button */}
           {showMapButton && hasValidCoordinates && (
             <Button
               size="icon"
@@ -285,7 +309,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                     bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
                   });
                 } catch {
-                  setCompanyData({ ...companyData, bookmarkedPropertyIds: prev });
+                  setCompanyData({
+                    ...companyData,
+                    bookmarkedPropertyIds: prev,
+                  });
                 }
               } else if (brokerData) {
                 const prev = brokerData.bookmarkedPropertyIds ?? [];
@@ -343,15 +370,24 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             <DropdownMenuContent align="end" className="w-48">
               {canShareExternally && (
                 <>
-                  <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
+                  <DropdownMenuItem
+                    onClick={handleCopyLink}
+                    className="cursor-pointer"
+                  >
                     <Link2 className="mr-2 h-4 w-4" />
                     Copy Link
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleShareWhatsApp} className="cursor-pointer">
+                  <DropdownMenuItem
+                    onClick={handleShareWhatsApp}
+                    className="cursor-pointer"
+                  >
                     <MessageCircle className="mr-2 h-4 w-4" />
                     Share via WhatsApp
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleShareNative} className="cursor-pointer">
+                  <DropdownMenuItem
+                    onClick={handleShareNative}
+                    className="cursor-pointer"
+                  >
                     <Share2 className="mr-2 h-4 w-4" />
                     Share Property
                   </DropdownMenuItem>
@@ -455,9 +491,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           asChild
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
         >
-          <Link href={`/property/${property._id}`}>
-            View Details
-          </Link>
+          <Link href={`/property/${property._id}`}>View Details</Link>
         </Button>
         {actionSlot}
       </CardFooter>
