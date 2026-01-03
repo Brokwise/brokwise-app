@@ -24,10 +24,12 @@ import { useDebounce } from "@/hooks/useDebounce";
 import Image from "next/image";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
 import { useGetAllBookings } from "@/hooks/useBooking";
+import { useRouter } from "next/navigation";
 
 const ProjectsPage = () => {
   const [viewMode, setViewMode] = useState<"PROJECTS" | "BOOKINGS">("PROJECTS");
   const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
   const debouncedSearch = useDebounce(searchQuery, 500);
   const { data: bookingsResponse, isLoading: isBookingsLoading } =
     useGetAllBookings();
@@ -306,6 +308,14 @@ const ProjectsPage = () => {
                         ₹{booking.plotId.price.toLocaleString("en-IN")}
                       </span>
                     </div>
+                    <Button
+                      variant={"outline"}
+                      onClick={() => {
+                        router.push("/booking/" + booking._id);
+                      }}
+                    >
+                      View Details
+                    </Button>
                   </CardContent>
                 </Card>
               ))}

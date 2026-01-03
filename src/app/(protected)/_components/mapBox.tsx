@@ -538,7 +538,7 @@ export const MapBox = ({
       mapRef.current = null;
       appliedStyleRef.current = "";
     };
-  }, []);
+  }, [isDarkMode, mapStyleType, updateMarkerVisibility]);
 
   // Apply map style changes
   useEffect(() => {

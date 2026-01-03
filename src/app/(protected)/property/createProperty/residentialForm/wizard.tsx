@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { coerceStringArray, formatIndianNumber } from "@/utils/helper";
-import { FieldValues, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,11 +65,7 @@ import {
   Wifi,
   User,
   Dog,
-  Plus,
   Flame,
-  Search,
-  ChevronDown,
-  ChevronUp,
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -77,10 +73,7 @@ import Image from "next/image";
 import { LocationPicker } from "../_components/locationPicker";
 import { cn } from "@/lib/utils";
 import { Enquiry } from "@/models/types/enquiry";
-import {
-  AmenitiesSelector,
-  AmenityOption,
-} from "@/components/property/amenities-selector";
+import { AmenitiesSelector } from "@/components/property/amenities-selector";
 
 interface ResidentialWizardProps {
   onBack: () => void;

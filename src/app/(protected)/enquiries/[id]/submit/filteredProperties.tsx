@@ -16,7 +16,7 @@ interface Property {
   propertyCategory: string;
   totalPrice?: number;
   listingStatus: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface FilteredPropertiesProps {

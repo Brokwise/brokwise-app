@@ -8,6 +8,12 @@ export interface Booking {
     price: number;
     facing: string;
     status: string;
+    dimensions?: {
+      length: number;
+      width: number;
+      unit: string;
+    };
+    pricePerUnit?: number;
   };
   blockId: string;
   projectId: {
@@ -20,6 +26,11 @@ export interface Booking {
       pincode: string;
     };
     projectId: string;
+    projectType?: string;
+    reraNumber?: string;
+    projectStatus?: string;
+    amenities?: string[];
+    images?: string[];
   };
   brokerId: {
     _id: string;
@@ -37,11 +48,29 @@ export interface Booking {
     address?: string;
     _id: string;
   };
-  bookingStatus: "pending" | "confirmed" | "cancelled" | "rejected" | "on_hold";
+  bookingStatus:
+    | "pending"
+    | "confirmed"
+    | "cancelled"
+    | "rejected"
+    | "on_hold"
+    | "completed"
+    | "reserved";
   bookingDate: string;
   holdExpiresAt?: Date;
 
+  // Payment Details
+  paymentId?: string;
+  orderId?: string;
+  amount?: number;
+  paymentStatus?: "pending" | "paid" | "failed";
+  receiptUrl?: string;
+
   notes?: string;
+  cancelledReason?: string;
+  cancelledAt?: Date;
+  completedAt?: Date;
+
   createdAt: string;
   updatedAt: string;
 }
