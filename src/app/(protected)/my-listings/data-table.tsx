@@ -230,15 +230,14 @@ export function DataTable<TData, TValue>({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="ENQUIRY_ONLY">Enquiry only</SelectItem>
                   <SelectItem value="PENDING_APPROVAL">
                     Pending Approval
                   </SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
                   <SelectItem value="REJECTED">Rejected</SelectItem>
                   <SelectItem value="DRAFT">Draft</SelectItem>
-                  <SelectItem value="SOLD">Sold</SelectItem>
-                  <SelectItem value="RENTED">Rented</SelectItem>
-                  <SelectItem value="EXPIRED">Expired</SelectItem>
+
                   <SelectItem value="DELISTED">Delisted</SelectItem>
                 </SelectContent>
               </Select>
@@ -246,7 +245,11 @@ export function DataTable<TData, TValue>({
               {viewMode === "table" && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-10 w-[160px] rounded-[8px] px-3 text-xs">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-10 w-[160px] rounded-[8px] px-3 text-xs"
+                    >
                       <Columns3 className="mr-2 h-4 w-4" />
                       Columns
                     </Button>

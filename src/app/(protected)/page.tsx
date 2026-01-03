@@ -277,6 +277,7 @@ const ProtectedPage = () => {
 
     return baseProperties.filter((property) => {
       const isNotEnquiryProperty = property.listingStatus !== "ENQUIRY_ONLY";
+      const isNotUnderDeletion = !property.deletingStatus;
       const matchesSource =
         sourceFilter === "ALL" ||
         (sourceFilter === "BROKER" && property.listedBy) ||
@@ -310,7 +311,8 @@ const ProtectedPage = () => {
         matchesPropertyType &&
         matchesMinPrice &&
         matchesMaxPrice &&
-        matchesBhk
+        matchesBhk &&
+        isNotUnderDeletion
       );
     });
   }, [

@@ -8,6 +8,7 @@ import {
   useGetEnquirySubmissions,
   useGetMyEnquiries,
   useCloseEnquiry,
+  useMarkAsInterested,
 } from "@/hooks/useEnquiry";
 import { EnquirySubmission } from "@/models/types/enquiry";
 import { Property } from "@/types/property";
@@ -24,6 +25,7 @@ import {
   IndianRupee,
   DoorOpen,
   LayoutGrid,
+  ThumbsUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -85,6 +87,8 @@ const SingleEnquiry = () => {
   const { enquirySubmissions } = useGetEnquirySubmissions(id as string);
   const { closeEnquiryAsync, isPending: isPendingCloseEnquiry } =
     useCloseEnquiry();
+  const { markAsInterested, isPending: isMarkingInterested } =
+    useMarkAsInterested();
   const isMyEnquiry =
     myEnquiries &&
     myEnquiries.length > 0 &&
@@ -158,30 +162,35 @@ const SingleEnquiry = () => {
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Enquiries
           </Button>
           <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge
-                variant="outline"
-                className="font-mono text-xs bg-background"
-              >
-                #{enquiry.enquiryId}
-              </Badge>
-              <Badge
-                variant="secondary"
-                className={`${getStatusColor(enquiry.status)} border-0`}
-              >
-                {enquiry.status}
-              </Badge>
-              <span className="text-xs text-muted-foreground flex items-center gap-1 ml-1">
-                <Calendar className="h-3 w-3" />
-                {formatDistanceToNow(new Date(enquiry.createdAt))} ago
-              </span>
+            <div className="flex flex-wrap items-center  gap-2">
+              <div className="flex flex-wrap items-center gap-2 justify-between w-full">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="font-mono text-xs bg-background"
+                  >
+                    #{enquiry.enquiryId}
+                  </Badge>
+                  <Badge
+                    variant="secondary"
+                    className={`${getStatusColor(enquiry.status)} border-0`}
+                  >
+                    {enquiry.status}
+                  </Badge>
+
+                  <span className="text-xs text-muted-foreground flex items-center gap-1 ml-1">
+                    <Calendar className="h-3 w-3" />
+                    {formatDistanceToNow(new Date(enquiry.createdAt))} ago
+                  </span>
+                </div>
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                {enquiry.enquiryType} Enquiry{" "}
+                {formatEnquiryLocation(enquiry)
+                  ? `in ${formatEnquiryLocation(enquiry)}`
+                  : ""}
+              </h1>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              {enquiry.enquiryType} Enquiry{" "}
-              {formatEnquiryLocation(enquiry)
-                ? `in ${formatEnquiryLocation(enquiry)}`
-                : ""}
-            </h1>
           </div>
           <div className="flex items-center text-muted-foreground text-sm">
             <MapPin className="h-4 w-4 mr-1.5 text-primary/70" />
@@ -436,12 +445,43 @@ const SingleEnquiry = () => {
               ) : null}
 
               {/* Action to Submit */}
-              <div className="pt-2">
+              <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="flex-1"
+                  disabled={!!enquiry.isInterested || isMarkingInterested}
+                  onClick={() => {
+                    markAsInterested(enquiry._id, {
+                      onSuccess: () => {
+                        toast.success("Marked as interested");
+                      },
+
+                      onError: (error) => {
+                        console.log(error);
+                        const e = error as {
+                          response?: { data?: { message?: string } };
+                        };
+                        toast.error(
+                          e.response?.data?.message ||
+                            "Failed to mark as interested"
+                        );
+                      },
+                    });
+                  }}
+                >
+                  <ThumbsUp
+                    className={`mr-2 h-4 w-4 ${
+                      !!enquiry.isInterested ? "fill-current" : ""
+                    }`}
+                  />
+                  {!!enquiry.isInterested ? "Interested" : "I am Interested"}
+                </Button>
                 <Button
                   onClick={() => {
                     router.push(`/enquiries/${enquiry._id}/submit`);
                   }}
-                  className="w-full"
+                  className="flex-1"
                   size="lg"
                   disabled={
                     typeof brokerData?.companyId === "object" &&

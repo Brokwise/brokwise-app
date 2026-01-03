@@ -94,6 +94,8 @@ export interface Enquiry {
   forwardedTo: string[];
   submissionCount: number;
 
+  isInterested?: boolean;
+
   createdByCompanyId?: string;
 
   createdAt: string;

@@ -297,7 +297,7 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
                         </Badge>
                         {plot.status === "available" && (
                           <div className="text-sm font-semibold mt-1 text-primary">
-                            {formatCurrency(plot.price)}
+                            {formatCurrency(project.bookingTokenAmount)}
                           </div>
                         )}
                         {plot.status === "on_hold" && plot.holdExpiresAt && (

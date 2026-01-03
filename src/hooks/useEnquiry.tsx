@@ -46,7 +46,9 @@ export const useGetMarketPlaceEnquiries = (
  * Fetches ALL marketplace enquiries by paging through the backend (limit capped server-side).
  * Use sparingly (e.g., Unified Home toggle) to keep UX "show all" without manual pagination.
  */
-export const useGetAllMarketPlaceEnquiries = (options?: { enabled?: boolean }) => {
+export const useGetAllMarketPlaceEnquiries = (options?: {
+  enabled?: boolean;
+}) => {
   const api = useAxios();
   const { data, isPending, error } = useQuery<MarketplaceEnquiry[]>({
     queryKey: ["market-place-enquiries", "all"],
@@ -174,7 +176,12 @@ export const useCloseEnquiry = () => {
       queryClient.invalidateQueries({ queryKey: ["enquiry", enquiryId] });
     },
   });
-  return { closeEnquiry: mutate, closeEnquiryAsync: mutateAsync, isPending, error };
+  return {
+    closeEnquiry: mutate,
+    closeEnquiryAsync: mutateAsync,
+    isPending,
+    error,
+  };
 };
 
 export const useGetReceivedProperties = (
@@ -228,4 +235,20 @@ export const useSendAdminMessage = (enquiryId: string) => {
     },
   });
   return { sendAdminMessage: mutate, isPending, error };
+};
+
+export const useMarkAsInterested = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+  const { mutate, isPending, error } = useMutation<void, Error, string>({
+    mutationFn: async (enquiryId) => {
+      return (await api.put(`/broker/enquiry/${enquiryId}/markAsInterested`))
+        .data.data;
+    },
+    onSuccess: (_data, enquiryId) => {
+      queryClient.invalidateQueries({ queryKey: ["enquiry", enquiryId] });
+      queryClient.invalidateQueries({ queryKey: ["market-place-enquiries"] });
+    },
+  });
+  return { markAsInterested: mutate, isPending, error };
 };
