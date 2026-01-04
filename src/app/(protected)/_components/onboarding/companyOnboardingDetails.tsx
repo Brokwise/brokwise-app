@@ -13,7 +13,17 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Sun, Moon, Computer } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Sun,
+  Moon,
+  Computer,
+  User,
+  Users,
+  Building2,
+  Landmark,
+} from "lucide-react";
 import { createCompany, updateCompanyProfile } from "@/models/api/company";
 import { useApp } from "@/context/AppContext";
 import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
@@ -43,12 +53,52 @@ export const CompanyOnboardingDetails = ({
     setMounted(true);
   }, []);
 
-  const activeTheme = mounted ? (resolvedTheme ?? theme) : undefined;
+  const activeTheme = mounted ? resolvedTheme ?? theme : undefined;
   const isSystemTheme = mounted && theme === "system";
 
   const stepFields = {
     1: ["name", "mobile", "city"],
     2: ["gstin", "noOfEmployees", "officeAddress"],
+  };
+
+  const employeeRanges = [
+    {
+      id: "solo",
+      label: "Solo",
+      range: "1",
+      value: 1,
+      icon: User,
+    },
+    {
+      id: "small",
+      label: "Small",
+      range: "2-10",
+      value: 5,
+      icon: Users,
+    },
+    {
+      id: "mid",
+      label: "Mid-sized",
+      range: "10-100",
+      value: 50,
+      icon: Building2,
+    },
+    {
+      id: "large",
+      label: "Large",
+      range: "100+",
+      value: 150,
+      icon: Landmark,
+    },
+  ];
+
+  const getSelectedRange = (val: number) => {
+    if (!val) return null;
+    if (val === 1) return "solo";
+    if (val >= 2 && val <= 10) return "small";
+    if (val > 10 && val <= 100) return "mid";
+    if (val > 100) return "large";
+    return "mid"; // Default fallback if weird number
   };
 
   const form = useForm<z.infer<typeof createCompanyFormSchema>>({
@@ -159,7 +209,7 @@ export const CompanyOnboardingDetails = ({
   const progress = (step / totalSteps) * 100;
 
   return (
-    <section className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-[#020617] transition-colors duration-500">
+    <section className="min-h-screen flex items-center justify-center p-4  transition-colors duration-500">
       {/* Theme Toggles */}
       <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
         <div className="flex gap-0.5 border border-slate-200 dark:border-slate-800 rounded-full p-1 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md shadow-sm">
@@ -167,10 +217,11 @@ export const CompanyOnboardingDetails = ({
             variant="ghost"
             size="icon"
             onClick={() => setTheme("light")}
-            className={`h-7 w-7 rounded-full transition-all ${activeTheme === "light"
-              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
+            className={`h-7 w-7 rounded-full transition-all ${
+              activeTheme === "light"
+                ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+                : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+            }`}
           >
             <Sun className="h-3.5 w-3.5" />
           </Button>
@@ -178,10 +229,11 @@ export const CompanyOnboardingDetails = ({
             variant="ghost"
             size="icon"
             onClick={() => setTheme("dark")}
-            className={`h-7 w-7 rounded-full transition-all ${activeTheme === "dark"
-              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
+            className={`h-7 w-7 rounded-full transition-all ${
+              activeTheme === "dark"
+                ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+                : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+            }`}
           >
             <Moon className="h-3.5 w-3.5" />
           </Button>
@@ -189,10 +241,11 @@ export const CompanyOnboardingDetails = ({
             variant="ghost"
             size="icon"
             onClick={() => setTheme("system")}
-            className={`h-7 w-7 rounded-full transition-all ${isSystemTheme
-              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
+            className={`h-7 w-7 rounded-full transition-all ${
+              isSystemTheme
+                ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+                : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+            }`}
           >
             <Computer className="h-3.5 w-3.5" />
           </Button>
@@ -228,9 +281,14 @@ export const CompanyOnboardingDetails = ({
             <div className="space-y-2">
               <div className="flex justify-between items-baseline">
                 <h1 className="text-3xl md:text-4xl font-instrument-serif text-slate-900 dark:text-slate-50">
-                  {isEditing ? "Update your profile" : (
+                  {isEditing ? (
+                    "Update your profile"
+                  ) : (
                     <>
-                      Let&apos;s setup your <span className="text-[#0F766E] italic">company profile</span>
+                      Let&apos;s setup your{" "}
+                      <span className="text-[#0F766E] italic">
+                        company profile
+                      </span>
                     </>
                   )}
                 </h1>
@@ -294,7 +352,9 @@ export const CompanyOnboardingDetails = ({
                                   className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
                                   placeholder="Contact number"
                                   onChange={(e) => {
-                                    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+                                    const value = e.target.value
+                                      .replace(/\D/g, "")
+                                      .slice(0, 10);
                                     field.onChange(value);
                                   }}
                                 />
@@ -344,7 +404,9 @@ export const CompanyOnboardingDetails = ({
                                   className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all uppercase placeholder:normal-case"
                                   placeholder="GST Identification Number"
                                   onChange={(e) => {
-                                    const value = e.target.value.toUpperCase().slice(0, 15);
+                                    const value = e.target.value
+                                      .toUpperCase()
+                                      .slice(0, 15);
                                     field.onChange(value);
                                   }}
                                 />
@@ -355,19 +417,17 @@ export const CompanyOnboardingDetails = ({
                         />
                         <FormField
                           control={form.control}
-                          name="noOfEmployees"
+                          name="officeAddress"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                Number of Employees
+                                Office Address
                               </FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
-                                  type="number"
-                                  min="0"
                                   className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
-                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                  placeholder="Registered office address"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -377,18 +437,55 @@ export const CompanyOnboardingDetails = ({
                       </div>
                       <FormField
                         control={form.control}
-                        name="officeAddress"
+                        name="noOfEmployees"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                              Office Address
+                              Team Size
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                {...field}
-                                className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
-                                placeholder="Registered office address"
-                              />
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {employeeRanges.map((option) => {
+                                  const isSelected =
+                                    getSelectedRange(field.value) === option.id;
+                                  return (
+                                    <div
+                                      key={option.id}
+                                      onClick={() =>
+                                        field.onChange(option.value)
+                                      }
+                                      className={`
+                                          cursor-pointer relative flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200
+                                          ${
+                                            isSelected
+                                              ? "border-[#0F766E] bg-[#0F766E]/5 dark:bg-[#0F766E]/10"
+                                              : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 hover:border-[#0F766E]/50 hover:bg-slate-50 dark:hover:bg-slate-900"
+                                          }
+                                        `}
+                                    >
+                                      <option.icon
+                                        className={`h-6 w-6 mb-2 ${
+                                          isSelected
+                                            ? "text-[#0F766E]"
+                                            : "text-slate-400"
+                                        }`}
+                                      />
+                                      <span
+                                        className={`text-sm font-semibold ${
+                                          isSelected
+                                            ? "text-[#0F766E]"
+                                            : "text-slate-700 dark:text-slate-200"
+                                        }`}
+                                      >
+                                        {option.label}
+                                      </span>
+                                      <span className="text-[10px] text-slate-500">
+                                        {option.range}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -425,7 +522,11 @@ export const CompanyOnboardingDetails = ({
                   bg-[#0F172A] text-white hover:bg-[#1E293B]
                   dark:bg-white dark:text-[#0F172A] dark:hover:bg-slate-200
                   transition-all duration-300
-                  ${step === 2 && !isValid && !loading ? "opacity-50 cursor-not-allowed" : "hover:shadow-lg hover:-translate-y-0.5"}
+                  ${
+                    step === 2 && !isValid && !loading
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:shadow-lg hover:-translate-y-0.5"
+                  }
                 `}
               >
                 {loading ? (
@@ -435,13 +536,16 @@ export const CompanyOnboardingDetails = ({
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    {step === 2 ? (isEditing ? "Update Profile" : "Complete Setup") : "Continue"}
+                    {step === 2
+                      ? isEditing
+                        ? "Update Profile"
+                        : "Complete Setup"
+                      : "Continue"}
                     {step < 2 && <ArrowRight className="h-4 w-4" />}
                   </div>
                 )}
               </Button>
             </div>
-
           </div>
         </form>
       </Form>

@@ -24,6 +24,9 @@ import {
   Layers,
   LayoutGrid,
   X,
+  Ticket,
+  CheckCircle2,
+  Download,
 } from "lucide-react";
 import { format } from "date-fns";
 import { formatCurrency, formatAddress } from "@/utils/helper";
@@ -49,6 +52,13 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
   const [activeBlock, setActiveBlock] = React.useState<string>("all");
   const [isBookingOpen, setIsBookingOpen] = React.useState(false);
   const [bookingMode, setBookingMode] = React.useState<"book" | "hold">("book");
+
+  const scrollToBooking = () => {
+    const element = document.getElementById("booking-section");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   const blocks = React.useMemo(() => {
     if (!plots) return [];
@@ -115,312 +125,240 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
   const allImages = project.images || [];
 
   return (
-    <main className="container mx-auto py-8  space-y-8 relative mb-20">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              {project.name}
-              <span className="text-muted-foreground font-normal text-sm bg-muted px-2 py-1 rounded-md">
-                ID: {project.projectId || "N/A"}
-              </span>
-            </h1>
-            <div className="flex items-center text-sm text-muted-foreground mt-1">
-              <MapPin className="h-3 w-3 mr-1" />
-              {formatAddress(project.address)}
+    <main className="container mx-auto py-8 space-y-8 relative mb-20">
+      {/* Header & Hero Actions */}
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+              onClick={() => router.back()}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-3">
+                {project.name}
+                <Badge variant="outline" className="font-normal text-xs">
+                  ID: {project.projectId || "N/A"}
+                </Badge>
+              </h1>
+              <div className="flex items-center text-muted-foreground mt-1">
+                <MapPin className="h-4 w-4 mr-1.5" />
+                {formatAddress(project.address)}
+              </div>
             </div>
           </div>
+          <Button
+            size="lg"
+            className="w-full sm:w-auto font-semibold shadow-md"
+            onClick={scrollToBooking}
+          >
+            <Ticket className="mr-2 h-4 w-4" />
+            Book Plots
+          </Button>
+        </div>
+
+        {/* Image Gallery */}
+        <div className="rounded-xl overflow-hidden bg-muted h-[250px] sm:h-[350px] md:h-[450px] relative border shadow-sm group">
+          {allImages.length > 0 ? (
+            <Carousel className="w-full h-full">
+              <CarouselContent className="h-full">
+                {allImages.map((image, index) => (
+                  <CarouselItem key={index} className="h-full">
+                    <div className="relative w-full h-full flex items-center justify-center bg-black/5">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={image}
+                        alt={`Project ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "/images/placeholder.webp";
+                        }}
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {allImages.length > 1 && (
+                <>
+                  <CarouselPrevious className="left-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <CarouselNext className="right-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </>
+              )}
+            </Carousel>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              No images available
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left Column - Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Image Gallery */}
-          <div className="rounded-xl overflow-hidden bg-muted aspect-video relative border">
-            {allImages.length > 0 ? (
-              <Carousel className="w-full h-full">
-                <CarouselContent className="h-full">
-                  {allImages.map((image, index) => (
-                    <CarouselItem key={index} className="h-full">
-                      <div className="relative w-full h-full flex items-center justify-center bg-black">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={image}
-                          alt={`Project ${index + 1}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = "/images/placeholder.webp";
-                          }}
-                        />
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                {allImages.length > 1 && (
-                  <>
-                    <CarouselPrevious className="left-4" />
-                    <CarouselNext className="right-4" />
-                  </>
-                )}
-              </Carousel>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                No images available
-              </div>
-            )}
-          </div>
-
+        <div className="lg:col-span-2 space-y-8">
           {/* Overview Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-6">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Type</p>
-                  <div className="flex flex-col items-center justify-center p-3 bg-muted/50 rounded-lg">
-                    <Building2 className="h-5 w-5 mb-2 text-primary" />
-                    <span className="font-semibold text-sm capitalize">
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold">Overview</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <Card className="bg-muted/30 border-none shadow-none">
+                <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <Building2 className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Type</p>
+                    <p className="font-semibold capitalize">
                       {project.projectType}
-                    </span>
+                    </p>
                   </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Use</p>
-                  <div className="flex flex-col items-center justify-center p-3 bg-muted/50 rounded-lg">
-                    <Layers className="h-5 w-5 mb-2 text-primary" />
-                    <span className="font-semibold text-sm capitalize">
+                </CardContent>
+              </Card>
+              <Card className="bg-muted/30 border-none shadow-none">
+                <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <Layers className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Usage</p>
+                    <p className="font-semibold capitalize">
                       {project.projectUse}
-                    </span>
+                    </p>
                   </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Plots</p>
-                  <div className="flex flex-col items-center justify-center p-3 bg-muted/50 rounded-lg">
-                    <LayoutGrid className="h-5 w-5 mb-2 text-primary" />
-                    <span className="font-semibold text-sm">
-                      {project.numberOfPlots}
-                    </span>
+                </CardContent>
+              </Card>
+              <Card className="bg-muted/30 border-none shadow-none col-span-2 md:col-span-1">
+                <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <LayoutGrid className="h-5 w-5" />
                   </div>
-                </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Plots</p>
+                    <p className="font-semibold">{project.numberOfPlots}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* Description */}
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold">Description</h2>
+            <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
+              {project.description}
+            </p>
+          </section>
+
+          <Separator />
+
+          {/* Amenities */}
+          {project.amenities && project.amenities.length > 0 && (
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold">Amenities</h2>
+              <div className="flex flex-wrap gap-2">
+                {project.amenities.map((amenity, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="px-4 py-2 text-sm bg-muted text-foreground hover:bg-muted/80"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5 mr-2 text-green-500" />
+                    {amenity}
+                  </Badge>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Plots Section */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle>Plots</CardTitle>
-              {blocks.length > 0 && (
-                <Tabs
-                  value={activeBlock}
-                  onValueChange={setActiveBlock}
-                  className="w-[200px] sm:w-[300px]"
-                >
-                  <TabsList className="w-full justify-start overflow-x-auto scrollbar-hide">
-                    <TabsTrigger value="all">All</TabsTrigger>
-                    {blocks.map((block) => (
-                      <TabsTrigger key={block.id} value={block.id}>
-                        {block.name}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </Tabs>
-              )}
-            </CardHeader>
-            <CardContent>
-              {isLoadingPlots ? (
-                <div className="flex justify-center p-4">
-                  <Loader2 className="animate-spin text-primary" />
-                </div>
-              ) : filteredPlots && filteredPlots.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {filteredPlots.map((plot) => {
-                    const selected = isSelected(plot._id);
-                    return (
-                      <div
-                        key={plot._id}
-                        className={`p-4 border rounded-lg flex flex-col items-center gap-2 relative group transition-all duration-200 ${
-                          plot.status === "available"
-                            ? selected
-                              ? "bg-primary/5 border-primary shadow-sm"
-                              : "bg-card hover:border-primary cursor-pointer hover:shadow-sm"
-                            : "bg-muted/50 opacity-80"
-                        }`}
-                        onClick={() => {
-                          if (plot.status === "available") {
-                            togglePlotSelection(plot);
-                          }
-                        }}
-                      >
-                        {plot.status === "available" && (
-                          <div className="absolute top-2 right-2">
-                            <Checkbox
-                              checked={selected}
-                              onCheckedChange={() => togglePlotSelection(plot)}
-                              className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                            />
-                          </div>
-                        )}
-                        <span className="font-bold text-lg mt-2">
-                          {plot.plotNumber}
-                        </span>
-                        <div className="text-xs text-muted-foreground text-center space-y-0.5">
-                          <div>
-                            {plot.area} {plot.areaUnit}
-                          </div>
-                          <div>{plot.facing}</div>
-                        </div>
-                        <Badge
-                          variant={
-                            plot.status === "available"
-                              ? "outline"
-                              : "secondary"
-                          }
-                          className={`mt-1 text-[10px] px-2 py-0.5 h-5 ${
-                            plot.status === "available"
-                              ? "border-green-500 text-green-600 bg-green-50"
-                              : plot.status === "booked"
-                              ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                              : plot.status === "on_hold"
-                              ? "bg-orange-100 text-orange-700 hover:bg-orange-200"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          }`}
-                        >
-                          {plot.status.replace("_", " ").toUpperCase()}
-                        </Badge>
-                        {plot.status === "available" && (
-                          <div className="text-sm font-semibold mt-1 text-primary">
-                            {formatCurrency(project.bookingTokenAmount)}
-                          </div>
-                        )}
-                        {plot.status === "on_hold" && plot.holdExpiresAt && (
-                          <div className="mt-1">
-                            <CountdownTimer
-                              expiresAt={plot.holdExpiresAt}
-                              className="text-orange-600 justify-center font-bold"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground py-8">
-                  No plots found for this selection.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Location Map */}
-          {project.location?.coordinates && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Location
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 sm:p-6 sm:pt-0">
-                <ProjectMap
-                  coordinates={project.location.coordinates}
-                  name={project.name}
-                />
-              </CardContent>
-            </Card>
+            </section>
           )}
 
           {/* Site Plan */}
           {project.sitePlan && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
+            <>
+              <Separator />
+              <section className="space-y-4">
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <FileText className="h-6 w-6 text-primary" />
                   Site Plan
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 sm:p-6 sm:pt-0">
-                <ProjectSitePlan url={project.sitePlan} />
-              </CardContent>
-            </Card>
+                </h2>
+                <Card>
+                  <CardContent className="p-0 sm:p-6 overflow-hidden">
+                    <ProjectSitePlan url={project.sitePlan} />
+                  </CardContent>
+                </Card>
+              </section>
+            </>
           )}
 
-          {/* Description */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Description</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                {project.description}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Amenities */}
-          {project.amenities && project.amenities.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Amenities</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {project.amenities.map((amenity, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="px-3 py-1"
-                    >
-                      {amenity}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+          {/* Location Map */}
+          {project.location?.coordinates && (
+            <>
+              <Separator />
+              <section className="space-y-4">
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <MapPin className="h-6 w-6 text-primary" />
+                  Location
+                </h2>
+                <Card className="overflow-hidden">
+                  <CardContent className="p-0 h-[400px]">
+                    <ProjectMap
+                      coordinates={project.location.coordinates}
+                      name={project.name}
+                    />
+                  </CardContent>
+                </Card>
+              </section>
+            </>
           )}
 
           {/* Documents */}
           {project.approvalDocuments &&
             project.approvalDocuments.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Approval Documents</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {project.approvalDocuments.map((doc, index) => (
-                    <a
-                      key={index}
-                      href={doc}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-primary hover:underline p-2 hover:bg-muted/50 rounded-md transition-colors"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Document {index + 1}
-                    </a>
-                  ))}
-                </CardContent>
-              </Card>
+              <>
+                <Separator />
+                <section className="space-y-4">
+                  <h2 className="text-2xl font-bold">Documents</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {project.approvalDocuments.map((doc, index) => (
+                      <a
+                        key={index}
+                        href={doc}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center p-4 border rounded-lg hover:bg-muted/50 transition-colors group"
+                      >
+                        <div className="h-10 w-10 rounded-lg bg-red-50 flex items-center justify-center mr-4 group-hover:bg-red-100 transition-colors">
+                          <FileText className="h-5 w-5 text-red-500" />
+                        </div>
+                        <div className="flex-1 truncate">
+                          <p className="font-medium text-sm">
+                            Approval Document {index + 1}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            View PDF
+                          </p>
+                        </div>
+                        <Download className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              </>
             )}
         </div>
 
         {/* Right Column - Sidebar */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-8">
           {/* Status Card */}
-          <Card>
+          <Card className="shadow-md border-t-4 border-t-primary">
             <CardHeader>
               <CardTitle>Project Status</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center p-2 rounded hover:bg-muted/50 transition-colors">
                 <span className="text-sm text-muted-foreground">Status</span>
                 <Badge
                   variant={
@@ -436,7 +374,7 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
                 </Badge>
               </div>
               <Separator />
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center p-2 rounded hover:bg-muted/50 transition-colors">
                 <span className="text-sm text-muted-foreground">
                   Development
                 </span>
@@ -445,130 +383,274 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
                 </span>
               </div>
               <Separator />
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center p-2 rounded hover:bg-muted/50 transition-colors">
                 <span className="text-sm text-muted-foreground">Legal</span>
                 <span className="font-medium text-sm">
                   {project.legalStatus.replace(/_/g, " ").toUpperCase()}
                 </span>
               </div>
               <Separator />
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">RERA</span>
-                <span className="font-medium text-sm">
+              <div className="flex flex-col p-2 rounded hover:bg-muted/50 transition-colors gap-1">
+                <span className="text-sm text-muted-foreground">
+                  RERA Number
+                </span>
+                <span className="font-mono text-sm font-medium">
                   {project.reraNumber}
                 </span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Plot Stats */}
-          {stats && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Plot Availability</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">
-                    Available
-                  </span>
-                  <Badge
-                    variant="outline"
-                    className="bg-green-50 text-green-700 border-green-200"
-                  >
-                    {stats.available}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Booked</span>
-                  <Badge
-                    variant="outline"
-                    className="bg-blue-50 text-blue-700 border-blue-200"
-                  >
-                    {stats.booked}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">
-                    Reserved
-                  </span>
-                  <Badge
-                    variant="outline"
-                    className="bg-yellow-50 text-yellow-700 border-yellow-200"
-                  >
-                    {stats.reserved}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Sold</span>
-                  <Badge
-                    variant="outline"
-                    className="bg-red-50 text-red-700 border-red-200"
-                  >
-                    {stats.sold}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Timelines */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
+                <Calendar className="h-5 w-5 text-primary" />
                 Timelines
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">
-                  Possession Date
-                </p>
-                <p className="font-semibold">
-                  {format(new Date(project.possessionDate), "PPP")}
-                </p>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-1 rounded bg-primary" />
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Possession Date
+                  </p>
+                  <p className="font-semibold">
+                    {format(new Date(project.possessionDate), "MMMM d, yyyy")}
+                  </p>
+                </div>
               </div>
-              <Separator />
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Created On</p>
-                <p className="font-semibold">
-                  {format(new Date(project.createdAt), "PPP")}
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-1 rounded bg-muted-foreground/30" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Created On</p>
+                  <p className="font-semibold">
+                    {format(new Date(project.createdAt), "MMMM d, yyyy")}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
 
+      <Separator className="my-12" />
+
+      {/* Booking Section */}
+      <section id="booking-section" className="scroll-mt-24 space-y-8">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+          <div>
+            <h2 className="text-3xl font-bold flex items-center gap-2">
+              Select Your Plot
+            </h2>
+            <p className="text-muted-foreground mt-2">
+              Browse available plots and make a booking directly.
+            </p>
+          </div>
+
+          {/* Plot Stats Summary */}
+          {stats && (
+            <div className="flex flex-wrap gap-2 md:gap-4">
+              <Badge
+                variant="outline"
+                className="px-3 py-1.5 border-green-200 bg-green-50 text-green-700"
+              >
+                Available: {stats.available}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="px-3 py-1.5 border-blue-200 bg-blue-50 text-blue-700"
+              >
+                Booked: {stats.booked}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="px-3 py-1.5 border-yellow-200 bg-yellow-50 text-yellow-700"
+              >
+                Reserved: {stats.reserved}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="px-3 py-1.5 border-red-200 bg-red-50 text-red-700"
+              >
+                Sold: {stats.sold}
+              </Badge>
+            </div>
+          )}
+        </div>
+
+        <Card className="border-t-4 border-t-primary shadow-lg">
+          <CardHeader className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 pb-6 border-b">
+            <div className="w-full sm:w-auto">
+              {blocks.length > 0 && (
+                <Tabs
+                  value={activeBlock}
+                  onValueChange={setActiveBlock}
+                  className="w-full"
+                >
+                  <TabsList className="w-full sm:w-auto h-auto flex-wrap justify-start gap-1 bg-transparent p-0">
+                    <TabsTrigger
+                      value="all"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border border-transparent data-[state=active]:shadow-md rounded-full px-4 py-2"
+                    >
+                      All Blocks
+                    </TabsTrigger>
+                    {blocks.map((block) => (
+                      <TabsTrigger
+                        key={block.id}
+                        value={block.id}
+                        className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border border-transparent data-[state=active]:shadow-md rounded-full px-4 py-2"
+                      >
+                        {block.name}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 bg-muted/5 min-h-[400px]">
+            {isLoadingPlots ? (
+              <div className="flex flex-col items-center justify-center h-64 gap-4">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-muted-foreground">Loading plots...</p>
+              </div>
+            ) : filteredPlots && filteredPlots.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {filteredPlots.map((plot) => {
+                  const selected = isSelected(plot._id);
+                  const isAvailable = plot.status === "available";
+
+                  return (
+                    <div
+                      key={plot._id}
+                      className={`
+                        relative group p-4 border rounded-xl flex flex-col items-center gap-2 transition-all duration-200
+                        ${
+                          isAvailable
+                            ? selected
+                              ? "bg-primary/5 border-primary shadow-md ring-1 ring-primary"
+                              : "bg-card hover:border-primary hover:shadow-lg cursor-pointer"
+                            : "bg-muted/50 opacity-70 grayscale-[0.5]"
+                        }
+                      `}
+                      onClick={() => {
+                        if (isAvailable) {
+                          togglePlotSelection(plot);
+                        }
+                      }}
+                    >
+                      {isAvailable && (
+                        <div className="absolute top-3 right-3 z-10">
+                          <Checkbox
+                            checked={selected}
+                            onCheckedChange={() => togglePlotSelection(plot)}
+                            className="h-5 w-5 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                          />
+                        </div>
+                      )}
+
+                      <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-1 group-hover:scale-110 transition-transform duration-200">
+                        <MapPin
+                          className={`h-6 w-6 ${
+                            selected ? "text-primary" : "text-muted-foreground"
+                          }`}
+                        />
+                      </div>
+
+                      <span className="font-bold text-xl">
+                        {plot.plotNumber}
+                      </span>
+
+                      <div className="text-xs text-muted-foreground text-center space-y-0.5">
+                        <div className="font-medium text-foreground">
+                          {plot.area} {plot.areaUnit}
+                        </div>
+                        <div className="capitalize">{plot.facing} Facing</div>
+                      </div>
+
+                      <Badge
+                        variant={isAvailable ? "outline" : "secondary"}
+                        className={`mt-2 text-[10px] px-2 py-0.5 h-5 uppercase tracking-wider ${
+                          isAvailable
+                            ? "border-green-500 text-green-600 bg-green-50"
+                            : plot.status === "booked"
+                            ? "bg-blue-100 text-blue-700"
+                            : plot.status === "on_hold"
+                            ? "bg-orange-100 text-orange-700"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {plot.status.replace("_", " ")}
+                      </Badge>
+
+                      {isAvailable && (
+                        <div className="text-sm font-bold mt-2 text-primary">
+                          {formatCurrency(project.adminBookingTokenAmount)}
+                        </div>
+                      )}
+
+                      {plot.status === "on_hold" && plot.holdExpiresAt && (
+                        <div className="mt-2 w-full">
+                          <CountdownTimer
+                            expiresAt={plot.holdExpiresAt}
+                            className="text-orange-600 justify-center font-bold text-xs"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-16 flex flex-col items-center">
+                <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                  <LayoutGrid className="h-8 w-8 text-muted-foreground/50" />
+                </div>
+                <h3 className="font-semibold text-lg">No plots found</h3>
+                <p>Try selecting a different block or category.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </section>
+
       {/* Floating Selection Bar */}
       {selectedPlots.length > 0 && (
-        <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
-          <div className="bg-foreground text-background rounded-full shadow-lg p-3 flex items-center justify-between pl-6">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg px-4 animate-in slide-in-from-bottom-10 fade-in duration-300">
+          <div className="bg-foreground text-background rounded-full shadow-2xl p-4 pl-6 flex items-center justify-between border border-border/10">
             <div className="flex flex-col">
-              <span className="font-bold">
-                {selectedPlots.length} Plot{selectedPlots.length > 1 ? "s" : ""}{" "}
+              <span className="font-bold flex items-center gap-2">
+                <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                  {selectedPlots.length}
+                </span>
                 Selected
               </span>
               <span className="text-xs text-muted-foreground/80">
                 Total:{" "}
                 {formatCurrency(
-                  selectedPlots.reduce((sum, p) => sum + p.price, 0)
+                  selectedPlots.reduce(
+                    (sum) => sum + project.adminBookingTokenAmount,
+                    0
+                  )
                 )}
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Button
-                size="sm"
+                size="icon"
                 variant="ghost"
-                className="h-9 w-9 p-0 rounded-full hover:bg-background/20"
+                className="h-10 w-10 rounded-full hover:bg-background/20 text-background hover:text-background"
                 onClick={() => setSelectedPlots([])}
+                title="Clear selection"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </Button>
+              <div className="h-8 w-px bg-background/20" />
               <Button
                 size="sm"
-                className="rounded-full px-6"
+                className="rounded-full px-6 font-semibold shadow-lg hover:scale-105 transition-transform"
                 onClick={() => {
                   setBookingMode("book");
                   setIsBookingOpen(true);
@@ -580,7 +662,7 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="rounded-full px-6 text-foreground"
+                  className="rounded-full px-6 text-foreground font-semibold hover:scale-105 transition-transform"
                   onClick={() => {
                     setBookingMode("hold");
                     setIsBookingOpen(true);
@@ -601,6 +683,7 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
         projectId={id}
         onSuccess={() => setSelectedPlots([])}
         mode={bookingMode}
+        project={project}
       />
     </main>
   );

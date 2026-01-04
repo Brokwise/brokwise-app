@@ -45,6 +45,7 @@ export interface Project {
     max?: number;
   };
   bookingTokenAmount: number;
+  adminBookingTokenAmount: number;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,14 +1,37 @@
 import React from "react";
 import { useApp } from "@/context/AppContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, XCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock,
+  Ban,
+  Building2,
+  Mail,
+  Phone,
+  FileText,
+  MapPin,
+  Users,
+  LogOut,
+  Edit2,
+  User,
+  Briefcase,
+  Hash,
+  LucideProps,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSignOut } from "react-firebase-hooks/auth";
 import { firebaseAuth } from "@/config/firebase";
 import { Broker } from "@/stores/authStore";
 import { Company } from "@/models/types/company";
+import { Separator } from "@/components/ui/separator";
 
 interface StatusDisplayProps {
   onEdit?: () => void;
@@ -30,160 +53,242 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
       : undefined);
 
   if (!activeData || !activeType) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
-  const getStatusIcon = () => {
-    switch (activeData.status) {
-      case "approved":
-        return <CheckCircle className="h-6 w-6 text-green-500" />;
-      case "pending":
-        return <Clock className="h-6 w-6 text-yellow-500" />;
-      case "blacklisted":
-        return <XCircle className="h-6 w-6 text-red-500" />;
-      default:
-        return <Clock className="h-6 w-6 text-gray-500" />;
-    }
-  };
-
-  const getStatusColor = () => {
-    switch (activeData.status) {
-      case "approved":
-        return "border border-green-100 text-green-800 dark:border-green-900 dark:text-green-100 bg-transparent";
-      case "pending":
-        return "border border-yellow-100 text-yellow-800 dark:border-yellow-500 dark:text-yellow-100 bg-transparent";
-      case "blacklisted":
-        return "border border-red-100 text-red-800 dark:border-red-900 dark:text-red-100 bg-transparent";
-      default:
-        return "border border-gray-100 text-gray-800 dark:border-gray-900 dark:text-gray-100 bg-transparent";
-    }
-  };
-
-  const getStatusMessage = () => {
-    const isCompany = activeType === "company";
+  const getStatusConfig = () => {
     switch (activeData.status) {
       case "approved":
         return {
-          title: "Account Approved!",
-          message: `Congratulations! Your ${
-            isCompany ? "company" : "broker"
-          } account has been approved.${
-            !isCompany && "brokerId" in activeData
-              ? ` Your broker ID is ${activeData.brokerId}.`
-              : ""
-          }`,
+          icon: CheckCircle2,
+          color: "text-emerald-500",
+          bgColor: "bg-emerald-50 dark:bg-emerald-500/10",
+          borderColor: "border-emerald-200 dark:border-emerald-500/20",
+          badgeClass:
+            "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20",
+          title: "Account Approved",
+          description: "Your account is active and verified",
         };
       case "pending":
         return {
-          title: "Account Under Review",
-          message:
-            "Your profile details have been submitted and are currently under review. We'll notify you once the review is complete.",
+          icon: Clock,
+          color: "text-amber-500",
+          bgColor: "bg-amber-50 dark:bg-amber-500/10",
+          borderColor: "border-amber-200 dark:border-amber-500/20",
+          badgeClass:
+            "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/20",
+          title: "Under Review",
+          description: "We are currently verifying your details",
         };
       case "blacklisted":
         return {
+          icon: Ban,
+          color: "text-red-500",
+          bgColor: "bg-red-50 dark:bg-red-500/10",
+          borderColor: "border-red-200 dark:border-red-500/20",
+          badgeClass:
+            "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20",
           title: "Account Suspended",
-          message:
-            "Your account has been suspended. Please contact support for more information.",
+          description: "Please contact support for assistance",
         };
       default:
         return {
-          title: "Account Status",
-          message: "Your account status is being processed.",
+          icon: Clock,
+          color: "text-slate-500",
+          bgColor: "bg-slate-50 dark:bg-slate-500/10",
+          borderColor: "border-slate-200 dark:border-slate-500/20",
+          badgeClass:
+            "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-500/20",
+          title: "Processing",
+          description: "Status update in progress",
         };
     }
   };
 
-  const statusInfo = getStatusMessage();
+  const statusConfig = getStatusConfig();
   const isCompany = activeType === "company";
   const broker = activeData as Broker;
   const company = activeData as Company;
 
-  return (
-    <div className="flex justify-center items-center min-h-screen p-4">
-      <Button
-        variant={"link"}
-        onClick={() => signOut()}
-        className="absolute top-4 right-4"
-      >
-        Logout
-      </Button>
-      <Card className="w-full max-w-2xl relative overflow-hidden">
-        <div className="absolute -top-1/2 -left-1/4 h-96 w-96 blur-3xl bg-primary/80 rounded-full"></div>
-        <CardHeader className="text-center relative">
-          <div className="flex justify-center mb-4">{getStatusIcon()}</div>
-          <CardTitle className="text-2xl">{statusInfo.title}</CardTitle>
-          <Badge className={cn(getStatusColor(), "w-fit mx-auto")}>
-            {activeData.status.charAt(0).toUpperCase() +
-              activeData.status.slice(1)}
-          </Badge>
-        </CardHeader>
-        <CardContent className="text-center space-y-4 relative">
-          <p className="dark:text-gray-400 text-gray-600">
-            {statusInfo.message}
-          </p>
+  const DetailItem = ({
+    icon: Icon,
+    label,
+    value,
+  }: {
+    icon: React.ForwardRefExoticComponent<
+      Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>
+    >;
+    label: string;
+    value?: string | number;
+  }) => (
+    <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+      <div className="p-2 rounded-md bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 shadow-sm shrink-0">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="space-y-0.5">
+        <p className="text-xs font-medium uppercase tracking-wider">{label}</p>
+        <p className="text-sm font-medium  break-all">
+          {value || "Not provided"}
+        </p>
+      </div>
+    </div>
+  );
 
-          <div className="mt-6 p-4 rounded-lg">
-            <h3 className="font-semibold mb-2">Your Details</h3>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              {isCompany ? (
-                <>
-                  <div>
-                    <strong>Company Name:</strong> {company.name}
-                  </div>
-                  <div>
-                    <strong>Email:</strong> {company.email}
-                  </div>
-                  <div>
-                    <strong>Mobile:</strong> {company.mobile}
-                  </div>
-                  <div>
-                    <strong>GSTIN:</strong> {company.gstin}
-                  </div>
-                  <div>
-                    <strong>City:</strong> {company.city}
-                  </div>
-                  <div>
-                    <strong>Employees:</strong> {company.noOfEmployees}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <strong>Name:</strong> {broker.firstName} {broker.lastName}
-                  </div>
-                  <div>
-                    <strong>Email:</strong> {broker.email}
-                  </div>
-                  <div>
-                    <strong>Mobile:</strong> {broker.mobile}
-                  </div>
-                  <div>
-                    <strong>Company:</strong> {broker.companyName}
-                  </div>
-                  <div>
-                    <strong>City:</strong> {broker.city}
-                  </div>
-                  <div>
-                    <strong>Experience:</strong>{" "}
-                    {broker.yearsOfExperience === 15
-                      ? "15+"
-                      : broker.yearsOfExperience}{" "}
-                    years
-                  </div>
-                  {broker.brokerId && (
-                    <div>
-                      <strong>Broker ID:</strong> {broker.brokerId}
-                    </div>
-                  )}
-                </>
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950/50">
+      <div className="absolute top-4 right-4">
+        <Button
+          variant="ghost"
+          onClick={() => signOut()}
+          className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          Logout
+        </Button>
+      </div>
+
+      <Card className="w-full max-w-2xl overflow-hidden border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-900">
+        <div className={`h-2 w-full ${statusConfig.bgColor.split(" ")[0]}`} />
+
+        <CardHeader className="text-center pb-8 pt-8">
+          <div className="mx-auto mb-6 relative">
+            <div
+              className={cn(
+                "absolute inset-0 rounded-full blur-xl opacity-50",
+                statusConfig.bgColor
               )}
-            </div>
+            />
+            {/* <div
+              className={cn(
+                "relative flex items-center justify-center w-20 h-20 rounded-full border-4 bg-white dark:bg-slate-900",
+                statusConfig.borderColor,
+                statusConfig.color
+              )}
+            >
+              <StatusIcon className="h-10 w-10" />
+            </div> */}
+          </div>
+
+          <div className="space-y-2">
+            <Badge
+              variant="secondary"
+              className={cn(
+                "px-4 py-1.5 text-sm font-medium",
+                statusConfig.badgeClass
+              )}
+            >
+              {statusConfig.title}
+            </Badge>
+            <CardTitle className="text-3xl font-instrument-serif font-normal mt-4 ">
+              {isCompany
+                ? company.name
+                : `${broker.firstName} ${broker.lastName}`}
+            </CardTitle>
+            <CardDescription className="text-base  max-w-md mx-auto">
+              {statusConfig.description}
+            </CardDescription>
+          </div>
+        </CardHeader>
+
+        <Separator className="bg-slate-100 dark:bg-slate-800" />
+
+        <CardContent className="p-6 md:p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {isCompany ? (
+              <>
+                <DetailItem
+                  icon={Building2}
+                  label="Company Name"
+                  value={company.name}
+                />
+                <DetailItem
+                  icon={FileText}
+                  label="GSTIN"
+                  value={company.gstin}
+                />
+                <DetailItem
+                  icon={Mail}
+                  label="Email Address"
+                  value={company.email}
+                />
+                <DetailItem
+                  icon={Phone}
+                  label="Phone Number"
+                  value={company.mobile}
+                />
+                <DetailItem
+                  icon={MapPin}
+                  label="Headquarters"
+                  value={company.city}
+                />
+                <DetailItem
+                  icon={Users}
+                  label="Team Size"
+                  value={company.noOfEmployees}
+                />
+              </>
+            ) : (
+              <>
+                <DetailItem
+                  icon={User}
+                  label="Full Name"
+                  value={`${broker.firstName} ${broker.lastName}`}
+                />
+                <DetailItem
+                  icon={Building2}
+                  label="Company"
+                  value={broker.companyName}
+                />
+                <DetailItem
+                  icon={Mail}
+                  label="Email Address"
+                  value={broker.email}
+                />
+                <DetailItem
+                  icon={Phone}
+                  label="Phone Number"
+                  value={broker.mobile}
+                />
+                <DetailItem
+                  icon={MapPin}
+                  label="Location"
+                  value={broker.city}
+                />
+                <DetailItem
+                  icon={Briefcase}
+                  label="Experience"
+                  value={`${
+                    broker.yearsOfExperience === 15
+                      ? "15+"
+                      : broker.yearsOfExperience
+                  } Years`}
+                />
+                {broker.brokerId && (
+                  <DetailItem
+                    icon={Hash}
+                    label="Broker ID"
+                    value={broker.brokerId}
+                  />
+                )}
+              </>
+            )}
           </div>
 
           {activeData.status === "pending" && onEdit && (
-            <Button onClick={onEdit} className="w-full mt-4">
-              Edit Details
-            </Button>
+            <div className="mt-8 flex justify-center">
+              <Button
+                onClick={onEdit}
+                variant="outline"
+                className="gap-2 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                <Edit2 className="h-4 w-4" />
+                Edit Profile Details
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>

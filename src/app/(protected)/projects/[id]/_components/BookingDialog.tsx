@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { bookingFormSchema, BookingFormValues } from "@/validators/booking";
 import { useCreateBookingOrder, useHoldPlot } from "@/hooks/useBooking";
-import { Plot } from "@/models/types/project";
+import { Plot, Project } from "@/models/types/project";
 import { Loader2 } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import Script from "next/script";
@@ -34,6 +34,7 @@ interface BookingDialogProps {
   projectId: string;
   onSuccess?: () => void;
   mode?: "book" | "hold";
+  project: Project;
 }
 
 declare global {
@@ -50,6 +51,7 @@ export const BookingDialog = ({
   projectId,
   onSuccess,
   mode = "book",
+  project,
 }: BookingDialogProps) => {
   const { mutateAsync: createOrder, isPending: isOrderPending } =
     useCreateBookingOrder();
@@ -75,10 +77,10 @@ export const BookingDialog = ({
     if (open) {
       if (brokerData) {
         form.reset({
-          customerName: `${brokerData.firstName} ${brokerData.lastName}`,
-          customerEmail: brokerData.email,
-          customerPhone: brokerData.mobile,
-          customerAddress: brokerData.officeAddress || "",
+          customerName: "",
+          customerEmail: "",
+          customerPhone: "",
+          customerAddress: "",
           customerAlternatePhone: "",
           notes: "",
         });
@@ -171,7 +173,10 @@ export const BookingDialog = ({
 
   if (plots.length === 0) return null;
 
-  const totalAmount = plots.reduce((sum, plot) => sum + plot.price, 0);
+  const totalAmount = plots.reduce(
+    (sum) => sum + project.adminBookingTokenAmount,
+    0
+  );
   const totalArea = plots.reduce((sum, plot) => sum + plot.area, 0);
   const areaUnit = plots[0]?.areaUnit || "SQ_FT";
   const actionLabel = mode === "book" ? "Pay & Book" : "Hold";
