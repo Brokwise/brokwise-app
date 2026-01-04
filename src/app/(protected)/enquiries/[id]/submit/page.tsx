@@ -25,6 +25,7 @@ import { FarmHouseWizard } from "@/app/(protected)/property/createProperty/farmh
 import { PropertyPreviewModal } from "../_components/PropertyPreviewModal";
 import { formatEnquiryLocation } from "@/utils/helper";
 import { FilteredProperties } from "./filteredProperties";
+import { Property } from "@/types/property";
 
 type View = "select" | "create" | "message";
 
@@ -312,7 +313,7 @@ export default function SubmitEnquiryPage() {
                 {filteredProperties && filteredProperties.length > 0 ? (
                   <FilteredProperties
                     isPropertiesLoading={isPropertiesLoading}
-                    filteredProperties={filteredProperties}
+                    filteredProperties={filteredProperties as Property[]}
                     selectedPropertyId={selectedPropertyId}
                     setSelectedPropertyId={setSelectedPropertyId}
                     setPreviewPropertyId={setPreviewPropertyId}

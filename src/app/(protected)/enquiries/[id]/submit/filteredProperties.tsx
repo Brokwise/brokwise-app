@@ -5,19 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Dispatch, SetStateAction } from "react";
-
-interface Property {
-  _id: string;
-  propertyTitle?: string;
-  address?: {
-    city?: string;
-  };
-  propertyType: string;
-  propertyCategory: string;
-  totalPrice?: number;
-  listingStatus: string;
-  [key: string]: unknown;
-}
+import { Property } from "@/types/property";
 
 interface FilteredPropertiesProps {
   isPropertiesLoading: boolean;
