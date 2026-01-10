@@ -20,11 +20,37 @@ import {
   Award,
   Users,
   Mail,
+  Lock,
+  Key,
 } from "lucide-react";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { firebaseAuth } from "@/config/firebase";
+import {
+  sendPasswordResetEmail,
+  EmailAuthProvider,
+  linkWithCredential,
+} from "firebase/auth";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const ProfilePage = () => {
   const { brokerData, brokerDataLoading } = useApp();
+  const [user] = useAuthState(firebaseAuth);
   const [isEditing, setIsEditing] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const companyDetails =
     brokerData &&
@@ -32,6 +58,58 @@ const ProfilePage = () => {
     typeof brokerData.companyId === "object"
       ? brokerData.companyId
       : null;
+
+  const hasPassword = user?.providerData.some(
+    (p) => p.providerId === "password"
+  );
+
+  const handleResetPassword = async () => {
+    if (!user?.email) return;
+    try {
+      setLoading(true);
+      await sendPasswordResetEmail(firebaseAuth, user.email);
+      toast.success("Password reset email sent to " + user.email);
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        (error as { message: string }).message || "Failed to send reset email"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddPassword = async () => {
+    if (!user || !user.email) return;
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const credential = EmailAuthProvider.credential(user.email, newPassword);
+      await linkWithCredential(user, credential);
+      toast.success("Password set successfully");
+      setIsPasswordDialogOpen(false);
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      if ((error as { code: string }).code === "auth/requires-recent-login") {
+        toast.error("Please log out and log in again to set a password");
+      } else {
+        toast.error(
+          (error as { message: string }).message || "Failed to set password"
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (brokerDataLoading) {
     return (
@@ -133,6 +211,94 @@ const ProfilePage = () => {
                 {brokerData.reraNumber || "N/A"}
               </p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+            <Lock className="h-6 w-6" />
+          </div>
+          <div className="space-y-1">
+            <CardTitle className="text-xl">Security</CardTitle>
+            <CardDescription>
+              Manage your password and account security
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Key className="h-4 w-4" /> Password
+              </h3>
+              <p className="text-sm">
+                {hasPassword
+                  ? "You have a password set for your account."
+                  : "You currently sign in with Google. Set a password to sign in with email."}
+              </p>
+            </div>
+            {hasPassword ? (
+              <Button
+                variant="outline"
+                onClick={handleResetPassword}
+                disabled={loading}
+              >
+                Reset Password
+              </Button>
+            ) : (
+              <Dialog
+                open={isPasswordDialogOpen}
+                onOpenChange={setIsPasswordDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button variant="outline">Set Password</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Set Password</DialogTitle>
+                    <DialogDescription>
+                      Create a password to sign in with your email address.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="new-password">New Password</Label>
+                      <Input
+                        id="new-password"
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter new password"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-password">Confirm Password</Label>
+                      <Input
+                        id="confirm-password"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm new password"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsPasswordDialogOpen(false)}
+                      disabled={loading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button onClick={handleAddPassword} disabled={loading}>
+                      {loading ? "Setting Password..." : "Set Password"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </CardContent>
       </Card>

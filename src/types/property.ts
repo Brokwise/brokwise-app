@@ -107,6 +107,7 @@ export interface PropertyOffer {
   status: OfferStatus;
   rejectionReason?: string;
   isFinalOffer: boolean;
+  isContactShared?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

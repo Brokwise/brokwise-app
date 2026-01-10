@@ -4,11 +4,12 @@ import { useGetReceivedProperties } from "@/hooks/useEnquiry";
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MapPin, Eye } from "lucide-react";
+import { Loader2, MapPin, Eye, PhoneCall, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PropertyPreviewModal } from "./PropertyPreviewModal";
 import { EnquirySubmission } from "@/models/types/enquiry";
 import { Property } from "@/types/property";
+import { ShareContactDialog } from "./share-contact-dialog";
 
 // Helper to check if value is a populated Property object
 const isPopulatedProperty = (value: unknown): value is Property => {
@@ -52,7 +53,9 @@ const getPropertyId = (submission: EnquirySubmission): string | null => {
 };
 
 // Helper to get populated property object
-const getPopulatedProperty = (submission: EnquirySubmission): Property | null => {
+const getPopulatedProperty = (
+  submission: EnquirySubmission
+): Property | null => {
   const sub = submission as SubmissionWithProperty;
   if (isPopulatedProperty(sub.propertyId)) return sub.propertyId;
   if (isPopulatedProperty(sub.property)) return sub.property;
@@ -66,8 +69,14 @@ export const ReceivedProperties = ({
   id: string;
   isMyEnquiry: boolean;
 }) => {
-  const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(null);
+  const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(
+    null
+  );
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [shareContactSubmissionId, setShareContactSubmissionId] = useState<
+    string | null
+  >(null);
+  const [isShareContactOpen, setIsShareContactOpen] = useState(false);
 
   const { receivedProperties, isPending, error } = useGetReceivedProperties(
     id as string,
@@ -116,7 +125,7 @@ export const ReceivedProperties = ({
 
           return (
             <Card
-              key={submission._id}
+              key={submission._id || submission._id}
               className="overflow-hidden transition-all hover:shadow-md"
             >
               <CardHeader className="p-3 bg-muted/30 pb-2">
@@ -148,21 +157,48 @@ export const ReceivedProperties = ({
                   </div>
                 )}
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full h-7 text-xs mt-1"
-                  onClick={() => {
-                    if (propertyIdStr) {
-                      setPreviewPropertyId(propertyIdStr);
-                      setIsPreviewOpen(true);
-                    }
-                  }}
-                  disabled={!propertyIdStr}
-                >
-                  <Eye className="h-3 w-3 mr-1.5" />
-                  View Property
-                </Button>
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1 h-7 text-xs"
+                    onClick={() => {
+                      if (propertyIdStr) {
+                        setPreviewPropertyId(propertyIdStr);
+                        setIsPreviewOpen(true);
+                      }
+                    }}
+                    disabled={!propertyIdStr}
+                  >
+                    <Eye className="h-3 w-3 mr-1.5" />
+                    View
+                  </Button>
+
+                  {submission.contactSharedWithSubmitter ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex-1 h-7 text-xs text-green-700 bg-green-50 hover:bg-green-100 border-green-200 border"
+                      disabled
+                    >
+                      <CheckCheck className="h-3 w-3 mr-1.5" />
+                      Shared
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 h-7 text-xs"
+                      onClick={() => {
+                        setShareContactSubmissionId(submission._id);
+                        setIsShareContactOpen(true);
+                      }}
+                    >
+                      <PhoneCall className="h-3 w-3 mr-1.5" />
+                      Share Contact
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           );
@@ -175,6 +211,19 @@ export const ReceivedProperties = ({
         open={isPreviewOpen}
         onOpenChange={setIsPreviewOpen}
       />
+
+      {/* Share Contact Dialog */}
+      {shareContactSubmissionId && (
+        <ShareContactDialog
+          isOpen={isShareContactOpen}
+          onClose={() => {
+            setIsShareContactOpen(false);
+            setShareContactSubmissionId(null);
+          }}
+          enquiryId={id}
+          submissionId={shareContactSubmissionId}
+        />
+      )}
     </div>
   );
 };

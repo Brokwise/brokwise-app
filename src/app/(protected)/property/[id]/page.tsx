@@ -42,6 +42,7 @@ import { toast } from "sonner";
 import { PropertyPdfLayout } from "@/components/property-pdf/property-pdf-layout";
 import { exportElementAsPdf, makeSafeFilePart } from "@/utils/pdf";
 import { useApp } from "@/context/AppContext";
+import { PropertyOffers } from "./_components/propertyOffers";
 
 const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
@@ -391,8 +392,11 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
           </Card>
         </div>
 
-        {/* Right Column - Sidebar */}
         <div className="lg:col-span-1 space-y-6">
+          {property.listedBy._id === brokerData?._id && (
+            <PropertyOffers property={property} />
+          )}
+
           {property.listedBy._id !== brokerData?._id &&
             !property.deletingStatus && <ContactSeller property={property} />}
 

@@ -273,3 +273,35 @@ export const useGetBrokerOffers = (options?: { enabled?: boolean }) => {
   });
   return { offers, isLoading, error };
 };
+
+export const useSharePropertyContact = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+  const { mutate, isPending, error } = useMutation<
+    void,
+    Error,
+    { propertyId: string; offerId: string; availability: string }
+  >({
+    mutationFn: async ({ propertyId, offerId, availability }) => {
+      return (
+        await api.post(`/property/share-contact`, {
+          propertyId,
+          offerId,
+          availability,
+        })
+      ).data.data;
+    },
+    onSuccess: (_data, { propertyId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["property", propertyId],
+      });
+      toast.success("Contact shared successfully");
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.message || "An unknown error occurred while sharing contact.";
+      toast.error(errorMessage);
+    },
+  });
+  return { sharePropertyContact: mutate, isPending, error };
+};

@@ -252,3 +252,28 @@ export const useMarkAsInterested = () => {
   });
   return { markAsInterested: mutate, isPending, error };
 };
+
+export const useShareContactDetails = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+  const { mutate, isPending, error } = useMutation<
+    void,
+    Error,
+    { enquiryId: string; submissionId: string; availability: string }
+  >({
+    mutationFn: async ({ enquiryId, submissionId, availability }) => {
+      return (
+        await api.post(`/broker/enquiry/${enquiryId}/share-contact`, {
+          submissionId,
+          availability,
+        })
+      ).data.data;
+    },
+    onSuccess: (_data, { enquiryId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["received-properties", enquiryId],
+      });
+    },
+  });
+  return { shareContactDetails: mutate, isPending, error };
+};

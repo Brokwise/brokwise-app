@@ -102,7 +102,6 @@ export interface Enquiry {
   updatedAt: string;
 }
 
-// === MARKETPLACE ENQUIRY (Sanitized for broker view) ===
 export interface MarketplaceEnquiry
   extends Omit<Enquiry, "createdBy" | "forwardedTo" | "deletedBy"> {
   isRecommended: boolean;
@@ -110,36 +109,32 @@ export interface MarketplaceEnquiry
   myLastSubmissionStatus?: string | null;
 }
 
-// === ENQUIRY SUBMISSION INTERFACE (Property Proposal) ===
 export interface EnquirySubmission {
   _id: string;
-  submissionId: string; // SUB-000001
+  submissionId: string;
 
   enquiryId: string;
   brokerId: string;
 
-  // Property Reference - can be populated object or just ObjectId string
   propertyId: Property | string;
 
-  // Communication
   privateMessage?: string;
 
-  // Review Status
   status: SubmissionStatus;
   reviewedBy?: string;
   reviewedAt?: Date;
   adminNote?: string;
 
-  // Forwarding to Original Enquirer
   isForwardedToEnquirer: boolean;
   forwardedToEnquirerAt?: Date;
   enquirerMessage?: string;
 
+  contactSharedWithSubmitter?: boolean;
+  contactSharedAt?: string;
+
   createdAt: string;
   updatedAt: string;
 }
-
-// === ENQUIRY MESSAGE INTERFACE (Thread-Isolated Chat) ===
 export interface EnquiryMessage {
   _id: string;
   enquiryId: string;
