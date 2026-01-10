@@ -5,7 +5,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, ArrowLeft, ArrowRight, Mail, Clock, UserX } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  ArrowRight,
+  Mail,
+  Clock,
+  UserX,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { sendPasswordResetEmail } from "firebase/auth";
@@ -96,7 +103,9 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [pageState, setPageState] = useState<PageState>("form");
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
-  const [attemptsRemaining, setAttemptsRemaining] = useState(MAX_ATTEMPTS_PER_HOUR);
+  const [attemptsRemaining, setAttemptsRemaining] = useState(
+    MAX_ATTEMPTS_PER_HOUR
+  );
 
   // Detect saved language preference
   useEffect(() => {
@@ -114,7 +123,9 @@ export default function ForgotPasswordPage() {
     // Calculate cooldown if needed
     if (state.lastAttemptTime > 0 && validAttempts.length > 0) {
       const cooldownDuration = getCooldownSeconds(validAttempts.length);
-      const timeSinceLastAttempt = Math.floor((Date.now() - state.lastAttemptTime) / 1000);
+      const timeSinceLastAttempt = Math.floor(
+        (Date.now() - state.lastAttemptTime) / 1000
+      );
       const remaining = cooldownDuration - timeSinceLastAttempt;
       setCooldownRemaining(Math.max(0, remaining));
     }
@@ -206,12 +217,12 @@ export default function ForgotPasswordPage() {
       if (attemptsRemaining <= 0) {
         toast.error(
           t("max_attempts_reached") ||
-          "Maximum attempts reached. Please try again in an hour."
+            "Maximum attempts reached. Please try again in an hour."
         );
       } else {
         toast.error(
           t("please_wait_cooldown") ||
-          `Please wait ${cooldownRemaining} seconds before trying again.`
+            `Please wait ${cooldownRemaining} seconds before trying again.`
         );
       }
       return;
@@ -277,7 +288,7 @@ export default function ForgotPasswordPage() {
       if (attemptsRemaining <= 0) {
         toast.error(
           t("max_attempts_reached") ||
-          "Maximum attempts reached. Please try again in an hour."
+            "Maximum attempts reached. Please try again in an hour."
         );
       } else if (cooldownRemaining > 0) {
         toast.error(
@@ -379,17 +390,17 @@ export default function ForgotPasswordPage() {
                 {pageState === "email_sent"
                   ? t("check_email") || "Check your email"
                   : pageState === "user_not_found"
-                    ? t("account_not_found") || "Account Not Found"
-                    : t("forgot_password_title") || "Forgot Password?"}
+                  ? t("account_not_found") || "Account Not Found"
+                  : t("forgot_password_title") || "Forgot Password?"}
               </h1>
               <p className="text-zinc-400 text-base">
                 {pageState === "email_sent"
                   ? t("reset_link_sent_desc") ||
-                  "We have sent a password reset link to your email address."
+                    "We have sent a password reset link to your email address."
                   : pageState === "user_not_found"
-                    ? t("account_not_found_desc") ||
+                  ? t("account_not_found_desc") ||
                     "We couldn't find an account with this email address."
-                    : t("forgot_password_desc") ||
+                  : t("forgot_password_desc") ||
                     "Enter your email address and we'll send you a link to reset your password."}
               </p>
             </div>
@@ -448,14 +459,17 @@ export default function ForgotPasswordPage() {
                         {cooldownRemaining > 0 ? (
                           <>
                             <Clock className="mr-2 h-5 w-5" />
-                            {t("wait") || "Wait"} {formatTime(cooldownRemaining)}
+                            {t("wait") || "Wait"}{" "}
+                            {formatTime(cooldownRemaining)}
                           </>
                         ) : attemptsRemaining <= 0 ? (
                           t("max_attempts_reached_short") || "Try again later"
                         ) : (
                           <>
                             {t("send_reset_link") || "Send Reset Link"}
-                            {!loading && <ArrowRight className="ml-2 h-5 w-5" />}
+                            {!loading && (
+                              <ArrowRight className="ml-2 h-5 w-5" />
+                            )}
                           </>
                         )}
                       </Button>
@@ -499,7 +513,8 @@ export default function ForgotPasswordPage() {
                       </span>
                     </p>
                     <p className="text-zinc-500 text-sm mb-6">
-                      {t("check_spam_folder") || "Can't find it? Check your spam or junk folder."}
+                      {t("check_spam_folder") ||
+                        "Can't find it? Check your spam or junk folder."}
                     </p>
                     <Button
                       variant="outline"
@@ -573,7 +588,8 @@ export default function ForgotPasswordPage() {
                       </span>
                     </p>
                     <p className="text-zinc-500 text-sm mb-6">
-                      {t("create_account_suggestion") || "Would you like to create a new account instead?"}
+                      {t("create_account_suggestion") ||
+                        "Would you like to create a new account instead?"}
                     </p>
                     <div className="w-full space-y-3">
                       <Link href="/create-account" className="block w-full">

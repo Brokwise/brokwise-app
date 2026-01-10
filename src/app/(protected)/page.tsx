@@ -730,46 +730,6 @@ const ProtectedPage = () => {
                 onHighlightComplete={handleHighlightComplete}
               />
             </div>
-
-            {/* Floating Mobile Toggle Button */}
-            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 lg:hidden">
-              <Button
-                onClick={() => setIsMobileMapOpen((open) => !open)}
-                className="rounded-full bg-primary/95 text-primary-foreground backdrop-blur-md border border-white/10 px-6 py-6 h-auto shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
-              >
-                {isMobileMapOpen ? (
-                  <>
-                    <LayoutGridIcon className="h-5 w-5" />
-                    <span className="font-medium tracking-wide">List View</span>
-                  </>
-                ) : (
-                  <>
-                    <MapPin className="h-5 w-5" />
-                    <span className="font-medium tracking-wide">Map View</span>
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {/* Floating Mobile Toggle Button */}
-            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 lg:hidden">
-              <Button
-                onClick={() => setIsMobileMapOpen(!isMobileMapOpen)}
-                className="rounded-full bg-primary/95 text-primary-foreground backdrop-blur-md border border-white/10 px-6 py-6 h-auto shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
-              >
-                {isMobileMapOpen ? (
-                  <>
-                    <LayoutGridIcon className="h-5 w-5" />
-                    <span className="font-medium tracking-wide">List View</span>
-                  </>
-                ) : (
-                  <>
-                    <MapPin className="h-5 w-5" />
-                    <span className="font-medium tracking-wide">Map View</span>
-                  </>
-                )}
-              </Button>
-            </div>
           </div>
         </>
       ) : (

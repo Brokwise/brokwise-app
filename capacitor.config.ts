@@ -5,14 +5,14 @@ const config: CapacitorConfig = {
   appName: "Brokwise",
   webDir: "public",
   server: {
-    url: "https://app.brokwise.com",
+    url: "http://localhost:3001",
     cleartext: true,
     iosScheme: "https",
   },
   ios: {
     path: "ios",
     scheme: "App",
-    contentInset: "never",
+    contentInset: "always",
     //@ts-ignore
     allowsFullScreenMode: true,
   },

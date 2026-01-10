@@ -10,6 +10,7 @@ import {
   Building2,
   User2,
   ArrowRight,
+  ArrowLeft,
   Check,
   Sun,
   Moon,
@@ -17,7 +18,9 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 import { FirebaseError } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
@@ -58,6 +61,7 @@ import { Config } from "@/config";
 import { firebaseAuth, getUserDoc, setUserDoc } from "@/config/firebase";
 import { createUser } from "@/models/api/user";
 import { logError } from "@/utils/errors";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // --- Types ---
 
@@ -119,8 +123,6 @@ const AccountTypeCard = ({
   </button>
 );
 
-// --- AuthPage Component ---
-
 export default function AuthPage({
   initialMode = "login",
 }: {
@@ -133,13 +135,20 @@ export default function AuthPage({
   const [accountType, setAccountType] = useState<AccountType>("broker");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isMobile = useIsMobile();
   const scrollAreaRef = React.useRef<HTMLDivElement | null>(null);
 
-  // Detect saved language preference after hydration to avoid SSR mismatch
   React.useEffect(() => {
     detectLanguage();
     setMounted(true);
   }, []);
+
+  React.useEffect(() => {
+    if (isMobile === true && searchParams.get("fromWelcome") !== "true") {
+      router.replace("/welcome");
+    }
+  }, [isMobile, searchParams, router]);
 
   const activeTheme = mounted ? resolvedTheme ?? theme : undefined;
   const isSystemTheme = mounted && theme === "system";
@@ -332,36 +341,39 @@ export default function AuthPage({
     }
   };
 
-  const handleGoogleAuth = () => {
+  const handleGoogleAuth = async () => {
     try {
       if (!Config.googleOauthClientId) {
         toast.error(t("google_oauth_not_configured"));
         return;
       }
 
-      const redirectUri = encodeURIComponent(
-        `${Config.frontendUrl}/google-oauth`
-      );
+      const isNative = Capacitor.isNativePlatform();
+      const target = searchParams.get("target") ?? "/";
+      const redirectUrlStr = `${Config.frontendUrl}/google-oauth`;
+      const redirectUri = encodeURIComponent(redirectUrlStr);
+
       const scope = encodeURIComponent(
         "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
       );
-      const state = encodeURIComponent(
-        JSON.stringify({
-          isSignup: mode === "signup",
-          accountType: mode === "signup" ? accountType : undefined,
-        })
-      );
 
-      window.open(
-        `https://accounts.google.com/o/oauth2/auth?client_id=${Config.googleOauthClientId}&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${state}`,
-        "_self"
-      );
+      const statePayload = `${isNative}---${target}`;
+
+      const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${
+        Config.googleOauthClientId
+      }&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${encodeURIComponent(
+        statePayload
+      )}`;
+
+      window.open(authUrl, "_self");
     } catch (error) {
       logError({
         description: "Error signing up with Google",
         error: error as Error,
         slackChannel: "frontend-errors",
       });
+      console.error(error);
+      console.log(error);
       toast.error(t("google_auth_failed"));
     }
   };
@@ -472,69 +484,21 @@ export default function AuthPage({
           activeTheme === "light" ? "bg-[#FDFCF8]" : "bg-background"
         }`}
       >
+        {isMobile && (
+          <div className="absolute top-4 left-4 z-50">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push("/welcome")}
+              className="rounded-full"
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </Button>
+          </div>
+        )}
         <div className="h-full w-full flex flex-col items-center px-6 lg:px-16">
           {/* Fixed header area (prevents the Brokwise title from jumping when mode changes) */}
           <div className="w-full max-w-md shrink-0 pt-7 lg:pt-10">
-            <div className="flex items-center gap-2 mb-4 absolute top-2 right-2 z-50">
-              <div className="flex gap-1 border rounded-full px-2 py-1 bg-background/50 backdrop-blur-sm shadow-sm">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-pressed={activeTheme === "light"}
-                  className={`h-8 w-8 ${
-                    activeTheme === "light"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                  onClick={() => setTheme("light")}
-                  title="Light mode"
-                >
-                  <Sun className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-pressed={activeTheme === "dark"}
-                  className={`h-8 w-8 ${
-                    activeTheme === "dark"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                  onClick={() => setTheme("dark")}
-                  title="Dark mode"
-                >
-                  <Moon className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-pressed={isSystemTheme}
-                  className={`h-8 w-8 ${
-                    isSystemTheme
-                      ? "bg-muted text-foreground ring-1 ring-border"
-                      : "hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                  onClick={() => setTheme("system")}
-                  title="System default"
-                >
-                  <Computer className="h-4 w-4" />
-                </Button>
-              </div>
-              <Select
-                onValueChange={(value) => changeLanguage(value)}
-                value={
-                  i18n.resolvedLanguage || i18n.language?.split("-")[0] || "en"
-                }
-              >
-                <SelectTrigger className="w-[130px] bg-background border-input">
-                  <SelectValue placeholder={t("select_language")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="hi">हिंदी (Hindi)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
             <div className="text-center space-y-3">
               <h1 className="text-5xl lg:text-6xl font-instrument-serif text-foreground tracking-tight">
                 Brokwise
@@ -750,6 +714,66 @@ export default function AuthPage({
               </button>
             </p>
           </div>
+        </div>
+        <div className="flex items-center gap-2 mb-4 absolute bottom-4 right-4 z-50">
+          <div className="flex gap-1 border rounded-full px-2 py-1 bg-background/50 backdrop-blur-sm shadow-sm">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-pressed={activeTheme === "light"}
+              className={`h-8 w-8 ${
+                activeTheme === "light"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "hover:bg-accent hover:text-accent-foreground"
+              }`}
+              onClick={() => setTheme("light")}
+              title="Light mode"
+            >
+              <Sun className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-pressed={activeTheme === "dark"}
+              className={`h-8 w-8 ${
+                activeTheme === "dark"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "hover:bg-accent hover:text-accent-foreground"
+              }`}
+              onClick={() => setTheme("dark")}
+              title="Dark mode"
+            >
+              <Moon className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-pressed={isSystemTheme}
+              className={`h-8 w-8 ${
+                isSystemTheme
+                  ? "bg-muted text-foreground ring-1 ring-border"
+                  : "hover:bg-accent hover:text-accent-foreground"
+              }`}
+              onClick={() => setTheme("system")}
+              title="System default"
+            >
+              <Computer className="h-4 w-4" />
+            </Button>
+          </div>
+          <Select
+            onValueChange={(value) => changeLanguage(value)}
+            value={
+              i18n.resolvedLanguage || i18n.language?.split("-")[0] || "en"
+            }
+          >
+            <SelectTrigger className="w-[130px] bg-background border-input">
+              <SelectValue placeholder={t("select_language")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="hi">हिंदी (Hindi)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>

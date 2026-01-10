@@ -6,6 +6,7 @@ import { QueryClientProviderWrapper } from "@/providers/queryClientProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/providers/themeProvider";
 import { PostHogProvider } from "./providers";
+import { DeepLinkHandler } from "@/components/deeplinkhandler";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -41,7 +42,10 @@ export default function RootLayout({
       >
         <PostHogProvider>
           <Providers>
-            <QueryClientProviderWrapper>{children}</QueryClientProviderWrapper>
+            <QueryClientProviderWrapper>
+              <DeepLinkHandler />
+              {children}
+            </QueryClientProviderWrapper>
           </Providers>
           <Toaster />
         </PostHogProvider>

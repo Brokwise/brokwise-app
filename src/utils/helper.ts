@@ -1,4 +1,5 @@
 import { Address } from "@/types/property";
+import { Capacitor } from "@capacitor/core";
 
 export const setCookie = (
   key: string,
@@ -176,4 +177,10 @@ export const coerceStringArray = (value: unknown): string[] => {
   }
 
   return [];
+};
+
+export const isNativeIOS = () => {
+  const isNative = Capacitor.isNativePlatform();
+  const isiOS = Capacitor.getPlatform() === "ios";
+  return isNative && isiOS;
 };
