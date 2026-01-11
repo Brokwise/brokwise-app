@@ -15,7 +15,7 @@ import { PropertyDetails } from "./_components/propertyDetails";
 import { EnquiryCard } from "./enquiries/_components/EnquiryCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, LayoutGridIcon, MapPin, Building2 } from "lucide-react";
+import { AlertCircle, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/useDebounce";
 import Fuse from "fuse.js";

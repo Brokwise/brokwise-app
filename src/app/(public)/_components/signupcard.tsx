@@ -213,7 +213,6 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         toast.error(t("google_oauth_not_configured"));
         return;
       }
-      console.log("first");
 
       const isNative = Capacitor.isNativePlatform();
       const redirectUrlStr = `${Config.frontendUrl}/google-oauth`;
@@ -232,11 +231,11 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         statePayload
       )}`;
 
-      // if (isNative) {
-      //   await Browser.open({ url: authUrl });
-      // } else {
-      //   window.open(authUrl, "_self");
-      // }
+      if (isNative) {
+        await Browser.open({ url: authUrl });
+      } else {
+        window.open(authUrl, "_self");
+      }
     } catch (error) {
       logError({
         description: "Error signing up with Google",

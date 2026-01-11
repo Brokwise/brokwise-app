@@ -20,7 +20,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Capacitor } from "@capacitor/core";
-import { Browser } from "@capacitor/browser";
+
 import { FirebaseError } from "firebase/app";
 import {
   createUserWithEmailAndPassword,

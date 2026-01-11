@@ -19,12 +19,10 @@ export class PushNotificationsService {
     if (permStatus.receive !== "granted") {
     }
 
-    // 2. Listen for the Token (This is the FCM Token, not APNs)
     await FirebaseMessaging.addListener("tokenReceived", async (event) => {
-      // Send this FCM token to your backend
       try {
-        const response = await fetch(
-          "http://localhost:8080/notifications/registerToken",
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/notifications/registerToken`,
           {
             method: "POST",
             headers: { "Content-type": "application/json" },

@@ -160,9 +160,7 @@ const GoogleOauthPage = () => {
 
   const login = useCallback(async () => {
     try {
-      // Collect params from both search (?foo=bar) and hash (#foo=bar) to
-      // support browser (hash token) and native deep link (query token) flows.
-      let params = new URLSearchParams(
+      const params = new URLSearchParams(
         typeof window !== "undefined"
           ? window.location.search.slice(1)
           : searchParams.toString()
@@ -179,7 +177,7 @@ const GoogleOauthPage = () => {
       const accessToken = params.get("access_token");
       const splits = params?.get("state")?.split("---");
       const isDesktopRequested = splits?.[0] === "true";
-      const target = splits?.[1];
+      // const target = splits?.[1];
       const stateParam = params.get("state");
       const isNativePlatform =
         typeof window !== "undefined" && Capacitor.isNativePlatform();
@@ -240,14 +238,13 @@ const GoogleOauthPage = () => {
       });
       setMessage("Something went wrong");
     }
-  }, [redirectUser, verifyGoogleUser]);
+  }, [redirectUser, verifyGoogleUser, searchParams]);
 
   useEffect(() => {
-    // In React StrictMode (dev), effects run twice; guard to avoid duplicate sign-in attempts.
     if (hasAttemptedLoginRef.current) return;
     hasAttemptedLoginRef.current = true;
     login();
-  }, [login]);
+  }, [login, searchParams]);
   return (
     <main className="flex flex-col items-center justify-center w-svw h-dvh p-4xl bg-surface-1 enable-drag">
       <div className="flex items-center justify-center w-full mb-6xl gap-sm">

@@ -10,7 +10,6 @@ import {
   LayoutDashboard,
   Building2,
   FileText,
-  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/context/AppContext";
