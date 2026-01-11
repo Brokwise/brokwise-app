@@ -10,29 +10,21 @@ import {
   LayoutDashboard,
   Building2,
   FileText,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/context/AppContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function BottomNav() {
   const pathname = usePathname();
   const { companyData } = useApp();
+  const [isFabOpen, setIsFabOpen] = React.useState(false);
 
-  // Floating Action Button (Add Property)
-  const Fab = () => (
-    <div className="relative flex items-center justify-center">
-      <div
-        className="pointer-events-none absolute h-20 w-20 rounded-full bg-background/20 blur-md"
-        aria-hidden
-      />
-      <Link
-        href="/property/createProperty"
-        className="relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-primary bg-background text-primary shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition-transform hover:scale-105"
-      >
-        <Plus className="h-6 w-6" />
-      </Link>
-    </div>
-  );
+  // Close FAB menu when pathname changes
+  React.useEffect(() => {
+    setIsFabOpen(false);
+  }, [pathname]);
 
   const navItems = companyData
     ? [
@@ -47,8 +39,7 @@ export function BottomNav() {
           icon: Building2,
         },
         {
-          component: Fab, // Middle Button
-          href: "/property/createProperty",
+          isFab: true,
         },
         {
           label: "Enquiries",
@@ -73,8 +64,7 @@ export function BottomNav() {
           icon: Building2,
         },
         {
-          component: Fab, // Middle Button
-          href: "/property/createProperty",
+          isFab: true,
         },
         {
           label: "Enquiries",
@@ -88,52 +78,151 @@ export function BottomNav() {
         },
       ];
 
-  return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center md:hidden">
-      <div className="pointer-events-auto relative flex h-20 w-[92vw] max-w-3xl items-center justify-between gap-2 rounded-full bg-primary px-4 shadow-[0_12px_35px_rgba(0,0,0,0.22)] backdrop-blur">
-        <div
-          className="pointer-events-none absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-foreground/10 blur-lg"
-          aria-hidden
-        />
-        {navItems.map((item, index) => {
-          if (item.component) {
-            const Component = item.component;
-            return (
-              <div
-                key={index}
-                className="relative flex basis-1/5 items-center justify-center"
-              >
-                <Component />
-              </div>
-            );
-          }
-
-          const Icon = item.icon!;
-          const isActive = pathname === item.href;
-
-          return (
-            <Link
-              key={index}
-              href={item.href!}
-              className={cn(
-                "flex basis-1/5 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors",
-                isActive
-                  ? "text-primary-foreground"
-                  : "text-primary-foreground/70 hover:text-primary-foreground"
-              )}
+  const FabMenu = () => (
+    <AnimatePresence>
+      {isFabOpen && (
+        <>
+          {/* Backdrop to close menu when clicking outside */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsFabOpen(false)}
+            className="fixed inset-0 z-40 bg-background/50 backdrop-blur-sm md:hidden"
+          />
+          <div className="fixed bottom-36 left-1/2 z-[60] flex -translate-x-1/2 flex-col gap-4 items-center w-max">
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.8 }}
+              transition={{
+                delay: 0.1,
+                type: "spring",
+                stiffness: 300,
+                damping: 20,
+              }}
             >
-              <Icon
+              <Link
+                href="/property/createProperty"
+                className="flex items-center gap-3 rounded-full bg-primary px-6 py-3 text-primary-foreground shadow-lg hover:bg-primary/90"
+                onClick={() => setIsFabOpen(false)}
+              >
+                <Building2 className="h-5 w-5" />
+                <span className="font-medium">Create Property</span>
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.8 }}
+              transition={{
+                delay: 0.05,
+                type: "spring",
+                stiffness: 300,
+                damping: 20,
+              }}
+            >
+              <Link
+                href="/enquiries/create"
+                className="flex items-center gap-3 rounded-full bg-primary px-6 py-3 text-primary-foreground shadow-lg hover:bg-primary/90"
+                onClick={() => setIsFabOpen(false)}
+              >
+                <FileText className="h-5 w-5" />
+                <span className="font-medium">Create Enquiry</span>
+              </Link>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+
+  return (
+    <>
+      <FabMenu />
+      <div className="pointer-events-none fixed inset-x-0 bottom-8 z-50 flex justify-center md:hidden">
+        <div className="pointer-events-auto relative flex h-16 w-[90vw] max-w-md items-center justify-between rounded-full border border-white/20 bg-background/60 px-2 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] backdrop-blur-xl">
+          {navItems.map((item, index) => {
+            if (item.isFab) {
+              return (
+                <div
+                  key={index}
+                  className="relative -top-8 flex h-16 w-16 items-center justify-center"
+                >
+                  <button
+                    onClick={() => setIsFabOpen(!isFabOpen)}
+                    className={cn(
+                      "relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-xl transition-transform active:scale-95",
+                      isFabOpen
+                        ? "bg-destructive text-destructive-foreground"
+                        : ""
+                    )}
+                  >
+                    <motion.div
+                      initial={false}
+                      animate={{ rotate: isFabOpen ? 135 : 0 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 200,
+                        damping: 20,
+                      }}
+                    >
+                      <Plus className="h-8 w-8" />
+                    </motion.div>
+                  </button>
+                </div>
+              );
+            }
+
+            const Icon = item.icon!;
+            const isActive = pathname === item.href;
+
+            return (
+              <Link
+                key={index}
+                href={item.href!}
                 className={cn(
-                  "h-5 w-5",
-                  isActive ? "fill-current" : "opacity-80"
+                  "flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors",
+                  isActive
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-primary"
                 )}
-              />
-              <span>{item.label}</span>
-              {isActive && <span className="h-1 w-1 rounded-full bg-current" />}
-            </Link>
-          );
-        })}
+              >
+                <div className="relative">
+                  <Icon
+                    className={cn(
+                      "h-6 w-6 transition-all duration-300",
+                      isActive ? "scale-110" : "scale-100"
+                    )}
+                    strokeWidth={isActive ? 2.5 : 2}
+                  />
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute -bottom-2 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary"
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 30,
+                      }}
+                    />
+                  )}
+                </div>
+                {/* Optional: Hide text on inactive to make it cleaner, or keep it. I'll keep it for now but maybe fade it. */}
+                <span
+                  className={cn(
+                    "transition-opacity duration-300",
+                    isActive ? "opacity-100 font-semibold" : "opacity-70"
+                  )}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

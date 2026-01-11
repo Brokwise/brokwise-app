@@ -172,7 +172,7 @@ export function DataTable<TData, TValue>({
     <div className="space-y-6">
       {/* Header Section */}
       <div className="flex flex-col gap-2">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
               My Properties
@@ -194,7 +194,7 @@ export function DataTable<TData, TValue>({
       <div className="flex flex-col gap-4">
         <div className="flex flex-col xl:flex-row gap-4 justify-between">
           <div className="flex flex-col sm:flex-row gap-3 flex-1">
-            <div className="relative flex-1 max-w-md">
+            <div className="relative flex-1 w-full sm:max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search properties..."
@@ -204,7 +204,7 @@ export function DataTable<TData, TValue>({
               />
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Select
                 value={propertyTypeFilter}
                 onValueChange={handlePropertyTypeFilter}
@@ -301,7 +301,7 @@ export function DataTable<TData, TValue>({
         </div>
 
         {/* Results count */}
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <p>
             Showing{" "}
             <span className="font-medium text-foreground">
@@ -371,7 +371,7 @@ export function DataTable<TData, TValue>({
               )}
             </div>
           ) : (
-            <div className="rounded-md border">
+            <div className="rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
@@ -424,7 +424,7 @@ export function DataTable<TData, TValue>({
 
           {/* Pagination */}
           {pageCount > 1 && (
-            <div className="flex items-center justify-between pt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
               <p className="text-sm text-muted-foreground">
                 Page {currentPage} of {pageCount}
               </p>

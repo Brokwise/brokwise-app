@@ -184,11 +184,11 @@ export const MarketplaceHeader = ({
   };
 
   return (
-    <div className="shrink-0 sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40 pb-4 pt-2 px-6 lg:px-8 space-y-4">
-      <div className="flex items-center justify-between gap-4">
+    <div className="shrink-0 sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40 pb-3 pt-2 px-3 sm:px-6 lg:px-8 space-y-3 sm:space-y-4">
+      <div className="flex items-center justify-between gap-2 sm:gap-4">
         {/* Left: Title + Segmented Control */}
-        <div className="flex items-center gap-4 md:gap-6 min-w-0">
-          <h1 className="text-2xl md:text-3xl font-instrument-serif text-foreground tracking-tight shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4 md:gap-6 min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-instrument-serif text-foreground tracking-tight shrink-0">
             Marketplace
           </h1>
 
@@ -199,7 +199,7 @@ export const MarketplaceHeader = ({
               variant={viewMode === "PROPERTIES" ? "default" : "ghost"}
               onClick={() => setViewMode("PROPERTIES")}
               size="sm"
-              className={`h-8 rounded-md px-3 md:px-4 text-sm font-medium transition-all ${
+              className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all ${
                 viewMode === "PROPERTIES"
                   ? "shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -212,7 +212,7 @@ export const MarketplaceHeader = ({
               variant={viewMode === "ENQUIRIES" ? "default" : "ghost"}
               onClick={() => setViewMode("ENQUIRIES")}
               size="sm"
-              className={`h-8 rounded-md px-3 md:px-4 text-sm font-medium transition-all ${
+              className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all ${
                 viewMode === "ENQUIRIES"
                   ? "shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -227,7 +227,7 @@ export const MarketplaceHeader = ({
         <Button
           asChild
           size="sm"
-          className="h-9 gap-2 rounded-lg font-medium shadow-sm hover:shadow-md transition-all shrink-0"
+          className="h-8 sm:h-9 gap-1.5 sm:gap-2 rounded-lg font-medium shadow-sm hover:shadow-md transition-all shrink-0 px-2.5 sm:px-3"
         >
           <Link
             href={
@@ -250,12 +250,12 @@ export const MarketplaceHeader = ({
         <Popover open={recentOpen} onOpenChange={setRecentOpen}>
           <PopoverAnchor asChild>
             <div className="relative flex items-center w-full rounded-xl bg-muted/40 border border-border/50 hover:border-border/80 focus-within:border-primary/30 focus-within:ring-2 focus-within:ring-primary/10 transition-all duration-200">
-              <Search className="absolute left-4 h-4 w-4 text-muted-foreground/60" />
+              <Search className="absolute left-3 sm:left-4 h-4 w-4 text-muted-foreground/60" />
               <Input
                 placeholder={
                   viewMode === "PROPERTIES"
-                    ? "Search properties by location, society, or keywords..."
-                    : "Search enquiries by location, budget, or requirements..."
+                    ? "Search properties by location, society..."
+                    : "Search enquiries by location, budget..."
                 }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -276,14 +276,14 @@ export const MarketplaceHeader = ({
                     setRecentOpen(false);
                   }
                 }}
-                className="pl-11 pr-10 h-11 text-sm bg-transparent border-0 shadow-none rounded-xl placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="pl-9 sm:pl-11 pr-9 sm:pr-10 h-10 sm:h-11 text-sm bg-transparent border-0 shadow-none rounded-xl placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               {searchQuery && (
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2 h-7 w-7 hover:bg-muted rounded-lg"
+                  className="absolute right-1.5 sm:right-2 h-7 w-7 hover:bg-muted rounded-lg"
                   title="Clear"
                 >
                   <X className="h-3.5 w-3.5 text-muted-foreground" />
@@ -293,8 +293,9 @@ export const MarketplaceHeader = ({
           </PopoverAnchor>
 
           <PopoverContent
-            className="w-[min(28rem,calc(100vw-2rem))] p-0 rounded-xl"
+            className="w-[min(24rem,calc(100vw-1.5rem))] p-0 rounded-xl"
             align="start"
+            sideOffset={8}
           >
             <div className="p-3 border-b border-border/50">
               <h4 className="font-semibold text-sm">Recent Searches</h4>
@@ -334,9 +335,9 @@ export const MarketplaceHeader = ({
       </div>
 
       {/* Controls: Filter Pills + View Toggle */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 justify-between w-full">
-        {/* Category Pills (Scrollable) */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-2 w-full sm:w-auto scrollbar-thin sm:flex-1">
+      <div className="flex flex-col gap-3 sm:gap-4 w-full">
+        {/* Category Pills (Scrollable) - Full width on mobile */}
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 w-full scrollbar-thin -mx-3 px-3 sm:mx-0 sm:px-0">
           {categoryPills.map((pill) => (
             <Button
               key={pill.value}
@@ -350,7 +351,7 @@ export const MarketplaceHeader = ({
                   setBhkFilter("ALL");
                 }
               }}
-              className={`shrink-0 rounded-full px-3 sm:px-4 h-8 font-medium border text-xs sm:text-sm transition-all ${
+              className={`shrink-0 rounded-full px-2.5 sm:px-4 h-7 sm:h-8 font-medium border text-xs sm:text-sm transition-all ${
                 categoryFilter === pill.value
                   ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -361,31 +362,29 @@ export const MarketplaceHeader = ({
           ))}
         </div>
 
-        <div className="w-px h-8 bg-border/40 mx-2 hidden sm:block" />
-
-        {/* Right Side Actions */}
-        <div className="flex items-center gap-3 shrink-0 ml-auto w-full sm:w-auto justify-end">
+        {/* Right Side Actions - Filter + View Toggle */}
+        <div className="flex items-center gap-2 sm:gap-3 justify-end">
           {/* Advanced Filters Trigger */}
           <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
             <DialogTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className={`relative gap-2 h-8 rounded-full border-border/60 hover:bg-secondary hover:border-border ${
+                className={`relative gap-1.5 sm:gap-2 h-8 rounded-full border-border/60 hover:bg-secondary hover:border-border px-2.5 sm:px-3 ${
                   hasActiveFilters
                     ? "text-accent border-accent/30 bg-accent/5"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <FilterIcon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Filters</span>
+                <span className="hidden xs:inline sm:inline">Filters</span>
                 {hasActiveFilters && (
                   <span className="flex h-1.5 w-1.5 rounded-full bg-accent" />
                 )}
                 <ChevronDown className="h-3 w-3 opacity-50" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
+            <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] max-h-[85vh] overflow-y-auto rounded-xl mx-auto">
               <DialogHeader>
                 <DialogTitle>
                   Filter{" "}
@@ -582,7 +581,7 @@ export const MarketplaceHeader = ({
                   setView("grid");
                   onClearPropertySelection();
                 }}
-                className={`h-8 w-8 rounded-full transition-all duration-300 ${
+                className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${
                   view === "grid"
                     ? "shadow-sm"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -598,7 +597,7 @@ export const MarketplaceHeader = ({
                   setView("map");
                   onClearPropertySelection();
                 }}
-                className={`h-8 w-8 rounded-full transition-all duration-300 ${
+                className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${
                   view === "map"
                     ? "shadow-sm"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -614,7 +613,7 @@ export const MarketplaceHeader = ({
                   setView("split");
                   onClearPropertySelection();
                 }}
-                className={`h-8 w-8 rounded-full hidden md:flex transition-all duration-300 ${
+                className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full hidden md:flex transition-all duration-300 ${
                   view === "split"
                     ? "shadow-sm"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -630,8 +629,8 @@ export const MarketplaceHeader = ({
 
       {/* 3. Active Filters Quick Row (if filters active) */}
       {(searchQuery || hasActiveFilters) && (
-        <div className="flex flex-wrap items-center gap-2 pt-1 animate-in fade-in slide-in-from-top-2 duration-300">
-          <span className="text-xs font-semibold text-muted-foreground mr-1">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-1 animate-in fade-in slide-in-from-top-2 duration-300">
+          <span className="text-[10px] sm:text-xs font-semibold text-muted-foreground mr-0.5 sm:mr-1">
             Active:
           </span>
           {searchQuery && (
@@ -639,10 +638,12 @@ export const MarketplaceHeader = ({
               variant="secondary"
               size="sm"
               onClick={() => setSearchQuery("")}
-              className="h-6 text-xs rounded-full gap-1.5 px-2.5 bg-accent/10 text-accent hover:bg-accent/20 border border-accent/10"
+              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-accent/10 text-accent hover:bg-accent/20 border border-accent/10"
             >
-              &quot;{searchQuery}&quot;
-              <X className="h-3 w-3 opacity-70" />
+              <span className="max-w-[80px] sm:max-w-[120px] truncate">
+                &quot;{searchQuery}&quot;
+              </span>
+              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
             </Button>
           )}
 
@@ -655,11 +656,11 @@ export const MarketplaceHeader = ({
                 setPropertyTypeFilter("ALL");
                 setBhkFilter("ALL");
               }}
-              className="h-6 text-xs rounded-full gap-1.5 px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
             >
               {categoryPills.find((p) => p.value === categoryFilter)?.label ||
                 categoryFilter}
-              <X className="h-3 w-3 opacity-70" />
+              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
             </Button>
           )}
 
@@ -668,11 +669,11 @@ export const MarketplaceHeader = ({
               variant="secondary"
               size="sm"
               onClick={() => setPropertyTypeFilter("ALL")}
-              className="h-6 text-xs rounded-full gap-1.5 px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
             >
               {propertyTypeOptions.find((o) => o.value === propertyTypeFilter)
                 ?.label || propertyTypeFilter}
-              <X className="h-3 w-3 opacity-70" />
+              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
             </Button>
           )}
 
@@ -681,12 +682,14 @@ export const MarketplaceHeader = ({
               variant="secondary"
               size="sm"
               onClick={() => setPriceRange(null)}
-              className="h-6 text-xs rounded-full gap-1.5 px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
             >
-              {viewMode === "PROPERTIES" ? "Price" : "Budget"}:{" "}
+              <span className="hidden sm:inline">
+                {viewMode === "PROPERTIES" ? "Price" : "Budget"}:{" "}
+              </span>
               {formatPriceShort(effectivePriceRange[0])} -{" "}
               {formatPriceShort(effectivePriceRange[1])}
-              <X className="h-3 w-3 opacity-70" />
+              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
             </Button>
           )}
 
@@ -695,10 +698,10 @@ export const MarketplaceHeader = ({
               variant="secondary"
               size="sm"
               onClick={() => setBhkFilter("ALL")}
-              className="h-6 text-xs rounded-full gap-1.5 px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
             >
               {bhkFilter === "5+" ? "5+ BHK" : `${bhkFilter} BHK`}
-              <X className="h-3 w-3 opacity-70" />
+              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
             </Button>
           )}
 
@@ -707,10 +710,10 @@ export const MarketplaceHeader = ({
               variant="secondary"
               size="sm"
               onClick={() => setSourceFilter("ALL")}
-              className="h-6 text-xs rounded-full gap-1.5 px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
             >
               {sourceFilter === "BROKER" ? "Broker Listed" : "Company Listed"}
-              <X className="h-3 w-3 opacity-70" />
+              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
             </Button>
           )}
 
@@ -718,7 +721,7 @@ export const MarketplaceHeader = ({
             variant="link"
             size="sm"
             onClick={clearFilters}
-            className="h-6 text-xs px-2 text-muted-foreground hover:text-destructive transition-colors"
+            className="h-5 sm:h-6 text-[10px] sm:text-xs px-1.5 sm:px-2 text-muted-foreground hover:text-destructive transition-colors"
           >
             Clear all
           </Button>
