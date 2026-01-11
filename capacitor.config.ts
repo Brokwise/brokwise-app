@@ -18,6 +18,7 @@ const config: CapacitorConfig = {
   },
   plugins: {
     App: {
+      //@ts-ignore
       scheme: "brokwise",
     },
     SplashScreen: {
