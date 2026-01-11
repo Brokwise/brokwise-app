@@ -10,34 +10,52 @@ import {
   User,
 } from "firebase/auth";
 import { getDoc } from "firebase/firestore";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { logError } from "@/utils/errors";
+import { Capacitor } from "@capacitor/core";
 
 const GoogleOauthPage = () => {
   const defaultMessage = "Authenticating with google";
   const [message, setMessage] = useState(defaultMessage);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const hasAttemptedLoginRef = React.useRef(false);
   const redirectUser = useCallback(
     ({
+      isDesktopApp,
       isError,
       target,
       delay,
+      url,
     }: {
-      isError: boolean;
+      isError?: boolean;
+      isDesktopApp: boolean;
       target: string;
-      delay: number;
+      delay?: number;
+      url?: string;
     }) => {
-      setMessage(isError ? "Something went wrong" : target);
       setTimeout(() => {
-        router.push(target);
-      }, delay);
+        if (url) {
+          window.location.assign(url);
+          return;
+        }
+        const encodedTarget = encodeURIComponent(target ?? "");
+        if (isError) {
+          if (isDesktopApp) {
+            window.location.href = "brokwise://";
+            return;
+          }
+          router.push(`/login?target=${encodedTarget}`);
+          return;
+        }
+        router.push(target || "/");
+      }, delay ?? 0);
     },
     [router]
   );
-
   const createUserInDb = useCallback(
     async (user: User, accountType?: "broker" | "company") => {
       try {
@@ -121,10 +139,14 @@ const GoogleOauthPage = () => {
           slackChannel: "frontend-errors",
           description: `Failed to verify google user. Code: ${firebaseError.code}, Message: ${firebaseError.message}`,
         });
-        
+
         // Handle specific Firebase errors
-        if (firebaseError.code === "auth/account-exists-with-different-credential") {
-          toast.error("An account already exists with this email. Please sign in with email/password instead.");
+        if (
+          firebaseError.code === "auth/account-exists-with-different-credential"
+        ) {
+          toast.error(
+            "An account already exists with this email. Please sign in with email/password instead."
+          );
         } else if (firebaseError.code === "auth/invalid-credential") {
           toast.error("Invalid credentials. Please try again.");
         } else {
@@ -138,9 +160,28 @@ const GoogleOauthPage = () => {
 
   const login = useCallback(async () => {
     try {
-      const params = new URLSearchParams(window.location.hash.slice(1));
+      const params = new URLSearchParams(
+        typeof window !== "undefined"
+          ? window.location.search.slice(1)
+          : searchParams.toString()
+      );
+
+      if (typeof window !== "undefined" && window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.slice(1));
+        hashParams.forEach((value, key) => {
+          if (!params.has(key)) {
+            params.append(key, value);
+          }
+        });
+      }
       const accessToken = params.get("access_token");
+      const splits = params?.get("state")?.split("---");
+      const isDesktopRequested = splits?.[0] === "true";
+      // const target = splits?.[1];
       const stateParam = params.get("state");
+      const isNativePlatform =
+        typeof window !== "undefined" && Capacitor.isNativePlatform();
+      const shouldOpenNativeApp = isDesktopRequested && !isNativePlatform;
 
       let accountType: "broker" | "company" | undefined = "broker";
 
@@ -158,14 +199,24 @@ const GoogleOauthPage = () => {
       }
 
       if (!accessToken) {
-        setMessage("Invalid Crendentials! Please try again.");
+        setMessage("Invalid Credentials! Please try again.");
         redirectUser({
+          isDesktopApp: shouldOpenNativeApp,
           isError: true,
-          target: "/sign-up",
           delay: 3000,
+          target: "/sign-up",
         });
         return;
       }
+
+      // If we initiated login from a non-native context (e.g., browser/Safari tab),
+      // bounce back into the native app. Once inside the native app (Capacitor),
+      // proceed with verification without re-triggering the deep link.
+      if (shouldOpenNativeApp) {
+        window.location.href = `brokwise://google-oauth?access_token=${accessToken}`;
+        return;
+      }
+
       await verifyGoogleUser(accessToken, accountType);
 
       // Clear forgot password rate limit state on successful login
@@ -173,6 +224,7 @@ const GoogleOauthPage = () => {
 
       setTimeout(() => {
         redirectUser({
+          isDesktopApp: shouldOpenNativeApp,
           isError: false,
           target: "/",
           delay: 0,
@@ -186,14 +238,13 @@ const GoogleOauthPage = () => {
       });
       setMessage("Something went wrong");
     }
-  }, [redirectUser, verifyGoogleUser]);
+  }, [redirectUser, verifyGoogleUser, searchParams]);
 
   useEffect(() => {
-    // In React StrictMode (dev), effects run twice; guard to avoid duplicate sign-in attempts.
     if (hasAttemptedLoginRef.current) return;
     hasAttemptedLoginRef.current = true;
     login();
-  }, [login]);
+  }, [login, searchParams]);
   return (
     <main className="flex flex-col items-center justify-center w-svw h-dvh p-4xl bg-surface-1 enable-drag">
       <div className="flex items-center justify-center w-full mb-6xl gap-sm">

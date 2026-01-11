@@ -8,7 +8,6 @@ const useAxios = () => {
   const router = useRouter();
   const routerRef = useRef(router);
 
-  // Keep the latest router instance for interceptors without re-creating axios.
   useEffect(() => {
     routerRef.current = router;
   }, [router]);
@@ -54,7 +53,6 @@ const useAxios = () => {
         const token = await firebaseAuth.currentUser?.getIdToken();
         if (token) {
           config.headers = config.headers ?? {};
-          // Axios header typing differs across versions; keep this resilient.
           (
             config.headers as Record<string, string>
           ).Authorization = `Bearer ${token}`;

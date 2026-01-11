@@ -10,6 +10,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@capacitor-firebase/authentication": "^8.0.1",
+    "@capacitor-firebase/messaging": "^8.0.1",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/browser": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "@capacitor/keyboard": "^8.0.0",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -47,7 +55,7 @@
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "emoji-picker-react": "^4.16.1",
-    "firebase": "^12.6.0",
+    "firebase": "^12.7.0",
     "framer-motion": "^12.23.24",
     "fuse.js": "^7.1.0",
     "html2canvas": "^1.4.1",
@@ -77,6 +85,8 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.0.0",
     "@types/mapbox-gl": "^3.4.1",
     "@types/node": "20.19.27",
     "@types/react": "18.3.27",

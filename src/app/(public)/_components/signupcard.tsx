@@ -25,7 +25,7 @@ import {
 } from "firebase/auth";
 import { signInWithEmailAndPassword, User } from "firebase/auth";
 import { createUser } from "@/models/api/user";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
@@ -38,8 +38,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
+
 const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
   const { t, i18n } = useTranslation();
+  const searchParams = useSearchParams();
   const [inputError, setInputError] = useState<{
     email?: string;
     password?: string;
@@ -203,24 +207,35 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         toast.error(t("signin_failed"));
     }
   };
-  const handleGoogleSignUp = () => {
+  const handleGoogleSignUp = async () => {
     try {
       if (!Config.googleOauthClientId) {
         toast.error(t("google_oauth_not_configured"));
         return;
       }
 
-      const redirectUri = encodeURIComponent(
-        `${Config.frontendUrl}/google-oauth`
-      );
+      const isNative = Capacitor.isNativePlatform();
+      const redirectUrlStr = `${Config.frontendUrl}/google-oauth`;
+      const target = searchParams.get("target") ?? "";
+
+      const redirectUri = encodeURIComponent(redirectUrlStr);
       const scope = encodeURIComponent(
         "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
       );
 
-      window.open(
-        `https://accounts.google.com/o/oauth2/auth?client_id=${Config.googleOauthClientId}&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${isSignup}`,
-        "_self"
-      );
+      const statePayload = `${isNative}---${target}`;
+      alert(statePayload);
+      const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${
+        Config.googleOauthClientId
+      }&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${encodeURIComponent(
+        statePayload
+      )}`;
+
+      if (isNative) {
+        await Browser.open({ url: authUrl });
+      } else {
+        window.open(authUrl, "_self");
+      }
     } catch (error) {
       logError({
         description: "Error signing up with Google",

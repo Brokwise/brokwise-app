@@ -10,6 +10,7 @@ import { OnboardingDetails } from "@/app/(protected)/_components/onboarding/onbo
 import { CompanyOnboardingDetails } from "@/app/(protected)/_components/onboarding/companyOnboardingDetails";
 import { StatusDisplay } from "@/app/(protected)/_components/statusDisplay";
 import { useApp } from "@/context/AppContext";
+import { PushNotificationsService } from "@/app/services/pushNotifications";
 
 import { logError } from "@/utils/errors";
 import WaveBackground from "@/components/ui/waveBackground";
@@ -28,6 +29,16 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
     userData,
   } = useApp();
   const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    PushNotificationsService.initalize(user.uid);
+
+    return () => {
+      PushNotificationsService.removeAllListeners();
+    };
+  }, [user?.uid]);
 
   useEffect(() => {
     (async () => {

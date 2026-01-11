@@ -19,7 +19,8 @@ const nextConfig = {
                 hostname:"google.com"
             }
         ]
-    }
+    },
+
 };
 
 export default nextConfig;
