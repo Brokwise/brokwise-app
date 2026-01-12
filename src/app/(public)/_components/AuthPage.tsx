@@ -529,7 +529,7 @@ export default function AuthPage({
           {/* Scrollable content area (scrollbar hidden) */}
           <div
             ref={scrollAreaRef}
-            className="w-full max-w-md flex-1 overflow-y-auto pt-8 pb-8 scrollbar-hide px-2"
+            className="w-full max-w-md flex-1 overflow-y-auto pt-4 pb-8 scrollbar-hide px-2"
           >
             <AnimatePresence mode="wait">
               <motion.div
