@@ -91,10 +91,9 @@ const AccountTypeCard = ({
     onClick={onSelect}
     className={`
       relative flex flex-col items-center justify-center p-5 rounded-xl border-2 transition-all duration-200 w-full
-      ${
-        selected
-          ? "border-accent bg-primary/5 ring-2 ring-accent ring-offset-2 ring-offset-background"
-          : "border-border bg-card hover:border-accent/50"
+      ${selected
+        ? "border-accent bg-primary/5 ring-2 ring-accent ring-offset-2 ring-offset-background"
+        : "border-border bg-card hover:border-accent/50"
       }
     `}
   >
@@ -104,18 +103,16 @@ const AccountTypeCard = ({
       </div>
     )}
     <div
-      className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
-        selected
-          ? "bg-primary/20 text-primary"
-          : "bg-muted text-muted-foreground"
-      }`}
+      className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${selected
+        ? "bg-primary/20 text-primary"
+        : "bg-muted text-muted-foreground"
+        }`}
     >
       {icon}
     </div>
     <p
-      className={`font-semibold ${
-        selected ? "text-primary" : "text-foreground"
-      }`}
+      className={`font-semibold ${selected ? "text-primary" : "text-foreground"
+        }`}
     >
       {title}
     </p>
@@ -359,11 +356,10 @@ export default function AuthPage({
 
       const statePayload = `${isNative}---${target}`;
 
-      const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${
-        Config.googleOauthClientId
-      }&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${encodeURIComponent(
-        statePayload
-      )}`;
+      const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${Config.googleOauthClientId
+        }&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${encodeURIComponent(
+          statePayload
+        )}`;
 
       window.open(authUrl, "_self");
     } catch (error) {
@@ -384,9 +380,8 @@ export default function AuthPage({
     <div className="flex h-dvh w-full font-host-grotesk overflow-hidden bg-background">
       {/* Left Side - Image & Value Prop (Fixed) */}
       <div
-        className={`hidden lg:flex lg:w-1/2 h-full relative overflow-hidden transition-colors duration-500 ${
-          activeTheme === "light" ? "bg-slate-100" : "bg-black"
-        }`}
+        className={`hidden lg:flex lg:w-1/2 h-full relative overflow-hidden transition-colors duration-500 ${activeTheme === "light" ? "bg-slate-100" : "bg-black"
+          }`}
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -402,17 +397,15 @@ export default function AuthPage({
               alt={activeContent.alt}
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
-              className={`object-cover transition-opacity duration-500 ${
-                activeTheme === "light" ? "opacity-100" : "opacity-70"
-              }`}
+              className={`object-cover transition-opacity duration-500 ${activeTheme === "light" ? "opacity-100" : "opacity-70"
+                }`}
               priority
             />
             <div
-              className={`absolute inset-0 bg-gradient-to-t transition-colors duration-500 ${
-                activeTheme === "light"
-                  ? "from-white/70 via-transparent to-transparent"
-                  : "from-black/90 via-black/40 to-black/20"
-              }`}
+              className={`absolute inset-0 bg-gradient-to-t transition-colors duration-500 ${activeTheme === "light"
+                ? "from-white/70 via-transparent to-transparent"
+                : "from-black/90 via-black/40 to-black/20"
+                }`}
             />
           </motion.div>
         </AnimatePresence>
@@ -420,11 +413,10 @@ export default function AuthPage({
         {/* Glassmorphism Testimonial Card */}
         <div className="absolute bottom-0 left-0 p-10 w-full z-10">
           <div
-            className={`max-w-lg backdrop-blur-lg border shadow-2xl rounded-2xl p-8 transition-all duration-500 ${
-              activeTheme === "light"
-                ? "bg-white/90 border-slate-200 shadow-slate-300/50"
-                : "bg-black/20 border-white/10"
-            }`}
+            className={`max-w-lg backdrop-blur-lg border shadow-2xl rounded-2xl p-8 transition-all duration-500 ${activeTheme === "light"
+              ? "bg-white/90 border-slate-200 shadow-slate-300/50"
+              : "bg-black/20 border-white/10"
+              }`}
           >
             <AnimatePresence mode="wait">
               <motion.div
@@ -435,38 +427,34 @@ export default function AuthPage({
                 transition={{ duration: 0.3 }}
               >
                 <h2
-                  className={`text-3xl font-instrument-serif leading-snug mb-6 transition-colors duration-500 ${
-                    activeTheme === "light" ? "text-slate-900" : "text-white"
-                  }`}
+                  className={`text-3xl font-instrument-serif leading-snug mb-6 transition-colors duration-500 ${activeTheme === "light" ? "text-slate-900" : "text-white"
+                    }`}
                 >
                   &ldquo;{activeContent.quote}&rdquo;
                 </h2>
                 <div className="flex items-center gap-4">
                   <div
-                    className={`w-12 h-12 rounded-full border flex items-center justify-center font-bold text-lg transition-colors duration-500 ${
-                      activeTheme === "light"
-                        ? "bg-primary/10 border-primary/20 text-primary"
-                        : "bg-white/10 border-white/20 text-white"
-                    }`}
+                    className={`w-12 h-12 rounded-full border flex items-center justify-center font-bold text-lg transition-colors duration-500 ${activeTheme === "light"
+                      ? "bg-primary/10 border-primary/20 text-primary"
+                      : "bg-white/10 border-white/20 text-white"
+                      }`}
                   >
                     B
                   </div>
                   <div>
                     <p
-                      className={`font-semibold transition-colors duration-500 ${
-                        activeTheme === "light"
-                          ? "text-slate-900"
-                          : "text-white"
-                      }`}
+                      className={`font-semibold transition-colors duration-500 ${activeTheme === "light"
+                        ? "text-slate-900"
+                        : "text-white"
+                        }`}
                     >
                       Brokwise Team
                     </p>
                     <p
-                      className={`text-sm transition-colors duration-500 ${
-                        activeTheme === "light"
-                          ? "text-slate-500"
-                          : "text-zinc-400"
-                      }`}
+                      className={`text-sm transition-colors duration-500 ${activeTheme === "light"
+                        ? "text-slate-500"
+                        : "text-zinc-400"
+                        }`}
                     >
                       {activeContent.role}
                     </p>
@@ -480,9 +468,8 @@ export default function AuthPage({
 
       {/* Right Side - Auth Form (Scrollable) */}
       <div
-        className={`flex-1 h-full overflow-hidden relative transition-colors duration-500 ${
-          activeTheme === "light" ? "bg-[#FDFCF8]" : "bg-background"
-        }`}
+        className={`flex-1 h-full overflow-hidden relative transition-colors duration-500 ${activeTheme === "light" ? "bg-[#FDFCF8]" : "bg-background"
+          }`}
       >
         {isMobile && (
           <div className="absolute top-4 left-4 z-50">
@@ -520,21 +507,19 @@ export default function AuthPage({
               />
               <button
                 onClick={() => setMode("login")}
-                className={`flex-1 relative z-10 py-3 text-sm font-semibold transition-colors duration-200 rounded-full ${
-                  mode === "login"
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`flex-1 relative z-10 py-3 text-sm font-semibold transition-colors duration-200 rounded-full ${mode === "login"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 {t("toggle_login")}
               </button>
               <button
                 onClick={() => setMode("signup")}
-                className={`flex-1 relative z-10 py-3 text-sm font-semibold transition-colors duration-200 rounded-full ${
-                  mode === "signup"
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`flex-1 relative z-10 py-3 text-sm font-semibold transition-colors duration-200 rounded-full ${mode === "signup"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 {t("toggle_signup")}
               </button>
@@ -544,7 +529,7 @@ export default function AuthPage({
           {/* Scrollable content area (scrollbar hidden) */}
           <div
             ref={scrollAreaRef}
-            className="w-full max-w-md flex-1 overflow-y-auto pt-8 pb-8 scrollbar-hide px-2"
+            className="w-full max-w-md flex-1 overflow-y-auto pt-4 pb-8 scrollbar-hide px-2"
           >
             <AnimatePresence mode="wait">
               <motion.div
@@ -684,7 +669,7 @@ export default function AuthPage({
                 <Button
                   variant="outline"
                   type="button"
-                  className="w-full h-11 font-semibold bg-card border-border text-foreground hover:bg-muted/50 transition-all"
+                  className="w-full h-11 font-semibold bg-card border-border text-foreground hover:bg-muted/50 hover:text-foreground transition-all"
                   onClick={handleGoogleAuth}
                 >
                   <Image
@@ -701,7 +686,7 @@ export default function AuthPage({
           </div>
 
           {/* Bottom link pinned outside the scroll area */}
-          <div className="w-full max-w-md shrink-0 text-center text-sm text-muted-foreground pb-4 lg:pb-8">
+          <div className="w-full max-w-md shrink-0 text-center text-sm text-muted-foreground pb-4 lg:pb-8 space-y-3">
             <p>
               {mode === "login"
                 ? t("dont_have_account")
@@ -713,53 +698,15 @@ export default function AuthPage({
                 {mode === "login" ? t("toggle_signup") : t("toggle_login")}
               </button>
             </p>
+            <p className="text-xs text-muted-foreground/70">
+              By continuing, you agree to our{" "}
+              <Link href="/terms-and-conditions" className="text-primary/80 hover:text-primary hover:underline">Terms & Conditions</Link>
+              {" "}and{" "}
+              <Link href="/privacy-policy" className="text-primary/80 hover:text-primary hover:underline">Privacy Policy</Link>
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 mb-4 absolute bottom-4 right-4 z-50">
-          <div className="flex gap-1 border rounded-full px-2 py-1 bg-background/50 backdrop-blur-sm shadow-sm">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-pressed={activeTheme === "light"}
-              className={`h-8 w-8 ${
-                activeTheme === "light"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "hover:bg-accent hover:text-accent-foreground"
-              }`}
-              onClick={() => setTheme("light")}
-              title="Light mode"
-            >
-              <Sun className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-pressed={activeTheme === "dark"}
-              className={`h-8 w-8 ${
-                activeTheme === "dark"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "hover:bg-accent hover:text-accent-foreground"
-              }`}
-              onClick={() => setTheme("dark")}
-              title="Dark mode"
-            >
-              <Moon className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-pressed={isSystemTheme}
-              className={`h-8 w-8 ${
-                isSystemTheme
-                  ? "bg-muted text-foreground ring-1 ring-border"
-                  : "hover:bg-accent hover:text-accent-foreground"
-              }`}
-              onClick={() => setTheme("system")}
-              title="System default"
-            >
-              <Computer className="h-4 w-4" />
-            </Button>
-          </div>
+        <div className="flex items-center gap-2 mb-4 absolute top-2 right-2 z-50">
           <Select
             onValueChange={(value) => changeLanguage(value)}
             value={
@@ -774,6 +721,47 @@ export default function AuthPage({
               <SelectItem value="hi">हिंदी (Hindi)</SelectItem>
             </SelectContent>
           </Select>
+          <div className="flex gap-1 border rounded-full px-2 py-1 bg-background/50 backdrop-blur-sm shadow-sm">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-pressed={activeTheme === "light"}
+              className={`h-8 w-8 ${activeTheme === "light"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "hover:bg-accent hover:text-accent-foreground"
+                }`}
+              onClick={() => setTheme("light")}
+              title="Light mode"
+            >
+              <Sun className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-pressed={activeTheme === "dark"}
+              className={`h-8 w-8 ${activeTheme === "dark"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "hover:bg-accent hover:text-accent-foreground"
+                }`}
+              onClick={() => setTheme("dark")}
+              title="Dark mode"
+            >
+              <Moon className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-pressed={isSystemTheme}
+              className={`h-8 w-8 ${isSystemTheme
+                ? "bg-muted text-foreground ring-1 ring-border"
+                : "hover:bg-accent hover:text-accent-foreground"
+                }`}
+              onClick={() => setTheme("system")}
+              title="System default"
+            >
+              <Computer className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
