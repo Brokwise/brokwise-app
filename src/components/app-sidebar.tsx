@@ -22,6 +22,7 @@ import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -230,6 +231,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroup>
         )}
       </SidebarContent>
+      <SidebarFooter className="border-t border-sidebar-border">
+        <div className="px-4 py-3 group-data-[collapsible=icon]:hidden">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <Link href="/privacy-policy" className="hover:text-sidebar-foreground transition-colors">Privacy</Link>
+            <Link href="/terms-and-conditions" className="hover:text-sidebar-foreground transition-colors">Terms</Link>
+          </div>
+          <p className="text-[10px] text-muted-foreground/60 mt-1">© {new Date().getFullYear()} Brokwise</p>
+        </div>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
