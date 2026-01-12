@@ -669,7 +669,7 @@ export default function AuthPage({
                 <Button
                   variant="outline"
                   type="button"
-                  className="w-full h-11 font-semibold bg-card border-border text-foreground hover:bg-muted/50 transition-all"
+                  className="w-full h-11 font-semibold bg-card border-border text-foreground hover:bg-muted/50 hover:text-foreground transition-all"
                   onClick={handleGoogleAuth}
                 >
                   <Image
