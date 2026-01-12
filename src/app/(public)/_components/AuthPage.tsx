@@ -707,6 +707,20 @@ export default function AuthPage({
           </div>
         </div>
         <div className="flex items-center gap-2 mb-4 absolute top-2 right-2 z-50">
+          <Select
+            onValueChange={(value) => changeLanguage(value)}
+            value={
+              i18n.resolvedLanguage || i18n.language?.split("-")[0] || "en"
+            }
+          >
+            <SelectTrigger className="w-[130px] bg-background border-input">
+              <SelectValue placeholder={t("select_language")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="hi">हिंदी (Hindi)</SelectItem>
+            </SelectContent>
+          </Select>
           <div className="flex gap-1 border rounded-full px-2 py-1 bg-background/50 backdrop-blur-sm shadow-sm">
             <Button
               variant="ghost"
@@ -748,20 +762,6 @@ export default function AuthPage({
               <Computer className="h-4 w-4" />
             </Button>
           </div>
-          <Select
-            onValueChange={(value) => changeLanguage(value)}
-            value={
-              i18n.resolvedLanguage || i18n.language?.split("-")[0] || "en"
-            }
-          >
-            <SelectTrigger className="w-[130px] bg-background border-input">
-              <SelectValue placeholder={t("select_language")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="en">English</SelectItem>
-              <SelectItem value="hi">हिंदी (Hindi)</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
     </div>
