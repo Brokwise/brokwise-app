@@ -38,11 +38,11 @@ export default function TermsAndConditionsPage() {
                     <section className="mb-8">
                         <h2 className="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">3. Definitions</h2>
                         <ul className="list-disc list-inside text-slate-600 space-y-1">
-                            <li><strong>"Platform"</strong> - Brokwise mobile app and website</li>
-                            <li><strong>"User"</strong> - Any individual or entity using the Platform</li>
-                            <li><strong>"Broker"</strong> - Real estate broker registered on the Platform</li>
-                            <li><strong>"Property"</strong> - Real estate listing on the Platform</li>
-                            <li><strong>"Enquiry"</strong> - Property requirement posted by a User</li>
+                            <li><strong>&quot;Platform&quot;</strong> - Brokwise mobile app and website</li>
+                            <li><strong>&quot;User&quot;</strong> - Any individual or entity using the Platform</li>
+                            <li><strong>&quot;Broker&quot;</strong> - Real estate broker registered on the Platform</li>
+                            <li><strong>&quot;Property&quot;</strong> - Real estate listing on the Platform</li>
+                            <li><strong>&quot;Enquiry&quot;</strong> - Property requirement posted by a User</li>
                         </ul>
                     </section>
 
@@ -97,7 +97,7 @@ export default function TermsAndConditionsPage() {
                     <section className="mb-8">
                         <h2 className="text-2xl font-bold text-slate-900 border-b pb-3 mb-4">10. Disclaimer</h2>
                         <div className="bg-slate-800 text-white rounded-lg p-5">
-                            <p className="font-semibold mb-2">Platform Provided "As Is"</p>
+                            <p className="font-semibold mb-2">Platform Provided &quot;As Is&quot;</p>
                             <p>We do NOT warrant uninterrupted service, accuracy of listings, or successful transactions. Conduct your own due diligence.</p>
                         </div>
                     </section>

@@ -1,9 +1,14 @@
 "use client";
 
+import { Suspense } from "react";
 import AuthPage from "../_components/AuthPage";
 
 const LoginPage = () => {
-  return <AuthPage initialMode="login" />;
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <AuthPage initialMode="login" />
+    </Suspense>
+  );
 };
 
 export default LoginPage;
