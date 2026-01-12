@@ -32,11 +32,7 @@ Mansarovar, Jaipur - 302020, Rajasthan, India
 - Company name, RERA registration number
 - Profile photograph
 
-### 3.2 KYC Documents
-- Aadhaar card, PAN card for verification
-- **These are stored securely and NOT shared with third parties**
-
-### 3.3 Automatically Collected Data
+### 3.2 Automatically Collected Data
 - IP address, device information, browser type
 - Usage data, cookies, location (IP-based)
 
@@ -45,7 +41,6 @@ Mansarovar, Jaipur - 302020, Rajasthan, India
 ## 4. How We Use Your Information
 
 - Account creation and management
-- KYC verification
 - Property listings and enquiries
 - Service notifications and marketing communications
 - Analytics and platform improvement
