@@ -32,7 +32,7 @@ const STORAGE_KEY = "myEnquiriesView";
 
 const MyEnquiriesPage = () => {
   const router = useRouter();
-  const { myEnquiries, isPending, error } = useGetMyEnquiries();
+  const { myEnquiries, isLoading, error } = useGetMyEnquiries();
   const [view, setView] = useState<"grid" | "list" | null>(null); // null = loading from storage
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -100,7 +100,7 @@ const MyEnquiriesPage = () => {
     });
   }, [myEnquiries, searchQuery, statusFilter, propertyTypeFilter]);
 
-  if (isPending) {
+  if (isLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center min-h-[60vh]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
