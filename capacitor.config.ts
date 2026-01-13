@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: "Brokwise",
   webDir: "public",
   server: {
-    url: "http://localhost:3001",
+    url: "https://app.brokwise.com",
     cleartext: true,
     iosScheme: "https",
   },
