@@ -10,8 +10,7 @@ import { PropertyPreviewModal } from "./PropertyPreviewModal";
 import { EnquirySubmission } from "@/models/types/enquiry";
 import { Property } from "@/types/property";
 import { ShareContactDialog } from "./share-contact-dialog";
-
-// Helper to check if value is a populated Property object
+import moment from "moment";
 const isPopulatedProperty = (value: unknown): value is Property => {
   return (
     value !== null &&
@@ -84,7 +83,6 @@ export const ReceivedProperties = ({
   );
 
   if (!isMyEnquiry) return null;
-
   if (isPending) {
     return (
       <div className="flex justify-center py-6">
@@ -108,6 +106,7 @@ export const ReceivedProperties = ({
       </div>
     );
   }
+  console.log(receivedProperties);
 
   return (
     <div className="space-y-4">
@@ -133,17 +132,14 @@ export const ReceivedProperties = ({
                   <CardTitle className="text-sm font-medium line-clamp-1 leading-tight">
                     {property?.propertyTitle || "View Property Details"}
                   </CardTitle>
-                  <Badge
-                    variant={
-                      submission.status === "pending" ? "outline" : "default"
-                    }
-                    className="text-[10px] h-5 px-1.5"
-                  >
-                    {submission.status}
-                  </Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-3 pt-2 space-y-2">
+                <div>
+                  <span className="text-xs">
+                    Received - {moment(submission.receivedAt).fromNow()}
+                  </span>
+                </div>
                 <div className="flex items-center text-xs text-muted-foreground">
                   <MapPin className="h-3 w-3 mr-1" />
                   <span className="truncate">
@@ -159,7 +155,7 @@ export const ReceivedProperties = ({
 
                 <div className="flex gap-2 pt-1">
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     className="flex-1 h-7 text-xs"
                     onClick={() => {
@@ -186,9 +182,8 @@ export const ReceivedProperties = ({
                     </Button>
                   ) : (
                     <Button
-                      variant="outline"
                       size="sm"
-                      className="flex-1 h-7 text-xs"
+                      className="flex-1 h-7 text-xs bg-accent"
                       onClick={() => {
                         setShareContactSubmissionId(submission._id);
                         setIsShareContactOpen(true);

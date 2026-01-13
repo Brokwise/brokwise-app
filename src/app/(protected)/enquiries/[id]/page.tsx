@@ -93,7 +93,8 @@ const SingleEnquiry = () => {
     myEnquiries &&
     myEnquiries.length > 0 &&
     myEnquiries.some((e) => e._id === enquiry?._id);
-
+  console.log(isMyEnquiry);
+  console.log(enquiry?.interestedBrokersAndCompanies);
   if (isPending) {
     return (
       <div className="flex h-full w-full items-center justify-center min-h-[60vh]">
@@ -195,6 +196,20 @@ const SingleEnquiry = () => {
           <div className="flex items-center text-muted-foreground text-sm">
             <MapPin className="h-4 w-4 mr-1.5 text-primary/70" />
             {formatEnquiryLocation(enquiry) || "—"}
+            <div className="ml-2 rounded-full bg-muted px-2 ">
+              {isMyEnquiry && (
+                <div className="flex gap-3">
+                  <span className="flex gap-2 font-semibold">
+                    <span>Interested</span>
+                    {enquiry.interestedBrokersAndCompanies?.length || 0}
+                  </span>
+                  <span className="flex gap-2 font-semibold">
+                    <span>Submissions</span>
+                    {enquiry.submissionCount}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -426,7 +441,7 @@ const SingleEnquiry = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="w-full h-8 text-xs"
+                            className="w-full h-8 text-xs border"
                             onClick={() => {
                               if (propertyIdStr) {
                                 setPreviewPropertyId(propertyIdStr);
@@ -510,7 +525,7 @@ const SingleEnquiry = () => {
               {detailRow("Type", enquiry.enquiryType)}
               <Separator className="my-3" />
               {detailRow("Address", formatEnquiryLocation(enquiry) || "—")}
-              {detailRow("Source", enquiry.source)}
+
               {detailRow(
                 "Created",
                 new Date(enquiry.createdAt).toLocaleDateString()

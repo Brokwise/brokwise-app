@@ -84,11 +84,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: "/",
       icon: Home,
     },
-    {
-      title: "Projects",
-      url: "/projects",
-      icon: LandPlotIcon,
-    },
+
     {
       title: "Bookmarks",
       url: "/bookmarks",
@@ -113,6 +109,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "List Property",
       url: "/property/createProperty",
       icon: PlusCircle,
+    },
+    {
+      title: "Projects (Coming soon)",
+      url: "/projects",
+      icon: LandPlotIcon,
     },
   ];
 

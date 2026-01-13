@@ -21,8 +21,9 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
-import { formatEnquiryLocation } from "@/utils/helper";
+import { formatCurrency, formatEnquiryLocation } from "@/utils/helper";
 import { cn } from "@/lib/utils";
+import { useGetMyEnquiries } from "@/hooks/useEnquiry";
 
 interface EnquiryCardProps {
   enquiry: Enquiry | MarketplaceEnquiry;
@@ -34,16 +35,7 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
 
   // const isCompany = userData?.userType === "company";
   const locationTitle = formatEnquiryLocation(enquiry);
-
-  const formatCurrency = (amount: number) => {
-    if (amount >= 10000000) {
-      return `${(amount / 10000000).toFixed(2)} Cr`;
-    }
-    if (amount >= 100000) {
-      return `${(amount / 100000).toFixed(2)} L`;
-    }
-    return amount.toLocaleString("en-IN");
-  };
+  const { myEnquiries, isLoading } = useGetMyEnquiries();
 
   const getStatusConfig = (status: string) => {
     switch (status) {
@@ -77,8 +69,11 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
   const statusConfig = getStatusConfig(enquiry.status);
 
   // submissionCount exists on Enquiry but not MarketplaceEnquiry - check safely
-  const submissionCount = "submissionCount" in enquiry ? (enquiry.submissionCount ?? 0) : 0;
-
+  const submissionCount =
+    "submissionCount" in enquiry ? enquiry.submissionCount ?? 0 : 0;
+  if (isLoading) {
+    return <div>loading...</div>;
+  }
   return (
     <Card
       className="group relative overflow-hidden border border-border/50 bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/20 cursor-pointer"
@@ -169,12 +164,13 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
             })}
           </div>
           {/* Responses Indicator */}
-          {submissionCount > 0 && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500 text-white text-xs font-semibold shadow-sm">
-              <MessageSquare className="h-3.5 w-3.5" />
-              <span>{submissionCount}</span>
-            </div>
-          )}
+          {submissionCount > 0 &&
+            myEnquiries?.find((e) => e._id == enquiry._id) && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500 text-white text-xs font-semibold shadow-sm">
+                <MessageSquare className="h-3.5 w-3.5" />
+                <span>{submissionCount}</span>
+              </div>
+            )}
         </div>
 
         <Button

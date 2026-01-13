@@ -38,7 +38,10 @@ export const FilteredProperties = ({
       <div className="flex-1 border-r flex flex-col">
         <div className="p-4 border-b bg-muted/10">
           <h3 className="font-medium text-sm text-muted-foreground">
-            Select a Property
+            Select a Property{" "}
+            <Badge className="ml-1" variant={"outline"}>
+              {filteredProperties?.length}
+            </Badge>
           </h3>
         </div>
         {isPropertiesLoading ? (

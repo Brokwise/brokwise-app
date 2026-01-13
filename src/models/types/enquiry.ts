@@ -98,6 +98,8 @@ export interface Enquiry {
 
   createdByCompanyId?: string;
 
+  interestedBrokersAndCompanies?: string[];
+
   createdAt: string;
   updatedAt: string;
 }
@@ -131,7 +133,7 @@ export interface EnquirySubmission {
 
   contactSharedWithSubmitter?: boolean;
   contactSharedAt?: string;
-
+  receivedAt: string;
   createdAt: string;
   updatedAt: string;
 }

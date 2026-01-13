@@ -10,11 +10,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { useSharePropertyContact } from "@/hooks/useProperty";
 import { toast } from "sonner";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ShareContactDialogProps {
   isOpen: boolean;
@@ -23,20 +26,48 @@ interface ShareContactDialogProps {
   offerId: string;
 }
 
+const TIME_SLOTS = [
+  "09:00 AM",
+  "09:30 AM",
+  "10:00 AM",
+  "10:30 AM",
+  "11:00 AM",
+  "11:30 AM",
+  "12:00 PM",
+  "12:30 PM",
+  "01:00 PM",
+  "01:30 PM",
+  "02:00 PM",
+  "02:30 PM",
+  "03:00 PM",
+  "03:30 PM",
+  "04:00 PM",
+  "04:30 PM",
+  "05:00 PM",
+  "05:30 PM",
+  "06:00 PM",
+  "06:30 PM",
+  "07:00 PM",
+];
+
 export const ShareContactDialog = ({
   isOpen,
   onClose,
   propertyId,
   offerId,
 }: ShareContactDialogProps) => {
-  const [availability, setAvailability] = useState("");
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [selectedTime, setSelectedTime] = useState<string>("");
   const { sharePropertyContact, isPending } = useSharePropertyContact();
 
   const handleSubmit = () => {
-    if (!availability.trim()) {
-      toast.error("Please provide your availability for a call");
+    if (!date || !selectedTime) {
+      toast.error("Please select both a date and a time slot");
       return;
     }
+
+    const formattedDate = format(date, "EEE, MMM d, yyyy");
+    const availability = `${formattedDate} at ${selectedTime}`;
 
     sharePropertyContact(
       {
@@ -48,7 +79,8 @@ export const ShareContactDialog = ({
         onSuccess: () => {
           toast.success("Contact details shared successfully!");
           onClose();
-          setAvailability("");
+          setSelectedTime("");
+          setDate(new Date());
         },
         onError: (error) => {
           toast.error(error.message || "Failed to share contact details");
@@ -59,26 +91,52 @@ export const ShareContactDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Share Contact Details</DialogTitle>
           <DialogDescription>
-            Share your contact details with the user who made the offer. They
-            will receive your phone number and email.
+            Share your contact details with the user who made the offer. Pick a
+            time when you are available for a call.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="availability">
-              When are you available for a call?
-            </Label>
-            <Textarea
-              id="availability"
-              placeholder="e.g., Weekdays after 6 PM, or this Saturday between 10 AM - 2 PM"
-              value={availability}
-              onChange={(e) => setAvailability(e.target.value)}
-              rows={3}
-            />
+        <div className="flex flex-col md:flex-row gap-6 py-4">
+          <div className="flex flex-col gap-3">
+            <Label>Select Date</Label>
+            <div className="border rounded-md p-1">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                disabled={(date) => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  return date < today;
+                }}
+                initialFocus
+                className="rounded-md"
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-3 flex-1">
+            <Label>Select Time</Label>
+            <ScrollArea className="h-[300px] border rounded-md p-4">
+              <div className="grid grid-cols-2 gap-2">
+                {TIME_SLOTS.map((time) => (
+                  <Button
+                    key={time}
+                    variant={selectedTime === time ? "default" : "outline"}
+                    className={cn(
+                      "w-full justify-center",
+                      selectedTime === time &&
+                        "bg-primary text-primary-foreground"
+                    )}
+                    onClick={() => setSelectedTime(time)}
+                  >
+                    {time}
+                  </Button>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
         </div>
         <DialogFooter>
@@ -87,7 +145,7 @@ export const ShareContactDialog = ({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isPending || !availability.trim()}
+            disabled={isPending || !date || !selectedTime}
           >
             {isPending ? (
               <>

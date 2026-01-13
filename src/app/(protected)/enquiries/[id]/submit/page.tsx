@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGetEnquiryById } from "@/hooks/useEnquiry";
-import { useGetAllProperties } from "@/hooks/useProperty";
+import { useGetMyListings } from "@/hooks/useProperty";
 import {
   useSubmitPropertyToEnquiry,
   useSubmitFreshProperty,
@@ -40,7 +40,7 @@ export default function SubmitEnquiryPage() {
 
   const [activeTab, setActiveTab] = useState<"existing" | "new">("existing");
   const [message, setMessage] = useState("");
-  const { properties, isLoading: isPropertiesLoading } = useGetAllProperties();
+  const { myListings, isLoading: isPropertiesLoading } = useGetMyListings();
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
     null
   );
@@ -145,14 +145,16 @@ export default function SubmitEnquiryPage() {
     setFreshPropertyData(data);
     setView("message");
   };
-  console.log(properties);
+  console.log(myListings);
 
-  const filteredProperties = properties?.filter(
+  const filteredProperties = myListings?.filter(
     (property) =>
       property.listingStatus.toLowerCase() === "active" &&
       property.propertyCategory.toLowerCase() ===
         enquiry.enquiryCategory.toLowerCase() &&
-      property.propertyType.toLowerCase() === enquiry.enquiryType.toLowerCase()
+      property.propertyType.toLowerCase() ===
+        enquiry.enquiryType.toLowerCase() &&
+      !property.deletingStatus
   );
 
   const renderWizard = () => {

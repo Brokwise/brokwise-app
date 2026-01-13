@@ -93,14 +93,14 @@ export const useCreateEnquiry = () => {
 };
 export const useGetMyEnquiries = () => {
   const api = useAxios();
-  const { data, isPending, error } = useQuery<Enquiry[]>({
+  const { data, isLoading, error } = useQuery<Enquiry[]>({
     queryKey: ["my-enquiries"],
     queryFn: async () => {
       return (await api.get("/broker/enquiry/my-requirements")).data.data
         .enquiries;
     },
   });
-  return { myEnquiries: data, isPending, error };
+  return { myEnquiries: data, isLoading, error };
 };
 export const useGetEnquiryById = (id: string) => {
   const api = useAxios();
