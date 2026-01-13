@@ -22,7 +22,7 @@ const config: CapacitorConfig = {
       scheme: "brokwise",
     },
     SplashScreen: {
-      launchShowDuration: 0,
+      launchShowDuration: 3,
     },
     Browser: {
       customScheme: "brokwise",
