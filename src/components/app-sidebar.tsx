@@ -17,6 +17,7 @@ import {
   LandPlotIcon,
   ChevronRight,
   Contact2,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -44,12 +45,24 @@ import {
 } from "@/components/ui/collapsible";
 import { useApp } from "@/context/AppContext";
 
+type SidebarNavSubItem = {
+  title: string;
+  url: string;
+};
+
+type SidebarNavItem = {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  items?: SidebarNavSubItem[];
+};
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { companyData } = useApp();
 
   // Company Navigation
-  const companyNav = [
+  const companyNav: SidebarNavItem[] = [
     {
       title: "Dashboard",
       url: "/company-dashboard",
@@ -102,7 +115,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   ];
 
   // Regular Broker Navigation
-  const brokerNav = [
+  const brokerNav: SidebarNavItem[] = [
     {
       title: "Home",
       url: "/",
@@ -146,7 +159,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ];
 
-  const resourcesNav = [
+  const resourcesNav: SidebarNavItem[] = [
     {
       title: "Land Convertor",
       url: "/resources/land-convertor",
@@ -194,7 +207,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ];
 
-  const sidebarItems = companyData ? companyNav : brokerNav;
+  const sidebarItems: SidebarNavItem[] = companyData ? companyNav : brokerNav;
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -219,15 +232,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupContent>
             <SidebarMenu>
               {sidebarItems.map((item) => {
-                // @ts-ignore
-                if (item.items && item.items.length > 0) {
+                if (item.items?.length) {
                   return (
                     <Collapsible
                       key={item.title}
                       asChild
-                      // @ts-ignore
                       defaultOpen={item.items.some(
-                        (subItem: any) => pathname === subItem.url
+                        (subItem) => pathname === subItem.url
                       )}
                       className="group/collapsible"
                     >
@@ -241,7 +252,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                           <SidebarMenuSub>
-                            {/* @ts-ignore */}
                             {item.items.map((subItem) => (
                               <SidebarMenuSubItem key={subItem.title}>
                                 <SidebarMenuSubButton

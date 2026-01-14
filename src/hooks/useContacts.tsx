@@ -41,7 +41,6 @@ export const useGetContacts = (
       total: data?.total ?? 0,
       page: data?.page ?? filters.page ?? 1,
       totalPages: data?.totalPages ?? 1,
-      limit: data?.limit ?? filters.limit ?? 20,
     },
     isLoading,
     error,

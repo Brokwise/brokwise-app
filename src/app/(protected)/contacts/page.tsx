@@ -95,10 +95,9 @@ const ContactsPage = () => {
   const { stats, isPending: isStatsLoading } = useGetContactStats();
 
   // Search contacts
-  const { searchResults, isPending: isSearching } = useSearchContacts(
-    debouncedSearch,
-    { enabled: !!debouncedSearch }
-  );
+  const { searchResults } = useSearchContacts(debouncedSearch, {
+    enabled: !!debouncedSearch,
+  });
 
   // Delete mutation
   const { deleteContact, isPending: isDeleting } = useDeleteContact();
@@ -305,14 +304,8 @@ const ContactsPage = () => {
         )}
       </div>
 
-      {/* Pagination */}
       {!debouncedSearch && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between border-t pt-6">
-          <p className="text-sm text-muted-foreground">
-            Showing {(currentPage - 1) * pagination.limit + 1} to{" "}
-            {Math.min(currentPage * pagination.limit, pagination.total)} of{" "}
-            {pagination.total} contacts
-          </p>
           <div className="flex gap-2">
             <Button
               variant="outline"

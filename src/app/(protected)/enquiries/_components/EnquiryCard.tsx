@@ -74,14 +74,13 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
   if (isLoading) {
     return <div>loading...</div>;
   }
-  console.log(userData);
   return (
     <Card
       className="group relative overflow-hidden border border-border/50 bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/20 cursor-pointer"
       onClick={() => {
-        isCompany
-          ? router.push(`/company-enquiries/marketplace/${enquiry._id}`)
-          : router.push(`/enquiries/${enquiry._id}`);
+        if (isCompany)
+          router.push(`/company-enquiries/marketplace/${enquiry._id}`);
+        else router.push(`/enquiries/${enquiry._id}`);
       }}
     >
       <CardHeader className="p-5 pb-3">
