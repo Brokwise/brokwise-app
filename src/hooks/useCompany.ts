@@ -53,9 +53,10 @@ export interface CompanyEnquiriesResponse {
     totalPages: number;
   };
 }
-export interface GetBrokerDetails {
+export interface GetBrokerDetails extends Broker {
   properties: Property[];
   enquiries: Enquiry[];
+  broker: Broker;
 }
 
 export const useGetCompanyProperties = (

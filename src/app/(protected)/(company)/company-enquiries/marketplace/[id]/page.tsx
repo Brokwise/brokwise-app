@@ -41,9 +41,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ReceivedProperties } from "./_components/received-properties";
-import { AdminMessages } from "./_components/admin-messages";
-import { PropertyPreviewModal } from "./_components/PropertyPreviewModal";
+import { ReceivedProperties } from "@/app/(protected)/enquiries/[id]/_components/received-properties";
+import { AdminMessages } from "@/app/(protected)/enquiries/[id]/_components/admin-messages";
+import { PropertyPreviewModal } from "@/app/(protected)/enquiries/[id]/_components/PropertyPreviewModal";
 import {
   formatCurrencyEnquiry,
   getStatusColor,
@@ -72,7 +72,7 @@ const getPropertyId = (submission: EnquirySubmission): string | null => {
   return null;
 };
 
-const SingleEnquiry = () => {
+const ViewMarketPlaceEnquiry = () => {
   const { id } = useParams();
   const { brokerData } = useApp();
   const [confirmationText, setConfirmationText] = useState<string>("");
@@ -93,8 +93,8 @@ const SingleEnquiry = () => {
     myEnquiries &&
     myEnquiries.length > 0 &&
     myEnquiries.some((e) => e._id === enquiry?._id);
-  console.log(isMyEnquiry);
-  console.log(enquiry?.interestedBrokersAndCompanies);
+  console.log(enquiry);
+
   if (isPending) {
     return (
       <div className="flex h-full w-full items-center justify-center min-h-[60vh]">
@@ -575,4 +575,4 @@ const SingleEnquiry = () => {
   );
 };
 
-export default SingleEnquiry;
+export default ViewMarketPlaceEnquiry;

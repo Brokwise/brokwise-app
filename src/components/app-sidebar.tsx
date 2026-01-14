@@ -15,6 +15,8 @@ import {
   Calculator,
   Gavel,
   LandPlotIcon,
+  ChevronRight,
+  Contact2,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -30,8 +32,16 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useApp } from "@/context/AppContext";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -59,6 +69,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Enquiries",
       url: "/company-enquiries",
       icon: FileText,
+      items: [
+        {
+          title: "Company Enquiry",
+          url: "/company-enquiries/company",
+        },
+        {
+          title: "Broker Enquiry",
+          url: "/company-enquiries/brokers",
+        },
+        {
+          title: "Marketplace Enquiry",
+          url: "/company-enquiries/marketplace",
+        },
+      ],
     },
     {
       title: "Bookmarks",
@@ -109,6 +133,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "List Property",
       url: "/property/createProperty",
       icon: PlusCircle,
+    },
+    {
+      title: "Contacts",
+      url: "/contacts",
+      icon: Contact2,
     },
     {
       title: "Projects (Coming soon)",
@@ -189,20 +218,63 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {sidebarItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip={item.title}
-                    isActive={pathname === item.url}
-                  >
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {sidebarItems.map((item) => {
+                // @ts-ignore
+                if (item.items && item.items.length > 0) {
+                  return (
+                    <Collapsible
+                      key={item.title}
+                      asChild
+                      // @ts-ignore
+                      defaultOpen={item.items.some(
+                        (subItem: any) => pathname === subItem.url
+                      )}
+                      className="group/collapsible"
+                    >
+                      <SidebarMenuItem>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton tooltip={item.title}>
+                            <item.icon />
+                            <span>{item.title}</span>
+                            <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {/* @ts-ignore */}
+                            {item.items.map((subItem) => (
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={pathname === subItem.url}
+                                >
+                                  <Link href={subItem.url}>
+                                    <span>{subItem.title}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </SidebarMenuItem>
+                    </Collapsible>
+                  );
+                }
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      tooltip={item.title}
+                      isActive={pathname === item.url}
+                    >
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -235,10 +307,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter className="border-t border-sidebar-border">
         <div className="px-4 py-3 group-data-[collapsible=icon]:hidden">
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <Link href="/privacy-policy" className="hover:text-sidebar-foreground transition-colors">Privacy</Link>
-            <Link href="/terms-and-conditions" className="hover:text-sidebar-foreground transition-colors">Terms</Link>
+            <Link
+              href="/privacy-policy"
+              className="hover:text-sidebar-foreground transition-colors"
+            >
+              Privacy
+            </Link>
+            <Link
+              href="/terms-and-conditions"
+              className="hover:text-sidebar-foreground transition-colors"
+            >
+              Terms
+            </Link>
           </div>
-          <p className="text-[10px] text-muted-foreground/60 mt-1">© {new Date().getFullYear()} Brokwise</p>
+          <p className="text-[10px] text-muted-foreground/60 mt-1">
+            © {new Date().getFullYear()} Brokwise
+          </p>
         </div>
       </SidebarFooter>
       <SidebarRail />

@@ -108,9 +108,11 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
         "/profile",
         "/company-properties",
         "/company-enquiries",
+        "/company-enquiries/marketplace",
         "/enquiries/create",
         "/property",
         "/company-brokers/",
+        "",
       ];
       const isAllowed = allowedPaths.some(
         (path) => pathname === path || pathname.startsWith(`${path}/`)
@@ -168,13 +170,6 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
       case "blacklisted":
         return <StatusDisplay data={companyData} type="company" />;
       case "approved":
-        // For approved users, show the main app
-        // The useEffect above handles redirection if they are on wrong page.
-        // But we must render children so the router can actually switch to /brokers
-        // However, if we are on /properties (default /), we show children which is Properties page.
-        // We want to avoid flash of content.
-        // But since useEffect runs after render, there might be a flash.
-        // We can return null if path is not allowed.
         const allowedPaths = [
           "/company-brokers",
           "/profile",
@@ -188,7 +183,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
         const isAllowed = allowedPaths.some(
           (path) => pathname === path || pathname.startsWith(`${path}/`)
         );
-        if (!isAllowed) return null; // Or a loader
+        if (!isAllowed) return null;
 
         return children;
       default:

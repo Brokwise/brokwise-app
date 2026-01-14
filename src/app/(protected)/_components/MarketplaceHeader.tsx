@@ -337,294 +337,342 @@ export const MarketplaceHeader = ({
       {/* Controls: Filter Pills + View Toggle */}
       <div className="flex flex-col gap-3 sm:gap-4 w-full">
         {/* Category Pills (Scrollable) - Full width on mobile */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 w-full scrollbar-thin -mx-3 px-3 sm:mx-0 sm:px-0">
-          {categoryPills.map((pill) => (
-            <Button
-              key={pill.value}
-              variant={categoryFilter === pill.value ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => {
-                setCategoryFilter(pill.value);
-                // Reset dependent filters when category changes via pills
-                setPropertyTypeFilter("ALL");
-                if (pill.value !== "ALL" && pill.value !== "RESIDENTIAL") {
-                  setBhkFilter("ALL");
-                }
-              }}
-              className={`shrink-0 rounded-full px-2.5 sm:px-4 h-7 sm:h-8 font-medium border text-xs sm:text-sm transition-all ${
-                categoryFilter === pill.value
-                  ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary"
-              }`}
-            >
-              {pill.label}
-            </Button>
-          ))}
-        </div>
-
-        {/* Right Side Actions - Filter + View Toggle */}
-        <div className="flex items-center gap-2 sm:gap-3 justify-end">
-          {/* Advanced Filters Trigger */}
-          <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-            <DialogTrigger asChild>
+        <div className="flex justify-between w-full">
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 w-full scrollbar-thin -mx-3 px-3 sm:mx-0 sm:px-0">
+            {categoryPills.map((pill) => (
               <Button
-                variant="outline"
+                key={pill.value}
+                variant={categoryFilter === pill.value ? "secondary" : "ghost"}
                 size="sm"
-                className={`relative gap-1.5 sm:gap-2 h-8 rounded-full border-border/60 hover:bg-secondary hover:border-border px-2.5 sm:px-3 ${
-                  hasActiveFilters
-                    ? "text-accent border-accent/30 bg-accent/5"
-                    : "text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setCategoryFilter(pill.value);
+                  // Reset dependent filters when category changes via pills
+                  setPropertyTypeFilter("ALL");
+                  if (pill.value !== "ALL" && pill.value !== "RESIDENTIAL") {
+                    setBhkFilter("ALL");
+                  }
+                }}
+                className={`shrink-0 rounded-full px-2.5 sm:px-4 h-7 sm:h-8 font-medium border text-xs sm:text-sm transition-all ${
+                  categoryFilter === pill.value
+                    ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary"
                 }`}
               >
-                <FilterIcon className="h-3.5 w-3.5" />
-                <span className="hidden xs:inline sm:inline">Filters</span>
-                {hasActiveFilters && (
-                  <span className="flex h-1.5 w-1.5 rounded-full bg-accent" />
-                )}
-                <ChevronDown className="h-3 w-3 opacity-50" />
+                {pill.label}
               </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] max-h-[85vh] overflow-y-auto rounded-xl mx-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  Filter{" "}
-                  {viewMode === "PROPERTIES" ? "Properties" : "Enquiries"}
-                </DialogTitle>
-                <DialogDescription>
-                  Refine your search with specific criteria.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-6 py-4">
-                {/* Category */}
-                <div className="space-y-2">
-                  <Label>
-                    {viewMode === "PROPERTIES" ? "Property" : "Enquiry"}{" "}
-                    Category
-                  </Label>
-                  <Select
-                    value={categoryFilter}
-                    onValueChange={(val) => {
-                      setCategoryFilter(val);
-                      setPropertyTypeFilter("ALL");
-                      if (val !== "ALL" && val !== "RESIDENTIAL") {
-                        setBhkFilter("ALL");
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categoryPills.map((pill) => (
-                        <SelectItem key={pill.value} value={pill.value}>
-                          {pill.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            ))}
+          </div>
 
-                {/* Property Type - Only for Properties view */}
-                {viewMode === "PROPERTIES" && categoryFilter !== "ALL" && (
-                  <div className="space-y-2">
-                    <Label>Property Type</Label>
-                    <Select
-                      value={propertyTypeFilter}
-                      onValueChange={setPropertyTypeFilter}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {propertyTypeOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {/* Price/Budget Range */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <Label>
-                      {viewMode === "PROPERTIES" ? "Price" : "Budget"} Range
-                    </Label>
-                    <div className="text-xs text-muted-foreground font-medium">
-                      {formatPriceShort(effectivePriceRange[0])} -{" "}
-                      {formatPriceShort(effectivePriceRange[1])}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">
-                        Min
-                      </Label>
-                      <Input
-                        inputMode="numeric"
-                        type="number"
-                        min={0}
-                        max={effectivePriceRange[1]}
-                        value={effectivePriceRange[0]}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          const next = raw === "" ? 0 : Number(raw);
-                          if (!Number.isFinite(next)) return;
-                          setPriceRange([
-                            Math.max(0, Math.min(next, effectivePriceRange[1])),
-                            effectivePriceRange[1],
-                          ]);
-                        }}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">
-                        Max
-                      </Label>
-                      <Input
-                        inputMode="numeric"
-                        type="number"
-                        min={effectivePriceRange[0]}
-                        max={maxPropertyPrice}
-                        value={effectivePriceRange[1]}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          const next =
-                            raw === "" ? maxPropertyPrice : Number(raw);
-                          if (!Number.isFinite(next)) return;
-                          setPriceRange([
-                            effectivePriceRange[0],
-                            Math.min(
-                              maxPropertyPrice,
-                              Math.max(next, effectivePriceRange[0])
-                            ),
-                          ]);
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <Slider
-                    min={0}
-                    max={maxPropertyPrice}
-                    step={100000}
-                    value={effectivePriceRange}
-                    onValueChange={(value) => setPriceRange(value)}
-                    className="py-2"
-                  />
-                </div>
-
-                {/* BHK - Only shown for Residential */}
-                {showBhkFilter && (
-                  <div className="space-y-2">
-                    <Label>BHK (Bedrooms)</Label>
-                    <Select value={bhkFilter} onValueChange={setBhkFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="BHK" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ALL">Any BHK</SelectItem>
-                        <SelectItem value="1">1 BHK</SelectItem>
-                        <SelectItem value="2">2 BHK</SelectItem>
-                        <SelectItem value="3">3 BHK</SelectItem>
-                        <SelectItem value="4">4 BHK</SelectItem>
-                        <SelectItem value="5+">5+ BHK</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {/* Source Filter for Companies */}
-                {userData?.userType === "company" && (
-                  <div className="space-y-2">
-                    <Label>Listed By</Label>
-                    <Select
-                      value={sourceFilter}
-                      onValueChange={setSourceFilter}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Source" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ALL">All Sources</SelectItem>
-                        <SelectItem value="BROKER">Broker Listed</SelectItem>
-                        <SelectItem value="COMPANY">Company Listed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-              <DialogFooter className="gap-2 sm:gap-0">
+          <div className="flex items-center gap-2 sm:gap-3 justify-end">
+            {" "}
+            {/* Advanced Filters Trigger */}{" "}
+            <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              {" "}
+              <DialogTrigger asChild>
                 <Button
                   variant="outline"
-                  onClick={clearFilters}
-                  disabled={!hasActiveFilters && searchQuery === ""}
+                  size="sm"
+                  className={`relative gap-1.5 sm:gap-2 h-8 rounded-full border-border/60 hover:bg-secondary hover:border-border px-2.5 sm:px-3 ${
+                    hasActiveFilters
+                      ? "text-accent border-accent/30 bg-accent/5"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
                 >
-                  Reset
+                  <FilterIcon className="h-3.5 w-3.5" />
+                  <span className="hidden xs:inline sm:inline">Filters</span>
+                  {hasActiveFilters && (
+                    <span className="flex h-1.5 w-1.5 rounded-full bg-accent" />
+                  )}
+                  <ChevronDown className="h-3 w-3 opacity-50" />
                 </Button>
-                <Button onClick={() => setIsFilterOpen(false)}>
-                  View {currentCount}{" "}
-                  {viewMode === "PROPERTIES" ? "Properties" : "Enquiries"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* View Toggles - Only for Properties */}
-          {viewMode === "PROPERTIES" && (
-            <div className="flex items-center gap-0.5 bg-secondary/50 p-0.5 rounded-full border border-border/40">
-              <Button
-                variant={view === "grid" ? "default" : "ghost"}
-                size="icon"
-                onClick={() => {
-                  setView("grid");
-                  onClearPropertySelection();
-                }}
-                className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${
-                  view === "grid"
-                    ? "shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                }`}
-                title="Grid View"
-              >
-                <LayoutGridIcon className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant={view === "map" ? "default" : "ghost"}
-                size="icon"
-                onClick={() => {
-                  setView("map");
-                  onClearPropertySelection();
-                }}
-                className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${
-                  view === "map"
-                    ? "shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                }`}
-                title="Map View"
-              >
-                <MapPin className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant={view === "split" ? "default" : "ghost"}
-                size="icon"
-                onClick={() => {
-                  setView("split");
-                  onClearPropertySelection();
-                }}
-                className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full hidden md:flex transition-all duration-300 ${
-                  view === "split"
-                    ? "shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                }`}
-                title="Split View"
-              >
-                <Columns className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          )}
+              </DialogTrigger>{" "}
+              <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] max-h-[85vh] overflow-y-auto rounded-xl mx-auto">
+                {" "}
+                <DialogHeader>
+                  {" "}
+                  <DialogTitle>
+                    {" "}
+                    Filter{" "}
+                    {viewMode === "PROPERTIES"
+                      ? "Properties"
+                      : "Enquiries"}{" "}
+                  </DialogTitle>{" "}
+                  <DialogDescription>
+                    {" "}
+                    Refine your search with specific criteria.{" "}
+                  </DialogDescription>{" "}
+                </DialogHeader>{" "}
+                <div className="grid gap-6 py-4">
+                  {" "}
+                  {/* Category */}{" "}
+                  <div className="space-y-2">
+                    {" "}
+                    <Label>
+                      {" "}
+                      {viewMode === "PROPERTIES" ? "Property" : "Enquiry"}{" "}
+                      Category{" "}
+                    </Label>{" "}
+                    <Select
+                      value={categoryFilter}
+                      onValueChange={(val) => {
+                        setCategoryFilter(val);
+                        setPropertyTypeFilter("ALL");
+                        if (val !== "ALL" && val !== "RESIDENTIAL") {
+                          setBhkFilter("ALL");
+                        }
+                      }}
+                    >
+                      {" "}
+                      <SelectTrigger>
+                        {" "}
+                        <SelectValue placeholder="Select Category" />{" "}
+                      </SelectTrigger>{" "}
+                      <SelectContent>
+                        {" "}
+                        {categoryPills.map((pill) => (
+                          <SelectItem key={pill.value} value={pill.value}>
+                            {" "}
+                            {pill.label}{" "}
+                          </SelectItem>
+                        ))}{" "}
+                      </SelectContent>{" "}
+                    </Select>{" "}
+                  </div>{" "}
+                  {/* Property Type - Only for Properties view */}{" "}
+                  {viewMode === "PROPERTIES" && categoryFilter !== "ALL" && (
+                    <div className="space-y-2">
+                      {" "}
+                      <Label>Property Type</Label>{" "}
+                      <Select
+                        value={propertyTypeFilter}
+                        onValueChange={setPropertyTypeFilter}
+                      >
+                        {" "}
+                        <SelectTrigger>
+                          {" "}
+                          <SelectValue placeholder="Select Type" />{" "}
+                        </SelectTrigger>{" "}
+                        <SelectContent>
+                          {" "}
+                          {propertyTypeOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {" "}
+                              {option.label}{" "}
+                            </SelectItem>
+                          ))}{" "}
+                        </SelectContent>{" "}
+                      </Select>{" "}
+                    </div>
+                  )}{" "}
+                  {/* Price/Budget Range */}{" "}
+                  <div className="space-y-4">
+                    {" "}
+                    <div className="flex justify-between items-center">
+                      {" "}
+                      <Label>
+                        {" "}
+                        {viewMode === "PROPERTIES"
+                          ? "Price"
+                          : "Budget"} Range{" "}
+                      </Label>{" "}
+                      <div className="text-xs text-muted-foreground font-medium">
+                        {" "}
+                        {formatPriceShort(effectivePriceRange[0])} -{" "}
+                        {formatPriceShort(effectivePriceRange[1])}{" "}
+                      </div>{" "}
+                    </div>{" "}
+                    <div className="grid grid-cols-2 gap-3">
+                      {" "}
+                      <div className="space-y-1">
+                        {" "}
+                        <Label className="text-xs text-muted-foreground">
+                          {" "}
+                          Min{" "}
+                        </Label>{" "}
+                        <Input
+                          inputMode="numeric"
+                          type="number"
+                          min={0}
+                          max={effectivePriceRange[1]}
+                          value={effectivePriceRange[0]}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            const next = raw === "" ? 0 : Number(raw);
+                            if (!Number.isFinite(next)) return;
+                            setPriceRange([
+                              Math.max(
+                                0,
+                                Math.min(next, effectivePriceRange[1])
+                              ),
+                              effectivePriceRange[1],
+                            ]);
+                          }}
+                        />{" "}
+                      </div>{" "}
+                      <div className="space-y-1">
+                        {" "}
+                        <Label className="text-xs text-muted-foreground">
+                          {" "}
+                          Max{" "}
+                        </Label>{" "}
+                        <Input
+                          inputMode="numeric"
+                          type="number"
+                          min={effectivePriceRange[0]}
+                          max={maxPropertyPrice}
+                          value={effectivePriceRange[1]}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            const next =
+                              raw === "" ? maxPropertyPrice : Number(raw);
+                            if (!Number.isFinite(next)) return;
+                            setPriceRange([
+                              effectivePriceRange[0],
+                              Math.min(
+                                maxPropertyPrice,
+                                Math.max(next, effectivePriceRange[0])
+                              ),
+                            ]);
+                          }}
+                        />{" "}
+                      </div>{" "}
+                    </div>{" "}
+                    <Slider
+                      min={0}
+                      max={maxPropertyPrice}
+                      step={100000}
+                      value={effectivePriceRange}
+                      onValueChange={(value) => setPriceRange(value)}
+                      className="py-2"
+                    />{" "}
+                  </div>{" "}
+                  {/* BHK - Only shown for Residential */}{" "}
+                  {showBhkFilter && (
+                    <div className="space-y-2">
+                      {" "}
+                      <Label>BHK (Bedrooms)</Label>{" "}
+                      <Select value={bhkFilter} onValueChange={setBhkFilter}>
+                        {" "}
+                        <SelectTrigger>
+                          {" "}
+                          <SelectValue placeholder="BHK" />{" "}
+                        </SelectTrigger>{" "}
+                        <SelectContent>
+                          {" "}
+                          <SelectItem value="ALL">Any BHK</SelectItem>{" "}
+                          <SelectItem value="1">1 BHK</SelectItem>{" "}
+                          <SelectItem value="2">2 BHK</SelectItem>{" "}
+                          <SelectItem value="3">3 BHK</SelectItem>{" "}
+                          <SelectItem value="4">4 BHK</SelectItem>{" "}
+                          <SelectItem value="5+">5+ BHK</SelectItem>{" "}
+                        </SelectContent>{" "}
+                      </Select>{" "}
+                    </div>
+                  )}{" "}
+                  {/* Source Filter for Companies */}{" "}
+                  {userData?.userType === "company" && (
+                    <div className="space-y-2">
+                      {" "}
+                      <Label>Listed By</Label>{" "}
+                      <Select
+                        value={sourceFilter}
+                        onValueChange={setSourceFilter}
+                      >
+                        {" "}
+                        <SelectTrigger>
+                          {" "}
+                          <SelectValue placeholder="Source" />{" "}
+                        </SelectTrigger>{" "}
+                        <SelectContent>
+                          {" "}
+                          <SelectItem value="ALL">All Sources</SelectItem>{" "}
+                          <SelectItem value="BROKER">Broker Listed</SelectItem>{" "}
+                          <SelectItem value="COMPANY">
+                            Company Listed
+                          </SelectItem>{" "}
+                        </SelectContent>{" "}
+                      </Select>{" "}
+                    </div>
+                  )}{" "}
+                </div>{" "}
+                <DialogFooter className="gap-2 sm:gap-0">
+                  {" "}
+                  <Button
+                    variant="outline"
+                    onClick={clearFilters}
+                    disabled={!hasActiveFilters && searchQuery === ""}
+                  >
+                    {" "}
+                    Reset{" "}
+                  </Button>{" "}
+                  <Button onClick={() => setIsFilterOpen(false)}>
+                    {" "}
+                    View {currentCount}{" "}
+                    {viewMode === "PROPERTIES" ? "Properties" : "Enquiries"}{" "}
+                  </Button>{" "}
+                </DialogFooter>{" "}
+              </DialogContent>{" "}
+            </Dialog>{" "}
+            {/* View Toggles - Only for Properties */}{" "}
+            {viewMode === "PROPERTIES" && (
+              <div className="flex items-center gap-0.5 bg-secondary/50 p-0.5 rounded-full border border-border/40">
+                {" "}
+                <Button
+                  variant={view === "grid" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => {
+                    setView("grid");
+                    onClearPropertySelection();
+                  }}
+                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${
+                    view === "grid"
+                      ? "shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  }`}
+                  title="Grid View"
+                >
+                  {" "}
+                  <LayoutGridIcon className="h-3.5 w-3.5" />{" "}
+                </Button>{" "}
+                <Button
+                  variant={view === "map" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => {
+                    setView("map");
+                    onClearPropertySelection();
+                  }}
+                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${
+                    view === "map"
+                      ? "shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  }`}
+                  title="Map View"
+                >
+                  {" "}
+                  <MapPin className="h-3.5 w-3.5" />{" "}
+                </Button>{" "}
+                <Button
+                  variant={view === "split" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => {
+                    setView("split");
+                    onClearPropertySelection();
+                  }}
+                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full hidden md:flex transition-all duration-300 ${
+                    view === "split"
+                      ? "shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  }`}
+                  title="Split View"
+                >
+                  {" "}
+                  <Columns className="h-3.5 w-3.5" />{" "}
+                </Button>{" "}
+              </div>
+            )}{" "}
+          </div>
         </div>
+        {/* Right Side Actions - Filter + View Toggle */}
       </div>
 
       {/* 3. Active Filters Quick Row (if filters active) */}

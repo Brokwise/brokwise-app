@@ -94,7 +94,11 @@ export interface Enquiry {
   forwardedTo: string[];
   submissionCount: number;
 
+  // User-contextual flags
   isInterested?: boolean;
+  isRecommended?: boolean;
+  isOwner?: boolean;
+  mySubmissions?: EnquirySubmission[];
 
   createdByCompanyId?: string;
 

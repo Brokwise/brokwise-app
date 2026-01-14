@@ -220,7 +220,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     typeof coordinates[1] === "number";
 
   return (
-    <Card className="group overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 bg-card h-full flex flex-col rounded-3xl">
+    <Card className="group overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 bg-card h-[27rem] flex flex-col rounded-3xl">
       {/* Image Section */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
         <Link
@@ -239,7 +239,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             }
             alt={property.description || "Property Image"}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-700"
+            className="object-cover group-hover:scale-105 transition-transform duration-700 h-12!"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
         </Link>
@@ -421,19 +421,19 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       </div>
 
       {/* Content Section */}
-      <CardContent className="p-5 flex-grow flex flex-col gap-3">
-        <div className="flex justify-between items-start gap-2">
+      <CardContent className="p-3 flex-grow flex flex-col gap-1 md:gap-2">
+        <div className="flex justify-between items-start gap-1 md:gap-1">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs font-medium text-accent uppercase tracking-wider">
-              {property.propertyCategory}
+              <span className="text-xs">{property.propertyCategory}</span>
             </div>
-            <h3 className="font-semibold text-lg line-clamp-1 text-foreground leading-tight">
+            <h3 className="font-semibold text-sm! md:text-sm line-clamp-1 text-foreground leading-tight">
               {property.bhk ? `${property.bhk} BHK ` : ""}
               {property.propertyType.replace(/_/g, " ")}
             </h3>
             <div className="flex items-center text-muted-foreground text-sm">
               <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0 text-accent/70" />
-              <span className="line-clamp-1">
+              <span className="line-clamp-1 text-sm">
                 {formatAddress(property.address)}
               </span>
             </div>
@@ -442,8 +442,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
         <div className="h-px bg-border/40 my-1" />
 
-        <div className="grid grid-cols-3 gap-2 text-sm text-muted-foreground">
-          <div className="flex flex-col items-center justify-center gap-1.5">
+        <div className="grid grid-cols-3 gap-1 text-sm text-muted-foreground">
+          <div className="flex flex-col items-center justify-center gap-1">
             {property.propertyCategory === "RESIDENTIAL" && property.bhk ? (
               <>
                 <BedDouble className="h-4 w-4" />
@@ -459,7 +459,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             )}
           </div>
 
-          <div className="flex flex-col items-center justify-center gap-1.5 border-l border-border/40">
+          <div className="flex flex-col items-center justify-center gap-1 border-l border-border/40">
             {property.washrooms ? (
               <>
                 <Bath className="h-4 w-4" />

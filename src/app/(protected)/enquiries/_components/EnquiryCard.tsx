@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { formatCurrency, formatEnquiryLocation } from "@/utils/helper";
 import { cn } from "@/lib/utils";
 import { useGetMyEnquiries } from "@/hooks/useEnquiry";
+import { useApp } from "@/context/AppContext";
 
 interface EnquiryCardProps {
   enquiry: Enquiry | MarketplaceEnquiry;
@@ -31,9 +32,9 @@ interface EnquiryCardProps {
 
 export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
   const router = useRouter();
-  // const { userData } = useApp();
+  const { userData } = useApp();
 
-  // const isCompany = userData?.userType === "company";
+  const isCompany = userData?.userType === "company";
   const locationTitle = formatEnquiryLocation(enquiry);
   const { myEnquiries, isLoading } = useGetMyEnquiries();
 
@@ -68,16 +69,20 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
 
   const statusConfig = getStatusConfig(enquiry.status);
 
-  // submissionCount exists on Enquiry but not MarketplaceEnquiry - check safely
   const submissionCount =
     "submissionCount" in enquiry ? enquiry.submissionCount ?? 0 : 0;
   if (isLoading) {
     return <div>loading...</div>;
   }
+  console.log(userData);
   return (
     <Card
       className="group relative overflow-hidden border border-border/50 bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/20 cursor-pointer"
-      onClick={() => router.push(`/enquiries/${enquiry._id}`)}
+      onClick={() => {
+        isCompany
+          ? router.push(`/company-enquiries/marketplace/${enquiry._id}`)
+          : router.push(`/enquiries/${enquiry._id}`);
+      }}
     >
       <CardHeader className="p-5 pb-3">
         <div className="flex justify-between items-start mb-3">

@@ -147,13 +147,13 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
           <Button variant="outline" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
+          <div className="fle">
             {property.deletingStatus && (
               <div>This Property will deleted from the platform soon.</div>
             )}
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              Property Details
-              <span className="text-muted-foreground font-normal text-sm bg-muted px-2 py-1 rounded-md">
+            <h1 className="text-lg md:text-2xl font-bold flex items-center gap-2 flex flex-col md:flex-row">
+              <div>Property Details</div>
+              <span className="text-muted-foreground font-normal text-sm bg-muted px-2 py-1 rounded-md text-sm ">
                 ID: {property.propertyId || "N/A"}
               </span>
             </h1>
