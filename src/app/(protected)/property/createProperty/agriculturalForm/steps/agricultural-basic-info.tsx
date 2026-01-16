@@ -12,7 +12,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { LocationPicker } from "../../_components/locationPicker";
 
 interface AgriculturalBasicInfoProps {
-  //
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: any;
 }
