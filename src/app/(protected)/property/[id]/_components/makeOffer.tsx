@@ -57,8 +57,8 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
     const offerById =
       typeof offer.offerBy === "string"
         ? offer.offerBy
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        : (offer.offerBy as any)._id;
+        : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (offer.offerBy as any)._id;
     return offerById === brokerData._id;
   });
 
@@ -124,7 +124,8 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
       return (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            You haven&apos;t made an offer on this property yet. The asking rate is{" "}
+            You haven&apos;t made an offer on this property yet. The asking rate
+            is{" "}
             <span className="font-semibold text-foreground">
               {formatCurrency(property.rate)}
             </span>

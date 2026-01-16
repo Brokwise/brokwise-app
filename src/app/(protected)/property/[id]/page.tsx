@@ -25,24 +25,49 @@ import {
   Home,
   ShieldX,
   Download,
+  MoreVertical,
 } from "lucide-react";
 
 import { format } from "date-fns";
 import { MapBox } from "./_components/mapBox";
 import { KeyFeatures } from "./_components/keyFeatures";
 import { AdditionalDetails } from "./_components/additionalDetails";
-import { ContactSeller } from "./_components/contactSeller";
+
 import { MakeOffer } from "./_components/makeOffer";
 import { formatCurrency, formatAddress } from "@/utils/helper";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { PropertyPdfLayout } from "@/components/property-pdf/property-pdf-layout";
 import { exportElementAsPdf, makeSafeFilePart } from "@/utils/pdf";
 import { useApp } from "@/context/AppContext";
 import { PropertyOffers } from "./_components/propertyOffers";
+import Image from "next/image";
 
 const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
@@ -50,6 +75,10 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { property, isLoading, error } = useGetProperty(id);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [exportedOnLabel, setExportedOnLabel] = useState<string>("");
+  const [isFlagDialogOpen, setIsFlagDialogOpen] = useState(false);
+  const [flagReason, setFlagReason] = useState("");
+  const [flagNotes, setFlagNotes] = useState("");
+  const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
   const pdfRef = useRef<HTMLDivElement | null>(null);
   const { brokerData } = useApp();
   const handleExportPdf = useCallback(async () => {
@@ -77,6 +106,24 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
       setIsExportingPdf(false);
     }
   }, [property]);
+
+  const handleSubmitFlag = useCallback(async () => {
+    if (!flagReason || !property) return;
+    setIsSubmittingFlag(true);
+    try {
+      // Mock API call
+      await new Promise((resolve) => setTimeout(resolve, 900));
+      toast.success("Thanks for reporting. We'll review this property soon.");
+      setIsFlagDialogOpen(false);
+      setFlagReason("");
+      setFlagNotes("");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to submit report. Please try again.");
+    } finally {
+      setIsSubmittingFlag(false);
+    }
+  }, [flagReason, property]);
 
   if (isLoading) {
     return (
@@ -142,42 +189,152 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   return (
     <main className="container mx-auto py-8 px-4 max-w-7xl space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="fle">
-            {property.deletingStatus && (
-              <div>This Property will deleted from the platform soon.</div>
-            )}
-            <h1 className="text-lg md:text-2xl font-bold flex items-center gap-2 flex flex-col md:flex-row">
-              <div>Property Details</div>
-              <span className="text-muted-foreground font-normal text-sm bg-muted px-2 py-1 rounded-md text-sm ">
-                ID: {property.propertyId || "N/A"}
-              </span>
-            </h1>
+      <div className="flex flex-col gap-4 sm:gap-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3 w-full">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.back()}
+              className="gap-2 shrink-0"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="space-y-2 w-full">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl md:text-2xl font-semibold">
+                  Property Details
+                </h1>
+                <Badge
+                  variant={
+                    property.listingStatus === "ACTIVE"
+                      ? "default"
+                      : "secondary"
+                  }
+                  className={
+                    property.listingStatus === "ACTIVE"
+                      ? "bg-green-500 hover:bg-green-600"
+                      : ""
+                  }
+                >
+                  {property.listingStatus
+                    ? property.listingStatus.replace("_", " ")
+                    : "Status Unknown"}
+                </Badge>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground justify-between">
+                <span className="bg-muted px-2 py-1 rounded-md">
+                  ID: {property.propertyId || "N/A"}
+                </span>
+                {property.deletingStatus && (
+                  <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">
+                    Pending removal
+                  </Badge>
+                )}
+                <div className="flex items-center justify-end">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="icon" className="h-9 w-9">
+                        <MoreVertical className="h-4 w-4" />
+                        <span className="sr-only">Open actions</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem
+                        onClick={handleExportPdf}
+                        disabled={isExportingPdf}
+                      >
+                        {isExportingPdf ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Download className="mr-2 h-4 w-4" />
+                        )}
+                        Download property
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setIsFlagDialogOpen(true)}
+                      >
+                        <ShieldX className="mr-2 h-4 w-4" />
+                        Flag as inappropriate
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <Button
-          onClick={handleExportPdf}
-          disabled={isExportingPdf}
-          className="w-full sm:w-auto"
-        >
-          {isExportingPdf ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Download className="h-4 w-4 mr-2" />
-          )}
-          Export as PDF
-        </Button>
+        {property.deletingStatus && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            This property is scheduled to be removed from the platform soon.
+          </div>
+        )}
+
+        <Dialog open={isFlagDialogOpen} onOpenChange={setIsFlagDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Flag this property</DialogTitle>
+              <DialogDescription>
+                Tell us what seems wrong so we can review this listing.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="flag-reason">Reason</Label>
+                <Select value={flagReason} onValueChange={setFlagReason}>
+                  <SelectTrigger id="flag-reason">
+                    <SelectValue placeholder="Select a reason" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MISLEADING_INFORMATION">
+                      Misleading information
+                    </SelectItem>
+                    <SelectItem value="INCORRECT_PRICING">
+                      Incorrect pricing
+                    </SelectItem>
+                    <SelectItem value="DUPLICATE_LISTING">
+                      Duplicate listing
+                    </SelectItem>
+                    <SelectItem value="SCAM_OR_FRAUD">Scam or fraud</SelectItem>
+                    <SelectItem value="SPAM">Spam or promotional</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="flag-notes">Additional details</Label>
+                <Textarea
+                  id="flag-notes"
+                  value={flagNotes}
+                  onChange={(e) => setFlagNotes(e.target.value)}
+                  placeholder="Share any details that help us investigate."
+                  className="min-h-[96px]"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsFlagDialogOpen(false)}
+                disabled={isSubmittingFlag}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmitFlag}
+                disabled={!flagReason || isSubmittingFlag}
+              >
+                {isSubmittingFlag ? "Submitting..." : "Submit report"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Image Gallery */}
           <div className="rounded-xl overflow-hidden bg-muted aspect-video relative border">
             {allImages.length > 0 ? (
               <Carousel className="w-full h-full">
@@ -192,11 +349,12 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
                             className="w-full h-full object-contain"
                           />
                         ) : (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <Image
+                            width={500}
+                            height={500}
                             src={image}
                             alt={`Property ${index + 1}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-fill"
                             onError={(e) => {
                               e.currentTarget.src = "/images/placeholder.webp";
                             }}
@@ -397,12 +555,12 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
             <PropertyOffers property={property} />
           )}
 
-          {property.listedBy._id !== brokerData?._id &&
-            !property.deletingStatus && <ContactSeller property={property} />}
+          {/* {property.listedBy._id !== brokerData?._id &&
+            !property.deletingStatus && <ContactSeller property={property} />} */}
 
           {!property.deletingStatus && <MakeOffer property={property} />}
 
-          <Card>
+          <Card className="hidden md:block">
             <CardHeader>
               <CardTitle>Status</CardTitle>
             </CardHeader>

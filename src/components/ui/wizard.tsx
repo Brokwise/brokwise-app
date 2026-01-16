@@ -52,7 +52,7 @@ export const Wizard: React.FC<WizardProps> = ({
   const isFirstStep = currentStep === 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Progress Bar */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm text-muted-foreground">
@@ -115,7 +115,7 @@ export const Wizard: React.FC<WizardProps> = ({
       </Card>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between pt-4">
+      <div className="flex justify-between pt-0 pb-8 md:pb-0 md:pt-4">
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel

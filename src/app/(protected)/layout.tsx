@@ -31,7 +31,6 @@ const layout = ({ children }: { children: React.ReactNode }) => {
               </div>
 
               <div className="flex items-center gap-2">
-                {/* Mobile Header Elements could go here if needed, but usually kept minimal */}
                 <div className="flex items-center gap-2">
                   <Notifications />
                   <UserAvatar />
@@ -39,7 +38,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
               </div>
             </header>
 
-            <main className="flex-1 min-h-0 flex flex-col max-w-[1600px] mx-auto w-full p-4 pt-[3px] pb-24 md:pb-[3px] overflow-auto scrollbar-hide">
+            <main className="flex-1 min-h-0 px-4 flex flex-col max-w-[1600px] mx-auto w-full p-4 pt-[3px] pb-24 md:pb-[3px] overflow-auto scrollbar-hide">
               {children}
             </main>
 

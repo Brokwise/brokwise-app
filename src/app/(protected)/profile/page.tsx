@@ -42,17 +42,28 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import useAxios from "@/hooks/useAxios";
 
 const ProfilePage = () => {
-  const { brokerData, brokerDataLoading } = useApp();
+  const {
+    brokerData,
+    brokerDataLoading,
+    setBrokerData,
+    setCompanyData,
+    companyData,
+    companyDataLoading,
+  } = useApp();
   const [user] = useAuthState(firebaseAuth);
+  const api = useAxios();
   const [isEditing, setIsEditing] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isLeavingCompany, setIsLeavingCompany] = useState(false);
 
-  const companyDetails =
+  const brokerCompanyDetails =
     brokerData &&
     brokerData.companyId &&
     typeof brokerData.companyId === "object"
@@ -111,13 +122,46 @@ const ProfilePage = () => {
     }
   };
 
-  if (brokerDataLoading) {
+  const handleLeaveCompany = async () => {
+    try {
+      setIsLeavingCompany(true);
+      const response = await api.post("/broker/leave-company");
+      const result = response?.data?.data as {
+        message?: string;
+        broker?: typeof brokerData;
+      };
+      if (result?.broker) {
+        setBrokerData(result.broker);
+      } else if (brokerData) {
+        setBrokerData({
+          ...brokerData,
+          companyId: undefined,
+          companyName: "",
+          gstin: "",
+        });
+      }
+      setCompanyData(null);
+      toast.success(result?.message || "You have left the company.");
+      setIsLeaveDialogOpen(false);
+    } catch (error) {
+      const message =
+        (error as { response?: { data?: { message?: string } } }).response?.data
+          ?.message ||
+        (error as { message?: string }).message ||
+        "Failed to leave the company.";
+      toast.error(message);
+    } finally {
+      setIsLeavingCompany(false);
+    }
+  };
+
+  if (brokerDataLoading || companyDataLoading) {
     return (
       <div className="flex items-center justify-center h-full">Loading...</div>
     );
   }
 
-  if (!brokerData) {
+  if (!brokerData && !companyData) {
     return (
       <div className="flex items-center justify-center h-full">
         Profile not found
@@ -136,6 +180,95 @@ const ProfilePage = () => {
     );
   }
 
+  if (companyData) {
+    return (
+      <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Company Profile</h1>
+        </div>
+
+        <Card>
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary shrink-0">
+              {companyData.name?.[0]}
+            </div>
+            <div className="space-y-1">
+              <CardTitle className="text-2xl">{companyData.name}</CardTitle>
+              <p className="text-muted-foreground">{companyData.email}</p>
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant={
+                    companyData.status === "approved" ? "default" : "secondary"
+                  }
+                >
+                  {companyData.status.toUpperCase()}
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Mail className="h-4 w-4" /> Email
+                </h3>
+                <p className="text-lg font-medium">{companyData.email}</p>
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Phone className="h-4 w-4" /> Mobile
+                </h3>
+                <p className="text-lg font-medium">{companyData.mobile}</p>
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <MapPin className="h-4 w-4" /> Location
+                </h3>
+                <div className="space-y-0.5">
+                  <p className="text-lg font-medium">{companyData.city}</p>
+                  {companyData.officeAddress && (
+                    <p className="text-sm text-muted-foreground">
+                      {companyData.officeAddress}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <FileText className="h-4 w-4" /> GSTIN
+                </h3>
+                <p className="text-lg font-medium">
+                  {companyData.gstin || "N/A"}
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Users className="h-4 w-4" /> Employees
+                </h3>
+                <p className="text-lg font-medium">
+                  {companyData.noOfEmployees || 0}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const brokerProfile = brokerData;
+  if (!brokerProfile) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        Profile not found
+      </div>
+    );
+  }
+
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8">
       <div className="flex items-center justify-between">
@@ -146,24 +279,24 @@ const ProfilePage = () => {
       <Card>
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary shrink-0">
-            {brokerData.firstName[0]}
-            {brokerData.lastName[0]}
+            {brokerProfile.firstName[0]}
+            {brokerProfile.lastName[0]}
           </div>
           <div className="space-y-1">
             <CardTitle className="text-2xl">
-              {brokerData.firstName} {brokerData.lastName}
+              {brokerProfile.firstName} {brokerProfile.lastName}
             </CardTitle>
-            <p className="text-muted-foreground">{brokerData.email}</p>
+            <p className="text-muted-foreground">{brokerProfile.email}</p>
             <div className="flex items-center gap-2">
               <Badge
                 variant={
-                  brokerData.status === "approved" ? "default" : "secondary"
+                  brokerProfile.status === "approved" ? "default" : "secondary"
                 }
               >
-                {brokerData.status.toUpperCase()}
+                {brokerProfile.status.toUpperCase()}
               </Badge>
-              {brokerData.brokerId && (
-                <Badge variant="outline">ID: {brokerData.brokerId}</Badge>
+              {brokerProfile.brokerId && (
+                <Badge variant="outline">ID: {brokerProfile.brokerId}</Badge>
               )}
             </div>
           </div>
@@ -174,7 +307,7 @@ const ProfilePage = () => {
               <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Phone className="h-4 w-4" /> Contact
               </h3>
-              <p className="text-lg font-medium">{brokerData.mobile}</p>
+              <p className="text-lg font-medium">{brokerProfile.mobile}</p>
             </div>
 
             <div className="space-y-1">
@@ -182,9 +315,9 @@ const ProfilePage = () => {
                 <Briefcase className="h-4 w-4" /> Experience
               </h3>
               <p className="text-lg font-medium">
-                {brokerData.yearsOfExperience === 15
+                {brokerProfile.yearsOfExperience === 15
                   ? "15+"
-                  : brokerData.yearsOfExperience}{" "}
+                  : brokerProfile.yearsOfExperience}{" "}
                 Years
               </p>
             </div>
@@ -194,10 +327,10 @@ const ProfilePage = () => {
                 <MapPin className="h-4 w-4" /> Location
               </h3>
               <div className="space-y-0.5">
-                <p className="text-lg font-medium">{brokerData.city}</p>
-                {brokerData.officeAddress && (
+                <p className="text-lg font-medium">{brokerProfile.city}</p>
+                {brokerProfile.officeAddress && (
                   <p className="text-sm text-muted-foreground">
-                    {brokerData.officeAddress}
+                    {brokerProfile.officeAddress}
                   </p>
                 )}
               </div>
@@ -208,7 +341,7 @@ const ProfilePage = () => {
                 <Award className="h-4 w-4" /> RERA Number
               </h3>
               <p className="text-lg font-medium">
-                {brokerData.reraNumber || "N/A"}
+                {brokerProfile.reraNumber || "N/A"}
               </p>
             </div>
           </div>
@@ -303,17 +436,57 @@ const ProfilePage = () => {
         </CardContent>
       </Card>
 
-      {companyDetails ? (
+      {brokerCompanyDetails ? (
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Building2 className="h-6 w-6 text-primary" />
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Building2 className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">
+                    {brokerCompanyDetails.name}
+                  </CardTitle>
+                  <CardDescription>Company Details</CardDescription>
+                </div>
               </div>
-              <div>
-                <CardTitle className="text-xl">{companyDetails.name}</CardTitle>
-                <CardDescription>Company Details</CardDescription>
-              </div>
+              <Dialog
+                open={isLeaveDialogOpen}
+                onOpenChange={setIsLeaveDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button variant="destructive" disabled={isLeavingCompany}>
+                    Leave Company
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Leave company</DialogTitle>
+                    <DialogDescription>
+                      You will no longer be associated with{" "}
+                      {brokerCompanyDetails.name}. You can request to join again
+                      later.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsLeaveDialogOpen(false)}
+                      disabled={isLeavingCompany}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleLeaveCompany}
+                      disabled={isLeavingCompany}
+                    >
+                      {isLeavingCompany ? "Leaving..." : "Leave Company"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardHeader>
           <CardContent>
@@ -322,14 +495,18 @@ const ProfilePage = () => {
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Mail className="h-4 w-4" /> Email
                 </h3>
-                <p className="text-lg font-medium">{companyDetails.email}</p>
+                <p className="text-lg font-medium">
+                  {brokerCompanyDetails.email}
+                </p>
               </div>
 
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Phone className="h-4 w-4" /> Mobile
                 </h3>
-                <p className="text-lg font-medium">{companyDetails.mobile}</p>
+                <p className="text-lg font-medium">
+                  {brokerCompanyDetails.mobile}
+                </p>
               </div>
 
               <div className="space-y-1">
@@ -337,10 +514,12 @@ const ProfilePage = () => {
                   <MapPin className="h-4 w-4" /> Location
                 </h3>
                 <div className="space-y-0.5">
-                  <p className="text-lg font-medium">{companyDetails.city}</p>
-                  {companyDetails.officeAddress && (
+                  <p className="text-lg font-medium">
+                    {brokerCompanyDetails.city}
+                  </p>
+                  {brokerCompanyDetails.officeAddress && (
                     <p className="text-sm text-muted-foreground">
-                      {companyDetails.officeAddress}
+                      {brokerCompanyDetails.officeAddress}
                     </p>
                   )}
                 </div>
@@ -351,7 +530,7 @@ const ProfilePage = () => {
                   <FileText className="h-4 w-4" /> GSTIN
                 </h3>
                 <p className="text-lg font-medium">
-                  {companyDetails.gstin || "N/A"}
+                  {brokerCompanyDetails.gstin || "N/A"}
                 </p>
               </div>
 
@@ -360,7 +539,7 @@ const ProfilePage = () => {
                   <Users className="h-4 w-4" /> Employees
                 </h3>
                 <p className="text-lg font-medium">
-                  {companyDetails.noOfEmployees || 0}
+                  {brokerCompanyDetails.noOfEmployees || 0}
                 </p>
               </div>
 
@@ -370,12 +549,12 @@ const ProfilePage = () => {
                 </h3>
                 <Badge
                   variant={
-                    companyDetails.status === "approved"
+                    brokerCompanyDetails.status === "approved"
                       ? "default"
                       : "secondary"
                   }
                 >
-                  {companyDetails.status.toUpperCase()}
+                  {brokerCompanyDetails.status.toUpperCase()}
                 </Badge>
               </div>
             </div>
@@ -390,7 +569,7 @@ const ProfilePage = () => {
               </div>
               <div>
                 <CardTitle className="text-xl">
-                  {brokerData.companyName || "Company Details"}
+                  {brokerProfile.companyName || "Company Details"}
                 </CardTitle>
                 <CardDescription>
                   Associated Company Information
@@ -405,7 +584,7 @@ const ProfilePage = () => {
                   <FileText className="h-4 w-4" /> GSTIN
                 </h3>
                 <p className="text-lg font-medium">
-                  {brokerData.gstin || "N/A"}
+                  {brokerProfile.gstin || "N/A"}
                 </p>
               </div>
             </div>

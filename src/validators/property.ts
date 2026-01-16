@@ -24,7 +24,6 @@ const rentalIncomeSchema = z
     path: ["max"],
   });
 
-// Enums (matching backend)
 const SizeUnitEnum = z.enum([
   "SQ_FT",
   "SQ_METER",
@@ -32,6 +31,7 @@ const SizeUnitEnum = z.enum([
   "ACRES",
   "HECTARE",
   "BIGHA",
+  "GAJ",
 ]);
 
 const FacingEnum = z.enum([
@@ -110,7 +110,14 @@ export const residentialPropertySchema = basePropertySchema
     // Villa/Land specific
     facing: FacingEnum.optional(),
     plotType: PlotTypeEnum.optional(),
-    frontRoadWidth: z.number().min(0).max(PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH, `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`).optional(),
+    frontRoadWidth: z
+      .number()
+      .min(0)
+      .max(
+        PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH,
+        `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`
+      )
+      .optional(),
 
     // Corner Plot specific (Frontend addition, backend allows extra fields if not strict,
     // but strictly speaking 'sideFacing' and 'sideRoadWidth' are not in the backend schema provided.
@@ -124,16 +131,24 @@ export const residentialPropertySchema = basePropertySchema
     sideFacing: FacingEnum.optional(),
     sideRoadWidth: z.number().min(0).optional(),
 
-    floor: z.string().refine(
-      (val) => {
-        if (!val) return true; // Optional field
-        // Allow string values like "Ground", "Custom", or numeric values up to 200
-        const numericVal = parseInt(val, 10);
-        if (isNaN(numericVal)) return true; // Non-numeric strings like "Ground" are allowed
-        return numericVal >= 0 && numericVal <= PROPERTY_VALIDATION_LIMITS.MAX_FLOOR;
-      },
-      { message: `Floor number cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FLOOR}` }
-    ).optional(), // Not in residential specific list in backend schema but exists in commercial.
+    floor: z
+      .string()
+      .refine(
+        (val) => {
+          if (!val) return true; // Optional field
+          // Allow string values like "Ground", "Custom", or numeric values up to 200
+          const numericVal = parseInt(val, 10);
+          if (isNaN(numericVal)) return true; // Non-numeric strings like "Ground" are allowed
+          return (
+            numericVal >= 0 &&
+            numericVal <= PROPERTY_VALIDATION_LIMITS.MAX_FLOOR
+          );
+        },
+        {
+          message: `Floor number cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FLOOR}`,
+        }
+      )
+      .optional(), // Not in residential specific list in backend schema but exists in commercial.
     // Wait, backend schema says: "// commercial ... floor: z.string().optional()".
     // It is NOT under residential. But frontend had it. I will leave it optional or remove if strict.
     // Backend schema structure is flat `body: z.object({...})` with all fields.
@@ -192,7 +207,14 @@ export const commercialPropertySchema = basePropertySchema
       .optional(),
     facing: FacingEnum.optional(),
     plotType: PlotTypeEnum.optional(),
-    frontRoadWidth: z.number().min(0).max(PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH, `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`).optional(),
+    frontRoadWidth: z
+      .number()
+      .min(0)
+      .max(
+        PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH,
+        `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`
+      )
+      .optional(),
     // Fields used in form:
     purpose: z.string().optional(),
     projectArea: z.number().min(0).optional(),
@@ -232,7 +254,14 @@ export const industrialPropertySchema = basePropertySchema.extend({
   // Fields used in form:
   facing: FacingEnum.optional(),
   plotType: PlotTypeEnum.optional(),
-  frontRoadWidth: z.number().min(0).max(PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH, `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`).optional(),
+  frontRoadWidth: z
+    .number()
+    .min(0)
+    .max(
+      PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH,
+      `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`
+    )
+    .optional(),
 });
 
 // Agricultural Property Schema
@@ -244,7 +273,14 @@ export const agriculturalPropertySchema = basePropertySchema.extend({
   khasraPlanUrl: z.string().url().optional(),
   facing: FacingEnum.optional(),
   plotType: PlotTypeEnum.optional(),
-  frontRoadWidth: z.number().min(0).max(PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH, `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`).optional(),
+  frontRoadWidth: z
+    .number()
+    .min(0)
+    .max(
+      PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH,
+      `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`
+    )
+    .optional(),
 });
 
 // Resort Property Schema
@@ -254,7 +290,14 @@ export const resortPropertySchema = basePropertySchema.extend({
   propertyStatus: z.string().optional(),
   facing: FacingEnum.optional(),
   plotType: PlotTypeEnum.optional(),
-  frontRoadWidth: z.number().min(0).max(PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH, `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`).optional(),
+  frontRoadWidth: z
+    .number()
+    .min(0)
+    .max(
+      PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH,
+      `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`
+    )
+    .optional(),
 });
 
 // Farm House Property Schema
@@ -264,7 +307,14 @@ export const farmHousePropertySchema = basePropertySchema.extend({
   propertyStatus: z.string().optional(),
   facing: FacingEnum.optional(),
   plotType: PlotTypeEnum.optional(),
-  frontRoadWidth: z.number().min(0).max(PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH, `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`).optional(),
+  frontRoadWidth: z
+    .number()
+    .min(0)
+    .max(
+      PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH,
+      `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`
+    )
+    .optional(),
 });
 
 // Union type for all property schemas

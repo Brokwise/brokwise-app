@@ -16,12 +16,11 @@ import {
   Building2,
   ArrowRight,
   Clock,
-  IndianRupee,
   MessageSquare,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
-import { formatCurrency, formatEnquiryLocation } from "@/utils/helper";
+import { formatCurrencyEnquiry, formatEnquiryLocation } from "@/utils/helper";
 import { cn } from "@/lib/utils";
 import { useGetMyEnquiries } from "@/hooks/useEnquiry";
 import { useApp } from "@/context/AppContext";
@@ -119,15 +118,14 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
       <CardContent className="p-5 pt-2 pb-4">
         <div className="mb-4">
           <div className="flex items-baseline gap-1">
-            <IndianRupee className="h-4 w-4 text-primary" />
             <span className="text-xl font-bold tracking-tight">
-              {formatCurrency(enquiry.budget.min)}
+              {formatCurrencyEnquiry(enquiry.budget.min)}
             </span>
             <span className="text-muted-foreground text-sm font-medium">
               to
             </span>
             <span className="text-xl font-bold tracking-tight">
-              {formatCurrency(enquiry.budget.max)}
+              {formatCurrencyEnquiry(enquiry.budget.max)}
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-1 font-medium pl-0.5">

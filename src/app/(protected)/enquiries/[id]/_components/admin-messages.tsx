@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useGetAdminMessages, useSendAdminMessage } from "@/hooks/useEnquiry";
 import { Loader2, Send, User, ShieldCheck } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import {
   Card,
   CardHeader,
@@ -27,11 +27,11 @@ export const AdminMessages = ({ id }: { id: string }) => {
   const { sendAdminMessage, isPending: isPendingSendAdminMessage } =
     useSendAdminMessage(id);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [adminMessages]);
+  // useEffect(() => {
+  //   if (scrollRef.current) {
+  //     scrollRef.current.scrollIntoView({ behavior: "smooth" });
+  //   }
+  // }, [adminMessages]);
 
   const handleSend = () => {
     if (!message.trim()) return;

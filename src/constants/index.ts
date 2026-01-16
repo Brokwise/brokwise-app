@@ -1,5 +1,34 @@
 import { PropertyCategory, PropertyType } from "@/types/property";
-
+import {
+  Wind,
+  Bath,
+  Archive,
+  Fan,
+  Snowflake,
+  Coffee,
+  CarFront,
+  Users,
+  Video,
+  Utensils,
+  BatteryCharging,
+  Shield,
+  Sofa,
+  Waves,
+  Gamepad2,
+  Martini,
+  Armchair,
+  Bell,
+  Dumbbell,
+  Film,
+  Droplets,
+  Flower2,
+  ShieldCheck,
+  Sun,
+  Wifi,
+  User,
+  Dog,
+  Flame,
+} from "lucide-react";
 // Property Types for filters
 export const PROPERTY_TYPES: { label: string; value: PropertyType }[] = [
   { label: "Flat", value: "FLAT" },
@@ -63,3 +92,48 @@ export const propertyCategories: {
     image: "/images/propertyCategory/farmhouse.jpg",
   },
 ];
+
+export const FLAT_AMENITIES = [
+  { label: "Balcony", icon: Wind },
+  { label: "Attached Washroom", icon: Bath },
+  { label: "Cupboard", icon: Archive },
+  { label: "Desert Cooler", icon: Fan },
+  { label: "Air Conditioning", icon: Snowflake },
+  { label: "Cafeteria", icon: Coffee },
+  { label: "Car Parking", icon: CarFront },
+  { label: "Club House", icon: Users },
+  { label: "High Security (CCTV)", icon: Video },
+  { label: "Modular Kitchen", icon: Utensils },
+  { label: "Power Backup", icon: BatteryCharging },
+  { label: "Security Guard", icon: Shield },
+  { label: "Semi Furnished", icon: Sofa },
+  { label: "Swimming Pool", icon: Waves },
+  { label: "Wooden Wardroom", icon: Archive },
+  { label: "Children Play Area", icon: Gamepad2 },
+  { label: "CLUB & LOUNGE", icon: Martini },
+  { label: "Fully Furnished", icon: Armchair },
+  { label: "Fire Alarm System", icon: Bell },
+  { label: "Gym", icon: Dumbbell },
+  { label: "MULTIPLEX", icon: Film },
+  { label: "Rain Water Harvesting", icon: Droplets },
+];
+
+export const VILLA_AMENITIES = [
+  { label: "Private Swimming Pool", icon: Waves },
+  { label: "Garden Lawn", icon: Flower2 },
+  { label: "Private Parking", icon: CarFront },
+  { label: "Fully Equipped Kitchen", icon: Utensils },
+  { label: "Barbecue Area", icon: Flame }, // Flame/FirePit
+  { label: "Security System", icon: ShieldCheck },
+  { label: "Terrace Balcony", icon: Sun },
+  { label: "Furnished Interiors", icon: Sofa },
+  { label: "Air Conditioning", icon: Snowflake },
+  { label: "Wi Fi", icon: Wifi },
+  { label: "Power Backup", icon: BatteryCharging },
+  { label: "Staff Quarters", icon: User },
+  { label: "Pet Friendly", icon: Dog },
+  { label: "Jacuzzi Spa", icon: Bath },
+  { label: "Fire Pit", icon: Flame },
+];
+
+export const LG_BREAKPOINT_PX = 1350;

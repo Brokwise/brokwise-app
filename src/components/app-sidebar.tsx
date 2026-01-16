@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Contact2,
   type LucideIcon,
+  HomeIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -67,6 +68,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Dashboard",
       url: "/company-dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      title: "Home",
+      url: "/company-marketplace",
+      icon: HomeIcon,
     },
     {
       title: "Brokers",

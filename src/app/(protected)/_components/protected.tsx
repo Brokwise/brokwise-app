@@ -98,7 +98,6 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
     })();
   }, [user, loading, error, signOut, router]);
 
-  // Route restriction for Company
   useEffect(() => {
     if (companyData && companyData.status === "approved") {
       const allowedPaths = [
@@ -109,16 +108,18 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
         "/company-properties",
         "/company-enquiries",
         "/company-enquiries/marketplace",
+        "/company-marketplace",
         "/enquiries/create",
         "/property",
         "/company-brokers/",
-        "",
+        "/company-marketplace/",
+        "/",
       ];
       const isAllowed = allowedPaths.some(
         (path) => pathname === path || pathname.startsWith(`${path}/`)
       );
 
-      if (!isAllowed) {
+      if (!isAllowed || pathname === "/") {
         router.replace("/company-dashboard");
       }
     }
@@ -176,6 +177,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
           "/company-properties",
           "/company-enquiries",
           "/company-dashboard",
+          "/company-marketplace",
           "/property",
           "/enquiries/create",
           "/message",
@@ -237,7 +239,6 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // Default fallback to Broker Onboarding if no profile and not identified as company
   if (!brokerData && !companyData) {
     return (
       <WaveBackground>
