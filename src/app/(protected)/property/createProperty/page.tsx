@@ -5,22 +5,15 @@ import {
   useSaveCompanyPropertyDraft,
 } from "@/hooks/useCompany";
 import { Button as MovingBorderCard } from "@/components/ui/moving-border";
-import {
-  Loader2,
-  ArrowLeft,
-  Sparkles,
-  FileText,
-  ChevronRight,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ArrowLeft, Sparkles, FileText, ChevronRight } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { formatDistanceToNow } from "date-fns";
 
 import { PropertyFormData } from "@/validators/property";
 import { useApp } from "@/context/AppContext";
 import { Property, PropertyCategory } from "@/types/property";
-import { useState } from "react";
-import { useGetMyListings } from "@/hooks/useProperty";
+import { useState, useEffect } from "react";
+import { useGetMyListings, useGetProperty } from "@/hooks/useProperty";
 import { ResortWizard } from "./resortForm/wizard";
 import { FarmHouseWizard } from "./farmhouseForm/wizard";
 import { AgriculturalWizard } from "./agriculturalForm/wizard";
@@ -53,6 +46,11 @@ const CreateProperty = () => {
   const [selectedDraft, setSelectedDraft] = useState<Property | null>(null);
   const { companyData } = useApp();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get draft info from URL params (when coming from drafts page)
+  const draftIdFromUrl = searchParams.get("draftId");
+  const categoryFromUrl = searchParams.get("category") as PropertyCategory;
 
   const {
     addPropertyAsync: createCompanyPropertyAsync,
@@ -61,35 +59,46 @@ const CreateProperty = () => {
   const { savePropertyAsDraft: saveCompanyPropertyDraft } =
     useSaveCompanyPropertyDraft();
 
-  const { myListings, isLoading: isBrokerLoading } = useGetMyListings({
+  const { myListings } = useGetMyListings({
     enabled: !companyData,
   });
 
-  const { data: companyPropertiesData, isLoading: isCompanyLoading } =
-    useGetCompanyProperties(
-      { listingStatus: "DRAFT" },
-      { enabled: !!companyData }
-    );
+  const { data: companyPropertiesData } = useGetCompanyProperties(
+    { listingStatus: "DRAFT" },
+    { enabled: !!companyData }
+  );
 
-  const isLoading = companyData ? isCompanyLoading : isBrokerLoading;
+  // Fetch specific draft if coming from drafts page
+  const { property: draftProperty } = useGetProperty(draftIdFromUrl || "", {
+    enabled: !!draftIdFromUrl,
+  });
 
   const drafts = companyData
     ? companyPropertiesData?.properties || []
     : myListings?.filter((p) => p.listingStatus === "DRAFT") || [];
+
+  const draftsCount = drafts.length;
+
+  // Handle URL params for draft selection
+  useEffect(() => {
+    if (draftIdFromUrl && categoryFromUrl && draftProperty) {
+      setSelectedCategory(categoryFromUrl);
+      setSelectedDraft(draftProperty);
+    }
+  }, [draftIdFromUrl, categoryFromUrl, draftProperty]);
 
   const handleCategorySelect = (category: PropertyCategory) => {
     setSelectedCategory(category);
     setSelectedDraft(null);
   };
 
-  const handleDraftSelect = (draft: Property) => {
-    setSelectedCategory(draft.propertyCategory);
-    setSelectedDraft(draft);
-  };
-
   const handleBack = () => {
     setSelectedCategory(null);
     setSelectedDraft(null);
+    // Clear URL params when going back
+    if (draftIdFromUrl) {
+      router.replace("/property/createProperty");
+    }
   };
 
   const handleCompanySubmit = async (data: PropertyFormData) => {
@@ -117,6 +126,8 @@ const CreateProperty = () => {
       onSubmit: companyData ? handleCompanySubmit : undefined,
       onSaveDraft: companyData ? handleCompanySaveDraft : undefined,
       externalIsLoading: companyData ? isCreatingCompanyProperty : undefined,
+      draftCount: draftsCount,
+      isEditingDraft: !!selectedDraft,
     };
 
     switch (selectedCategory) {
@@ -157,92 +168,55 @@ const CreateProperty = () => {
             </p>
           </div>
 
-          {/* Continue Drafting - Always on top */}
-          {drafts.length > 0 && (
-            <section className="space-y-3">
+          {/* Drafts Summary Banner */}
+          {draftsCount > 0 && (
+            <motion.div
+              variants={itemVariants}
+              className="group bg-gradient-to-r from-yellow-500/5 via-amber-500/5 to-orange-500/5 border border-yellow-500/20 rounded-xl p-4 cursor-pointer hover:border-yellow-500/40 transition-all duration-200 hover:shadow-sm"
+              onClick={() => router.push("/property/drafts")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  router.push("/property/drafts");
+                }
+              }}
+            >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-muted-foreground" />
-                  <h2 className="text-lg font-instrument-serif text-foreground tracking-tight">
-                    Continue Drafting
-                  </h2>
-                </div>
-                {drafts.length > 0 && (
-                  <Badge variant="secondary" className="rounded-full text-xs">
-                    {drafts.length}
-                  </Badge>
-                )}
-              </div>
-
-              {isLoading ? (
-                <div className="flex justify-center py-4">
-                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                </div>
-              ) : drafts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                  {drafts.map((draft) => {
-                    const lastEdited = draft.updatedAt
-                      ? formatDistanceToNow(new Date(draft.updatedAt), {
-                          addSuffix: true,
-                        })
-                      : "recently";
-
-                    return (
-                      <motion.div
-                        key={draft._id}
-                        variants={itemVariants}
-                        className="group bg-card hover:bg-muted/40 border border-border/60 rounded-xl p-3 transition-all duration-200 hover:shadow-sm cursor-pointer flex flex-col gap-2 relative overflow-hidden"
-                        onClick={() => handleDraftSelect(draft)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            handleDraftSelect(draft);
-                          }
-                        }}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-foreground">
+                        {draftsCount} incomplete{" "}
+                        {draftsCount === 1 ? "listing" : "listings"}
+                      </h3>
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px] px-1.5 py-0 h-5 bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
                       >
-                        <div className="absolute top-2 right-2">
-                          <Badge
-                            variant="secondary"
-                            className="text-[10px] px-1.5 py-0 h-5 bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
-                          >
-                            Draft
-                          </Badge>
-                        </div>
-
-                        <div className="space-y-0.5 pr-12">
-                          <h3 className="font-medium text-sm text-foreground leading-tight">
-                            {propertyCategories.find(
-                              (c) => c.key === draft.propertyCategory
-                            )?.label || draft.propertyCategory}
-                          </h3>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {draft.address?.city
-                              ? `${draft.address.city}, ${draft.address.state}`
-                              : "Location not set"}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-auto">
-                          <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider">
-                            {lastEdited}
-                          </span>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 px-2 text-xs hover:bg-accent/10 hover:text-accent"
-                          >
-                            Resume <ChevronRight className="w-3 h-3 ml-0.5" />
-                          </Button>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                        Draft
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Continue where you left off and complete your property
+                      listings
+                    </p>
+                  </div>
                 </div>
-              ) : null}
-            </section>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-yellow-700 hover:text-yellow-800 hover:bg-yellow-500/10 group-hover:bg-yellow-500/10"
+                >
+                  View Drafts
+                  <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                </Button>
+              </div>
+            </motion.div>
           )}
 
           {/* Categories Grid */}

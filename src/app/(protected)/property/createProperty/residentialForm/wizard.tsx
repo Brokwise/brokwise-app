@@ -30,6 +30,8 @@ interface ResidentialWizardProps {
   submitLabel?: string;
   externalIsLoading?: boolean;
   enquiry?: Enquiry;
+  draftCount?: number;
+  isEditingDraft?: boolean;
 }
 
 export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
@@ -40,6 +42,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   submitLabel,
   externalIsLoading,
   enquiry,
+  draftCount,
+  isEditingDraft,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -415,6 +419,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         canProceed={!Object.values(uploading).some(Boolean)}
         isLoading={externalIsLoading ?? isLoading}
         isSubmitting={isSubmitting}
+        draftCount={draftCount}
+        isEditingDraft={isEditingDraft}
       />
     </Form>
   );

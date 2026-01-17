@@ -1,3 +1,5 @@
+import { Enquiry } from "@/models/types/enquiry";
+
 export type PropertyCategory =
   | "RESIDENTIAL"
   | "COMMERCIAL"
@@ -7,26 +9,22 @@ export type PropertyCategory =
   | "FARM_HOUSE";
 
 export type PropertyType =
-  // Residential
   | "FLAT"
   | "VILLA"
   | "LAND"
-  // Commercial
   | "SHOWROOM"
   | "HOTEL"
   | "HOSTEL"
   | "SHOP"
   | "OFFICE_SPACE"
   | "OTHER_SPACE"
-  // Industrial
   | "INDUSTRIAL_PARK"
   | "INDUSTRIAL_LAND"
   | "WAREHOUSE"
-  | "AGRICULTURAL_LAND" // Also a category
-  // Other
+  | "AGRICULTURAL_LAND"
   | "RESORT"
   | "FARM_HOUSE"
-  | "INDIVIDUAL"; // From Farm House screen
+  | "INDIVIDUAL";
 
 export type SizeUnit =
   | "SQ_FT"
@@ -68,7 +66,7 @@ export type PossessionStatus = "READY_TO_MOVE" | "UNDER_CONSTRUCTION";
 
 export interface GeoLocation {
   type: "Point";
-  coordinates: [number, number]; // [longitude, latitude]
+  coordinates: [number, number];
 }
 
 export interface RentalIncome {
@@ -127,89 +125,68 @@ export interface SubmitFinalOfferDTO {
 
 export interface Property {
   _id: string;
-  propertyId: string | null; // Human-readable ID (PROP-000001)
+  propertyId: string | null;
 
-  // Core & Common
   propertyCategory: PropertyCategory;
   propertyType: PropertyType;
   address: Address;
   rate: number;
   totalPrice: number;
   listingStatus: ListingStatus;
-  description: string; // "About Property"
+  description: string;
 
-  // Location
-  location: GeoLocation; // For the map
-  localities?: string[]; // "Add Localities (Select multiple)"
+  location: GeoLocation;
+  localities?: string[];
 
-  // Media
-  featuredMedia: string; // Featured (JPEG image or MP4 video)
-  images: string[]; // Images List (JPEG image)
-  floorPlans?: string[]; // Site Plan (PDF Doc or JPEG image)
+  featuredMedia: string;
+  images: string[];
+  floorPlans?: string[];
 
-  // Relational IDs
-  listedBy: Broker; // Populated broker data from API
-  companyId?: string; // Ref: 'Company'
-  verifiedBy?: string; // Ref: 'Admin' | 'Manager'
+  listedBy: Broker;
+  companyId?: string;
+  verifiedBy?: string;
 
-  // Metadata
   isFeatured: boolean;
   isVerified: boolean;
   isPriceNegotiable: boolean;
 
-  // --- Conditional & Optional Fields ---
-
-  // Size (common but unit-based)
   size?: number;
   sizeUnit?: SizeUnit;
 
-  // Agricultural
-  propertyTitle?: string; // The "Title" dropdown
+  propertyTitle?: string;
 
-  // Industrial
   purpose?: string;
   areaType?: AreaType;
 
-  // Land / Legal Docs (Industrial, Agricultural)
   jamabandiUrl?: string;
   khasraPlanUrl?: string;
 
-  // Resort, Farm House
   propertyStatus?: string;
 
-  // Villa, Land, Shop, Farm House, Resort, Agricultural
   facing?: Facing;
   plotType?: PlotType;
   frontRoadWidth?: number;
 
-  // Residential - Flat
   isPenthouse?: boolean;
   bhk?: number;
   washrooms?: number;
   society?: string;
-  projectArea?: number; // Also in "Other Space"
+  projectArea?: number;
   possessionDate?: Date;
 
-  // Commercial
   floor?: string;
   rentalIncome?: RentalIncome;
 
-  // Commercial - Hotel
   rooms?: number;
   beds?: number;
 
-  // Commercial - Hostel
-  // beds?: number; // Duplicate in source, removed
-
-  // Amenities
   amenities?: string[];
 
-  // Timestamps
   createdAt: string;
   updatedAt: string;
   deletingStatus?: "pending" | "approved" | "rejected" | null;
 
-  submittedForEnquiryId?: string;
+  submittedForEnquiryId?: Enquiry;
   offers?: PropertyOffer[];
 }
 

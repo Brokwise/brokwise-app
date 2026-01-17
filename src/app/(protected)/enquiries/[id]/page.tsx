@@ -52,6 +52,7 @@ import {
 } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
 import { toast } from "sonner";
+import { Alert } from "@/components/ui/alert";
 
 const isPopulatedProperty = (
   propertyId: Property | string | undefined | null
@@ -390,6 +391,13 @@ const SingleEnquiry = () => {
                     const property = isPopulatedProperty(submission.propertyId)
                       ? submission.propertyId
                       : null;
+                    const viewStatus = submission.viewStatus ?? "not_viewed";
+                    const viewStatusLabel =
+                      viewStatus === "contact_shared"
+                        ? "Contact shared"
+                        : viewStatus === "viewed"
+                        ? "Viewed"
+                        : "Not viewed";
 
                     return (
                       <Card key={submission._id}>
@@ -409,16 +417,20 @@ const SingleEnquiry = () => {
                                 </span>
                               </div>
                             </div>
-                            <Badge
-                              variant={
-                                submission.status === "pending"
-                                  ? "outline"
-                                  : "secondary"
-                              }
-                              className="flex-shrink-0"
-                            >
-                              {submission.status}
-                            </Badge>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <Badge
+                                variant="outline"
+                                className={
+                                  viewStatus === "contact_shared"
+                                    ? "border-green-300 text-green-700"
+                                    : viewStatus === "viewed"
+                                    ? "border-blue-300 text-blue-700"
+                                    : "text-muted-foreground"
+                                }
+                              >
+                                {viewStatusLabel}
+                              </Badge>
+                            </div>
                           </div>
                         </CardHeader>
                         <CardContent className="p-4 pt-0 space-y-3">
@@ -499,14 +511,21 @@ const SingleEnquiry = () => {
                   className="flex-1"
                   size="lg"
                   disabled={
-                    typeof brokerData?.companyId === "object" &&
-                    brokerData?.companyId !== null &&
-                    enquiry.createdByCompanyId === brokerData?.companyId._id
+                    (typeof brokerData?.companyId === "object" &&
+                      brokerData?.companyId !== null &&
+                      enquiry.createdByCompanyId ===
+                        brokerData?.companyId._id) ||
+                    enquiry.status === "closed"
                   }
                 >
                   Submit Proposal
                 </Button>
               </div>
+              {enquiry.status == "closed" && (
+                <Alert>
+                  Enquiry is closed, can't submit properties anymore
+                </Alert>
+              )}
             </div>
           )}
         </div>
@@ -524,14 +543,7 @@ const SingleEnquiry = () => {
               {detailRow("Enquiry ID", enquiry.enquiryId)}
               {detailRow("Category", enquiry.enquiryCategory)}
               {detailRow("Type", enquiry.enquiryType)}
-              {detailRow("Source", enquiry.source)}
               {detailRow("Status", enquiry.status)}
-              <Separator className="my-3" />
-              {detailRow("Address", formatEnquiryLocation(enquiry) || "—")}
-              {detailRow("Submissions", String(enquiry.submissionCount ?? 0))}
-              {detailRow("Interested", enquiry.isInterested ? "Yes" : "No")}
-              {detailRow("Recommended", enquiry.isRecommended ? "Yes" : "No")}
-              {detailRow("Owner", enquiry.isOwner ? "Yes" : "No")}
 
               {detailRow(
                 "Created",

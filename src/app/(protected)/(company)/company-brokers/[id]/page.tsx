@@ -49,6 +49,55 @@ const SingleBrokerPage = () => {
     return `${first?.charAt(0) || ""}${last?.charAt(0) || ""}`.toUpperCase();
   };
 
+  const renderInvitationContent = () => {
+    if (data.invitationStatus === "accepted") {
+      return (
+        <Card>
+          <CardContent className="pt-6">
+            <Tabs defaultValue="properties" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="properties">
+                  Properties ({data.properties?.length ?? 0})
+                </TabsTrigger>
+                <TabsTrigger value="enquiries">
+                  Enquiries ({data.enquiries?.length ?? 0})
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="properties">
+                <BrokerPropertiesTable data={data.properties ?? []} />
+              </TabsContent>
+              <TabsContent value="enquiries">
+                <BrokerEnquiriesTable data={data.enquiries ?? []} />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (data.invitationStatus === "rejected") {
+      return (
+        <Card>
+          <CardContent className="pt-6 text-sm text-muted-foreground">
+            This broker has rejected the invitation.
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (data.invitationStatus === "pending") {
+      return (
+        <Card>
+          <CardContent className="pt-6 text-sm text-muted-foreground">
+            The invitation is pending. Details will appear after acceptance.
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div>
@@ -115,26 +164,7 @@ const SingleBrokerPage = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent className="pt-6">
-          <Tabs defaultValue="properties" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="properties">
-                Properties ({data.properties.length})
-              </TabsTrigger>
-              <TabsTrigger value="enquiries">
-                Enquiries ({data.enquiries.length})
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="properties">
-              <BrokerPropertiesTable data={data.properties} />
-            </TabsContent>
-            <TabsContent value="enquiries">
-              <BrokerEnquiriesTable data={data.enquiries} />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+      {renderInvitationContent()}
     </div>
   );
 };

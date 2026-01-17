@@ -47,6 +47,28 @@ export const updateCompanyProfileSchema = z.object({
   noOfEmployees: z.number().min(0).optional(),
 });
 
+const addBrokerEmailSchema = z.string().email();
+const addBrokerPhoneSchema = z.string().refine(
+  (value) => {
+    const normalized = value.trim();
+    if (!/^[0-9+().\s-]+$/.test(normalized)) {
+      return false;
+    }
+    const digitsOnly = normalized.replace(/\D/g, "");
+    return digitsOnly.length >= 10 && digitsOnly.length <= 15;
+  },
+  { message: "Enter a valid phone number" }
+);
+
 export const addBrokerSchema = z.object({
-  email: z.string().email(),
+  identifier: z
+    .string()
+    .trim()
+    .min(1, { message: "Provide an email or phone number" })
+    .refine(
+      (value) =>
+        addBrokerEmailSchema.safeParse(value).success ||
+        addBrokerPhoneSchema.safeParse(value).success,
+      { message: "Enter a valid email or phone number" }
+    ),
 });

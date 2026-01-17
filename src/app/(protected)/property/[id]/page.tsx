@@ -79,6 +79,8 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   const [flagReason, setFlagReason] = useState("");
   const [flagNotes, setFlagNotes] = useState("");
   const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const pdfRef = useRef<HTMLDivElement | null>(null);
   const { brokerData } = useApp();
   const handleExportPdf = useCallback(async () => {
@@ -186,6 +188,14 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
     ...(property.featuredMedia ? [property.featuredMedia] : []),
     ...property.images,
   ];
+  const imageGallery = allImages.filter((media) => !media.endsWith(".mp4"));
+  const handleOpenGallery = (imageUrl: string) => {
+    if (imageGallery.length === 0) return;
+    const imageIndex = imageGallery.indexOf(imageUrl);
+    setActiveImageIndex(imageIndex >= 0 ? imageIndex : 0);
+    setIsGalleryOpen(true);
+  };
+  console.log(property);
   return (
     <main className="container mx-auto py-8 px-4 max-w-7xl space-y-8">
       {/* Header */}
@@ -349,16 +359,23 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
                             className="w-full h-full object-contain"
                           />
                         ) : (
-                          <Image
-                            width={500}
-                            height={500}
-                            src={image}
-                            alt={`Property ${index + 1}`}
-                            className="w-full h-full object-fill"
-                            onError={(e) => {
-                              e.currentTarget.src = "/images/placeholder.webp";
-                            }}
-                          />
+                          <button
+                            type="button"
+                            onClick={() => handleOpenGallery(image)}
+                            className="w-full h-full cursor-zoom-in"
+                          >
+                            <Image
+                              width={500}
+                              height={500}
+                              src={image}
+                              alt={`Property ${index + 1}`}
+                              className="w-full h-full object-fill"
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  "/images/placeholder.webp";
+                              }}
+                            />
+                          </button>
                         )}
                       </div>
                     </CarouselItem>
@@ -377,6 +394,82 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
               </div>
             )}
           </div>
+          {imageGallery.length > 0 && (
+            <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
+              <DialogContent className="w-[95vw] max-w-6xl h-[90vh] p-0">
+                <div className="flex h-full flex-col">
+                  <div className="relative h-[85%] w-full bg-black">
+                    {imageGallery[activeImageIndex] ? (
+                      <Image
+                        src={imageGallery[activeImageIndex]}
+                        alt={`Property ${activeImageIndex + 1}`}
+                        fill
+                        sizes="95vw"
+                        className="object-contain"
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                        No image selected
+                      </div>
+                    )}
+                    {imageGallery.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          aria-label="Previous image"
+                          onClick={() =>
+                            setActiveImageIndex(
+                              (activeImageIndex - 1 + imageGallery.length) %
+                                imageGallery.length
+                            )
+                          }
+                          className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 transition"
+                        >
+                          <ArrowLeft className="h-5 w-5" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Next image"
+                          onClick={() =>
+                            setActiveImageIndex(
+                              (activeImageIndex + 1) % imageGallery.length
+                            )
+                          }
+                          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 transition"
+                        >
+                          <ArrowLeft className="h-5 w-5 rotate-180" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  <div className="h-[15%] w-full border-t bg-muted/30">
+                    <div className="flex h-full items-center gap-2 overflow-x-auto px-4">
+                      {imageGallery.map((image, index) => (
+                        <button
+                          key={image}
+                          type="button"
+                          onClick={() => setActiveImageIndex(index)}
+                          className="relative h-16 w-24 shrink-0 overflow-hidden rounded-md"
+                        >
+                          <Image
+                            src={image}
+                            alt={`Thumbnail ${index + 1}`}
+                            fill
+                            sizes="120px"
+                            className={`object-cover ${
+                              index === activeImageIndex
+                                ? "ring-2 ring-primary"
+                                : "ring-1 ring-muted-foreground/30"
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
 
           {/* Overview Section */}
           <Card>
@@ -551,14 +644,32 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-          {property.listedBy._id === brokerData?._id && (
-            <PropertyOffers property={property} />
-          )}
+          {property.listedBy._id === brokerData?._id &&
+            property.listingStatus === "ENQUIRY_ONLY" && (
+              <div>
+                <h1>
+                  This property was submitted{" "}
+                  <Button
+                    onClick={() => {
+                      router.push(
+                        "/enquiries/" + property.submittedForEnquiryId?._id
+                      );
+                    }}
+                  >
+                    {property.submittedForEnquiryId?.enquiryId}
+                  </Button>
+                </h1>
+              </div>
+            )}
+          {property.listedBy._id === brokerData?._id &&
+            property.listingStatus !== "ENQUIRY_ONLY" && (
+              <PropertyOffers property={property} />
+            )}
 
-          {/* {property.listedBy._id !== brokerData?._id &&
-            !property.deletingStatus && <ContactSeller property={property} />} */}
-
-          {!property.deletingStatus && <MakeOffer property={property} />}
+          {!property.deletingStatus &&
+            property.listingStatus !== "ENQUIRY_ONLY" && (
+              <MakeOffer property={property} />
+            )}
 
           <Card className="hidden md:block">
             <CardHeader>

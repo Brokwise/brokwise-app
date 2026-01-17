@@ -27,9 +27,13 @@ import { useApp } from "@/context/AppContext";
 
 interface EnquiryCardProps {
   enquiry: Enquiry | MarketplaceEnquiry;
+  isSameCity?: boolean;
 }
 
-export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
+export const EnquiryCard = ({
+  enquiry,
+  isSameCity = false,
+}: EnquiryCardProps) => {
   const router = useRouter();
   const { userData } = useApp();
 
@@ -84,12 +88,20 @@ export const EnquiryCard = ({ enquiry }: EnquiryCardProps) => {
     >
       <CardHeader className="p-5 pb-3">
         <div className="flex justify-between items-start mb-3">
-          <Badge
-            variant="outline"
-            className="rounded-md px-2.5 py-0.5 font-normal text-xs uppercase tracking-wider bg-background"
-          >
-            {enquiry.enquiryType}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {isSameCity && (
+              <Badge className="rounded-md px-2.5 py-0.5 font-medium text-xs bg-blue-600/90 text-white border-none">
+                <MapPin className="h-3 w-3 mr-1" />
+                Same city
+              </Badge>
+            )}
+            <Badge
+              variant="outline"
+              className="rounded-md px-2.5 py-0.5 font-normal text-xs uppercase tracking-wider bg-background"
+            >
+              {enquiry.enquiryType}
+            </Badge>
+          </div>
           <Badge
             variant="outline"
             className={cn(

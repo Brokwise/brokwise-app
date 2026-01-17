@@ -42,7 +42,28 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import useAxios from "@/hooks/useAxios";
+
+const leaveReasonOptions = [
+  { value: "Found a better opportunity", label: "Found a better opportunity" },
+  {
+    value: "Company is no longer active",
+    label: "Company is no longer active",
+  },
+  {
+    value: "Switching to another company",
+    label: "Switching to another company",
+  },
+  { value: "OTHER", label: "Other (please specify)" },
+];
 
 const ProfilePage = () => {
   const {
@@ -62,6 +83,8 @@ const ProfilePage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isLeavingCompany, setIsLeavingCompany] = useState(false);
+  const [leaveReason, setLeaveReason] = useState("");
+  const [customLeaveReason, setCustomLeaveReason] = useState("");
 
   const brokerCompanyDetails =
     brokerData &&
@@ -122,10 +145,25 @@ const ProfilePage = () => {
     }
   };
 
+  const trimmedCustomLeaveReason = customLeaveReason.trim();
+  const trimmedLeaveReason = leaveReason.trim();
+  const isOtherLeaveReason = leaveReason === "OTHER";
+  const finalLeaveReason = isOtherLeaveReason
+    ? trimmedCustomLeaveReason
+    : trimmedLeaveReason;
+  const isLeaveReasonValid =
+    finalLeaveReason.length > 0 && finalLeaveReason.length <= 500;
+
   const handleLeaveCompany = async () => {
+    if (!isLeaveReasonValid) {
+      toast.error("Please share a valid reason (max 500 characters).");
+      return;
+    }
     try {
       setIsLeavingCompany(true);
-      const response = await api.post("/broker/leave-company");
+      const response = await api.post("/broker/leave-company", {
+        reason: finalLeaveReason,
+      });
       const result = response?.data?.data as {
         message?: string;
         broker?: typeof brokerData;
@@ -143,6 +181,8 @@ const ProfilePage = () => {
       setCompanyData(null);
       toast.success(result?.message || "You have left the company.");
       setIsLeaveDialogOpen(false);
+      setLeaveReason("");
+      setCustomLeaveReason("");
     } catch (error) {
       const message =
         (error as { response?: { data?: { message?: string } } }).response?.data
@@ -469,6 +509,46 @@ const ProfilePage = () => {
                       later.
                     </DialogDescription>
                   </DialogHeader>
+                  <div className="space-y-4 py-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="leave-reason">Reason</Label>
+                      <Select
+                        value={leaveReason}
+                        onValueChange={setLeaveReason}
+                      >
+                        <SelectTrigger id="leave-reason">
+                          <SelectValue placeholder="Select a reason" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {leaveReasonOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {isOtherLeaveReason && (
+                      <div className="space-y-2">
+                        <Label htmlFor="leave-reason-custom">
+                          Custom message
+                        </Label>
+                        <Textarea
+                          id="leave-reason-custom"
+                          value={customLeaveReason}
+                          onChange={(event) =>
+                            setCustomLeaveReason(event.target.value)
+                          }
+                          placeholder="Share your reason for leaving."
+                          className="min-h-[96px]"
+                          maxLength={500}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {trimmedCustomLeaveReason.length}/500 characters
+                        </p>
+                      </div>
+                    )}
+                  </div>
                   <DialogFooter>
                     <Button
                       variant="outline"
@@ -480,7 +560,7 @@ const ProfilePage = () => {
                     <Button
                       variant="destructive"
                       onClick={handleLeaveCompany}
-                      disabled={isLeavingCompany}
+                      disabled={!isLeaveReasonValid || isLeavingCompany}
                     >
                       {isLeavingCompany ? "Leaving..." : "Leave Company"}
                     </Button>

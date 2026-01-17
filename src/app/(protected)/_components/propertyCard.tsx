@@ -44,6 +44,7 @@ interface PropertyCardProps {
   onShowOnMap?: (propertyId: string) => void;
   showMapButton?: boolean;
   actionSlot?: React.ReactNode;
+  isSameCity?: boolean;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({
@@ -52,6 +53,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onShowOnMap,
   showMapButton = false,
   actionSlot,
+  isSameCity = false,
 }) => {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const { userData, brokerData, setBrokerData, companyData, setCompanyData } =
@@ -246,6 +248,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
         {/* Status Badge */}
         <div className="absolute top-3 left-3 flex gap-2 z-10">
+          {isSameCity && (
+            <Badge className="shadow-sm backdrop-blur-md border-none bg-blue-600/90 text-white">
+              <MapPin className="h-3 w-3 mr-1" />
+              Same city
+            </Badge>
+          )}
           <Badge
             className={`shadow-sm backdrop-blur-md border-none ${
               property.listingStatus === "ACTIVE" && !property.deletingStatus

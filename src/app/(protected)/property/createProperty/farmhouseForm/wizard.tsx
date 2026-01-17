@@ -30,6 +30,8 @@ interface FarmHouseWizardProps {
   submitLabel?: string;
   externalIsLoading?: boolean;
   enquiry?: Enquiry;
+  draftCount?: number;
+  isEditingDraft?: boolean;
 }
 
 export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
@@ -40,6 +42,8 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
   submitLabel,
   externalIsLoading,
   enquiry,
+  draftCount,
+  isEditingDraft,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -393,6 +397,8 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
         canProceed={!Object.values(uploading).some(Boolean)}
         isLoading={externalIsLoading ?? isLoading}
         isSubmitting={isSubmitting}
+        draftCount={draftCount}
+        isEditingDraft={isEditingDraft}
       />
     </Form>
   );

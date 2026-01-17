@@ -35,14 +35,23 @@ export const AddBrokerDialog = ({ onSuccess }: { onSuccess: () => void }) => {
   const form = useForm<z.infer<typeof addBrokerSchema>>({
     resolver: zodResolver(addBrokerSchema),
     defaultValues: {
-      email: "",
+      identifier: "",
     },
   });
 
   const onSubmit = async (data: z.infer<typeof addBrokerSchema>) => {
     try {
       setLoading(true);
-      await addBroker(data);
+      const rawIdentifier = data.identifier.trim();
+      const looksLikeEmail = z
+        .string()
+        .email()
+        .safeParse(rawIdentifier).success;
+      const digitsOnly = rawIdentifier.replace(/\D/g, "");
+      await addBroker({
+        email: looksLikeEmail ? rawIdentifier : undefined,
+        phone: looksLikeEmail ? undefined : digitsOnly,
+      });
       toast.success("Broker added successfully!");
       setOpen(false);
       form.reset();
@@ -70,19 +79,23 @@ export const AddBrokerDialog = ({ onSuccess }: { onSuccess: () => void }) => {
         <DialogHeader>
           <DialogTitle>Add New Broker</DialogTitle>
           <DialogDescription>
-            Invite a new broker to join your company.
+            Invite a new broker by email or phone number.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="email"
+              name="identifier"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email or Phone</FormLabel>
                   <FormControl>
-                    <Input placeholder="broker@example.com" {...field} />
+                    <Input
+                      placeholder="broker@example.com or +91 98765 43210"
+                      type="text"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

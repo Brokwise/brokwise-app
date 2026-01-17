@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Wand2Icon } from "lucide-react";
 
 import {
   Form,
@@ -445,6 +445,7 @@ const CreateEnquiryPage = () => {
     useCreateCompanyEnquiry();
 
   const isPending = companyData ? isCompanyPending : isBrokerPending;
+  const [generatingDescription, setGeneratingDescription] = useState(false);
 
   const form = useForm<CreateEnquiryFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -478,6 +479,24 @@ const CreateEnquiryPage = () => {
   );
   const [isBudgetMinFocused, setIsBudgetMinFocused] = useState(false);
   const [isBudgetMaxFocused, setIsBudgetMaxFocused] = useState(false);
+
+  const handleGenerateDescription = async () => {
+    try {
+      setGeneratingDescription(true);
+      const response = await fetch("/api/ai", {
+        method: "POST",
+        body: JSON.stringify({ data: form.getValues() }),
+      });
+      const data = await response.json();
+      setValue("description", data.description, { shouldValidate: true });
+      toast.success("Description generated successfully");
+    } catch (error) {
+      console.error("Error generating description:", error);
+      toast.error("Error generating description");
+    } finally {
+      setGeneratingDescription(false);
+    }
+  };
 
   useEffect(() => {
     if (!isBudgetMinFocused) {
@@ -1478,11 +1497,29 @@ const CreateEnquiryPage = () => {
                     Description <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Describe your requirements in detail..."
-                      className="min-h-[150px] rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter resize-y"
-                      {...field}
-                    />
+                    <div className="relative">
+                      <Textarea
+                        placeholder="Describe your requirements in detail..."
+                        className="min-h-[150px] rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter resize-y"
+                        {...field}
+                      />
+                      <div className="w-full flex justify-end py-1">
+                        <Button
+                          disabled={generatingDescription}
+                          onClick={() => handleGenerateDescription()}
+                          className="h-8 text-sm"
+                          type="button"
+                        >
+                          {generatingDescription ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <>
+                              Generate Description <Wand2Icon />
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

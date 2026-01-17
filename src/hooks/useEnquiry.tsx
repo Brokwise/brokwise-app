@@ -277,3 +277,30 @@ export const useShareContactDetails = () => {
   });
   return { shareContactDetails: mutate, isPending, error };
 };
+
+export const useMarkSubmissionViewed = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+  const { mutate, isPending, error } = useMutation<
+    void,
+    Error,
+    { enquiryId: string; submissionId: string }
+  >({
+    mutationFn: async ({ enquiryId, submissionId }) => {
+      return (
+        await api.patch(
+          `/broker/enquiry/${enquiryId}/submission/${submissionId}/viewed`
+        )
+      ).data.data;
+    },
+    onSuccess: (_data, { enquiryId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["received-properties", enquiryId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["enquiry-submissions", enquiryId],
+      });
+    },
+  });
+  return { markSubmissionViewed: mutate, isPending, error };
+};

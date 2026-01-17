@@ -13,6 +13,7 @@ export type EnquiryStatus = "active" | "closed" | "expired";
 export type EnquirySource = "broker" | "admin" | "company";
 export type SubmissionStatus = "pending" | "approved" | "rejected";
 export type MessageThreadType = "enquirer_admin" | "submitter_admin";
+export type SubmissionViewStatus = "not_viewed" | "viewed" | "contact_shared";
 
 // === RANGE TYPES ===
 export interface BudgetRange {
@@ -127,6 +128,7 @@ export interface EnquirySubmission {
   privateMessage?: string;
 
   status: SubmissionStatus;
+  viewStatus?: SubmissionViewStatus;
   reviewedBy?: string;
   reviewedAt?: Date;
   adminNote?: string;

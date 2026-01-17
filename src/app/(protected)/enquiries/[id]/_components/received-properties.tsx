@@ -1,6 +1,9 @@
 "use client";
 
-import { useGetReceivedProperties } from "@/hooks/useEnquiry";
+import {
+  useGetReceivedProperties,
+  useMarkSubmissionViewed,
+} from "@/hooks/useEnquiry";
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -81,6 +84,7 @@ export const ReceivedProperties = ({
     id as string,
     isMyEnquiry
   );
+  const { markSubmissionViewed } = useMarkSubmissionViewed();
 
   if (!isMyEnquiry) return null;
   if (isPending) {
@@ -162,6 +166,16 @@ export const ReceivedProperties = ({
                       if (propertyIdStr) {
                         setPreviewPropertyId(propertyIdStr);
                         setIsPreviewOpen(true);
+                        if (
+                          submission._id &&
+                          submission.viewStatus !== "viewed" &&
+                          submission.viewStatus !== "contact_shared"
+                        ) {
+                          markSubmissionViewed({
+                            enquiryId: id,
+                            submissionId: submission._id,
+                          });
+                        }
                       }
                     }}
                     disabled={!propertyIdStr}

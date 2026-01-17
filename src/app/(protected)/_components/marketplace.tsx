@@ -14,8 +14,10 @@ import { PropertyDetails } from "@/./app/(protected)/_components/propertyDetails
 import { EnquiryCard } from "@/./app/(protected)/enquiries/_components/EnquiryCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ArrowUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useApp } from "@/context/AppContext";
 import Fuse from "fuse.js";
 import {
   Pagination,
@@ -35,6 +37,10 @@ import {
 
 export const MarketPlace = () => {
   console.log("first");
+  const { brokerData, companyData, userData } = useApp();
+  const userCity =
+    userData?.userType === "company" ? companyData?.city : brokerData?.city;
+
   const [viewMode, setViewMode] = useState<"PROPERTIES" | "ENQUIRIES">(
     "PROPERTIES"
   );
@@ -100,6 +106,22 @@ export const MarketPlace = () => {
   }, []);
 
   const propertyRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const propertiesScrollRef = useRef<HTMLDivElement | null>(null);
+  const enquiriesScrollRef = useRef<HTMLDivElement | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const scrollTop = e.currentTarget.scrollTop;
+    setShowScrollTop(scrollTop > 300);
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    if (viewMode === "PROPERTIES" && propertiesScrollRef.current) {
+      propertiesScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (viewMode === "ENQUIRIES" && enquiriesScrollRef.current) {
+      enquiriesScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [viewMode]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
@@ -178,7 +200,7 @@ export const MarketPlace = () => {
       }
     }
 
-    return baseProperties.filter((property) => {
+    const filtered = baseProperties.filter((property) => {
       const isNotEnquiryProperty = property.listingStatus !== "ENQUIRY_ONLY";
       const isNotUnderDeletion = !property.deletingStatus;
       const matchesSource =
@@ -216,6 +238,22 @@ export const MarketPlace = () => {
         isNotUnderDeletion
       );
     });
+
+    // Sort same-city properties first
+    if (userCity) {
+      const normalizedUserCity = userCity.toLowerCase().trim();
+      return filtered.sort((a, b) => {
+        const aCity = a.address?.city?.toLowerCase().trim() || "";
+        const bCity = b.address?.city?.toLowerCase().trim() || "";
+        const aIsSameCity = aCity === normalizedUserCity;
+        const bIsSameCity = bCity === normalizedUserCity;
+        if (aIsSameCity && !bIsSameCity) return -1;
+        if (!aIsSameCity && bIsSameCity) return 1;
+        return 0;
+      });
+    }
+
+    return filtered;
   }, [
     properties,
     debouncedSearchQuery,
@@ -225,7 +263,7 @@ export const MarketPlace = () => {
     debouncedPriceRange,
     bhkFilter,
     fuse,
-    ,
+    userCity,
   ]);
 
   const filteredEnquiries = useMemo(() => {
@@ -238,7 +276,7 @@ export const MarketPlace = () => {
       }
     }
 
-    return baseEnquiries.filter((enquiry) => {
+    const filtered = baseEnquiries.filter((enquiry) => {
       const matchesSource =
         sourceFilter === "ALL" ||
         (sourceFilter === "BROKER" && enquiry.source === "broker") ||
@@ -270,6 +308,29 @@ export const MarketPlace = () => {
 
       return matchesSource && matchesCategory && matchesPrice && matchesBhk;
     });
+
+    // Sort same-city enquiries first
+    if (userCity) {
+      const normalizedUserCity = userCity.toLowerCase().trim();
+      return filtered.sort((a, b) => {
+        // Check city field first, then address for city match
+        const aCity = a.city?.toLowerCase().trim() || "";
+        const bCity = b.city?.toLowerCase().trim() || "";
+        const aAddress = a.address?.toLowerCase() || "";
+        const bAddress = b.address?.toLowerCase() || "";
+
+        const aIsSameCity =
+          aCity === normalizedUserCity || aAddress.includes(normalizedUserCity);
+        const bIsSameCity =
+          bCity === normalizedUserCity || bAddress.includes(normalizedUserCity);
+
+        if (aIsSameCity && !bIsSameCity) return -1;
+        if (!aIsSameCity && bIsSameCity) return 1;
+        return 0;
+      });
+    }
+
+    return filtered;
   }, [
     marketPlaceEnquiries,
     debouncedSearchQuery,
@@ -278,6 +339,7 @@ export const MarketPlace = () => {
     categoryFilter,
     debouncedPriceRange,
     bhkFilter,
+    userCity,
   ]);
 
   const clearFilters = () => {
@@ -483,6 +545,8 @@ export const MarketPlace = () => {
         <>
           <div className="flex-1 flex overflow-hidden relative">
             <div
+              ref={propertiesScrollRef}
+              onScroll={handleScroll}
               className={`
             flex-col h-full overflow-y-auto scrollbar-hide transition-all duration-300
             ${view === "map" ? "hidden" : "flex"}
@@ -545,26 +609,33 @@ export const MarketPlace = () => {
                       }`}
                     >
                       {filteredProperties.length > 0 ? (
-                        filteredProperties.map((property) => (
-                          <motion.div
-                            key={property._id}
-                            variants={itemVariants}
-                            ref={(el: HTMLDivElement | null) => {
-                              propertyRefs.current[property._id] = el;
-                            }}
-                            className={`rounded-3xl transition-all duration-300 ${
-                              selectedPropertyId === property._id
-                                ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
-                                : ""
-                            }`}
-                          >
-                            <PropertyCard
-                              property={property}
-                              showMapButton={true}
-                              onShowOnMap={handleShowOnMap}
-                            />
-                          </motion.div>
-                        ))
+                        filteredProperties.map((property) => {
+                          const isSameCity = userCity
+                            ? property.address?.city?.toLowerCase().trim() ===
+                              userCity.toLowerCase().trim()
+                            : false;
+                          return (
+                            <motion.div
+                              key={property._id}
+                              variants={itemVariants}
+                              ref={(el: HTMLDivElement | null) => {
+                                propertyRefs.current[property._id] = el;
+                              }}
+                              className={`rounded-3xl transition-all duration-300 ${
+                                selectedPropertyId === property._id
+                                  ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
+                                  : ""
+                              }`}
+                            >
+                              <PropertyCard
+                                property={property}
+                                showMapButton={true}
+                                onShowOnMap={handleShowOnMap}
+                                isSameCity={isSameCity}
+                              />
+                            </motion.div>
+                          );
+                        })
                       ) : (
                         <EmptyState onClearFilters={clearFilters} />
                       )}
@@ -612,7 +683,11 @@ export const MarketPlace = () => {
           </div>
         </>
       ) : (
-        <div className="flex-1 overflow-y-auto scrollbar-hide">
+        <div
+          ref={enquiriesScrollRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto scrollbar-hide"
+        >
           <div className="p-6 md:p-8 space-y-4 pb-24">
             {!isEnquiriesLoading && (
               <div className="hidden sm:flex items-center justify-between px-1">
@@ -642,11 +717,25 @@ export const MarketPlace = () => {
                 className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
               >
                 {filteredEnquiries.length > 0 ? (
-                  filteredEnquiries.map((enquiry) => (
-                    <motion.div key={enquiry._id} variants={itemVariants}>
-                      <EnquiryCard enquiry={enquiry} />
-                    </motion.div>
-                  ))
+                  filteredEnquiries.map((enquiry) => {
+                    const normalizedUserCity =
+                      userCity?.toLowerCase().trim() || "";
+                    const enquiryCity =
+                      enquiry.city?.toLowerCase().trim() || "";
+                    const enquiryAddress = enquiry.address?.toLowerCase() || "";
+                    const isSameCity = normalizedUserCity
+                      ? enquiryCity === normalizedUserCity ||
+                        enquiryAddress.includes(normalizedUserCity)
+                      : false;
+                    return (
+                      <motion.div key={enquiry._id} variants={itemVariants}>
+                        <EnquiryCard
+                          enquiry={enquiry}
+                          isSameCity={isSameCity}
+                        />
+                      </motion.div>
+                    );
+                  })
                 ) : (
                   <EmptyEnquiriesState />
                 )}
@@ -654,6 +743,24 @@ export const MarketPlace = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          className="fixed bottom-24 md:bottom-8 right-6 z-50"
+        >
+          <Button
+            onClick={scrollToTop}
+            size="icon"
+            className="h-12 w-12 rounded-full shadow-lg bg-accent hover:bg-accent/90 text-accent-foreground"
+          >
+            <ArrowUp className="h-5 w-5" />
+          </Button>
+        </motion.div>
       )}
     </div>
   );

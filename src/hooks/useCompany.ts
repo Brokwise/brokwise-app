@@ -57,6 +57,7 @@ export interface GetBrokerDetails extends Broker {
   properties: Property[];
   enquiries: Enquiry[];
   broker: Broker;
+  invitationStatus: string;
 }
 
 export const useGetCompanyProperties = (

@@ -30,6 +30,12 @@ interface WizardProps {
   isSubmitting?: boolean;
   canProceed?: boolean;
   isLoading?: boolean;
+  /** Current number of drafts the user has */
+  draftCount?: number;
+  /** Maximum number of drafts allowed (default: 5) */
+  maxDrafts?: number;
+  /** Whether we're editing an existing draft (doesn't count toward limit) */
+  isEditingDraft?: boolean;
 }
 
 export const Wizard: React.FC<WizardProps> = ({
@@ -46,10 +52,17 @@ export const Wizard: React.FC<WizardProps> = ({
   isSubmitting = false,
   canProceed = true,
   isLoading = false,
+  draftCount = 0,
+  maxDrafts = 5,
+  isEditingDraft = false,
 }) => {
   const progress = ((currentStep + 1) / steps.length) * 100;
   const isLastStep = currentStep === steps.length - 1;
   const isFirstStep = currentStep === 0;
+
+  // Draft limit logic - if editing an existing draft, don't count toward limit
+  const isDraftLimitReached = !isEditingDraft && draftCount >= maxDrafts;
+  const canSaveDraft = !isDraftLimitReached;
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -115,20 +128,39 @@ export const Wizard: React.FC<WizardProps> = ({
       </Card>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between pt-0 pb-8 md:pb-0 md:pt-4">
+      <div className="flex justify-between pt-0 pb-8 md:pb-2 md:pt-4">
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
           {onSaveDraft && (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onSaveDraft}
-              disabled={isSavingDraft || isLoading || isSubmitting}
-            >
-              {isSavingDraft ? "Saving Draft..." : "Save as Draft"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onSaveDraft}
+                disabled={
+                  isSavingDraft || isLoading || isSubmitting || !canSaveDraft
+                }
+                title={
+                  !canSaveDraft
+                    ? `Draft limit reached (${maxDrafts}/${maxDrafts})`
+                    : undefined
+                }
+              >
+                {isSavingDraft ? "Saving Draft..." : "Save as Draft"}
+              </Button>
+              <span
+                className={cn(
+                  "text-xs font-medium px-2 py-1 rounded-md",
+                  isDraftLimitReached
+                    ? "bg-destructive/10 text-destructive"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {draftCount}/{maxDrafts}
+              </span>
+            </div>
           )}
           {!isFirstStep && (
             <Button type="button" variant="outline" onClick={onPrevious}>
