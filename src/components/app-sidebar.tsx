@@ -19,6 +19,7 @@ import {
   Contact2,
   type LucideIcon,
   HomeIcon,
+  NewspaperIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -166,6 +167,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   ];
 
   const resourcesNav: SidebarNavItem[] = [
+    {
+      title: "News",
+      url: "/resources/news",
+      icon: NewspaperIcon,
+    },
     {
       title: "Land Convertor",
       url: "/resources/land-convertor",

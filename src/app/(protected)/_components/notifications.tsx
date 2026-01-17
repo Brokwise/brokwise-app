@@ -50,7 +50,7 @@ export const Notifications = () => {
         };
       }
 
-      const unread = notificationsData.filter((n) => !n.read);
+      const unread = notificationsData.filter((n) => !n.read).reverse();
       const read = notificationsData.filter((n) => n.read);
 
       return {
@@ -99,49 +99,49 @@ export const Notifications = () => {
   }: {
     invitation: CompanyInvitation;
   }) => (
-    <Card className="mb-3 border-blue-200 bg-blue-50/50 dark:bg-primary/10 transition-all duration-200">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-3">
+    <Card className="mb-2 sm:mb-3 border-blue-200 bg-blue-50/50 dark:bg-primary/10 transition-all duration-200">
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-start justify-between gap-2 sm:gap-3">
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 dark:bg-blue-500" />
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full flex-shrink-0 dark:bg-blue-500" />
               <div className="flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <Building2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600 dark:text-blue-400" />
+                <h4 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
                   Company Invitation
                 </h4>
               </div>
             </div>
-            <p className="text-sm text-gray-600 leading-relaxed">
+            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
               <span className="font-semibold text-gray-900 dark:text-gray-100">
                 {invitation.company?.name}
               </span>{" "}
               has invited you to join their company.
             </p>
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <Clock className="w-3 h-3" />
+            <div className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-500">
+              <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               {formatDate(invitation.createdAt)}
             </div>
           </div>
         </div>
-        <div className="flex gap-2 mt-3 justify-end">
+        <div className="flex gap-2 mt-2 sm:mt-3 justify-end">
           <Button
             onClick={() => rejectInvitation(invitation._id)}
             variant="outline"
             size="sm"
             disabled={isAccepting || isRejecting}
-            className="h-7 px-3 text-xs"
+            className="h-6 px-2 text-[10px] sm:h-7 sm:px-3 sm:text-xs"
           >
-            <X className="w-3.5 h-3.5 mr-1" />
+            <X className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" />
             Decline
           </Button>
           <Button
             onClick={() => acceptInvitation(invitation._id)}
             size="sm"
             disabled={isAccepting || isRejecting}
-            className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+            className="h-6 px-2 text-[10px] sm:h-7 sm:px-3 sm:text-xs bg-blue-600 hover:bg-blue-700 text-white"
           >
-            <Check className="w-3.5 h-3.5 mr-1" />
+            <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" />
             Accept
           </Button>
         </div>
@@ -157,21 +157,21 @@ export const Notifications = () => {
     isUnread: boolean;
   }) => (
     <Card
-      className={`mb-3 transition-all duration-200 ${
+      className={`mb-2 sm:mb-3 transition-all duration-200 ${
         isUnread
           ? "border-primary/20 dark:border-primary/20 bg-blue-50/50 dark:bg-primary/5"
           : "border-primary/20 dark:border-primary/20"
       }`}
     >
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 space-y-1">
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-start justify-between gap-2 sm:gap-3">
+          <div className="flex-1 space-y-0.5 sm:space-y-1">
             <div className="flex items-center gap-2">
               {isUnread && (
-                <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 dark:bg-blue-500" />
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full flex-shrink-0 dark:bg-blue-500" />
               )}
               <h4
-                className={`text-sm font-medium ${
+                className={`text-xs sm:text-sm font-medium ${
                   isUnread
                     ? "text-gray-900 dark:text-gray-100"
                     : "text-gray-700 dark:text-gray-100"
@@ -179,29 +179,29 @@ export const Notifications = () => {
               >
                 {notification.title}
               </h4>
+              {isUnread && (
+                <Button
+                  onClick={() => handleMarkAsRead(notification)}
+                  variant="ghost"
+                  size="sm"
+                  disabled={isPending}
+                  className="flex-shrink-0 h-6 px-2 text-[10px] sm:h-8 sm:px-3 sm:text-xs hover:bg-primary/10"
+                >
+                  <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
+                  Mark read
+                </Button>
+              )}
             </div>
             {notification.description && (
-              <p className="text-sm text-gray-600 leading-relaxed">
+              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                 {notification.description}
               </p>
             )}
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <Clock className="w-3 h-3" />
+            <div className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-500">
+              <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               {formatDate(notification.createdAt)}
             </div>
           </div>
-          {isUnread && (
-            <Button
-              onClick={() => handleMarkAsRead(notification)}
-              variant="ghost"
-              size="sm"
-              disabled={isPending}
-              className="flex-shrink-0 h-8 px-3 text-xs hover:bg-primary/10"
-            >
-              <Check className="w-3 h-3 mr-1" />
-              Mark read
-            </Button>
-          )}
         </div>
       </CardContent>
     </Card>
@@ -222,20 +222,20 @@ export const Notifications = () => {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md">
-        <SheetHeader className="pb-4">
-          <SheetTitle className="flex items-center gap-2">
-            <Bell className="w-5 h-5" />
+      <SheetContent className="max-w-[92vw] md:w-full p-4 sm:p-6">
+        <SheetHeader className="pb-2 sm:pb-4">
+          <SheetTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
             Notifications
             {totalUnreadCount > 0 && (
-              <Badge variant="secondary" className="ml-auto">
+              <Badge variant="secondary" className="ml-auto text-xs">
                 {totalUnreadCount} new
               </Badge>
             )}
           </SheetTitle>
         </SheetHeader>
 
-        <ScrollArea className="h-[calc(100vh-120px)] pr-4">
+        <ScrollArea className="h-[calc(100vh-100px)] pr-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -251,17 +251,17 @@ export const Notifications = () => {
               </p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Invitations Section */}
               {invitations && invitations.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-4">
+                    <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100">
                       Invitations
                     </h3>
                     <Badge
                       variant="secondary"
-                      className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300"
+                      className="text-[10px] sm:text-xs bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300"
                     >
                       {invitations.length}
                     </Badge>
@@ -272,18 +272,21 @@ export const Notifications = () => {
                       invitation={invitation}
                     />
                   ))}
-                  <Separator className="my-6" />
+                  <Separator className="my-4 sm:my-6" />
                 </div>
               )}
 
               {/* Unread Notifications Section */}
               {unreadNotifications.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-4">
+                    <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100">
                       Unread
                     </h3>
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge
+                      variant="secondary"
+                      className="text-[10px] sm:text-xs"
+                    >
                       {unreadNotifications.length}
                     </Badge>
                   </div>
@@ -299,16 +302,18 @@ export const Notifications = () => {
 
               {/* Separator between sections */}
               {unreadNotifications.length > 0 &&
-                readNotifications.length > 0 && <Separator className="my-6" />}
+                readNotifications.length > 0 && (
+                  <Separator className="my-4 sm:my-6" />
+                )}
 
               {/* Read Notifications Section */}
               {readNotifications.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <h3 className="text-sm font-semibold text-gray-700">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-4">
+                    <h3 className="text-xs sm:text-sm font-semibold text-gray-700">
                       Read
                     </h3>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-[10px] sm:text-xs">
                       {readNotifications.length}
                     </Badge>
                   </div>
