@@ -30,7 +30,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import {
   Dialog,
@@ -523,7 +522,7 @@ const SingleEnquiry = () => {
               </div>
               {enquiry.status == "closed" && (
                 <Alert>
-                  Enquiry is closed, can't submit properties anymore
+                  Enquiry is closed, can&apos;t submit properties anymore
                 </Alert>
               )}
             </div>
