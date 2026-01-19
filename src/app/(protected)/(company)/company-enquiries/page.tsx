@@ -16,7 +16,7 @@ const AllEnquiries = () => {
   const [activeTab, setActiveTab] = useState<"company" | "broker">("company");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const enquiries = (data?.enquiries as any[]) || [];
+  const enquiries = useMemo(()=>(data?.enquiries as any[]) || [],[data?.enquiries]);
   const filteredEnquiries = useMemo(
     () => enquiries.filter((enquiry) => enquiry.source === activeTab),
     [enquiries, activeTab]
