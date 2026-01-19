@@ -58,15 +58,16 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { formatAddress } from "@/utils/helper";
+import { Property } from "@/types/property";
 
-interface DataTableProps<TData, TValue> {
+interface DataTableProps<TData extends Property, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   isLoading?: boolean;
   error?: Error | null;
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends Property, TValue>({
   columns,
   data,
   isLoading = false,
@@ -81,14 +82,10 @@ export function DataTable<TData, TValue>({
 
   const filteredData = useMemo(() => {
     if (listingType === "broker") {
-      return data.filter(
-        (item) => (item as TData & { listedBy?: unknown }).listedBy !== null && (item as TData & { listedBy?: unknown }).listedBy !== undefined
-      );
+      return data.filter((p) => p.listedByType === "Broker");
     }
     if (listingType === "company") {
-      return data.filter(
-        (item) => (item as TData & { listedBy?: unknown }).listedBy === null || (item as TData & { listedBy?: unknown }).listedBy === undefined
-      );
+      return data.filter((p) => p.listedByType === "Company");
     }
     return data;
   }, [data, listingType]);
@@ -107,9 +104,8 @@ export function DataTable<TData, TValue>({
     globalFilterFn: (row, columnId, filterValue) => {
       const search = filterValue.toLowerCase();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const property = row.original as any;
-      const broker = property.listedBy || {};
+      const property = row.original;
+      const broker = property.listedBy;
       const addressString = formatAddress(property.address);
 
       return (
@@ -117,11 +113,11 @@ export function DataTable<TData, TValue>({
         addressString.toLowerCase().includes(search) ||
         property.propertyCategory?.toLowerCase().includes(search) ||
         property.propertyType?.toLowerCase().includes(search) ||
-        broker.firstName?.toLowerCase().includes(search) ||
-        broker.lastName?.toLowerCase().includes(search) ||
-        broker.mobile?.includes(search) ||
-        broker.email?.toLowerCase().includes(search)
-      );
+        broker?.firstName?.toLowerCase().includes(search) ||
+        broker?.lastName?.toLowerCase().includes(search) ||
+        broker?.mobile?.includes(search) ||
+        broker?.email?.toLowerCase().includes(search)
+      ) || false;
     },
     state: {
       sorting,

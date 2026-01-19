@@ -110,9 +110,11 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
         "/company-enquiries/marketplace",
         "/company-marketplace",
         "/enquiries/create",
+        "/enquiries",
         "/property",
         "/company-brokers/",
         "/company-marketplace/",
+        "/bookmarks",
         "/",
       ];
       const isAllowed = allowedPaths.some(
@@ -180,6 +182,9 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
           "/company-marketplace",
           "/property",
           "/enquiries/create",
+          "/enquiries/create/success",
+          "/enquiries",
+          "/bookmarks",
           "/message",
         ];
         const isAllowed = allowedPaths.some(
@@ -217,20 +222,15 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
       case "blacklisted":
         return <StatusDisplay />;
       case "approved":
-        // For approved users, show the main app
-        break; // falls through to children at end of function, but wait, if companyData was null and we are here
+        break; 
       default:
         return <StatusDisplay />;
     }
-    // If broker is approved, we break from switch and go to return children
-    // But we need to make sure we don't return children if we returned above.
-    // The switch returns for other statuses. For approved it breaks.
+
   }
 
-  // If we have brokerData approved, we fall through.
   if (brokerData?.status === "approved") return children;
 
-  // If no data found, check userType from Firestore
   if (userData?.userType === "company") {
     return (
       <WaveBackground>

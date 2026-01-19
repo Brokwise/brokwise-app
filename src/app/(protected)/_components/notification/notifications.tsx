@@ -26,13 +26,18 @@ import { Bell, Check, Clock, X, Building2 } from "lucide-react";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useApp } from "@/context/AppContext";
 
 export const Notifications = () => {
+  const { userData } = useApp();
+ 
   const { notificationsData, isLoading: isLoadingNotifications } =
     useNotification();
   const { mutate, isPending } = useUpdateNotification();
+  const shouldFetchInvitations =
+    userData?.userType ? userData.userType !== "company" : false;
   const { invitations, isLoading: isLoadingInvitations } =
-    useCompanyInvitations("pending");
+    useCompanyInvitations("pending", { enabled: shouldFetchInvitations });
   const { acceptInvitation, isPending: isAccepting } =
     useAcceptCompanyInvitation();
   const { rejectInvitation, isPending: isRejecting } =

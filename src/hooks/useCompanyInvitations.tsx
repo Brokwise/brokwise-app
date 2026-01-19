@@ -7,7 +7,10 @@ import {
 import { InvitationStatus } from "@/models/types/invitation";
 import { toast } from "sonner";
 
-export const useCompanyInvitations = (status?: InvitationStatus) => {
+export const useCompanyInvitations = (
+  status?: InvitationStatus,
+  options?: { enabled?: boolean }
+) => {
   const {
     data: invitations,
     isLoading,
@@ -18,6 +21,7 @@ export const useCompanyInvitations = (status?: InvitationStatus) => {
       const response = await getCompanyInvitations({ status });
       return response.data;
     },
+    enabled: options?.enabled ?? true,
   });
   return { invitations, isLoading, error };
 };

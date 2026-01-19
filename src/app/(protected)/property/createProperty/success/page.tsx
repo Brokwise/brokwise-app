@@ -20,11 +20,9 @@ export default function PropertyCreatedSuccess() {
                 className="w-full max-w-md"
             >
                 <Card className="text-center shadow-2xl border-0 overflow-hidden bg-background">
-                    {/* Decorative Top Border */}
                     <div className="h-2 w-full bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500" />
 
                     <CardContent className="pt-12 pb-10 px-8 space-y-8">
-                        {/* Success Icon */}
                         <div className="flex justify-center">
                             <div className="relative">
                                 <motion.div
@@ -54,29 +52,11 @@ export default function PropertyCreatedSuccess() {
                                 Property Submitted!
                             </h1>
                             <p className="text-muted-foreground leading-relaxed text-base">
-                                Your listing has been successfully created and is now{" "}
-                                <span className="font-semibold text-amber-600 dark:text-amber-400">
-                                    pending approval
-                                </span>
-                                . It will be live on the marketplace once reviewed.
+                                Your listing has been successfully created
                             </p>
                         </div>
 
-                        {/* Info Box */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                            className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl p-4 text-sm text-amber-900 dark:text-amber-200"
-                        >
-                            <p className="flex gap-2 items-start justify-center text-left sm:text-center">
-                                <span className="text-lg">⏳</span>
-                                <span>
-                                    Our team typically reviews listings within{" "}
-                                    <strong>24-48 hours</strong>. You&apos;ll be notified updates.
-                                </span>
-                            </p>
-                        </motion.div>
+                   
 
                         {/* Action Buttons */}
                         <div className="space-y-3 pt-2">

@@ -89,20 +89,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Enquiries",
       url: "/company-enquiries",
       icon: FileText,
-      items: [
-        {
-          title: "Company Enquiry",
-          url: "/company-enquiries/company",
-        },
-        {
-          title: "Broker Enquiry",
-          url: "/company-enquiries/brokers",
-        },
-        {
-          title: "Marketplace Enquiry",
-          url: "/company-enquiries/marketplace",
-        },
-      ],
     },
     {
       title: "Bookmarks",
@@ -121,7 +107,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ];
 
-  // Regular Broker Navigation
   const brokerNav: SidebarNavItem[] = [
     {
       title: "Home",

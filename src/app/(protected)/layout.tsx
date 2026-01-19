@@ -9,7 +9,7 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Notifications } from "./_components/notifications";
+import { Notifications } from "./_components/notification/notifications";
 import { UserAvatar } from "./_components/userAvatar";
 import { Separator } from "@/components/ui/separator";
 

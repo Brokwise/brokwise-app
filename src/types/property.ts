@@ -186,6 +186,7 @@ export interface Property {
   updatedAt: string;
   deletingStatus?: "pending" | "approved" | "rejected" | null;
 
+  listedByType:"Broker" | "Company"
   submittedForEnquiryId?: Enquiry;
   offers?: PropertyOffer[];
 }

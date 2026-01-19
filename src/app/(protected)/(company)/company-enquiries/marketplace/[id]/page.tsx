@@ -93,6 +93,12 @@ const ViewMarketPlaceEnquiry = () => {
     myEnquiries &&
     myEnquiries.length > 0 &&
     myEnquiries.some((e) => e._id === enquiry?._id);
+  const brokerCompanyId =
+    typeof brokerData?.companyId === "string"
+      ? brokerData.companyId
+      : brokerData?.companyId?._id;
+  const isSameCompany =
+    !!brokerCompanyId && enquiry?.createdByCompanyId === brokerCompanyId;
   console.log(enquiry);
 
   if (isPending) {
@@ -498,11 +504,7 @@ const ViewMarketPlaceEnquiry = () => {
                   }}
                   className="flex-1"
                   size="lg"
-                  disabled={
-                    typeof brokerData?.companyId === "object" &&
-                    brokerData?.companyId !== null &&
-                    enquiry.createdByCompanyId === brokerData?.companyId._id
-                  }
+                  disabled={isSameCompany || enquiry.status === "closed"}
                 >
                   Submit Proposal
                 </Button>
@@ -545,9 +547,7 @@ const ViewMarketPlaceEnquiry = () => {
           </Card>
 
           {/* Admin Messages */}
-          {typeof brokerData?.companyId === "object" &&
-          brokerData?.companyId !== null &&
-          enquiry.createdByCompanyId === brokerData?.companyId._id ? (
+          {isSameCompany ? (
             <p>
               Someone from your company has raised this enquiry, so you
               can&apos;t submit a property.

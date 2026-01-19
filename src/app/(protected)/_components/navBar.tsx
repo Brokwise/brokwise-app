@@ -2,7 +2,7 @@
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React from "react";
-import { Notifications } from "./notifications";
+import { Notifications } from "./notification/notifications";
 import { FavouriteProperties } from "./favouriteProperties";
 
 import { UserAvatar } from "./userAvatar";

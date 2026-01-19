@@ -147,6 +147,7 @@ export const MarketPlace = () => {
     [priceRange, maxPropertyPrice]
   );
   const debouncedPriceRange = useDebounce(effectivePriceRange, 300);
+  const debouncedEnquiryPriceRange = useDebounce(priceRange, 300);
 
   const fuse = useMemo(() => {
     if (!properties) return null;
@@ -286,8 +287,8 @@ export const MarketPlace = () => {
         categoryFilter === "ALL" || enquiry.enquiryCategory === categoryFilter;
 
       let matchesPrice = true;
-      if (debouncedPriceRange && enquiry.budget) {
-        const [minFilter, maxFilter] = debouncedPriceRange;
+      if (debouncedEnquiryPriceRange && enquiry.budget) {
+        const [minFilter, maxFilter] = debouncedEnquiryPriceRange;
         const eMin = enquiry.budget.min || 0;
         const eMax = enquiry.budget.max || Number.MAX_SAFE_INTEGER;
         matchesPrice = eMin <= maxFilter && eMax >= minFilter;
@@ -337,7 +338,7 @@ export const MarketPlace = () => {
     enquiryFuse,
     sourceFilter,
     categoryFilter,
-    debouncedPriceRange,
+    debouncedEnquiryPriceRange,
     bhkFilter,
     userCity,
   ]);

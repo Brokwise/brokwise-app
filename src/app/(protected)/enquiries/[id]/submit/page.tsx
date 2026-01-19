@@ -79,8 +79,7 @@ export default function SubmitEnquiryPage() {
         </Button>
       </div>
     );
-  }
-
+}
   const handleExistingSubmit = async () => {
     if (!selectedPropertyId) return;
 
