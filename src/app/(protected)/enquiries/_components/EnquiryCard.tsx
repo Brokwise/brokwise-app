@@ -127,7 +127,7 @@ export const EnquiryCard = ({
         </div>
       </CardHeader>
 
-      <CardContent className="p-5 pt-2 pb-4">
+      <CardContent className="p-3 md:p-5">
         <div className="mb-4">
           <div className="flex items-baseline gap-1">
             <span className="text-xl font-bold tracking-tight">

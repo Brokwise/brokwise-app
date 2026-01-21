@@ -66,8 +66,8 @@ const formatBudgetLabel = (amount: number) => {
     const crText = Number.isInteger(cr)
       ? String(cr)
       : cr < 10
-      ? cr.toFixed(2)
-      : cr.toFixed(1);
+        ? cr.toFixed(2)
+        : cr.toFixed(1);
     return `₹${crText}Cr`;
   }
   const l = amount / 100000;
@@ -687,13 +687,13 @@ const CreateEnquiryPage = () => {
   );
 
   return (
-    <div className="container mx-auto p-4 md:p-8 max-w-4xl space-y-12 pb-24">
+    <div className="container mx-auto p-4 md:p-8 max-w-4xl space-y-6">
       {/* Header */}
-      <div className="space-y-4 text-center md:text-left border-b border-border/40 pb-8">
-        <h1 className="text-3xl md:text-4xl font-instrument-serif text-primary tracking-tight">
+      <div className="space-y-2 md:space-y-4 text-left border-b border-border/40 pb-3 md:pb-8">
+        <h1 className="text-2xl md:text-4xl font-instrument-serif text-primary tracking-tight">
           Post a Requirement
         </h1>
-        <p className="text-muted-foreground font-inter text-lg">
+        <p className="text-muted-foreground font-inter text-md md:text-lg">
           Tell us what you are looking for, and we will find the perfect match.
         </p>
       </div>
@@ -701,7 +701,7 @@ const CreateEnquiryPage = () => {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit, onInvalid)}
-          className="space-y-12"
+          className="space-y-6"
         >
           {/* Internal form flags for conditional validation */}
           <input type="hidden" {...register("locationMode")} />
@@ -1250,106 +1250,106 @@ const CreateEnquiryPage = () => {
             selectedType === "VILLA" ||
             selectedType === "INDUSTRIAL_LAND" ||
             selectedType === "AGRICULTURAL_LAND") && (
-            <div className="space-y-6">
-              <div className="border-b border-border/40 pb-2 mb-6">
-                <h3 className="text-xl font-instrument-serif text-foreground/90">
-                  Plot Details
-                </h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={control}
-                  name="plotType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-muted-foreground">
-                        Plot Type
-                      </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
+              <div className="space-y-6">
+                <div className="border-b border-border/40 pb-2 mb-6">
+                  <h3 className="text-xl font-instrument-serif text-foreground/90">
+                    Plot Details
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={control}
+                    name="plotType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-muted-foreground">
+                          Plot Type
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
+                              <SelectValue placeholder="Select Plot Type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="ROAD">Road</SelectItem>
+                            <SelectItem value="CORNER">Corner</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={control}
+                    name="facing"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-muted-foreground">
+                          Facing
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
+                              <SelectValue placeholder="Select Facing" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {[
+                              "NORTH",
+                              "SOUTH",
+                              "EAST",
+                              "WEST",
+                              "NORTH_EAST",
+                              "NORTH_WEST",
+                              "SOUTH_EAST",
+                              "SOUTH_WEST",
+                            ].map((f) => (
+                              <SelectItem key={f} value={f}>
+                                {f.replace("_", " ")}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={control}
+                    name="frontRoadWidth"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-muted-foreground">
+                          Front Road Width (ft)
+                        </FormLabel>
                         <FormControl>
-                          <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
-                            <SelectValue placeholder="Select Plot Type" />
-                          </SelectTrigger>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            {...field}
+                            className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                parseIntegerOrUndefined(e.target.value)
+                              )
+                            }
+                          />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="ROAD">Road</SelectItem>
-                          <SelectItem value="CORNER">Corner</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="facing"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-muted-foreground">
-                        Facing
-                      </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
-                            <SelectValue placeholder="Select Facing" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {[
-                            "NORTH",
-                            "SOUTH",
-                            "EAST",
-                            "WEST",
-                            "NORTH_EAST",
-                            "NORTH_WEST",
-                            "SOUTH_EAST",
-                            "SOUTH_WEST",
-                          ].map((f) => (
-                            <SelectItem key={f} value={f}>
-                              {f.replace("_", " ")}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="frontRoadWidth"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-muted-foreground">
-                        Front Road Width (ft)
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          {...field}
-                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                          value={field.value ?? ""}
-                          onChange={(e) =>
-                            field.onChange(
-                              parseIntegerOrUndefined(e.target.value)
-                            )
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Commercial (Hotel/Hostel) */}
           {(selectedType === "HOTEL" || selectedType === "HOSTEL") && (
@@ -1509,6 +1509,7 @@ const CreateEnquiryPage = () => {
                           onClick={() => handleGenerateDescription()}
                           className="h-8 text-sm"
                           type="button"
+                          variant={"outline"}
                         >
                           {generatingDescription ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -1527,10 +1528,10 @@ const CreateEnquiryPage = () => {
             />
           </div>
 
-          <div className="pt-8">
+          <div className="">
             <Button
               type="submit"
-              className="w-full h-12 md:h-14 rounded-xl text-lg font-medium bg-primary hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              className="w-full"
               disabled={isPending}
             >
               {isPending && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}

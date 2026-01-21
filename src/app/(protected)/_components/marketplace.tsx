@@ -465,7 +465,7 @@ export const MarketPlace = () => {
     );
 
     return (
-      <Pagination className="mt-8 pb-8">
+      <Pagination className="">
         <PaginationContent>{items}</PaginationContent>
       </Pagination>
     );
@@ -551,11 +551,10 @@ export const MarketPlace = () => {
               className={`
             flex-col h-full overflow-y-auto scrollbar-hide transition-all duration-300
             ${view === "map" ? "hidden" : "flex"}
-            ${
-              view === "grid"
-                ? "w-full"
-                : "w-full lg:w-[60%] xl:w-[55%] 2xl:w-[50%]"
-            }
+            ${view === "grid"
+                  ? "w-full"
+                  : "w-full lg:w-[60%] xl:w-[55%] 2xl:w-[50%]"
+                }
             ${isMapOverlayActive ? "hidden lg:flex" : ""}
           `}
             >
@@ -580,11 +579,10 @@ export const MarketPlace = () => {
 
                 {isLoading ? (
                   <div
-                    className={`grid gap-6 ${
-                      view === "split"
+                    className={`grid gap-6 ${view === "split"
                         ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
                         : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                    }`}
+                      }`}
                   >
                     {[...Array(6)].map((_, i) => (
                       <div key={i} className="space-y-3">
@@ -603,17 +601,16 @@ export const MarketPlace = () => {
                       variants={containerVariants}
                       initial="hidden"
                       animate="show"
-                      className={`grid gap-6 ${
-                        view === "split"
+                      className={`grid gap-6 ${view === "split"
                           ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
                           : "xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4"
-                      }`}
+                        }`}
                     >
                       {filteredProperties.length > 0 ? (
                         filteredProperties.map((property) => {
                           const isSameCity = userCity
                             ? property.address?.city?.toLowerCase().trim() ===
-                              userCity.toLowerCase().trim()
+                            userCity.toLowerCase().trim()
                             : false;
                           return (
                             <motion.div
@@ -622,11 +619,10 @@ export const MarketPlace = () => {
                               ref={(el: HTMLDivElement | null) => {
                                 propertyRefs.current[property._id] = el;
                               }}
-                              className={`rounded-3xl transition-all duration-300 ${
-                                selectedPropertyId === property._id
+                              className={`rounded-3xl transition-all duration-300 ${selectedPropertyId === property._id
                                   ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
                                   : ""
-                              }`}
+                                }`}
                             >
                               <PropertyCard
                                 property={property}
@@ -653,16 +649,14 @@ export const MarketPlace = () => {
           transition-all duration-300 relative
           ${view === "grid" ? "hidden" : ""}
           ${view === "map" ? "block w-full" : ""}
-          ${
-            view === "split" && !isMapOverlayActive
-              ? "hidden lg:block lg:w-[40%] xl:w-[45%] 2xl:w-[50%] lg:sticky lg:top-0 lg:self-start"
-              : ""
-          }
-          ${
-            isMapOverlayActive
-              ? "block w-full fixed inset-0 top-[120px] z-40"
-              : ""
-          }
+          ${view === "split" && !isMapOverlayActive
+                  ? "hidden lg:block lg:w-[40%] xl:w-[45%] 2xl:w-[50%] lg:sticky lg:top-0 lg:self-start"
+                  : ""
+                }
+          ${isMapOverlayActive
+                  ? "block w-full fixed inset-0 top-[120px] z-40"
+                  : ""
+                }
         `}
             >
               {selectedProperty && (
@@ -726,7 +720,7 @@ export const MarketPlace = () => {
                     const enquiryAddress = enquiry.address?.toLowerCase() || "";
                     const isSameCity = normalizedUserCity
                       ? enquiryCity === normalizedUserCity ||
-                        enquiryAddress.includes(normalizedUserCity)
+                      enquiryAddress.includes(normalizedUserCity)
                       : false;
                     return (
                       <motion.div key={enquiry._id} variants={itemVariants}>

@@ -150,9 +150,9 @@ const SingleEnquiry = () => {
   );
 
   return (
-    <div className="container mx-auto p-4 md:p-6 lg:max-w-6xl space-y-8 animate-in fade-in duration-500">
+    <div className="">
       {/* Header Section */}
-      <div className="flex flex-col space-y-4 md:flex-row md:items-start md:justify-between md:space-y-0">
+      <div className="flex flex-col space-y-4 md:flex-row md:items-start md:justify-between md:space-y-0 mb-2">
         <div className="space-y-3">
           <Button
             variant="ghost"
@@ -185,7 +185,7 @@ const SingleEnquiry = () => {
                   </span>
                 </div>
               </div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              <h1 className="text-xl md:text-3xl font-bold tracking-tight text-foreground">
                 {enquiry.enquiryType} Enquiry{" "}
                 {formatEnquiryLocation(enquiry)
                   ? `in ${formatEnquiryLocation(enquiry)}`
@@ -395,8 +395,8 @@ const SingleEnquiry = () => {
                       viewStatus === "contact_shared"
                         ? "Contact shared"
                         : viewStatus === "viewed"
-                        ? "Viewed"
-                        : "Not viewed";
+                          ? "Viewed"
+                          : "Not viewed";
 
                     return (
                       <Card key={submission._id}>
@@ -423,8 +423,8 @@ const SingleEnquiry = () => {
                                   viewStatus === "contact_shared"
                                     ? "border-green-300 text-green-700"
                                     : viewStatus === "viewed"
-                                    ? "border-blue-300 text-blue-700"
-                                    : "text-muted-foreground"
+                                      ? "border-blue-300 text-blue-700"
+                                      : "text-muted-foreground"
                                 }
                               >
                                 {viewStatusLabel}
@@ -490,16 +490,15 @@ const SingleEnquiry = () => {
                         };
                         toast.error(
                           e.response?.data?.message ||
-                            "Failed to mark as interested"
+                          "Failed to mark as interested"
                         );
                       },
                     });
                   }}
                 >
                   <ThumbsUp
-                    className={`mr-2 h-4 w-4 ${
-                      !!enquiry.isInterested ? "fill-current" : ""
-                    }`}
+                    className={`mr-2 h-4 w-4 ${!!enquiry.isInterested ? "fill-current" : ""
+                      }`}
                   />
                   {!!enquiry.isInterested ? "Interested" : "I am Interested"}
                 </Button>
@@ -513,7 +512,7 @@ const SingleEnquiry = () => {
                     (typeof brokerData?.companyId === "object" &&
                       brokerData?.companyId !== null &&
                       enquiry.createdByCompanyId ===
-                        brokerData?.companyId._id) ||
+                      brokerData?.companyId._id) ||
                     enquiry.status === "closed"
                   }
                 >
@@ -532,7 +531,7 @@ const SingleEnquiry = () => {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Summary Card */}
-          <Card className="bg-muted/5 border-none shadow-sm">
+          <Card className="bg-muted/20 border shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-medium">
                 Enquiry Summary
@@ -557,8 +556,8 @@ const SingleEnquiry = () => {
 
           {/* Admin Messages */}
           {typeof brokerData?.companyId === "object" &&
-          brokerData?.companyId !== null &&
-          enquiry.createdByCompanyId === brokerData?.companyId._id ? (
+            brokerData?.companyId !== null &&
+            enquiry.createdByCompanyId === brokerData?.companyId._id ? (
             <p>
               Someone from your company has raised this enquiry, so you
               can&apos;t submit a property.

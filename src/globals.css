@@ -20,20 +20,15 @@ h6 {
     text-wrap: balance;
   }
 
-  /* Hide scrollbar but keep scroll functionality */
   .scrollbar-hide {
     -ms-overflow-style: none;
-    /* IE and Edge */
     scrollbar-width: none;
-    /* Firefox */
   }
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
-    /* Chrome, Safari, Opera */
   }
 
-  /* Elegant thin scrollbar - always visible */
   .scrollbar-thin {
     scrollbar-width: thin !important;
     scrollbar-color: hsl(var(--border)) transparent !important;
@@ -63,63 +58,36 @@ h6 {
 
 @layer base {
   :root {
-    /* Silent Luxury Palette (Light Mode) */
     --background: 210 40% 98%;
-    /* #F8FAFC (Alabaster) */
     --foreground: 222 47% 11%;
-    /* #0F172A (Oxford Navy) as text */
-
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-
-    
     --primary: 36 90 37%;
-    /* #0F172A (Oxford Navy) */
     --primary-foreground: 210 40% 98%;
-
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222 47% 11%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215 16% 47%;
-
     --accent: 176 77% 26%;
-    /* #0F766E (Patina Teal) */
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 222 47% 11%;
-
     --radius: 0.5rem;
-    /* More professional, slightly squarer */
-
-    /* Chart Colors (kept or adjusted) */
     --chart-1: 176 77% 26%;
-    /* Patina Teal */
     --chart-2: 36 91% 37%;
-    /* Muted Gold */
     --chart-3: 222 47% 11%;
-    /* Oxford Navy */
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-
-    /* Sidebar Variables - Deep Navy default */
     --sidebar-background: 222 47% 11%;
-    /* Oxford Navy */
     --sidebar-foreground: 210 40% 98%;
-    /* White/Alabaster */
     --sidebar-primary: 36 91% 37%;
-    /* Muted Gold for active states */
     --sidebar-primary-foreground: 210 40% 98%;
     --sidebar-accent: 217 33% 17%;
-    /* Lighter Navy for hover */
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 17%;
     --sidebar-ring: 36 91% 37%;
@@ -133,11 +101,10 @@ h6 {
 
     --card: 222 47% 8%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222 47% 8%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 48 97 48%;
+    --primary: 41 98 41%;
     /* White/Alabaster for contrast */
     --primary-foreground: 222 47% 11%;
 

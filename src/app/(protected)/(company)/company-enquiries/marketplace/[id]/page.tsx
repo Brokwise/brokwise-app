@@ -156,7 +156,7 @@ const ViewMarketPlaceEnquiry = () => {
   );
 
   return (
-    <div className="container mx-auto p-4 md:p-6 lg:max-w-6xl space-y-8 animate-in fade-in duration-500">
+    <div className="">
       {/* Header Section */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-start md:justify-between md:space-y-0">
         <div className="space-y-3">
@@ -485,16 +485,15 @@ const ViewMarketPlaceEnquiry = () => {
                         };
                         toast.error(
                           e.response?.data?.message ||
-                            "Failed to mark as interested"
+                          "Failed to mark as interested"
                         );
                       },
                     });
                   }}
                 >
                   <ThumbsUp
-                    className={`mr-2 h-4 w-4 ${
-                      !!enquiry.isInterested ? "fill-current" : ""
-                    }`}
+                    className={`mr-2 h-4 w-4 ${!!enquiry.isInterested ? "fill-current" : ""
+                      }`}
                   />
                   {!!enquiry.isInterested ? "Interested" : "I am Interested"}
                 </Button>

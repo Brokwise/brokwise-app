@@ -8,7 +8,7 @@ export default function MyListings() {
   const { myListings, isLoading, error } = useGetMyListings();
 
   return (
-    <div className="p-6 md:p-8 pb-24">
+    <div className="">
       <DataTable
         columns={columns}
         data={myListings || []}

@@ -198,9 +198,8 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   };
   console.log(property);
   return (
-    <main className="container mx-auto py-8 px-4 max-w-7xl space-y-8">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:gap-6">
+    <main className="">
+      <div className="flex flex-col gap-4 mb-2 sm:gap-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3 w-full">
             <Button

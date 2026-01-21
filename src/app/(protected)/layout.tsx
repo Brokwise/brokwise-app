@@ -38,7 +38,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
               </div>
             </header>
 
-            <main className="flex-1 min-h-0 px-4 flex flex-col max-w-[1600px] mx-auto w-full p-4 pt-[3px] pb-24 md:pb-[3px] overflow-auto scrollbar-hide">
+            <main className="flex-1 min-h-0 px-4 flex flex-col max-w-[1600px] mx-auto w-full p-4 pt-[3px] pb-32 md:pb-[3px] overflow-auto scrollbar-hide">
               {children}
             </main>
 

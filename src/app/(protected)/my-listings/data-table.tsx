@@ -169,19 +169,19 @@ export function DataTable<TData, TValue>({
   const pageCount = table.getPageCount();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       {/* Header Section */}
       <div className="flex flex-col gap-2">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
               My Properties
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Manage and view all your property listings
             </p>
           </div>
-          <Button asChild>
+          <Button asChild size="sm" className="h-9 sm:h-10">
             <Link href="/property/createProperty">
               <Plus className="h-4 w-4 mr-2" />
               Add Property
@@ -191,25 +191,25 @@ export function DataTable<TData, TValue>({
       </div>
 
       {/* Filters Section */}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col xl:flex-row gap-4 justify-between">
-          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col xl:flex-row gap-3 sm:gap-4 justify-between">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1">
             <div className="relative flex-1 w-full sm:max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search properties..."
                 value={globalFilter ?? ""}
                 onChange={(e) => setGlobalFilter(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-10 text-sm"
               />
             </div>
 
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2">
               <Select
                 value={propertyTypeFilter}
                 onValueChange={handlePropertyTypeFilter}
               >
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-full sm:w-[160px] h-10 text-sm">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
@@ -224,7 +224,7 @@ export function DataTable<TData, TValue>({
               </Select>
 
               <Select value={statusFilter} onValueChange={handleStatusFilter}>
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-full sm:w-[160px] h-10 text-sm">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
@@ -248,7 +248,7 @@ export function DataTable<TData, TValue>({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-10 w-[160px] rounded-[8px] px-3 text-xs"
+                      className="h-10 w-full sm:w-[160px] rounded-[8px] px-3 text-xs"
                     >
                       <Columns3 className="mr-2 h-4 w-4" />
                       Columns
@@ -273,35 +273,36 @@ export function DataTable<TData, TValue>({
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
+              <div className="flex items-center gap-2">
+                <div className="bg-muted p-1 rounded-lg flex items-center">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setViewMode("grid")}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                    <span className="sr-only">Grid View</span>
+                  </Button>
+                  <Button
+                    variant={viewMode === "table" ? "default" : "ghost"}
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setViewMode("table")}
+                  >
+                    <List className="h-4 w-4" />
+                    <span className="sr-only">Table View</span>
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="bg-muted p-1 rounded-lg flex items-center">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => setViewMode("grid")}
-              >
-                <LayoutGrid className="h-4 w-4" />
-                <span className="sr-only">Grid View</span>
-              </Button>
-              <Button
-                variant={viewMode === "table" ? "default" : "ghost"}
-                size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => setViewMode("table")}
-              >
-                <List className="h-4 w-4" />
-                <span className="sr-only">Table View</span>
-              </Button>
-            </div>
-          </div>
+
         </div>
 
         {/* Results count */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+        <div className="flex  flex-row  items-center justify-between gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
           <p>
             Showing{" "}
             <span className="font-medium text-foreground">
@@ -316,7 +317,7 @@ export function DataTable<TData, TValue>({
                 value={`${table.getState().pagination.pageSize}`}
                 onValueChange={(value) => table.setPageSize(Number(value))}
               >
-                <SelectTrigger className="h-8 w-[70px]">
+                <SelectTrigger className="h-8 w-[70px] text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent side="top">
@@ -353,7 +354,7 @@ export function DataTable<TData, TValue>({
       {!isLoading && !error && (
         <>
           {viewMode === "grid" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => {
                   const property = row.original as Property;
@@ -371,7 +372,7 @@ export function DataTable<TData, TValue>({
               )}
             </div>
           ) : (
-            <div className="rounded-md border overflow-x-auto">
+            <div className="rounded-md border overflow-x-auto text-sm">
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
@@ -381,9 +382,9 @@ export function DataTable<TData, TValue>({
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                         </TableHead>
                       ))}
                     </TableRow>
