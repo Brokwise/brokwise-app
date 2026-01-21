@@ -24,6 +24,7 @@ import {
   XCircle,
   Gavel,
   AlertTriangle,
+  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -33,7 +34,7 @@ interface MakeOfferProps {
 }
 
 export const MakeOffer = ({ property }: MakeOfferProps) => {
-  const { brokerData } = useApp();
+  const { brokerData, companyData } = useApp();
   const { offerPrice, isPending: isSubmitting } = useOfferPrice();
   const { submitFinalOffer, isPending: isSubmittingFinal } =
     useSubmitFinalOffer();
@@ -41,25 +42,26 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
   const [open, setOpen] = useState(false);
   const [rate, setRate] = useState<string>("");
   const [isFinalOfferMode, setIsFinalOfferMode] = useState(false);
-
-  if (!brokerData) return null; // Only brokers can make offers
-
-  // Check if it's the broker's own property listing
+  const [priceMode, setPriceMode] = useState<"perUnit" | "total">("perUnit");
+  if (!brokerData && !companyData) return null;
   const isOwnListing =
     typeof property.listedBy === "string"
-      ? property.listedBy === brokerData._id
-      : property.listedBy?._id === brokerData._id;
+      ? property.listedBy === (brokerData ? brokerData._id : companyData?._id)
+      : property.listedBy?._id === (brokerData ? brokerData._id : companyData?._id)
 
-  if (isOwnListing) return null;
 
-  // Find existing offer from this broker
+  if (isOwnListing) {
+    return <Alert>
+      <AlertDescription className="flex gap-2"><Info /> Your Property</AlertDescription>
+    </Alert>;
+  }
   const myOffer = property.offers?.find((offer) => {
     const offerById =
       typeof offer.offerBy === "string"
         ? offer.offerBy
         : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (offer.offerBy as any)._id;
-    return offerById === brokerData._id;
+        (offer.offerBy as any)._id;
+    return offerById === (brokerData ? brokerData._id : companyData?._id);
   });
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -67,20 +69,30 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
     if (!isOpen) {
       setRate("");
       setIsFinalOfferMode(false);
+      setPriceMode("perUnit");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const offerRate = parseFloat(rate);
+    const offerValue = parseFloat(rate);
+    const size = Number(property.size) || 0;
+    const maxTotal = size ? property.rate * size : property.rate;
+    const offerRate =
+      priceMode === "total" && size ? offerValue / size : offerValue;
 
-    if (isNaN(offerRate) || offerRate <= 0) {
+    if (isNaN(offerValue) || offerValue <= 0) {
       toast.error("Please enter a valid rate");
       return;
     }
 
-    if (offerRate > property.rate) {
+    if (priceMode === "perUnit" && offerRate > property.rate) {
       toast.error("Offer rate cannot be higher than the asking rate");
+      return;
+    }
+
+    if (priceMode === "total" && offerValue > maxTotal) {
+      toast.error("Offer total cannot be higher than the asking total");
       return;
     }
 
@@ -107,7 +119,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
     switch (status) {
       case "pending":
       case "final_pending":
-        return <Badge className="bg-yellow-500">Pending</Badge>;
+        return <Badge className="bg-green-500">Sent</Badge>;
       case "accepted":
       case "final_accepted":
         return <Badge className="bg-green-500">Accepted</Badge>;
@@ -160,11 +172,11 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
         </div>
 
         {status === "pending" && (
-          <Alert className="bg-yellow-50 border-yellow-200">
-            <Clock className="h-4 w-4 text-yellow-600" />
-            <AlertTitle className="text-yellow-800">Review Pending</AlertTitle>
-            <AlertDescription className="text-yellow-700">
-              Your offer is currently under review by the admin.
+          <Alert className="bg-green-50 border-green-200">
+            <Clock className="h-4 w-4 text-green-600" />
+            <AlertTitle className="text-green-800">Offer sent</AlertTitle>
+            <AlertDescription className="text-green-700">
+              Your offer has been sent!
             </AlertDescription>
           </Alert>
         )}
@@ -265,10 +277,37 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 py-4">
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={priceMode === "perUnit" ? "default" : "outline"}
+                onClick={() => {
+                  setPriceMode("perUnit");
+                  setRate("");
+                }}
+              >
+                Per Unit
+              </Button>
+              <Button
+                type="button"
+                variant={priceMode === "total" ? "default" : "outline"}
+                onClick={() => {
+                  setPriceMode("total");
+                  setRate("");
+                }}
+                disabled={!property.size}
+              >
+                Total
+              </Button>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="rate">
-                Offer Rate (per{" "}
-                {property.sizeUnit?.toLowerCase().replace("_", " ")})
+                {priceMode === "perUnit"
+                  ? `Offer Rate (per ${property.sizeUnit
+                    ?.toLowerCase()
+                    .replace("_", " ")})`
+                  : "Offer Total"}
               </Label>
               <div className="relative">
                 <span className="absolute left-3 top-2.5 text-muted-foreground">
@@ -277,25 +316,47 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
                 <Input
                   id="rate"
                   type="number"
-                  placeholder={`Max: ${property.rate}`}
+                  placeholder={
+                    priceMode === "perUnit"
+                      ? `Max: ${property.rate}`
+                      : `Max: ${(Number(property.size) || 0) * property.rate}`
+                  }
                   className="pl-7"
                   value={rate}
                   onChange={(e) => setRate(e.target.value)}
-                  max={property.rate}
+                  max={
+                    priceMode === "perUnit"
+                      ? property.rate
+                      : (Number(property.size) || 0) * property.rate
+                  }
                   required
                 />
               </div>
               <p className="text-xs text-muted-foreground">
                 Asking Rate: {formatCurrency(property.rate)}
+                {property.size ? (
+                  <>
+                    {" "}
+                    • Asking Total:{" "}
+                    {formatCurrency(property.rate * property.size)}
+                  </>
+                ) : null}
               </p>
             </div>
 
-            {rate && parseFloat(rate) > property.rate && (
-              <div className="text-sm text-destructive flex items-center gap-1">
-                <AlertTriangle className="h-3 w-3" />
-                Offer cannot be higher than asking rate.
-              </div>
-            )}
+            {rate &&
+              ((priceMode === "perUnit" &&
+                parseFloat(rate) > property.rate) ||
+                (priceMode === "total" &&
+                  parseFloat(rate) >
+                  (Number(property.size) || 0) * property.rate)) && (
+                <div className="text-sm text-destructive flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  {priceMode === "perUnit"
+                    ? "Offer cannot be higher than asking rate."
+                    : "Offer total cannot be higher than asking total."}
+                </div>
+              )}
 
             <DialogFooter>
               <Button
@@ -311,7 +372,11 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
                   isSubmitting ||
                   isSubmittingFinal ||
                   !rate ||
-                  parseFloat(rate) > property.rate
+                  (priceMode === "perUnit" &&
+                    parseFloat(rate) > property.rate) ||
+                  (priceMode === "total" &&
+                    parseFloat(rate) >
+                    (Number(property.size) || 0) * property.rate)
                 }
               >
                 {isSubmitting || isSubmittingFinal

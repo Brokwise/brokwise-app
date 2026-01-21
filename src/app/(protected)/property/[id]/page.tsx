@@ -73,6 +73,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
   const router = useRouter();
   const { property, isLoading, error } = useGetProperty(id);
+  console.log(property)
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [exportedOnLabel, setExportedOnLabel] = useState<string>("");
   const [isFlagDialogOpen, setIsFlagDialogOpen] = useState(false);
@@ -420,7 +421,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
                           onClick={() =>
                             setActiveImageIndex(
                               (activeImageIndex - 1 + imageGallery.length) %
-                                imageGallery.length
+                              imageGallery.length
                             )
                           }
                           className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 transition"
@@ -456,11 +457,10 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
                             alt={`Thumbnail ${index + 1}`}
                             fill
                             sizes="120px"
-                            className={`object-cover ${
-                              index === activeImageIndex
-                                ? "ring-2 ring-primary"
-                                : "ring-1 ring-muted-foreground/30"
-                            }`}
+                            className={`object-cover ${index === activeImageIndex
+                              ? "ring-2 ring-primary"
+                              : "ring-1 ring-muted-foreground/30"
+                              }`}
                           />
                         </button>
                       ))}
@@ -585,48 +585,48 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
           {(property.floorPlans?.length ||
             property.jamabandiUrl ||
             property.khasraPlanUrl) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Documents</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {property.floorPlans?.map((plan, index) => (
-                  <a
-                    key={index}
-                    href={plan}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-primary hover:underline p-2 hover:bg-muted/50 rounded-md transition-colors"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Floor Plan {index + 1}
-                  </a>
-                ))}
-                {property.jamabandiUrl && (
-                  <a
-                    href={property.jamabandiUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-primary hover:underline p-2 hover:bg-muted/50 rounded-md transition-colors"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Jamabandi Document
-                  </a>
-                )}
-                {property.khasraPlanUrl && (
-                  <a
-                    href={property.khasraPlanUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-primary hover:underline p-2 hover:bg-muted/50 rounded-md transition-colors"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Khasra Plan
-                  </a>
-                )}
-              </CardContent>
-            </Card>
-          )}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Documents</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {property.floorPlans?.map((plan, index) => (
+                    <a
+                      key={index}
+                      href={plan}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-primary hover:underline p-2 hover:bg-muted/50 rounded-md transition-colors"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Floor Plan {index + 1}
+                    </a>
+                  ))}
+                  {property.jamabandiUrl && (
+                    <a
+                      href={property.jamabandiUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-primary hover:underline p-2 hover:bg-muted/50 rounded-md transition-colors"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Jamabandi Document
+                    </a>
+                  )}
+                  {property.khasraPlanUrl && (
+                    <a
+                      href={property.khasraPlanUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-primary hover:underline p-2 hover:bg-muted/50 rounded-md transition-colors"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Khasra Plan
+                    </a>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
           {/* Map */}
           <Card className="overflow-hidden">
@@ -666,10 +666,10 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
               <PropertyOffers property={property} />
             )}
 
-          {!property.deletingStatus &&
-            property.listingStatus !== "ENQUIRY_ONLY" && (
-              <MakeOffer property={property} />
-            )}
+          {(!property.deletingStatus &&
+            property.listingStatus !== "ENQUIRY_ONLY") &&
+            <MakeOffer property={property} />
+          }
 
           <Card className="hidden md:block">
             <CardHeader>
