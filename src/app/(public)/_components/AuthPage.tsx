@@ -12,9 +12,7 @@ import {
   ArrowRight,
   ArrowLeft,
   Check,
-  Sun,
-  Moon,
-  Computer,
+
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -30,7 +28,7 @@ import {
 } from "firebase/auth";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { detectLanguage, changeLanguage } from "@/i18n";
+import { detectLanguage } from "@/i18n";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
@@ -43,13 +41,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 
 import {
   loginFormSchema,
@@ -125,8 +117,8 @@ export default function AuthPage({
 }: {
   initialMode?: AuthMode;
 }) {
-  const { t, i18n } = useTranslation();
-  const { theme, resolvedTheme, setTheme } = useTheme();
+  const { t } = useTranslation();
+  const { theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [accountType, setAccountType] = useState<AccountType>("broker");
@@ -148,7 +140,7 @@ export default function AuthPage({
   }, [isMobile, searchParams, router]);
 
   const activeTheme = mounted ? resolvedTheme ?? theme : undefined;
-  const isSystemTheme = mounted && theme === "system";
+  // const isSystemTheme = mounted && theme === "system";
 
   const contentConfig = useMemo(() => {
     return {
