@@ -629,5 +629,17 @@
   "deletion_details_placeholder": "Please provide more details...",
   "request_property_deletion": "Request Property Deletion",
   "request_property_deletion_desc": "Please provide a reason for deleting this property. This request will be sent to the admin for approval.",
-  "submit_request": "Submit Request"
+  "submit_request": "Submit Request",
+
+  "chatbot_title": "Brokwise Assistant",
+  "chatbot_subtitle": "Here to help you",
+  "chatbot_welcome_title": "Hi! I'm your Brokwise Assistant",
+  "chatbot_welcome_message": "I can help you navigate the platform, list properties, manage enquiries, and answer questions about using Brokwise.",
+  "chatbot_suggestions_title": "Try asking about:",
+  "chatbot_suggestion_1": "How to list a property",
+  "chatbot_suggestion_2": "Creating an enquiry",
+  "chatbot_suggestion_3": "Managing bookmarks",
+  "chatbot_input_placeholder": "Ask me anything about Brokwise...",
+  "chatbot_clear_title": "Clear Chat",
+  "chatbot_clear_description": "Are you sure you want to clear all messages? This action cannot be undone."
 }

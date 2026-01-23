@@ -629,5 +629,17 @@
   "deletion_details_placeholder": "कृपया अधिक विवरण दें...",
   "request_property_deletion": "प्रॉपर्टी डिलीशन रिक्वेस्ट",
   "request_property_deletion_desc": "इस प्रॉपर्टी को डिलीट करने का कारण बताएं। यह रिक्वेस्ट एडमिन को अप्रूवल के लिए भेजी जाएगी।",
-  "submit_request": "रिक्वेस्ट सबमिट करें"
+  "submit_request": "रिक्वेस्ट सबमिट करें",
+
+  "chatbot_title": "ब्रोकवाइज असिस्टेंट",
+  "chatbot_subtitle": "आपकी मदद के लिए यहाँ",
+  "chatbot_welcome_title": "नमस्ते! मैं आपका ब्रोकवाइज असिस्टेंट हूँ",
+  "chatbot_welcome_message": "मैं आपको प्लेटफॉर्म नेविगेट करने, प्रॉपर्टी लिस्ट करने, इंक्वायरी मैनेज करने और ब्रोकवाइज के बारे में सवालों का जवाब देने में मदद कर सकता हूँ।",
+  "chatbot_suggestions_title": "ये पूछकर देखें:",
+  "chatbot_suggestion_1": "प्रॉपर्टी कैसे लिस्ट करें",
+  "chatbot_suggestion_2": "इंक्वायरी कैसे बनाएं",
+  "chatbot_suggestion_3": "बुकमार्क कैसे मैनेज करें",
+  "chatbot_input_placeholder": "ब्रोकवाइज के बारे में कुछ भी पूछें...",
+  "chatbot_clear_title": "चैट साफ़ करें",
+  "chatbot_clear_description": "क्या आप सभी मैसेज हटाना चाहते हैं? यह कार्रवाई पूर्ववत नहीं की जा सकती।"
 }
