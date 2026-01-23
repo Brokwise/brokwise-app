@@ -12,6 +12,7 @@ import {
 import { Notifications } from "./_components/notification/notifications";
 import { UserAvatar } from "./_components/userAvatar";
 import { Separator } from "@/components/ui/separator";
+import { ChatbotWidget } from "@/components/chatbot";
 
 const layout = ({ children }: { children: React.ReactNode }) => {
   const sidebarCookie = cookies().get("sidebar_state")?.value;
@@ -43,6 +44,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
             </main>
 
             <BottomNav />
+            <ChatbotWidget />
           </SidebarInset>
         </SidebarProvider>
       </ProtectedPage>

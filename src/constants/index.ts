@@ -137,3 +137,28 @@ export const VILLA_AMENITIES = [
 ];
 
 export const LG_BREAKPOINT_PX = 1350;
+
+// Country codes for mobile number input
+export const COUNTRY_CODES = [
+  { label: "+91 India", value: "+91", code: "IN" },
+  { label: "+1 United States", value: "+1", code: "US" },
+  { label: "+44 United Kingdom", value: "+44", code: "UK" },
+  { label: "+971 UAE", value: "+971", code: "AE" },
+  { label: "+65 Singapore", value: "+65", code: "SG" },
+  { label: "+61 Australia", value: "+61", code: "AU" },
+  { label: "+1 Canada", value: "+1-CA", code: "CA" },
+  { label: "+49 Germany", value: "+49", code: "DE" },
+  { label: "+33 France", value: "+33", code: "FR" },
+  { label: "+966 Saudi Arabia", value: "+966", code: "SA" },
+];
+
+// Property deletion reasons
+export const PROPERTY_DELETION_REASONS = [
+  { value: "SOLD", labelKey: "deletion_reason_sold" },
+  { value: "NOT_FOR_SALE", labelKey: "deletion_reason_not_for_sale" },
+  { value: "LISTED_ELSEWHERE", labelKey: "deletion_reason_listed_elsewhere" },
+  { value: "INCORRECT_DETAILS", labelKey: "deletion_reason_incorrect_details" },
+  { value: "DUPLICATE", labelKey: "deletion_reason_duplicate" },
+  { value: "OWNER_REQUEST", labelKey: "deletion_reason_owner_request" },
+  { value: "OTHER", labelKey: "deletion_reason_other" },
+];

@@ -606,5 +606,40 @@
   "label_hectare": "हेक्टेयर",
   "label_bigha": "बीघा",
 
-  "property_submitted_for": "यह प्रॉपर्टी सबमिट की गई थी"
+  "property_submitted_for": "यह प्रॉपर्टी सबमिट की गई थी",
+
+  "mobile_aadhaar_hint": "वेरिफिकेशन के लिए अपने आधार से लिंक्ड मोबाइल नंबर दर्ज करें।",
+  "mobile_company_hint": "मोबाइल नंबर आपकी फर्म का प्राइमरी या एडमिन का नंबर होना चाहिए।",
+  "country_code": "कंट्री कोड",
+  "coming_soon_country": "ब्रोकवाइज़ अभी आपके देश में उपलब्ध नहीं है। हम जल्द ही आ रहे हैं!",
+  "notify_me": "मुझे नोटिफाई करें",
+  "notify_me_success": "जब ब्रोकवाइज़ आपके देश में लॉन्च होगा, हम आपको नोटिफाई करेंगे!",
+  "notify_mobile_placeholder": "आपका मोबाइल नंबर (वैकल्पिक)",
+
+  "deletion_reason_label": "डिलीशन का कारण",
+  "select_deletion_reason": "कारण चुनें",
+  "deletion_reason_sold": "प्रॉपर्टी बिक गई है",
+  "deletion_reason_not_for_sale": "प्रॉपर्टी अब बिक्री के लिए नहीं है",
+  "deletion_reason_listed_elsewhere": "दूसरे प्लेटफॉर्म पर लिस्ट है",
+  "deletion_reason_incorrect_details": "प्रॉपर्टी डिटेल्स गलत हैं",
+  "deletion_reason_duplicate": "डुप्लीकेट लिस्टिंग",
+  "deletion_reason_owner_request": "मालिक ने हटाने का अनुरोध किया",
+  "deletion_reason_other": "अन्य",
+  "additional_details_label": "अतिरिक्त विवरण (कम से कम 10 अक्षर)",
+  "deletion_details_placeholder": "कृपया अधिक विवरण दें...",
+  "request_property_deletion": "प्रॉपर्टी डिलीशन रिक्वेस्ट",
+  "request_property_deletion_desc": "इस प्रॉपर्टी को डिलीट करने का कारण बताएं। यह रिक्वेस्ट एडमिन को अप्रूवल के लिए भेजी जाएगी।",
+  "submit_request": "रिक्वेस्ट सबमिट करें",
+
+  "chatbot_title": "ब्रोकवाइज असिस्टेंट",
+  "chatbot_subtitle": "आपकी मदद के लिए यहाँ",
+  "chatbot_welcome_title": "नमस्ते! मैं आपका ब्रोकवाइज असिस्टेंट हूँ",
+  "chatbot_welcome_message": "मैं आपको प्लेटफॉर्म नेविगेट करने, प्रॉपर्टी लिस्ट करने, इंक्वायरी मैनेज करने और ब्रोकवाइज के बारे में सवालों का जवाब देने में मदद कर सकता हूँ।",
+  "chatbot_suggestions_title": "ये पूछकर देखें:",
+  "chatbot_suggestion_1": "प्रॉपर्टी कैसे लिस्ट करें",
+  "chatbot_suggestion_2": "इंक्वायरी कैसे बनाएं",
+  "chatbot_suggestion_3": "बुकमार्क कैसे मैनेज करें",
+  "chatbot_input_placeholder": "ब्रोकवाइज के बारे में कुछ भी पूछें...",
+  "chatbot_clear_title": "चैट साफ़ करें",
+  "chatbot_clear_description": "क्या आप सभी मैसेज हटाना चाहते हैं? यह कार्रवाई पूर्ववत नहीं की जा सकती।"
 }

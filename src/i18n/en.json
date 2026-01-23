@@ -606,5 +606,40 @@
   "label_hectare": "Hectare",
   "label_bigha": "Bigha",
 
-  "property_submitted_for": "This property was submitted for"
+  "property_submitted_for": "This property was submitted for",
+
+  "mobile_aadhaar_hint": "Please enter the mobile number linked with your Aadhaar for verification purposes.",
+  "mobile_company_hint": "Mobile should be the primary mobile no. or admin's no. of your firm.",
+  "country_code": "Country Code",
+  "coming_soon_country": "Brokwise is not yet available in your country. We're expanding soon!",
+  "notify_me": "Notify Me",
+  "notify_me_success": "We'll notify you when Brokwise launches in your country!",
+  "notify_mobile_placeholder": "Your mobile number (optional)",
+
+  "deletion_reason_label": "Reason for Deletion",
+  "select_deletion_reason": "Select a reason",
+  "deletion_reason_sold": "Property has been sold",
+  "deletion_reason_not_for_sale": "Property is no longer for sale",
+  "deletion_reason_listed_elsewhere": "Listed on another platform",
+  "deletion_reason_incorrect_details": "Incorrect property details",
+  "deletion_reason_duplicate": "Duplicate listing",
+  "deletion_reason_owner_request": "Owner requested removal",
+  "deletion_reason_other": "Other",
+  "additional_details_label": "Additional Details (min 10 characters)",
+  "deletion_details_placeholder": "Please provide more details...",
+  "request_property_deletion": "Request Property Deletion",
+  "request_property_deletion_desc": "Please provide a reason for deleting this property. This request will be sent to the admin for approval.",
+  "submit_request": "Submit Request",
+
+  "chatbot_title": "Brokwise Assistant",
+  "chatbot_subtitle": "Here to help you",
+  "chatbot_welcome_title": "Hi! I'm your Brokwise Assistant",
+  "chatbot_welcome_message": "I can help you navigate the platform, list properties, manage enquiries, and answer questions about using Brokwise.",
+  "chatbot_suggestions_title": "Try asking about:",
+  "chatbot_suggestion_1": "How to list a property",
+  "chatbot_suggestion_2": "Creating an enquiry",
+  "chatbot_suggestion_3": "Managing bookmarks",
+  "chatbot_input_placeholder": "Ask me anything about Brokwise...",
+  "chatbot_clear_title": "Clear Chat",
+  "chatbot_clear_description": "Are you sure you want to clear all messages? This action cannot be undone."
 }
