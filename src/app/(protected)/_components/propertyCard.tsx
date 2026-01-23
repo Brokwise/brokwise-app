@@ -37,6 +37,7 @@ import { createRoot } from "react-dom/client";
 import { format } from "date-fns";
 import { PropertyPdfLayout } from "@/components/property-pdf/property-pdf-layout";
 import { exportElementAsPdf, makeSafeFilePart } from "@/utils/pdf";
+import { useTranslation } from "react-i18next";
 
 interface PropertyCardProps {
   property: Property;
@@ -60,6 +61,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     useApp();
   const { toggleBookmarkAsync, isPending: isBookmarkPending } =
     useToggleBookmark();
+  const { t } = useTranslation();
 
   const isCompany = userData?.userType === "company";
 
@@ -84,11 +86,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     e.stopPropagation();
     try {
       await navigator.clipboard.writeText(propertyUrl);
-      toast.success("Link copied to clipboard!", {
+      toast.success(t("toast_link_copied"), {
         icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
       });
     } catch {
-      toast.error("Failed to copy link");
+      toast.error(t("toast_error_copy_link"));
     }
   };
 
@@ -190,10 +192,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         fileName: `Brokwise_Property_${safeId}.pdf`,
       });
 
-      toast.success("PDF downloaded", { id: toastId });
+      toast.success(t("toast_pdf_downloaded"), { id: toastId });
     } catch (err) {
       console.error(err);
-      toast.error("Failed to export PDF. Please try again.", { id: toastId });
+      toast.error(t("toast_error_pdf_export"), { id: toastId });
     } finally {
       try {
         root?.unmount();
@@ -251,7 +253,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           {isSameCity && (
             <Badge className="shadow-sm backdrop-blur-md border-none bg-blue-600/90 text-white">
               <MapPin className="h-3 w-3 mr-1" />
-              Same city
+              {t("label_same_city")}
             </Badge>
           )}
           <Badge
@@ -294,7 +296,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               e.stopPropagation();
 
               if (!brokerData && !companyData) {
-                toast.error("Please complete your profile to use bookmarks");
+                toast.error(t("toast_error_profile_incomplete"));
                 return;
               }
 
@@ -499,7 +501,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           asChild
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
         >
-          <Link href={`/property/${property._id}`}>View Details</Link>
+          <Link href={`/property/${property._id}`}>{t("action_view_details")}</Link>
         </Button>
         {actionSlot}
       </CardFooter>

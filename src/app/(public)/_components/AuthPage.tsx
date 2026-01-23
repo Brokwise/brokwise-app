@@ -12,7 +12,9 @@ import {
   ArrowRight,
   ArrowLeft,
   Check,
-
+  Sun,
+  Moon,
+  Languages,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,7 +30,7 @@ import {
 } from "firebase/auth";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { detectLanguage } from "@/i18n";
+import { detectLanguage, changeLanguage } from "@/i18n";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
@@ -117,8 +119,8 @@ export default function AuthPage({
 }: {
   initialMode?: AuthMode;
 }) {
-  const { t } = useTranslation();
-  const { theme, resolvedTheme } = useTheme();
+  const { t, i18n } = useTranslation();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [accountType, setAccountType] = useState<AccountType>("broker");
@@ -127,6 +129,7 @@ export default function AuthPage({
   const searchParams = useSearchParams();
   const isMobile = useIsMobile();
   const scrollAreaRef = React.useRef<HTMLDivElement | null>(null);
+  const currentLang = i18n.language;
 
   React.useEffect(() => {
     detectLanguage();
@@ -475,6 +478,43 @@ export default function AuthPage({
             </Button>
           </div>
         )}
+        
+        {/* Language and Theme Toggle - Top Right */}
+        <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+          {/* Language Toggle */}
+          <div className="flex items-center gap-1 border rounded-full px-1 py-0.5 bg-background/80 backdrop-blur-sm">
+            <Button
+              variant={currentLang === "en" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-7 px-2.5 rounded-full text-xs font-medium"
+              onClick={() => changeLanguage("en")}
+            >
+              EN
+            </Button>
+            <Button
+              variant={currentLang === "hi" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-7 px-2.5 rounded-full text-xs font-medium"
+              onClick={() => changeLanguage("hi")}
+            >
+              हिं
+            </Button>
+          </div>
+          
+          {/* Theme Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border"
+            onClick={() => setTheme(activeTheme === "light" ? "dark" : "light")}
+          >
+            {activeTheme === "light" ? (
+              <Moon className="h-4 w-4" />
+            ) : (
+              <Sun className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
         <div className="h-full w-full flex flex-col items-center px-6 lg:px-16">
           {/* Fixed header area (prevents the Brokwise title from jumping when mode changes) */}
           <div className="w-full max-w-md shrink-0 pt-7 lg:pt-10">

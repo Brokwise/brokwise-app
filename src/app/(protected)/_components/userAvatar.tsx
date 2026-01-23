@@ -14,14 +14,18 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { firebaseAuth } from "@/config/firebase";
 import Image from "next/image";
 import { signOut } from "firebase/auth";
-import { Computer, Moon, Sun } from "lucide-react";
+import { Computer, Moon, Sun, Languages } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
+import { changeLanguage } from "@/i18n";
 export function UserAvatar() {
   const [user] = useAuthState(firebaseAuth);
   const [mounted, setMounted] = useState(false);
   const { setTheme } = useTheme();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language;
 
   useEffect(() => setMounted(true), []);
 
@@ -54,15 +58,52 @@ export function UserAvatar() {
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
             <Link href="/profile" className="w-full cursor-pointer">
-              Profile
+              {t("nav_profile")}
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          {/* Language Toggle */}
           <DropdownMenuItem
-            // Keep the theme controls visible in light mode on hover/focus.
-            // (Default DropdownMenuItem applies focus:text-accent-foreground, which is white in light mode.)
+            className="focus:bg-transparent focus:text-foreground"
+            onSelect={(e) => e.preventDefault()}
+          >
+            <div className="w-full flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Languages className="h-4 w-4" />
+                <span className="text-sm">{t("select_language")}</span>
+              </div>
+              <div className="flex gap-1 border rounded-full px-1 py-0.5 bg-muted/50">
+                <Button
+                  variant={currentLang === "en" ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-6 px-2 rounded-full text-xs"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    changeLanguage("en");
+                  }}
+                >
+                  EN
+                </Button>
+                <Button
+                  variant={currentLang === "hi" ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-6 px-2 rounded-full text-xs"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    changeLanguage("hi");
+                  }}
+                >
+                  हिं
+                </Button>
+              </div>
+            </div>
+          </DropdownMenuItem>
+          {/* Theme Toggle */}
+          <DropdownMenuItem
             className="focus:bg-transparent focus:text-foreground"
             onSelect={(e) => e.preventDefault()}
           >

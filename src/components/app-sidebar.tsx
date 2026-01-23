@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 import {
   Sidebar,
@@ -62,46 +63,47 @@ type SidebarNavItem = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { companyData } = useApp();
+  const { t } = useTranslation();
 
   // Company Navigation
   const companyNav: SidebarNavItem[] = [
     {
-      title: "Dashboard",
+      title: t("nav_dashboard"),
       url: "/company-dashboard",
       icon: LayoutDashboard,
     },
     {
-      title: "Home",
+      title: t("nav_home"),
       url: "/company-marketplace",
       icon: HomeIcon,
     },
     {
-      title: "Brokers",
+      title: t("nav_brokers"),
       url: "/company-brokers",
       icon: Users,
     },
     {
-      title: "Properties",
+      title: t("nav_properties"),
       url: "/company-properties",
       icon: Building2,
     },
     {
-      title: "Enquiries",
+      title: t("nav_enquiries"),
       url: "/company-enquiries",
       icon: FileText,
     },
     {
-      title: "Bookmarks",
+      title: t("nav_bookmarks"),
       url: "/bookmarks",
       icon: Bookmark,
     },
     {
-      title: "Messages",
+      title: t("nav_messages"),
       url: "/message",
       icon: MessageSquare,
     },
     {
-      title: "List Property",
+      title: t("nav_list_property"),
       url: "/property/createProperty",
       icon: PlusCircle,
     },
@@ -109,43 +111,43 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const brokerNav: SidebarNavItem[] = [
     {
-      title: "Home",
+      title: t("nav_home"),
       url: "/",
       icon: Home,
     },
 
     {
-      title: "Bookmarks",
+      title: t("nav_bookmarks"),
       url: "/bookmarks",
       icon: Bookmark,
     },
     {
-      title: "My Listings",
+      title: t("nav_my_listings"),
       url: "/my-listings",
       icon: Building2,
     },
     {
-      title: "My Enquiries",
+      title: t("nav_my_enquiries"),
       url: "/my-enquiries",
       icon: FileText,
     },
     {
-      title: "Messages",
+      title: t("nav_messages"),
       url: "/message",
       icon: MessageSquare,
     },
     {
-      title: "List Property",
+      title: t("nav_list_property"),
       url: "/property/createProperty",
       icon: PlusCircle,
     },
     {
-      title: "Contacts",
+      title: t("nav_contacts"),
       url: "/contacts",
       icon: Contact2,
     },
     {
-      title: "Projects (Coming soon)",
+      title: t("nav_projects"),
       url: "/projects",
       icon: LandPlotIcon,
     },
@@ -153,50 +155,50 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const resourcesNav: SidebarNavItem[] = [
     {
-      title: "News",
+      title: t("nav_news"),
       url: "/resources/news",
       icon: NewspaperIcon,
     },
     {
-      title: "Land Convertor",
+      title: t("nav_land_convertor"),
       url: "/resources/land-convertor",
       icon: Calculator,
     },
     {
-      title: "Jaipur DLC Rates",
+      title: t("nav_dlc_rates"),
       url: "/resources/jaipur-dlc-rates",
       icon: FileDigit,
     },
     {
-      title: "JDA Circulars",
+      title: t("nav_jda_circulars"),
       url: `/resources/webview?url=${encodeURIComponent(
         "https://jda.urban.rajasthan.gov.in/content/raj/udh/jda-jaipur/en/orders-circulars.html"
       )}&title=JDA Circulars`,
       icon: FileText,
     },
     {
-      title: "GIS Portal",
+      title: t("nav_gis_portal"),
       url: `/resources/webview?url=${encodeURIComponent(
         "https://gis.rajasthan.gov.in/"
       )}&title=GIS Portal`,
       icon: Map,
     },
     {
-      title: "Apna Khata",
+      title: t("nav_apna_khata"),
       url: `/resources/webview?url=${encodeURIComponent(
         "https://apnakhata.rajasthan.gov.in/"
       )}&title=Apna Khata`,
       icon: FileText,
     },
     {
-      title: "BhuNaksha",
+      title: t("nav_bhunaksha"),
       url: `/resources/webview?url=${encodeURIComponent(
         "https://bhunaksha.rajasthan.gov.in/"
       )}&title=BhuNaksha`,
       icon: Map,
     },
     {
-      title: "RERA",
+      title: t("nav_rera"),
       url: `/resources/webview?url=${encodeURIComponent(
         "https://rera.rajasthan.gov.in/"
       )}&title=RERA`,
@@ -218,14 +220,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               Brokwise
             </span>
             <span className="text-xs text-muted-foreground">
-              {companyData ? "Enterprise" : "Professional"}
+              {companyData ? t("nav_enterprise") : t("nav_professional")}
             </span>
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("nav_menu")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {sidebarItems.map((item) => {
@@ -288,7 +290,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
         {!companyData && (
           <SidebarGroup>
-            <SidebarGroupLabel>Resources</SidebarGroupLabel>
+            <SidebarGroupLabel>{t("nav_resources")}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {/* Resources Collapsible/Dropdown could go here, but flat list is fine for sidebar */}

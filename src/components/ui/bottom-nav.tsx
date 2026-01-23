@@ -14,11 +14,13 @@ import {
 import { cn } from "@/lib/utils";
 import { useApp } from "@/context/AppContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 export function BottomNav() {
   const pathname = usePathname();
   const { companyData } = useApp();
   const [isFabOpen, setIsFabOpen] = React.useState(false);
+  const { t } = useTranslation();
 
   // Close FAB menu when pathname changes
   React.useEffect(() => {
@@ -28,12 +30,12 @@ export function BottomNav() {
   const navItems = companyData
     ? [
         {
-          label: "Dashboard",
+          label: t("nav_dashboard"),
           href: "/company-dashboard",
           icon: LayoutDashboard,
         },
         {
-          label: "Properties",
+          label: t("nav_properties"),
           href: "/company-properties",
           icon: Building2,
         },
@@ -41,24 +43,24 @@ export function BottomNav() {
           isFab: true,
         },
         {
-          label: "Enquiries",
+          label: t("nav_enquiries"),
           href: "/company-enquiries",
           icon: FileText,
         },
         {
-          label: "Profile",
+          label: t("nav_profile"),
           href: "/profile",
           icon: User,
         },
       ]
     : [
         {
-          label: "Home",
+          label: t("nav_home"),
           href: "/",
           icon: Home,
         },
         {
-          label: "Listings",
+          label: t("nav_my_listings"),
           href: "/my-listings",
           icon: Building2,
         },
@@ -66,12 +68,12 @@ export function BottomNav() {
           isFab: true,
         },
         {
-          label: "Enquiries",
+          label: t("nav_my_enquiries"),
           href: "/my-enquiries",
           icon: FileText,
         },
         {
-          label: "Profile",
+          label: t("nav_profile"),
           href: "/profile",
           icon: User,
         },
@@ -107,7 +109,7 @@ export function BottomNav() {
                 onClick={() => setIsFabOpen(false)}
               >
                 <Building2 className="h-5 w-5" />
-                <span className="font-medium">Create Property</span>
+                <span className="font-medium">{t("action_create_property")}</span>
               </Link>
             </motion.div>
 
@@ -128,7 +130,7 @@ export function BottomNav() {
                 onClick={() => setIsFabOpen(false)}
               >
                 <FileText className="h-5 w-5" />
-                <span className="font-medium">Create Enquiry</span>
+                <span className="font-medium">{t("action_create_enquiry")}</span>
               </Link>
             </motion.div>
           </div>

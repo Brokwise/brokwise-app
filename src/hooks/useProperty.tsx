@@ -16,6 +16,7 @@ import {
   SubmitFinalOfferDTO,
   PropertyOffer,
 } from "@/types/property";
+import i18n from "@/i18n";
 
 export const useAddProperty = () => {
   const api = useAxios();
@@ -29,13 +30,13 @@ export const useAddProperty = () => {
       return (await api.post("/property/create", property)).data.data;
     },
     onSuccess: () => {
-      toast.success("Property created successfully");
+      toast.success(i18n.t("toast_property_created"));
     },
     onError: (error) => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "An unknown error occurred while creating the property.";
+        i18n.t("toast_error_property_create");
       toast.error(errorMessage);
     },
   });
@@ -117,14 +118,14 @@ export const useUpdatePropertyStatus = () => {
       ).data;
     },
     onSuccess: () => {
-      toast.success("Property status updated successfully");
+      toast.success(i18n.t("toast_property_status_updated"));
       queryClient.invalidateQueries({ queryKey: ["my-listings"] });
     },
     onError: (error) => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "An unknown error occurred while updating the property status.";
+        i18n.t("toast_error_property_submit");
       toast.error(errorMessage);
     },
   });
@@ -158,14 +159,14 @@ export const useRequestDeleteProperty = () => {
       return (await api.delete(`/property/delete`, { data: payload })).data;
     },
     onSuccess: () => {
-      toast.success("Property deletion request submitted successfully");
+      toast.success(i18n.t("toast_property_deleted"));
       queryClient.invalidateQueries({ queryKey: ["my-listings"] });
     },
     onError: (error) => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "An unknown error occurred while submitting deletion request.";
+        i18n.t("toast_error_property_delete");
       toast.error(errorMessage);
     },
   });
@@ -184,14 +185,14 @@ export const useSavePropertyAsDraft = () => {
       return (await api.post(`/property/draft`, property)).data.data;
     },
     onSuccess: () => {
-      toast.success("Property saved as draft successfully");
+      toast.success(i18n.t("toast_property_saved_draft"));
       queryClient.invalidateQueries({ queryKey: ["my-listings"] });
     },
     onError: (error) => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "An unknown error occurred while saving the property as draft.";
+        i18n.t("toast_error_property_draft");
       toast.error(errorMessage);
     },
   });
@@ -211,7 +212,7 @@ export const useOfferPrice = () => {
       return (await api.post("/property/offerPrice", data)).data.data;
     },
     onSuccess: (_, variables) => {
-      toast.success("Offer submitted successfully");
+      toast.success(i18n.t("toast_offer_sent"));
       queryClient.invalidateQueries({
         queryKey: ["property", variables.propertyId],
       });
@@ -221,7 +222,7 @@ export const useOfferPrice = () => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "An unknown error occurred while submitting offer.";
+        i18n.t("toast_error_invalid_rate");
       toast.error(errorMessage);
     },
   });
@@ -241,7 +242,7 @@ export const useSubmitFinalOffer = () => {
       return (await api.post("/property/submitFinalOffer", data)).data.data;
     },
     onSuccess: (_, variables) => {
-      toast.success("Final offer submitted successfully");
+      toast.success(i18n.t("toast_offer_sent"));
       queryClient.invalidateQueries({
         queryKey: ["property", variables.propertyId],
       });
@@ -251,7 +252,7 @@ export const useSubmitFinalOffer = () => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "An unknown error occurred while submitting final offer.";
+        i18n.t("toast_error_invalid_rate");
       toast.error(errorMessage);
     },
   });
@@ -295,11 +296,11 @@ export const useSharePropertyContact = () => {
       queryClient.invalidateQueries({
         queryKey: ["property", propertyId],
       });
-      toast.success("Contact shared successfully");
+      toast.success(i18n.t("toast_contact_shared"));
     },
     onError: (error) => {
       const errorMessage =
-        error.message || "An unknown error occurred while sharing contact.";
+        error.message || i18n.t("toast_error_contact_share");
       toast.error(errorMessage);
     },
   });

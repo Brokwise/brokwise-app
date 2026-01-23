@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { PropertyFormData } from "@/validators/property";
 import { Broker } from "@/stores/authStore";
+import i18n from "@/i18n";
 
 export interface GetCompanyPropertiesDTO {
   page?: string;
@@ -118,14 +119,14 @@ export const useSoftDeleteCompanyProperty = () => {
       ).data;
     },
     onSuccess: () => {
-      toast.success("Property deleted successfully");
+      toast.success(i18n.t("toast_property_deleted"));
       queryClient.invalidateQueries({ queryKey: ["company-properties"] });
     },
     onError: (error) => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "An unknown error occurred while deleting the property.";
+        i18n.t("toast_error_property_delete");
       toast.error(errorMessage);
     },
   });
@@ -174,13 +175,13 @@ export const useCreateCompanyProperty = () => {
       return (await api.post("/company/properties/create", property)).data.data;
     },
     onSuccess: () => {
-      toast.success("Property created successfully");
+      toast.success(i18n.t("toast_property_created"));
     },
     onError: (error) => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "An unknown error occurred while creating the property.";
+        i18n.t("toast_error_property_create");
       toast.error(errorMessage);
     },
   });
@@ -200,14 +201,14 @@ export const useSaveCompanyPropertyDraft = () => {
       return (await api.post(`/company/properties/draft`, property)).data.data;
     },
     onSuccess: () => {
-      toast.success("Property saved as draft successfully");
+      toast.success(i18n.t("toast_property_saved_draft"));
       queryClient.invalidateQueries({ queryKey: ["company-properties"] });
     },
     onError: (error) => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "An unknown error occurred while saving the property as draft.";
+        i18n.t("toast_error_property_draft");
       toast.error(errorMessage);
     },
   });
@@ -231,14 +232,14 @@ export const useSoftDeleteBrokerEnquiry = () => {
       ).data;
     },
     onSuccess: () => {
-      toast.success("Enquiry deleted successfully");
+      toast.success(i18n.t("toast_enquiry_deleted"));
       queryClient.invalidateQueries({ queryKey: ["company-enquiries"] });
     },
     onError: (error) => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "An unknown error occurred while deleting the enquiry.";
+        i18n.t("toast_error_enquiry_delete");
       toast.error(errorMessage);
     },
   });
@@ -258,14 +259,14 @@ export const useHardDeleteCompanyEnquiry = () => {
       return (await api.delete(`/company/enquiries/company/${enquiryId}`)).data;
     },
     onSuccess: () => {
-      toast.success("Enquiry permanently deleted");
+      toast.success(i18n.t("toast_enquiry_permanently_deleted"));
       queryClient.invalidateQueries({ queryKey: ["company-enquiries"] });
     },
     onError: (error) => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "An unknown error occurred while deleting the enquiry.";
+        i18n.t("toast_error_enquiry_delete");
       toast.error(errorMessage);
     },
   });
