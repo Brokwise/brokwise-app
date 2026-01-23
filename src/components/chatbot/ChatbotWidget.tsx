@@ -4,7 +4,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { MessageCircle, X } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChatbotStore } from "@/stores/chatbotStore";
 import { useChatbot } from "@/hooks/useChatbot";

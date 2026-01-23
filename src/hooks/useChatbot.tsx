@@ -3,12 +3,7 @@
 import { useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { firebaseAuth } from "@/config/firebase";
-import { useChatbotStore, ChatMessage } from "@/stores/chatbotStore";
-
-interface ChatContext {
-  lastMessages: ChatMessage[];
-  summary: string;
-}
+import { useChatbotStore } from "@/stores/chatbotStore";
 
 interface UseChatbotReturn {
   sendMessage: (message: string) => Promise<void>;
@@ -129,13 +124,14 @@ export const useChatbot = (): UseChatbotReturn => {
             }
           }
         }
-      } catch (err: any) {
-        if (err.name === "AbortError") {
+      } catch (err: unknown) {
+        const error = err as Error;
+        if (error.name === "AbortError") {
           // Request was cancelled
           appendToMessage(assistantMessageId, "[Message cancelled]");
         } else {
           const errorMessage =
-            err.message || "Something went wrong. Please try again.";
+            error.message || "Something went wrong. Please try again.";
           appendToMessage(assistantMessageId, errorMessage);
           setError(errorMessage);
         }
@@ -144,7 +140,7 @@ export const useChatbot = (): UseChatbotReturn => {
         abortControllerRef.current = null;
       }
     },
-    [addMessage, appendToMessage, getContext, isStreaming]
+    [addMessage, appendToMessage, getContext, isStreaming, i18n.language]
   );
 
   const clearError = useCallback(() => {
