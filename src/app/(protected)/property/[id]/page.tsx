@@ -641,7 +641,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-          {property.listedBy._id === brokerData?._id &&
+          {property.listedBy?._id === brokerData?._id &&
             property.listingStatus === "ENQUIRY_ONLY" && (
               <div>
                 <h1>
@@ -658,7 +658,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
                 </h1>
               </div>
             )}
-          {property.listedBy._id === brokerData?._id &&
+          {property.listedBy?._id === brokerData?._id &&
             property.listingStatus !== "ENQUIRY_ONLY" && (
               <PropertyOffers property={property} />
             )}
