@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { propertyCategories } from "@/constants";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -40,7 +41,33 @@ const itemVariants = {
   show: { opacity: 1, y: 0 },
 };
 
+// Helper to map category keys to translation keys
+const getCategoryTranslationKey = (key: PropertyCategory): string => {
+  const map: Record<PropertyCategory, string> = {
+    RESIDENTIAL: "category_residential",
+    COMMERCIAL: "category_commercial",
+    INDUSTRIAL: "category_industrial",
+    AGRICULTURAL: "category_agricultural",
+    RESORT: "category_resort",
+    FARM_HOUSE: "category_farmhouse",
+  };
+  return map[key];
+};
+
+const getCategoryDescTranslationKey = (key: PropertyCategory): string => {
+  const map: Record<PropertyCategory, string> = {
+    RESIDENTIAL: "category_residential_desc",
+    COMMERCIAL: "category_commercial_desc",
+    INDUSTRIAL: "category_industrial_desc",
+    AGRICULTURAL: "category_agricultural_desc",
+    RESORT: "category_resort_desc",
+    FARM_HOUSE: "category_farmhouse_desc",
+  };
+  return map[key];
+};
+
 const CreateProperty = () => {
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] =
     useState<PropertyCategory | null>(null);
   const [selectedDraft, setSelectedDraft] = useState<Property | null>(null);
@@ -110,7 +137,7 @@ const CreateProperty = () => {
       router.replace("/property/createProperty/success");
     } catch (error) {
       console.error("Error creating property:", error);
-      toast.error("Failed to create property. Please try again.");
+      toast.error(t("toast_error_property_create"));
     }
   };
 
@@ -160,11 +187,10 @@ const CreateProperty = () => {
           {/* Header Section */}
           <div className="space-y-1">
             <h1 className="text-3xl md:text-4xl font-instrument-serif text-foreground tracking-tight">
-              List a new property
+              {t("page_create_property_title")}
             </h1>
             <p className="text-muted-foreground text-sm md:text-base font-light max-w-2xl">
-              Select a category to begin listing your premium property on the
-              market.
+              {t("page_create_property_subtitle")}
             </p>
           </div>
 
@@ -191,19 +217,19 @@ const CreateProperty = () => {
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium text-foreground">
-                        {draftsCount} incomplete{" "}
-                        {draftsCount === 1 ? "listing" : "listings"}
+                        {draftsCount === 1
+                          ? t("page_create_property_incomplete", { count: draftsCount })
+                          : t("page_create_property_incomplete_plural", { count: draftsCount })}
                       </h3>
                       <Badge
                         variant="secondary"
                         className="text-[10px] px-1.5 py-0 h-5 bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
                       >
-                        Draft
+                        {t("label_draft")}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Continue where you left off and complete your property
-                      listings
+                      {t("page_create_property_continue_desc")}
                     </p>
                   </div>
                 </div>
@@ -212,7 +238,7 @@ const CreateProperty = () => {
                   size="sm"
                   className="text-yellow-700 hover:text-yellow-800 hover:bg-yellow-500/10 group-hover:bg-yellow-500/10"
                 >
-                  View Drafts
+                  {t("page_create_property_view_drafts")}
                   <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
                 </Button>
               </div>
@@ -224,7 +250,7 @@ const CreateProperty = () => {
             <div className="flex items-center gap-2 text-accent">
               <Sparkles className="w-4 h-4" />
               <h2 className="text-lg font-instrument-serif font-medium tracking-tight">
-                Property Categories
+                {t("label_property_categories")}
               </h2>
             </div>
 
@@ -257,11 +283,11 @@ const CreateProperty = () => {
                     <div className="absolute inset-0 p-3 flex flex-col justify-end">
                       <div className="transform transition-transform duration-300 translate-y-1 group-hover:translate-y-0">
                         <h3 className="text-base font-instrument-serif text-white leading-tight text-3xl">
-                          {category.label}
+                          {t(getCategoryTranslationKey(category.key))}
                         </h3>
                         <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
                           <span className="text-white/80 text-[11px] line-clamp-1">
-                            {category.description}
+                            {t(getCategoryDescTranslationKey(category.key))}
                           </span>
                           <ChevronRight className="w-3.5 h-3.5 text-accent" />
                         </div>
@@ -288,18 +314,17 @@ const CreateProperty = () => {
                 className="group pl-0 hover:pl-2 transition-all hover:bg-transparent hover:text-accent"
               >
                 <ArrowLeft className="w-5 h-5 mr-1 group-hover:-translate-x-1 transition-transform" />
-                Back to Categories
+                {t("label_back_to_categories")}
               </Button>
             </div>
             <div className="text-right">
               <h1 className="text-2xl font-instrument-serif text-foreground">
-                Create{" "}
-                {
-                  propertyCategories.find((cat) => cat.key === selectedCategory)
-                    ?.label
-                }
+                {t("page_create_property_create")}{" "}
+                {selectedCategory && t(getCategoryTranslationKey(selectedCategory))}
               </h1>
-              <p className="text-sm text-muted-foreground">step 1 of 4</p>
+              <p className="text-sm text-muted-foreground">
+                {t("label_step_of", { current: 1, total: 4 })}
+              </p>
             </div>
           </div>
           {renderCategoryForm()}

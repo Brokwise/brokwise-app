@@ -320,13 +320,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               href="/privacy-policy"
               className="hover:text-sidebar-foreground transition-colors"
             >
-              Privacy
+              {t("label_privacy")}
             </Link>
             <Link
               href="/terms-and-conditions"
               className="hover:text-sidebar-foreground transition-colors"
             >
-              Terms
+              {t("label_terms")}
             </Link>
           </div>
           <p className="text-[10px] text-muted-foreground/60 mt-1">

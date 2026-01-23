@@ -6,8 +6,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useGetBookmarks } from "@/hooks/useBookmarks";
 import { PropertyCard } from "../_components/propertyCard";
 import { EnquiryCard } from "../enquiries/_components/EnquiryCard";
+import { useTranslation } from "react-i18next";
 
 const BookmarksPage = () => {
+  const { t } = useTranslation();
   const { bookmarks, isLoading } = useGetBookmarks();
 
   const properties = bookmarks?.properties ?? [];
@@ -17,20 +19,20 @@ const BookmarksPage = () => {
     <div className="space-y-6">
       <div className="space-y-1">
         <h1 className="text-3xl md:text-4xl font-instrument-serif text-foreground tracking-tight">
-          Bookmarks
+          {t("page_bookmarks_title")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Your saved properties and enquiries in one place.
+          {t("page_bookmarks_subtitle")}
         </p>
       </div>
 
       <Tabs defaultValue="properties" className="w-full">
         <TabsList className="rounded-full">
           <TabsTrigger value="properties" className="rounded-full">
-            Saved Properties ({properties.length})
+            {t("page_bookmarks_saved_properties")} ({properties.length})
           </TabsTrigger>
           <TabsTrigger value="enquiries" className="rounded-full">
-            Saved Enquiries ({enquiries.length})
+            {t("page_bookmarks_saved_enquiries")} ({enquiries.length})
           </TabsTrigger>
         </TabsList>
 
@@ -51,7 +53,7 @@ const BookmarksPage = () => {
           ) : properties.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4 bg-muted/20 rounded-2xl border border-dashed">
               <p className="text-muted-foreground text-center max-w-sm">
-                No saved properties yet. Bookmark a listing to find it here later.
+                {t("page_bookmarks_empty_properties")}
               </p>
             </div>
           ) : (
@@ -73,7 +75,7 @@ const BookmarksPage = () => {
           ) : enquiries.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4 bg-muted/20 rounded-2xl border border-dashed">
               <p className="text-muted-foreground text-center max-w-sm">
-                No saved enquiries yet. Bookmark an enquiry to track it here.
+                {t("page_bookmarks_empty_enquiries")}
               </p>
             </div>
           ) : (
