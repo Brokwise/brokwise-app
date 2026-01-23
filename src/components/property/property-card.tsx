@@ -77,7 +77,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
       </CardHeader>
 
       {/* Content - Price & Details */}
-      < CardContent className="p-4 pt-0 flex-grow" >
+      <CardContent className="p-4 pt-0 flex-grow">
         <div className="flex items-baseline gap-2 mb-3">
           <span className="text-lg font-bold text-primary">
             {formatPrice(property.totalPrice)}
@@ -103,10 +103,10 @@ export function PropertyCard({ property }: PropertyCardProps) {
             </div>
           )}
         </div>
-      </CardContent >
+      </CardContent>
 
       {/* Footer - Date & Actions */}
-      < CardFooter className="p-4 pt-3 border-t flex justify-between items-center bg-muted/30" >
+      <CardFooter className="p-4 pt-3 border-t flex justify-between items-center bg-muted/30">
         <div className="text-xs text-muted-foreground">
           {new Date(property.createdAt).toLocaleDateString("en-IN", {
             day: "numeric",
@@ -115,7 +115,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
           })}
         </div>
         <PropertyActions property={property} />
-      </CardFooter >
-    </Card >
+      </CardFooter>
+    </Card>
   );
 }
