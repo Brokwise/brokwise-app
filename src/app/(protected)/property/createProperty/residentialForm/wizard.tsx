@@ -115,6 +115,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     }
   };
 
+  const plotType = form.watch("plotType");
+
   useEffect(() => {
     if (currentStep === 2 && !propertyType) {
       setCurrentStep(0);
@@ -131,10 +133,18 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         "address.pincode",
         "size",
         "sizeUnit",
-        ...(propertyType === "FLAT" ? ["bhk", "washrooms"] : ["plotType"]),
+        ...(propertyType === "FLAT" || propertyType == "VILLA" ? ["bhk", "washrooms"] : ["plotType"]),
+        ...(propertyType === "LAND" && plotType
+          ? [
+            "facing",
+            ...(plotType === "CORNER" ? ["sideFacing"] : []),
+            "frontRoadWidth",
+            ...(plotType === "CORNER" ? ["sideRoadWidth"] : []),
+          ]
+          : []),
         "rate",
       ],
-      1: ["description", "featuredMedia", "images"],
+      1: ["description", "featuredMedia", "floorPlans"],
       2: [],
     };
 
@@ -173,10 +183,14 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           bhk: "Please select number of BHK",
           washrooms: "Please select number of washrooms",
           plotType: "Please select a plot type",
+          facing: "Please select a front facing direction",
+          sideFacing: "Please select a corner facing direction",
+          frontRoadWidth: "Front road width is required",
+          sideRoadWidth: "Side road width is required",
           rate: "Rate per unit is required",
           description: "Description is required",
           featuredMedia: "Featured media is required",
-          images: "At least one image is required",
+          floorPlans: propertyType === "LAND" ? "Site plan is required" : "Floor plans are required",
         };
 
         form.setError(field as keyof ResidentialPropertyFormData, {
@@ -246,15 +260,13 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           }
         }
       };
-
       flattenErrors(errors as Record<string, unknown>);
 
       if (errorMessages.length > 0) {
         toast.error(
-          `Please fix: ${errorMessages.slice(0, 3).join(", ")}${
-            errorMessages.length > 3
-              ? ` (+${errorMessages.length - 3} more)`
-              : ""
+          `Please fix: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3
+            ? ` (+${errorMessages.length - 3} more)`
+            : ""
           }`
         );
       } else {
@@ -303,10 +315,9 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
 
       if (errorMessages.length > 0) {
         toast.error(
-          `Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${
-            errorMessages.length > 3
-              ? ` (+${errorMessages.length - 3} more)`
-              : ""
+          `Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3
+            ? ` (+${errorMessages.length - 3} more)`
+            : ""
           }`
         );
       } else {
@@ -389,6 +400,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                 form={form}
                 setUploading={setUploading}
                 uploading={uploading}
+                propertyType={propertyType}
               />
             }
           </div>

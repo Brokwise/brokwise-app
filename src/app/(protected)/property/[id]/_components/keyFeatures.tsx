@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Property } from "@/types/property";
-import { Bath, Bed, Building, Calendar, Home, Maximize2 } from "lucide-react";
+import { ArrowUpDownIcon, Bath, Bed, Building, Calendar, Home, Maximize2, RulerDimensionLine } from "lucide-react";
 import { format } from "date-fns";
 import React from "react";
 
@@ -45,8 +45,36 @@ export const KeyFeatures = ({ property }: { property: Property }) => {
             <div className="flex items-center gap-2">
               <Home className="h-5 w-5 text-primary" />
               <div>
-                <p className="text-sm text-muted-foreground">Facing</p>
+                <p className="text-sm text-muted-foreground">Front Facing</p>
                 <p className="font-semibold">{property.facing}</p>
+              </div>
+            </div>
+          )}
+
+          {property.sideFacing && (
+            <div className="flex items-center gap-2">
+              <ArrowUpDownIcon className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-sm text-muted-foreground">Side Direction</p>
+                <p className="font-semibold">{property.sideFacing}</p>
+              </div>
+            </div>
+          )}
+          {property.frontRoadWidth && (
+            <div className="flex items-center gap-2">
+              <RulerDimensionLine className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-sm text-muted-foreground">{`Front road width (${property.roadWidthUnit?.toLowerCase() ?? "feet"})`}</p>
+                <p className="font-semibold">{property.frontRoadWidth}</p>
+              </div>
+            </div>
+          )}
+          {property.sideRoadWidth && (
+            <div className="flex items-center gap-2">
+              <RulerDimensionLine className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-sm text-muted-foreground">{`Side road width (${property.roadWidthUnit?.toLowerCase() ?? "feet"})`}</p>
+                <p className="font-semibold">{property.sideRoadWidth}</p>
               </div>
             </div>
           )}

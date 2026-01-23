@@ -152,7 +152,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         "purpose",
         "rate",
       ],
-      1: ["description", "featuredMedia", "images"],
+      1: ["description", "featuredMedia", "floorPlans"],
       2: [],
     };
 
@@ -202,7 +202,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
           rate: "Rate per unit is required",
           description: "Description is required",
           featuredMedia: "Featured media is required",
-          images: "At least one image is required",
+          floorPlans: "Floor plans are required",
         };
 
         form.setError(field as keyof CommercialPropertyFormData, {
@@ -277,10 +277,9 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
 
       if (errorMessages.length > 0) {
         toast.error(
-          `Please fix: ${errorMessages.slice(0, 3).join(", ")}${
-            errorMessages.length > 3
-              ? ` (+${errorMessages.length - 3} more)`
-              : ""
+          `Please fix: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3
+            ? ` (+${errorMessages.length - 3} more)`
+            : ""
           }`
         );
       } else {
@@ -329,10 +328,9 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
 
       if (errorMessages.length > 0) {
         toast.error(
-          `Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${
-            errorMessages.length > 3
-              ? ` (+${errorMessages.length - 3} more)`
-              : ""
+          `Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3
+            ? ` (+${errorMessages.length - 3} more)`
+            : ""
           }`
         );
       } else {

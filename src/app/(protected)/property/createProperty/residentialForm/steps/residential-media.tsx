@@ -27,13 +27,17 @@ interface ResidentialMediaProps {
       [key: string]: boolean;
     }>
   >;
+  propertyType: "FLAT" | "VILLA" | "LAND";
 }
 
 export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
   form,
   setUploading,
   uploading,
+  propertyType,
 }) => {
+  // Dynamic label based on property type
+  const floorPlanLabel = propertyType === "LAND" ? "Site Plan" : "Floor Plans";
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const handleFileUpload = async (
     files: FileList | null,
@@ -223,9 +227,7 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
           name="images"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Images <span className="text-destructive">*</span>
-              </FormLabel>
+              <FormLabel>Images</FormLabel>
               <FormControl>
                 <div className="space-y-4">
                   {!field.value || field.value.length === 0 ? (
@@ -321,7 +323,9 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
           name="floorPlans"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Floor Plans</FormLabel>
+              <FormLabel>
+                {floorPlanLabel} <span className="text-destructive">*</span>
+              </FormLabel>
               <FormControl>
                 <div className="space-y-4">
                   {!field.value || field.value.length === 0 ? (
@@ -336,7 +340,7 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
                         </div>
                         <div className="text-center">
                           <p className="text-xs font-semibold">
-                            Upload floor plans
+                            Upload {floorPlanLabel.toLowerCase()}
                           </p>
                         </div>
                       </div>
@@ -382,6 +386,8 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
                         >
                           <Image
                             src={url}
+                            height={200}
+                            width={200}
                             alt={`Floor plan ${index + 1}`}
                             className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                           />

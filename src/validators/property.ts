@@ -1,19 +1,16 @@
 import { z } from "zod";
 
-// Constants for property validations
 export const PROPERTY_VALIDATION_LIMITS = {
   PINCODE_LENGTH: 6,
   MAX_FLOOR: 20,
   MAX_FRONT_ROAD_WIDTH: 300,
 } as const;
 
-// GeoLocation Schema
 const geoLocationSchema = z.object({
   type: z.literal("Point"),
   coordinates: z.tuple([z.number(), z.number()]),
 });
 
-// Rental Income Schema
 const rentalIncomeSchema = z
   .object({
     min: z.number().min(0),
@@ -47,6 +44,8 @@ const FacingEnum = z.enum([
 
 const PlotTypeEnum = z.enum(["ROAD", "CORNER"]);
 
+const RoadWidthUnitEnum = z.enum(["METER", "FEET"]);
+
 const AreaTypeEnum = z.enum(["NEAR_RING_ROAD", "RIICO_AREA", "SEZ"]);
 
 const addressSchema = z.object({
@@ -68,10 +67,10 @@ const basePropertySchema = z.object({
   description: z.string().min(20, "Description must be at least 20 characters"),
   location: geoLocationSchema,
   featuredMedia: z.string().url("Featured media must be a valid URL"),
-  images: z.array(z.string().url()).min(1, "At least one image is required"),
+  images: z.array(z.string().url()).optional(),
 
-  // Optional common fields
-  floorPlans: z.array(z.string().url()).optional(),
+  // Required common fields
+  floorPlans: z.array(z.string().url()).min(1, "At least one floor plan/site plan is required"),
   isFeatured: z.boolean().optional(),
   isPriceNegotiable: z.boolean().optional(),
   size: z.number().min(0).optional(),
@@ -115,19 +114,11 @@ export const residentialPropertySchema = basePropertySchema
       .min(0)
       .max(
         PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH,
-        `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`
+        `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH}`
       )
       .optional(),
+    roadWidthUnit: RoadWidthUnitEnum.optional(),
 
-    // Corner Plot specific (Frontend addition, backend allows extra fields if not strict,
-    // but strictly speaking 'sideFacing' and 'sideRoadWidth' are not in the backend schema provided.
-    // If backend is strict, these will be stripped or cause error.
-    // Assuming backend allows them or I should remove them if strict.
-    // The backend schema provided uses z.object which strips unknown keys by default in Zod unless .passthrough() is used.
-    // However, the provided schema text shows `z.object({...})` which is strict by default?
-    // Wait, Zod objects are strip by default (remove unknown), not strict (error on unknown).
-    // So passing them is safe, they just won't be used by backend unless added there.
-    // I'll keep them for frontend state if needed, but maybe mark as optional/local.)
     sideFacing: FacingEnum.optional(),
     sideRoadWidth: z.number().min(0).optional(),
 
@@ -135,10 +126,9 @@ export const residentialPropertySchema = basePropertySchema
       .string()
       .refine(
         (val) => {
-          if (!val) return true; // Optional field
-          // Allow string values like "Ground", "Custom", or numeric values up to 200
+          if (!val) return true;
           const numericVal = parseInt(val, 10);
-          if (isNaN(numericVal)) return true; // Non-numeric strings like "Ground" are allowed
+          if (isNaN(numericVal)) return true;
           return (
             numericVal >= 0 &&
             numericVal <= PROPERTY_VALIDATION_LIMITS.MAX_FLOOR
@@ -148,12 +138,7 @@ export const residentialPropertySchema = basePropertySchema
           message: `Floor number cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FLOOR}`,
         }
       )
-      .optional(), // Not in residential specific list in backend schema but exists in commercial.
-    // Wait, backend schema says: "// commercial ... floor: z.string().optional()".
-    // It is NOT under residential. But frontend had it. I will leave it optional or remove if strict.
-    // Backend schema structure is flat `body: z.object({...})` with all fields.
-    // So `floor` is a valid field in the body. It's just commented as "commercial".
-    // If I send `floor` for residential, it will be validated as string optional.
+      .optional(),
   })
   .refine(
     (data) => {
@@ -212,9 +197,10 @@ export const commercialPropertySchema = basePropertySchema
       .min(0)
       .max(
         PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH,
-        `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`
+        `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH}`
       )
       .optional(),
+    roadWidthUnit: RoadWidthUnitEnum.optional(),
     // Fields used in form:
     purpose: z.string().optional(),
     projectArea: z.number().min(0).optional(),
@@ -259,9 +245,10 @@ export const industrialPropertySchema = basePropertySchema.extend({
     .min(0)
     .max(
       PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH,
-      `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`
+      `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH}`
     )
     .optional(),
+  roadWidthUnit: RoadWidthUnitEnum.optional(),
 });
 
 // Agricultural Property Schema
@@ -278,9 +265,10 @@ export const agriculturalPropertySchema = basePropertySchema.extend({
     .min(0)
     .max(
       PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH,
-      `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`
+      `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH}`
     )
     .optional(),
+  roadWidthUnit: RoadWidthUnitEnum.optional(),
 });
 
 // Resort Property Schema
@@ -295,9 +283,10 @@ export const resortPropertySchema = basePropertySchema.extend({
     .min(0)
     .max(
       PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH,
-      `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`
+      `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH}`
     )
     .optional(),
+  roadWidthUnit: RoadWidthUnitEnum.optional(),
 });
 
 // Farm House Property Schema
@@ -312,9 +301,10 @@ export const farmHousePropertySchema = basePropertySchema.extend({
     .min(0)
     .max(
       PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH,
-      `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH} feet`
+      `Front road width cannot exceed ${PROPERTY_VALIDATION_LIMITS.MAX_FRONT_ROAD_WIDTH}`
     )
     .optional(),
+  roadWidthUnit: RoadWidthUnitEnum.optional(),
 });
 
 // Union type for all property schemas

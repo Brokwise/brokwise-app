@@ -227,9 +227,7 @@ export const IndustrialMedia: React.FC<IndustrialMediaProps> = ({
           name="images"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Images <span className="text-destructive">*</span>
-              </FormLabel>
+              <FormLabel>Images</FormLabel>
               <FormControl>
                 <div className="space-y-4">
                   {!field.value || field.value.length === 0 ? (
@@ -325,7 +323,9 @@ export const IndustrialMedia: React.FC<IndustrialMediaProps> = ({
           name="floorPlans"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Floor Plans</FormLabel>
+              <FormLabel>
+                Site Plan <span className="text-destructive">*</span>
+              </FormLabel>
               <FormControl>
                 <div className="space-y-4">
                   {!field.value || field.value.length === 0 ? (
@@ -340,7 +340,7 @@ export const IndustrialMedia: React.FC<IndustrialMediaProps> = ({
                         </div>
                         <div className="text-center">
                           <p className="text-xs font-semibold">
-                            Upload floor plans
+                            Upload site plan
                           </p>
                         </div>
                       </div>

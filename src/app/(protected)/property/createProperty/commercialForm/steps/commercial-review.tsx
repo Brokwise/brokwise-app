@@ -67,17 +67,17 @@ export const CommercialReview: React.FC<CommercialReviewProps> = ({
           {(propertyType === "SHOWROOM" ||
             propertyType === "HOTEL" ||
             propertyType === "HOSTEL") && (
-            <>
-              <div>
-                <strong>Min Rental Income:</strong> ₹
-                {formatIndianNumber(form.watch("rentalIncome.min") || 0)}
-              </div>
-              <div>
-                <strong>Max Rental Income:</strong> ₹
-                {formatIndianNumber(form.watch("rentalIncome.max") || 0)}
-              </div>
-            </>
-          )}
+              <>
+                <div>
+                  <strong>Min Rental Income:</strong> ₹
+                  {formatIndianNumber(form.watch("rentalIncome.min") || 0)}
+                </div>
+                <div>
+                  <strong>Max Rental Income:</strong> ₹
+                  {formatIndianNumber(form.watch("rentalIncome.max") || 0)}
+                </div>
+              </>
+            )}
           <div>
             <strong>Price Negotiable:</strong>{" "}
             {form.watch("isPriceNegotiable") ? "Yes" : "No"}
@@ -117,7 +117,7 @@ export const CommercialReview: React.FC<CommercialReviewProps> = ({
               <div>
                 <strong>Front Road Width:</strong>{" "}
                 {form.watch("frontRoadWidth")
-                  ? `${form.watch("frontRoadWidth")} ft`
+                  ? `${form.watch("frontRoadWidth")} m`
                   : "Not provided"}
               </div>
               {form.watch("plotType") === "CORNER" && (
@@ -129,7 +129,7 @@ export const CommercialReview: React.FC<CommercialReviewProps> = ({
                   <div>
                     <strong>Side Road Width:</strong>{" "}
                     {form.watch("sideRoadWidth")
-                      ? `${form.watch("sideRoadWidth")} ft`
+                      ? `${form.watch("sideRoadWidth")} m`
                       : "Not provided"}
                   </div>
                 </>
