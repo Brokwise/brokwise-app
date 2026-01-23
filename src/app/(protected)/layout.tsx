@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Notifications } from "./_components/notification/notifications";
 import { UserAvatar } from "./_components/userAvatar";
+import { CreditsBadge } from "./_components/creditsBadge";
 import { Separator } from "@/components/ui/separator";
 import { ChatbotWidget } from "@/components/chatbot";
 
@@ -32,10 +33,9 @@ const layout = ({ children }: { children: React.ReactNode }) => {
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <Notifications />
-                  <UserAvatar />
-                </div>
+                <CreditsBadge />
+                <Notifications />
+                <UserAvatar />
               </div>
             </header>
 
