@@ -44,6 +44,13 @@ export function PropertyCard({ property }: PropertyCardProps) {
             <Home className="h-8 w-8 opacity-20" />
           </div>
         )}
+        <div className="absolute top-2 right-2">
+          <PropertyStatusBadge
+            status={property.listingStatus}
+            deletingStatus={property.deletingStatus}
+            className="shadow-sm"
+          />
+        </div>
         <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm font-mono">
           {property.propertyId}
         </div>
@@ -53,21 +60,12 @@ export function PropertyCard({ property }: PropertyCardProps) {
       <CardHeader className="p-4 pb-2">
         <div className="flex justify-between items-start gap-2">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-semibold text-base leading-tight">
-                {property.propertyCategory.replace(/_/g, " ")}{" "}
-                <span className="font-normal text-muted-foreground text-sm">
-                  • {property.propertyType.replace(/_/g, " ")}
-                </span>
-              </h3>
-              <div className="mt-1">
-                <PropertyStatusBadge
-                  status={property.listingStatus}
-                  deletingStatus={property.deletingStatus}
-                  className="shadow-sm text-xs px-2 py-0.5"
-                />
-              </div>
-            </div>
+            <h3 className="font-semibold text-base leading-tight line-clamp-1">
+              {property.propertyCategory.replace(/_/g, " ")}{" "}
+              <span className="font-normal text-muted-foreground text-sm">
+                • {property.propertyType.replace(/_/g, " ")}
+              </span>
+            </h3>
             <div className="flex items-center text-sm text-muted-foreground mt-1">
               <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
               <span className="truncate" title={formatAddress(property.address)}>
@@ -79,7 +77,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
       </CardHeader>
 
       {/* Content - Price & Details */}
-      <CardContent className="p-4 pt-0 flex-grow">
+      < CardContent className="p-4 pt-0 flex-grow" >
         <div className="flex items-baseline gap-2 mb-3">
           <span className="text-lg font-bold text-primary">
             {formatPrice(property.totalPrice)}
@@ -105,10 +103,10 @@ export function PropertyCard({ property }: PropertyCardProps) {
             </div>
           )}
         </div>
-      </CardContent>
+      </CardContent >
 
       {/* Footer - Date & Actions */}
-      <CardFooter className="p-4 pt-3 border-t flex justify-between items-center bg-muted/30">
+      < CardFooter className="p-4 pt-3 border-t flex justify-between items-center bg-muted/30" >
         <div className="text-xs text-muted-foreground">
           {new Date(property.createdAt).toLocaleDateString("en-IN", {
             day: "numeric",
@@ -117,7 +115,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
           })}
         </div>
         <PropertyActions property={property} />
-      </CardFooter>
-    </Card>
+      </CardFooter >
+    </Card >
   );
 }
