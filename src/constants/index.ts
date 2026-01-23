@@ -140,16 +140,16 @@ export const LG_BREAKPOINT_PX = 1350;
 
 // Country codes for mobile number input
 export const COUNTRY_CODES = [
-  { label: "India (+91)", value: "+91", code: "IN" },
-  { label: "United States (+1)", value: "+1", code: "US" },
-  { label: "United Kingdom (+44)", value: "+44", code: "UK" },
-  { label: "UAE (+971)", value: "+971", code: "AE" },
-  { label: "Singapore (+65)", value: "+65", code: "SG" },
-  { label: "Australia (+61)", value: "+61", code: "AU" },
-  { label: "Canada (+1)", value: "+1-CA", code: "CA" },
-  { label: "Germany (+49)", value: "+49", code: "DE" },
-  { label: "France (+33)", value: "+33", code: "FR" },
-  { label: "Saudi Arabia (+966)", value: "+966", code: "SA" },
+  { label: "+91 India", value: "+91", code: "IN" },
+  { label: "+1 United States", value: "+1", code: "US" },
+  { label: "+44 United Kingdom", value: "+44", code: "UK" },
+  { label: "+971 UAE", value: "+971", code: "AE" },
+  { label: "+65 Singapore", value: "+65", code: "SG" },
+  { label: "+61 Australia", value: "+61", code: "AU" },
+  { label: "+1 Canada", value: "+1-CA", code: "CA" },
+  { label: "+49 Germany", value: "+49", code: "DE" },
+  { label: "+33 France", value: "+33", code: "FR" },
+  { label: "+966 Saudi Arabia", value: "+966", code: "SA" },
 ];
 
 // Property deletion reasons

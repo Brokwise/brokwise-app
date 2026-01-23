@@ -609,6 +609,7 @@
   "property_submitted_for": "This property was submitted for",
 
   "mobile_aadhaar_hint": "Please enter the mobile number linked with your Aadhaar for verification purposes.",
+  "mobile_company_hint": "Mobile should be the primary mobile no. or admin's no. of your firm.",
   "country_code": "Country Code",
   "coming_soon_country": "Brokwise is not yet available in your country. We're expanding soon!",
   "notify_me": "Notify Me",

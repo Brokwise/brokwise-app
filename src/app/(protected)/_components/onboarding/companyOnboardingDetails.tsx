@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { useTranslation } from "react-i18next";
 import { COUNTRY_CODES } from "@/constants";
+import useAxios from "@/hooks/useAxios";
 import {
   ArrowLeft,
   ArrowRight,
@@ -54,12 +55,14 @@ export const CompanyOnboardingDetails = ({
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState("+91");
+  const [isNotifying, setIsNotifying] = useState(false);
   const { t } = useTranslation();
 
   const isIndianNumber = selectedCountry === "+91";
 
   const { companyData, setCompanyData } = useApp();
   const [user] = useAuthState(firebaseAuth);
+  const api = useAxios();
   const [signOut] = useSignOut(firebaseAuth);
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -185,6 +188,28 @@ export const CompanyOnboardingDetails = ({
       toast.error("Failed to submit profile details. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleNotifyMe = async () => {
+    setIsNotifying(true);
+    try {
+      await api.post("/notify", {
+        countryCode: selectedCountry,
+        countryLabel:
+          COUNTRY_CODES.find((country) => country.value === selectedCountry)
+            ?.label ?? "",
+        email: user?.email ?? "",
+        phone: user?.phoneNumber ?? "",
+        userId: user?.uid ?? "",
+        source: "company-onboarding",
+      });
+      toast.success(t("notify_me_success"));
+    } catch (error) {
+      console.error(error);
+      toast.error(t("generic_error"));
+    } finally {
+      setIsNotifying(false);
     }
   };
 
@@ -386,48 +411,45 @@ export const CompanyOnboardingDetails = ({
                                     </SelectContent>
                                   </Select>
 
-                                  {isIndianNumber ? (
-                                    <Input
-                                      {...field}
-                                      type="tel"
-                                      maxLength={10}
-                                      className="flex-1 h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
-                                      placeholder="Contact number"
-                                      onChange={(e) => {
-                                        const value = e.target.value
-                                          .replace(/\D/g, "")
-                                          .slice(0, 10);
-                                        field.onChange(value);
-                                      }}
-                                    />
-                                  ) : (
-                                    <div className="flex-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md p-3 flex flex-col justify-center">
-                                      <p className="text-amber-700 dark:text-amber-400 text-sm">
-                                        {t("coming_soon_country")}
-                                      </p>
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="mt-2 w-fit border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950"
-                                        onClick={() => {
-                                          toast.success(
-                                            t("notify_me_success")
-                                          );
-                                        }}
-                                      >
-                                        {t("notify_me")}
-                                      </Button>
-                                    </div>
-                                  )}
+                                  <Input
+                                    {...field}
+                                    type="tel"
+                                    maxLength={10}
+                                    className="flex-1 h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all disabled:opacity-60"
+                                    placeholder="Contact number"
+                                    disabled={!isIndianNumber}
+                                    onChange={(e) => {
+                                      const value = e.target.value
+                                        .replace(/\D/g, "")
+                                        .slice(0, 10);
+                                      field.onChange(value);
+                                    }}
+                                  />
                                 </div>
                               </FormControl>
                               {isIndianNumber && (
                                 <FormDescription className="text-xs text-slate-500 dark:text-slate-400">
-                                  {t("mobile_aadhaar_hint")}
+                                  {t("mobile_company_hint")}
                                 </FormDescription>
                               )}
-                              <FormMessage />
+                              {!isIndianNumber && (
+                                <div className="mt-2 flex items-center justify-between gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400">
+                                  <span className="flex-1 leading-snug">
+                                    {t("coming_soon_country")}
+                                  </span>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950"
+                                    onClick={handleNotifyMe}
+                                    disabled={isNotifying}
+                                  >
+                                    {isNotifying ? t("submitting") : t("notify_me")}
+                                  </Button>
+                                </div>
+                              )}
+                              {isIndianNumber && <FormMessage />}
                             </FormItem>
                           )}
                         />
