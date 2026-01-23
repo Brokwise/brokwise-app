@@ -614,6 +614,7 @@
   "coming_soon_country": "Brokwise is not yet available in your country. We're expanding soon!",
   "notify_me": "Notify Me",
   "notify_me_success": "We'll notify you when Brokwise launches in your country!",
+  "notify_mobile_placeholder": "Your mobile number (optional)",
 
   "deletion_reason_label": "Reason for Deletion",
   "select_deletion_reason": "Select a reason",

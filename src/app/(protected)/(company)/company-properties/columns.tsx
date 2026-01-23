@@ -498,7 +498,7 @@ function ActionCell({ property }: { property: Property }) {
               onClick={handleDelete}
               disabled={isDeleting || !isDeleteValid}
             >
-              {isDeleting ? t("deleting") : t("submit_request")}
+              {isDeleting ? t("submitting") : t("submit_request")}
             </Button>
           </div>
         </DialogContent>

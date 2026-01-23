@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import { COUNTRY_CODES } from "@/constants";
 import useAxios from "@/hooks/useAxios";
 import {
@@ -34,6 +35,7 @@ import {
   Users,
   Building2,
   Landmark,
+  Check,
 } from "lucide-react";
 import { createCompany, updateCompanyProfile } from "@/models/api/company";
 import { useApp } from "@/context/AppContext";
@@ -56,6 +58,8 @@ export const CompanyOnboardingDetails = ({
   const [loading, setLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState("+91");
   const [isNotifying, setIsNotifying] = useState(false);
+  const [hasNotified, setHasNotified] = useState(false);
+  const [notifyMobile, setNotifyMobile] = useState("");
   const { t } = useTranslation();
 
   const isIndianNumber = selectedCountry === "+91";
@@ -138,7 +142,10 @@ export const CompanyOnboardingDetails = ({
     if (!isIndianNumber) {
       form.setValue("mobile", "", { shouldValidate: true, shouldDirty: true });
     }
-  }, [form, isIndianNumber]);
+    // Reset notification state when country changes
+    setHasNotified(false);
+    setNotifyMobile("");
+  }, [form, isIndianNumber, selectedCountry]);
 
   const onSubmitProfileDetails = async (
     data: z.infer<typeof createCompanyFormSchema>
@@ -192,18 +199,23 @@ export const CompanyOnboardingDetails = ({
   };
 
   const handleNotifyMe = async () => {
+    if (isNotifying || hasNotified) return;
     setIsNotifying(true);
     try {
-      await api.post("/notify", {
+      const payload: Record<string, string> = {
         countryCode: selectedCountry,
         countryLabel:
           COUNTRY_CODES.find((country) => country.value === selectedCountry)
             ?.label ?? "",
-        email: user?.email ?? "",
-        phone: user?.phoneNumber ?? "",
-        userId: user?.uid ?? "",
         source: "company-onboarding",
-      });
+      };
+      if (user?.email) payload.email = user.email;
+      if (notifyMobile.trim()) payload.phone = notifyMobile.trim();
+      else if (user?.phoneNumber) payload.phone = user.phoneNumber;
+      if (user?.uid) payload.userId = user.uid;
+
+      await api.post("/notify", payload);
+      setHasNotified(true);
       toast.success(t("notify_me_success"));
     } catch (error) {
       console.error(error);
@@ -256,8 +268,21 @@ export const CompanyOnboardingDetails = ({
 
   return (
     <section className="min-h-screen flex items-center justify-center p-4  transition-colors duration-500">
-      {/* Theme Toggles */}
+      {/* Theme & Language Toggles */}
       <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
+        <Select
+          onValueChange={(value) => i18n.changeLanguage(value)}
+          defaultValue={i18n.language}
+        >
+          <SelectTrigger className="w-[100px] h-8 text-xs bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-slate-200 dark:border-slate-800">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="hi">हिंदी</SelectItem>
+          </SelectContent>
+        </Select>
+
         <div className="flex gap-0.5 border border-slate-200 dark:border-slate-800 rounded-full p-1 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md shadow-sm">
           <Button
             variant="ghost"
@@ -396,7 +421,7 @@ export const CompanyOnboardingDetails = ({
                                     value={selectedCountry}
                                     onValueChange={setSelectedCountry}
                                   >
-                                    <SelectTrigger className="w-[140px] h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all">
+                                    <SelectTrigger className="w-[160px] h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -433,20 +458,43 @@ export const CompanyOnboardingDetails = ({
                                 </FormDescription>
                               )}
                               {!isIndianNumber && (
-                                <div className="mt-2 flex items-center justify-between gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400">
-                                  <span className="flex-1 leading-snug">
-                                    {t("coming_soon_country")}
-                                  </span>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950"
-                                    onClick={handleNotifyMe}
-                                    disabled={isNotifying}
-                                  >
-                                    {isNotifying ? t("submitting") : t("notify_me")}
-                                  </Button>
+                                <div className="mt-2 space-y-2">
+                                  <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400">
+                                    <p className="leading-snug">
+                                      {t("coming_soon_country")}
+                                    </p>
+                                  </div>
+                                  {hasNotified ? (
+                                    <div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400">
+                                      <Check className="h-4 w-4" />
+                                      <span>{t("notify_me_success")}</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-2">
+                                      <Input
+                                        type="tel"
+                                        maxLength={15}
+                                        value={notifyMobile}
+                                        onChange={(e) =>
+                                          setNotifyMobile(
+                                            e.target.value.replace(/[^\d+]/g, "")
+                                          )
+                                        }
+                                        className="flex-1 h-10 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
+                                        placeholder={t("notify_mobile_placeholder")}
+                                      />
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-10 border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950"
+                                        onClick={handleNotifyMe}
+                                        disabled={isNotifying}
+                                      >
+                                        {isNotifying ? t("submitting") : t("notify_me")}
+                                      </Button>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                               {isIndianNumber && <FormMessage />}

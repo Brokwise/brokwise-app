@@ -614,6 +614,7 @@
   "coming_soon_country": "ब्रोकवाइज़ अभी आपके देश में उपलब्ध नहीं है। हम जल्द ही आ रहे हैं!",
   "notify_me": "मुझे नोटिफाई करें",
   "notify_me_success": "जब ब्रोकवाइज़ आपके देश में लॉन्च होगा, हम आपको नोटिफाई करेंगे!",
+  "notify_mobile_placeholder": "आपका मोबाइल नंबर (वैकल्पिक)",
 
   "deletion_reason_label": "डिलीशन का कारण",
   "select_deletion_reason": "कारण चुनें",
