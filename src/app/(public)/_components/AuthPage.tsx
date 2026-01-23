@@ -14,7 +14,6 @@ import {
   Check,
   Sun,
   Moon,
-  Languages,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -478,7 +477,7 @@ export default function AuthPage({
             </Button>
           </div>
         )}
-        
+
         {/* Language and Theme Toggle - Top Right */}
         <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
           {/* Language Toggle */}
@@ -500,7 +499,7 @@ export default function AuthPage({
               हिं
             </Button>
           </div>
-          
+
           {/* Theme Toggle */}
           <Button
             variant="ghost"
