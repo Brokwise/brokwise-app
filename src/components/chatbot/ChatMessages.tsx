@@ -10,9 +10,10 @@ import { useTranslation } from "react-i18next";
 interface ChatMessagesProps {
   messages: ChatMessage[];
   isStreaming: boolean;
+  onSuggestionClick?: (suggestion: string) => void;
 }
 
-export function ChatMessages({ messages, isStreaming }: ChatMessagesProps) {
+export function ChatMessages({ messages, isStreaming, onSuggestionClick }: ChatMessagesProps) {
   const endRef = React.useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
@@ -45,12 +46,14 @@ export function ChatMessages({ messages, isStreaming }: ChatMessagesProps) {
               t("chatbot_suggestion_2"),
               t("chatbot_suggestion_3"),
             ].map((suggestion, index) => (
-              <span
+              <button
                 key={index}
-                className="text-xs bg-muted px-3 py-1.5 rounded-full text-muted-foreground"
+                type="button"
+                onClick={() => onSuggestionClick?.(suggestion)}
+                className="text-xs bg-muted px-3 py-1.5 rounded-full text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors cursor-pointer"
               >
                 {suggestion}
-              </span>
+              </button>
             ))}
           </div>
         </div>

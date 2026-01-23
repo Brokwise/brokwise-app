@@ -42,7 +42,11 @@ export function ChatbotWidget() {
         onClearChat={handleClearChat}
         hasMessages={messages.length > 0}
       />
-      <ChatMessages messages={messages} isStreaming={isStreaming} />
+      <ChatMessages
+        messages={messages}
+        isStreaming={isStreaming}
+        onSuggestionClick={handleSendMessage}
+      />
       <ChatInput onSend={handleSendMessage} isStreaming={isStreaming} />
     </div>
   );
