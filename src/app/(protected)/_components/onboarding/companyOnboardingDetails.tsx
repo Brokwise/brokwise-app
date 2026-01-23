@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -13,6 +14,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useTranslation } from "react-i18next";
+import { COUNTRY_CODES } from "@/constants";
 import {
   ArrowLeft,
   ArrowRight,
@@ -43,6 +53,11 @@ export const CompanyOnboardingDetails = ({
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState("+91");
+  const { t } = useTranslation();
+
+  const isIndianNumber = selectedCountry === "+91";
+
   const { companyData, setCompanyData } = useApp();
   const [user] = useAuthState(firebaseAuth);
   const [signOut] = useSignOut(firebaseAuth);
@@ -335,54 +350,97 @@ export const CompanyOnboardingDetails = ({
                           </FormItem>
                         )}
                       />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <FormField
-                          control={form.control}
-                          name="mobile"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                Mobile Number
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="tel"
-                                  maxLength={10}
-                                  className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
-                                  placeholder="Contact number"
-                                  onChange={(e) => {
-                                    const value = e.target.value
-                                      .replace(/\D/g, "")
-                                      .slice(0, 10);
-                                    field.onChange(value);
-                                  }}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="city"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                City
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
-                                  placeholder="Headquarters City"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                      <FormField
+                        control={form.control}
+                        name="mobile"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                              Mobile Number
+                            </FormLabel>
+                            <FormControl>
+                              <div className="flex gap-2">
+                                <Select
+                                  value={selectedCountry}
+                                  onValueChange={setSelectedCountry}
+                                >
+                                  <SelectTrigger className="w-[140px] h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {COUNTRY_CODES.map((country) => (
+                                      <SelectItem
+                                        key={country.code}
+                                        value={country.value}
+                                      >
+                                        {country.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+
+                                {isIndianNumber ? (
+                                  <Input
+                                    {...field}
+                                    type="tel"
+                                    maxLength={10}
+                                    className="flex-1 h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
+                                    placeholder="Contact number"
+                                    onChange={(e) => {
+                                      const value = e.target.value
+                                        .replace(/\D/g, "")
+                                        .slice(0, 10);
+                                      field.onChange(value);
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="flex-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md p-3 flex flex-col justify-center">
+                                    <p className="text-amber-700 dark:text-amber-400 text-sm">
+                                      {t("coming_soon_country")}
+                                    </p>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="mt-2 w-fit border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950"
+                                      onClick={() => {
+                                        toast.success(t("notify_me_success"));
+                                      }}
+                                    >
+                                      {t("notify_me")}
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </FormControl>
+                            {isIndianNumber && (
+                              <FormDescription className="text-xs text-slate-500 dark:text-slate-400">
+                                {t("mobile_aadhaar_hint")}
+                              </FormDescription>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                              City
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
+                                placeholder="Headquarters City"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   )}
 

@@ -17,6 +17,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useRequestDeleteProperty } from "@/hooks/useProperty";
 import Image from "next/image";
@@ -26,6 +33,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { formatAddress, formatPrice } from "@/utils/helper";
 import { PropertyStatusBadge } from "./property-status-badge";
+import { useTranslation } from "react-i18next";
+import { PROPERTY_DELETION_REASONS } from "@/constants";
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -40,17 +49,33 @@ export function PropertyActions({ property }: { property: Property }) {
   const { requestDelete, isPending: isDeleting } = useRequestDeleteProperty();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
-  const [deleteReason, setDeleteReason] = useState("");
+  const [selectedReason, setSelectedReason] = useState("");
+  const [additionalDetails, setAdditionalDetails] = useState("");
+  const { t } = useTranslation();
+
+  // Validation: reason required, if "OTHER" then details min 10 chars
+  const isDeleteValid =
+    selectedReason &&
+    (selectedReason !== "OTHER" || additionalDetails.length >= 10);
 
   const handleDelete = () => {
-    if (deleteReason.length < 10) return;
+    if (!isDeleteValid) return;
+
+    const reason =
+      selectedReason === "OTHER"
+        ? additionalDetails
+        : t(
+            PROPERTY_DELETION_REASONS.find((r) => r.value === selectedReason)
+              ?.labelKey || ""
+          );
 
     requestDelete(
-      { propertyId: property._id, reason: deleteReason },
+      { propertyId: property._id, reason },
       {
         onSuccess: () => {
           setShowDeleteDialog(false);
-          setDeleteReason("");
+          setSelectedReason("");
+          setAdditionalDetails("");
         },
       }
     );
@@ -199,47 +224,64 @@ export function PropertyActions({ property }: { property: Property }) {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Request Property Deletion</DialogTitle>
+            <DialogTitle>{t("request_property_deletion")}</DialogTitle>
             <DialogDescription>
-              Please provide a reason for deleting property{" "}
-              <span className="font-semibold">{property.propertyId}</span>. This
-              request will be sent to the admin for approval.
+              {t("request_property_deletion_desc")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="reason">Reason (min 10 characters)</Label>
-              <Textarea
-                id="reason"
-                placeholder="Enter reason for deletion..."
-                value={deleteReason}
-                onChange={(e) => setDeleteReason(e.target.value)}
-                className={
-                  deleteReason.length > 0 && deleteReason.length < 10
-                    ? "border-red-500"
-                    : ""
-                }
-              />
-              {deleteReason.length > 0 && deleteReason.length < 10 && (
-                <p className="text-xs text-red-500">
-                  Reason must be at least 10 characters.
-                </p>
-              )}
+              <Label>{t("deletion_reason_label")}</Label>
+              <Select value={selectedReason} onValueChange={setSelectedReason}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("select_deletion_reason")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROPERTY_DELETION_REASONS.map((reason) => (
+                    <SelectItem key={reason.value} value={reason.value}>
+                      {t(reason.labelKey)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
+            {selectedReason === "OTHER" && (
+              <div className="grid gap-2">
+                <Label>{t("additional_details_label")}</Label>
+                <Textarea
+                  placeholder={t("deletion_details_placeholder")}
+                  value={additionalDetails}
+                  onChange={(e) => setAdditionalDetails(e.target.value)}
+                  className={
+                    additionalDetails.length > 0 &&
+                    additionalDetails.length < 10
+                      ? "border-red-500"
+                      : ""
+                  }
+                />
+                {additionalDetails.length > 0 &&
+                  additionalDetails.length < 10 && (
+                    <p className="text-xs text-red-500">
+                      {t("additional_details_label")}
+                    </p>
+                  )}
+              </div>
+            )}
           </div>
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
             >
-              Cancel
+              {t("action_cancel")}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
-              disabled={isDeleting || deleteReason.length < 10}
+              disabled={isDeleting || !isDeleteValid}
             >
-              {isDeleting ? "Submitting..." : "Submit Request"}
+              {isDeleting ? t("submitting") : t("submit_request")}
             </Button>
           </div>
         </DialogContent>

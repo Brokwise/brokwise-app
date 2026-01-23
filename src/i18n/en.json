@@ -606,5 +606,26 @@
   "label_hectare": "Hectare",
   "label_bigha": "Bigha",
 
-  "property_submitted_for": "This property was submitted for"
+  "property_submitted_for": "This property was submitted for",
+
+  "mobile_aadhaar_hint": "Please enter the mobile number linked with your Aadhaar for verification purposes.",
+  "country_code": "Country Code",
+  "coming_soon_country": "Brokwise is not yet available in your country. We're expanding soon!",
+  "notify_me": "Notify Me",
+  "notify_me_success": "We'll notify you when Brokwise launches in your country!",
+
+  "deletion_reason_label": "Reason for Deletion",
+  "select_deletion_reason": "Select a reason",
+  "deletion_reason_sold": "Property has been sold",
+  "deletion_reason_not_for_sale": "Property is no longer for sale",
+  "deletion_reason_listed_elsewhere": "Listed on another platform",
+  "deletion_reason_incorrect_details": "Incorrect property details",
+  "deletion_reason_duplicate": "Duplicate listing",
+  "deletion_reason_owner_request": "Owner requested removal",
+  "deletion_reason_other": "Other",
+  "additional_details_label": "Additional Details (min 10 characters)",
+  "deletion_details_placeholder": "Please provide more details...",
+  "request_property_deletion": "Request Property Deletion",
+  "request_property_deletion_desc": "Please provide a reason for deleting this property. This request will be sent to the admin for approval.",
+  "submit_request": "Submit Request"
 }
