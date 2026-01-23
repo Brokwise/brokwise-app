@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { formatCurrency, formatAddress } from "@/utils/helper";
+import { formatCurrency, formatAddress, formatPriceShort } from "@/utils/helper";
 import { toast } from "sonner";
 import { createRoot } from "react-dom/client";
 import { format } from "date-fns";
@@ -64,6 +64,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const { t } = useTranslation();
 
   const isCompany = userData?.userType === "company";
+
+  const rateDisplay =
+    property.rate && property.sizeUnit
+      ? `${formatPriceShort(property.rate)}/${property.sizeUnit.toLowerCase().replace(/_/g, " ")}`
+      : null;
 
   // Check if property is private/enquiry-only
   const isPrivateProperty =
@@ -406,10 +411,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
         {/* Price Tag Overlay (Luxurious Touch) */}
         <div className="absolute bottom-3 right-3 z-10">
-          <div className="bg-background/95 backdrop-blur shadow-md px-3 py-1.5 rounded-lg border border-accent/10">
-            <p className="text-lg font-bold text-accent">
-              {formatCurrency(property.totalPrice)}
+          <div className="bg-background/95 backdrop-blur shadow-md px-3 py-1.5 rounded-lg border border-accent/10 flex flex-col items-end">
+            <p className="text-lg font-bold text-accent leading-none">
+              {formatPriceShort(property.totalPrice)}
             </p>
+            {rateDisplay && (
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">
+                {rateDisplay}
+              </p>
+            )}
           </div>
         </div>
       </div>
