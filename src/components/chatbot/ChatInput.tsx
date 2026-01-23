@@ -45,8 +45,8 @@ export function ChatInput({ onSend, isStreaming, placeholder }: ChatInputProps) 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 items-end p-4 border-t bg-background">
-      <div className="flex-1 relative">
+    <form onSubmit={handleSubmit} className="p-4 border-t bg-background">
+      <div className="relative flex items-end">
         <textarea
           ref={textareaRef}
           value={value}
@@ -59,22 +59,28 @@ export function ChatInput({ onSend, isStreaming, placeholder }: ChatInputProps) 
             "text-sm placeholder:text-muted-foreground",
             "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
             "disabled:cursor-not-allowed disabled:opacity-50",
-            "max-h-[120px] min-h-[48px]"
+            "max-h-[120px] min-h-[52px]"
           )}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         />
+        <Button
+          type="submit"
+          size="icon"
+          disabled={!value.trim() || isStreaming}
+          className={cn(
+            "absolute right-2 bottom-2 h-9 w-9 rounded-xl transition-all",
+            !value.trim() && !isStreaming
+              ? "opacity-50 bg-transparent text-muted-foreground hover:bg-transparent shadow-none"
+              : "opacity-100 shadow-sm"
+          )}
+        >
+          {isStreaming ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <Send className="h-5 w-5" />
+          )}
+        </Button>
       </div>
-      <Button
-        type="submit"
-        size="icon"
-        disabled={!value.trim() || isStreaming}
-        className="h-12 w-12 rounded-full flex-shrink-0"
-      >
-        {isStreaming ? (
-          <Loader2 className="h-5 w-5 animate-spin" />
-        ) : (
-          <Send className="h-5 w-5" />
-        )}
-      </Button>
     </form>
   );
 }

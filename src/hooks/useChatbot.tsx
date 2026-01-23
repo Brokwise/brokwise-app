@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { firebaseAuth } from "@/config/firebase";
 import { useChatbotStore, ChatMessage } from "@/stores/chatbotStore";
 
@@ -20,6 +21,7 @@ export const useChatbot = (): UseChatbotReturn => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const { i18n } = useTranslation();
 
   const { addMessage, appendToMessage, getContext } = useChatbotStore();
 
@@ -66,6 +68,7 @@ export const useChatbot = (): UseChatbotReturn => {
             },
             body: JSON.stringify({
               message: message.trim(),
+              language: i18n.language || "en",
               context: {
                 lastMessages: contextSnapshot.lastMessages,
                 summary: contextSnapshot.summary,
