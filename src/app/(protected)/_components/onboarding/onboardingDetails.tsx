@@ -125,6 +125,12 @@ export const OnboardingDetails = ({
   const { formState } = form;
   const { isValid } = formState;
 
+  useEffect(() => {
+    if (!isIndianNumber) {
+      form.setValue("mobile", "", { shouldValidate: true, shouldDirty: true });
+    }
+  }, [form, isIndianNumber]);
+
   const onSubmitProfileDetails = async (
     data: z.infer<typeof submitProfileDetails>
   ) => {
@@ -773,7 +779,7 @@ export const OnboardingDetails = ({
               <Button
                 onClick={handleNext}
                 type="button"
-                disabled={loading}
+                disabled={loading || (step === 1 && !isIndianNumber)}
                 className={`
                   h-12 px-8 font-medium
                   bg-[#0F172A] text-white hover:bg-[#1E293B]
