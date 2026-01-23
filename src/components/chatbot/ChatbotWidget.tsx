@@ -91,7 +91,7 @@ export function ChatbotWidget() {
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetContent
             side="bottom"
-            className="h-[90vh] p-0 rounded-t-3xl"
+            className="h-[85vh] p-0 rounded-t-3xl overflow-hidden"
           >
             <ChatContent />
           </SheetContent>
@@ -107,7 +107,10 @@ export function ChatbotWidget() {
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
               className={cn(
                 "fixed z-50 bottom-6 right-6",
-                "w-[400px] h-[600px] max-h-[80vh]",
+                // Responsive width: 30vw with min/max bounds for readability
+                "w-[30vw] min-w-[360px] max-w-[480px]",
+                // Viewport-based height for full chat experience
+                "h-[90vh] max-h-[90vh]",
                 "rounded-2xl shadow-2xl border overflow-hidden",
                 "bg-background"
               )}
