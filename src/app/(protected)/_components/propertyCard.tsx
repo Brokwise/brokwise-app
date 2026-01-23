@@ -417,24 +417,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       {/* Content Section */}
       <CardContent className="p-3 flex-grow flex flex-col gap-1 md:gap-2">
         <div className="flex justify-between items-start gap-1 md:gap-1">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-medium text-accent uppercase tracking-wider">
-              <span className="text-xs">{property.propertyCategory}</span>
-              <Badge
-                variant="outline"
-                className={`h-5 border-none px-1.5 font-normal ${property.listingStatus === "ACTIVE" && !property.deletingStatus
-                  ? "bg-emerald-100/50 text-emerald-700 hover:bg-emerald-100/50"
-                  : property.deletingStatus
-                    ? "bg-red-100/50 text-red-700 hover:bg-red-100/50"
-                    : "bg-gray-100/50 text-gray-700 hover:bg-gray-100/50"
-                  }`}
-              >
-                {property.deletingStatus
-                  ? "Deletion Pending"
-                  : property.listingStatus === "ACTIVE"
-                    ? "Active"
-                    : property.listingStatus.replace("_", " ")}
-              </Badge>
+          <div className="space-y-1 flex-1 min-w-0">
+            <div className="text-xs font-medium text-accent uppercase tracking-wider">
+              {property.propertyCategory}
             </div>
             <h3 className="font-semibold text-sm! md:text-sm line-clamp-1 text-foreground leading-tight">
               {property.bhk ? `${property.bhk} BHK ` : ""}
@@ -447,6 +432,20 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               </span>
             </div>
           </div>
+          <Badge
+            className={`shadow-sm backdrop-blur-md border-none shrink-0 ${property.listingStatus === "ACTIVE" && !property.deletingStatus
+                ? "bg-emerald-600/90 text-white"
+                : property.deletingStatus
+                  ? "bg-red-600/90 text-white"
+                  : "bg-background/80 text-foreground"
+              }`}
+          >
+            {property.deletingStatus
+              ? "Deletion Pending"
+              : property.listingStatus === "ACTIVE"
+                ? "Active"
+                : property.listingStatus.replace("_", " ")}
+          </Badge>
         </div>
 
         <div className="h-px bg-border/40 my-1" />
