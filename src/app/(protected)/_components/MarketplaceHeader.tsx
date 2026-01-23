@@ -40,6 +40,7 @@ import { Label } from "@/components/ui/label";
 import { formatIndianNumber } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
+import { useTranslation } from "react-i18next";
 
 // Property type options based on category
 const PROPERTY_TYPE_OPTIONS: Record<
@@ -137,6 +138,7 @@ export const MarketplaceHeader = ({
   const currentCount =
     viewMode === "PROPERTIES" ? filteredCount : filteredEnquiriesCount;
   const { userData } = useApp();
+  const { t } = useTranslation();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [recentOpen, setRecentOpen] = useState(false);
   const {
@@ -148,13 +150,13 @@ export const MarketplaceHeader = ({
 
   // Category Pills Data
   const categoryPills = [
-    { value: "ALL", label: "All" },
-    { value: "RESIDENTIAL", label: "Residential" },
-    { value: "COMMERCIAL", label: "Commercial" },
-    { value: "INDUSTRIAL", label: "Industrial" },
-    { value: "AGRICULTURAL", label: "Agricultural" },
-    { value: "RESORT", label: "Resort" },
-    { value: "FARM_HOUSE", label: "Farmhouse" },
+    { value: "ALL", label: t("label_all") },
+    { value: "RESIDENTIAL", label: t("category_residential") },
+    { value: "COMMERCIAL", label: t("category_commercial") },
+    { value: "INDUSTRIAL", label: t("category_industrial") },
+    { value: "AGRICULTURAL", label: t("category_agricultural") },
+    { value: "RESORT", label: t("category_resort") },
+    { value: "FARM_HOUSE", label: t("category_farmhouse") },
   ];
 
   // Get property type options based on selected category
@@ -205,7 +207,7 @@ export const MarketplaceHeader = ({
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Properties
+              {t("nav_properties")}
             </Button>
             <Button
               type="button"
@@ -218,7 +220,7 @@ export const MarketplaceHeader = ({
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Enquiries
+              {t("nav_enquiries")}
             </Button>
           </div>
         </div>
@@ -238,7 +240,7 @@ export const MarketplaceHeader = ({
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">
-              {viewMode === "PROPERTIES" ? "List Property" : "Post Enquiry"}
+              {viewMode === "PROPERTIES" ? t("nav_list_property") : t("action_post_enquiry")}
             </span>
             <span className="sm:hidden">New</span>
           </Link>
@@ -254,8 +256,8 @@ export const MarketplaceHeader = ({
               <Input
                 placeholder={
                   viewMode === "PROPERTIES"
-                    ? "Search properties by location, society..."
-                    : "Search enquiries by location, budget..."
+                    ? t("label_search_properties")
+                    : t("label_search_enquiries")
                 }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -298,7 +300,7 @@ export const MarketplaceHeader = ({
             sideOffset={8}
           >
             <div className="p-3 border-b border-border/50">
-              <h4 className="font-semibold text-sm">Recent Searches</h4>
+              <h4 className="font-semibold text-sm">{t("label_recent_searches")}</h4>
             </div>
             <div className="max-h-64 overflow-y-auto">
               {isRecentLoading ? (
@@ -379,7 +381,7 @@ export const MarketplaceHeader = ({
                   }`}
                 >
                   <FilterIcon className="h-3.5 w-3.5" />
-                  <span className="hidden xs:inline sm:inline">Filters</span>
+                  <span className="hidden xs:inline sm:inline">{t("label_filters")}</span>
                   {hasActiveFilters && (
                     <span className="flex h-1.5 w-1.5 rounded-full bg-accent" />
                   )}
@@ -771,7 +773,7 @@ export const MarketplaceHeader = ({
             onClick={clearFilters}
             className="h-5 sm:h-6 text-[10px] sm:text-xs px-1.5 sm:px-2 text-muted-foreground hover:text-destructive transition-colors"
           >
-            Clear all
+            {t("action_clear_all")}
           </Button>
         </div>
       )}

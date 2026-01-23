@@ -73,7 +73,6 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
   const router = useRouter();
   const { property, isLoading, error } = useGetProperty(id);
-  console.log(property)
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [exportedOnLabel, setExportedOnLabel] = useState<string>("");
   const [isFlagDialogOpen, setIsFlagDialogOpen] = useState(false);
@@ -196,7 +195,6 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
     setActiveImageIndex(imageIndex >= 0 ? imageIndex : 0);
     setIsGalleryOpen(true);
   };
-  console.log(property);
   return (
     <main className="">
       <div className="flex flex-col gap-4 mb-2 sm:gap-6">

@@ -14,6 +14,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 import {
   Table,
@@ -68,22 +69,22 @@ interface DataTableProps<TData, TValue> {
 }
 
 function EmptyState() {
+  const { t } = useTranslation();
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-24 px-4 text-center">
       <div className="h-16 w-16 rounded-full bg-muted/30 flex items-center justify-center mb-6">
         <Building2 className="h-7 w-7 text-muted-foreground/60" />
       </div>
       <h3 className="text-2xl font-instrument-serif text-foreground mb-2">
-        No properties found
+        {t("empty_no_listings")}
       </h3>
       <p className="text-muted-foreground max-w-sm font-light">
-        You haven&apos;t listed any properties yet, or no properties match your
-        current filters.
+        {t("empty_no_listings_desc")}
       </p>
       <Button asChild className="mt-6">
         <Link href="/property/createProperty">
           <Plus className="h-4 w-4 mr-2" />
-          Add Your First Property
+          {t("action_add_first_property")}
         </Link>
       </Button>
     </div>
@@ -96,6 +97,7 @@ export function DataTable<TData, TValue>({
   isLoading = false,
   error = null,
 }: DataTableProps<TData, TValue>) {
+  const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -175,16 +177,16 @@ export function DataTable<TData, TValue>({
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
-              My Properties
+              {t("page_my_properties_title")}
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Manage and view all your property listings
+              {t("page_my_properties_subtitle")}
             </p>
           </div>
           <Button asChild size="sm" className="h-9 sm:h-10">
             <Link href="/property/createProperty">
               <Plus className="h-4 w-4 mr-2" />
-              Add Property
+              {t("page_add_property")}
             </Link>
           </Button>
         </div>
@@ -197,7 +199,7 @@ export function DataTable<TData, TValue>({
             <div className="relative flex-1 w-full sm:max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search properties..."
+                placeholder={t("search_properties_placeholder")}
                 value={globalFilter ?? ""}
                 onChange={(e) => setGlobalFilter(e.target.value)}
                 className="pl-10 h-10 text-sm"
@@ -214,7 +216,7 @@ export function DataTable<TData, TValue>({
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="all">{t("label_all_types")}</SelectItem>
                   {PROPERTY_TYPES.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       {type.label}
@@ -229,16 +231,16 @@ export function DataTable<TData, TValue>({
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="ENQUIRY_ONLY">Enquiry only</SelectItem>
+                  <SelectItem value="all">{t("label_all_status")}</SelectItem>
+                  <SelectItem value="ACTIVE">{t("label_active")}</SelectItem>
+                  <SelectItem value="ENQUIRY_ONLY">{t("label_enquiry_only")}</SelectItem>
                   <SelectItem value="PENDING_APPROVAL">
-                    Pending Approval
+                    {t("label_pending_approval")}
                   </SelectItem>
-                  <SelectItem value="REJECTED">Rejected</SelectItem>
-                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="REJECTED">{t("label_rejected")}</SelectItem>
+                  <SelectItem value="DRAFT">{t("label_draft")}</SelectItem>
 
-                  <SelectItem value="DELISTED">Delisted</SelectItem>
+                  <SelectItem value="DELISTED">{t("label_delisted")}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -251,7 +253,7 @@ export function DataTable<TData, TValue>({
                       className="h-10 w-full sm:w-[160px] rounded-[8px] px-3 text-xs"
                     >
                       <Columns3 className="mr-2 h-4 w-4" />
-                      Columns
+                      {t("label_columns")}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-[200px]">
@@ -282,7 +284,7 @@ export function DataTable<TData, TValue>({
                     onClick={() => setViewMode("grid")}
                   >
                     <LayoutGrid className="h-4 w-4" />
-                    <span className="sr-only">Grid View</span>
+                    <span className="sr-only">{t("label_grid_view")}</span>
                   </Button>
                   <Button
                     variant={viewMode === "table" ? "default" : "ghost"}
@@ -291,7 +293,7 @@ export function DataTable<TData, TValue>({
                     onClick={() => setViewMode("table")}
                   >
                     <List className="h-4 w-4" />
-                    <span className="sr-only">Table View</span>
+                    <span className="sr-only">{t("label_table_view")}</span>
                   </Button>
                 </div>
               </div>
@@ -304,15 +306,15 @@ export function DataTable<TData, TValue>({
         {/* Results count */}
         <div className="flex  flex-row  items-center justify-between gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
           <p>
-            Showing{" "}
+            {t("label_showing")}{" "}
             <span className="font-medium text-foreground">
               {filteredRowCount}
             </span>{" "}
-            of {totalCount} properties
+            {t("label_of")} {totalCount} {t("label_properties")}
           </p>
           {viewMode === "grid" && (
             <div className="flex items-center gap-2">
-              <span>Per page:</span>
+              <span>{t("label_per_page")}:</span>
               <Select
                 value={`${table.getState().pagination.pageSize}`}
                 onValueChange={(value) => table.setPageSize(Number(value))}
@@ -345,7 +347,7 @@ export function DataTable<TData, TValue>({
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Failed to load properties. Please try again later.
+            {t("error_load_properties")}
           </AlertDescription>
         </Alert>
       )}
@@ -414,7 +416,7 @@ export function DataTable<TData, TValue>({
                         colSpan={columns.length}
                         className="h-24 text-center text-muted-foreground"
                       >
-                        No properties found matching your criteria.
+                        {t("empty_no_matching_properties")}
                       </TableCell>
                     </TableRow>
                   )}
@@ -427,7 +429,7 @@ export function DataTable<TData, TValue>({
           {pageCount > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
               <p className="text-sm text-muted-foreground">
-                Page {currentPage} of {pageCount}
+                {t("label_page")} {currentPage} {t("label_of")} {pageCount}
               </p>
               <div className="flex items-center space-x-2">
                 <Button

@@ -6,6 +6,7 @@ import {
 } from "@/models/api/invitation";
 import { InvitationStatus } from "@/models/types/invitation";
 import { toast } from "sonner";
+import i18n from "@/i18n";
 
 export const useCompanyInvitations = (
   status?: InvitationStatus,
@@ -33,13 +34,13 @@ export const useAcceptCompanyInvitation = () => {
       return await acceptCompanyInvitation({ invitationId });
     },
     onSuccess: () => {
-      toast.success("Invitation accepted successfully");
+      toast.success(i18n.t("toast_invitation_accepted"));
       queryClient.invalidateQueries({ queryKey: ["companyInvitations"] });
       // Invalidate broker profile as well since status changed
       queryClient.invalidateQueries({ queryKey: ["brokerDetails"] });
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to accept invitation");
+      toast.error(error.message || i18n.t("toast_error_invitation_accept"));
     },
   });
   return { acceptInvitation: mutate, isPending, error };
@@ -52,11 +53,11 @@ export const useRejectCompanyInvitation = () => {
       return await rejectCompanyInvitation({ invitationId });
     },
     onSuccess: () => {
-      toast.success("Invitation rejected");
+      toast.success(i18n.t("toast_invitation_rejected"));
       queryClient.invalidateQueries({ queryKey: ["companyInvitations"] });
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to reject invitation");
+      toast.error(error.message || i18n.t("toast_error_invitation_reject"));
     },
   });
   return { rejectInvitation: mutate, isPending, error };

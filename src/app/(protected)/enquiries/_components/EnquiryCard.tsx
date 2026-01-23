@@ -24,6 +24,7 @@ import { formatCurrencyEnquiry, formatEnquiryLocation } from "@/utils/helper";
 import { cn } from "@/lib/utils";
 import { useGetMyEnquiries } from "@/hooks/useEnquiry";
 import { useApp } from "@/context/AppContext";
+import { useTranslation } from "react-i18next";
 
 interface EnquiryCardProps {
   enquiry: Enquiry | MarketplaceEnquiry;
@@ -36,6 +37,7 @@ export const EnquiryCard = ({
 }: EnquiryCardProps) => {
   const router = useRouter();
   const { userData } = useApp();
+  const { t } = useTranslation();
 
   const isCompany = userData?.userType === "company";
   const locationTitle = formatEnquiryLocation(enquiry);
@@ -45,19 +47,19 @@ export const EnquiryCard = ({
     switch (status) {
       case "active":
         return {
-          label: "Active",
+          label: t("label_active"),
           className:
             "bg-green-500/15 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
         };
       case "closed":
         return {
-          label: "Closed",
+          label: t("label_closed"),
           className:
             "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200",
         };
       case "expired":
         return {
-          label: "Expired",
+          label: t("label_expired"),
           className:
             "bg-red-500/15 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800",
         };
@@ -92,7 +94,7 @@ export const EnquiryCard = ({
             {isSameCity && (
               <Badge className="rounded-md px-2.5 py-0.5 font-medium text-xs bg-blue-600/90 text-white border-none">
                 <MapPin className="h-3 w-3 mr-1" />
-                Same city
+                {t("label_same_city")}
               </Badge>
             )}
             <Badge
@@ -116,12 +118,12 @@ export const EnquiryCard = ({
 
         <div className="space-y-1.5">
           <h3 className="font-semibold text-lg leading-tight tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
-            {enquiry.description || "Untitled Enquiry"}
+            {enquiry.description || t("label_untitled_enquiry")}
           </h3>
           <div className="flex items-center text-muted-foreground text-sm">
             <MapPin className="mr-1.5 h-3.5 w-3.5 shrink-0" />
             <span className="line-clamp-1">
-              {locationTitle || "Location not specified"}
+              {locationTitle || t("label_location_not_specified")}
             </span>
           </div>
         </div>
@@ -134,14 +136,14 @@ export const EnquiryCard = ({
               {formatCurrencyEnquiry(enquiry.budget.min)}
             </span>
             <span className="text-muted-foreground text-sm font-medium">
-              to
+              {t("label_to")}
             </span>
             <span className="text-xl font-bold tracking-tight">
               {formatCurrencyEnquiry(enquiry.budget.max)}
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-1 font-medium pl-0.5">
-            Estimated Budget
+            {t("label_estimated_budget")}
           </p>
         </div>
 
@@ -162,7 +164,7 @@ export const EnquiryCard = ({
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
               <Bath className="h-3.5 w-3.5" />
               <span className="font-medium text-xs">
-                {enquiry.washrooms} Bath
+                {enquiry.washrooms} {t("label_bath")}
               </span>
             </div>
           )}
@@ -192,7 +194,7 @@ export const EnquiryCard = ({
           size="sm"
           className="h-8 px-3 text-primary hover:text-primary hover:bg-primary/10 -mr-2"
         >
-          Details <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+          {t("action_view_details")} <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
         </Button>
       </CardFooter>
     </Card>

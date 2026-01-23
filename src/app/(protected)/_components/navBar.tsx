@@ -18,21 +18,23 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
+import { useTranslation } from "react-i18next";
 
 const NavBar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { companyData } = useApp();
+  const { t } = useTranslation();
 
   // If user is a company, show simplified navbar
   if (companyData) {
     const navLinks = [
-      { href: "/company-brokers", label: "Brokers" },
-      { href: "/company-dashboard", label: "Dashboard" },
-      { href: "/message", label: "Messages" },
-      { href: "/company-properties", label: "Properties" },
-      { href: "/company-enquiries", label: "Enquiries" },
-      { href: "/property/createProperty", label: "List Property" },
+      { href: "/company-brokers", label: t("nav_brokers") },
+      { href: "/company-dashboard", label: t("nav_dashboard") },
+      { href: "/message", label: t("nav_messages") },
+      { href: "/company-properties", label: t("nav_properties") },
+      { href: "/company-enquiries", label: t("nav_enquiries") },
+      { href: "/property/createProperty", label: t("nav_list_property") },
     ];
 
     return (
@@ -102,7 +104,7 @@ const NavBar = () => {
               )}
               value="/"
             >
-              Properties
+              {t("nav_properties")}
             </TabsTrigger>
             <TabsTrigger
               onClick={() => {
@@ -114,7 +116,7 @@ const NavBar = () => {
               )}
               value="message"
             >
-              Messages
+              {t("nav_messages")}
             </TabsTrigger>
             <TabsTrigger
               onClick={() => {
@@ -126,7 +128,7 @@ const NavBar = () => {
               )}
               value="/enquiries"
             >
-              Enquiries
+              {t("nav_enquiries")}
             </TabsTrigger>
             <TabsTrigger
               className={cn(
@@ -138,25 +140,25 @@ const NavBar = () => {
                 router.push("/property/createProperty");
               }}
             >
-              List Property
+              {t("nav_list_property")}
             </TabsTrigger>
           </TabsList>
         </Tabs>
         <DropdownMenu>
           <DropdownMenuTrigger>
             <Button className="" variant="ghost">
-              Resources
+              {t("nav_resources")}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
             <DropdownMenuItem>
               <Link href="/resources/land-convertor" className="w-full">
-                Land Convertor
+                {t("nav_land_convertor")}
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Link href="/resources/jaipur-dlc-rates" className="w-full">
-                Jaipur DLC Rates
+                {t("nav_dlc_rates")}
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
@@ -166,7 +168,7 @@ const NavBar = () => {
                 )}&title=JDA Circulars`}
                 className="flex items-center justify-between w-full"
               >
-                JDA Circulars <ExternalLink className="w-4 h-4 ml-2" />
+                {t("nav_jda_circulars")} <ExternalLink className="w-4 h-4 ml-2" />
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
@@ -176,7 +178,7 @@ const NavBar = () => {
                 )}&title=GIS Portal`}
                 className="flex items-center justify-between w-full"
               >
-                GIS Portal <ExternalLink className="w-4 h-4 ml-2" />
+                {t("nav_gis_portal")} <ExternalLink className="w-4 h-4 ml-2" />
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
@@ -186,7 +188,7 @@ const NavBar = () => {
                 )}&title=Apna Khata`}
                 className="flex items-center justify-between w-full"
               >
-                Apna Khata <ExternalLink className="w-4 h-4 ml-2" />
+                {t("nav_apna_khata")} <ExternalLink className="w-4 h-4 ml-2" />
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
@@ -196,7 +198,7 @@ const NavBar = () => {
                 )}&title=BhuNaksha`}
                 className="flex items-center justify-between w-full"
               >
-                BhuNaksha <ExternalLink className="w-4 h-4 ml-2" />
+                {t("nav_bhunaksha")} <ExternalLink className="w-4 h-4 ml-2" />
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
@@ -206,7 +208,7 @@ const NavBar = () => {
                 )}&title=RERA`}
                 className="flex items-center justify-between w-full"
               >
-                RERA <ExternalLink className="w-4 h-4 ml-2" />
+                {t("nav_rera")} <ExternalLink className="w-4 h-4 ml-2" />
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
