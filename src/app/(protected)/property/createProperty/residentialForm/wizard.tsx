@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { coerceStringArray } from "@/utils/helper";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 
 import { Form } from "@/components/ui/form";
 import { Wizard, WizardStep } from "@/components/ui/wizard";
@@ -45,6 +46,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   draftCount,
   isEditingDraft,
 }) => {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const router = useRouter();
@@ -106,7 +108,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         router.replace("/property/createProperty/success");
       } catch (error) {
         console.error("Error submitting form:", error);
-        toast.error("Failed to submit property. Please try again.");
+        toast.error(t("toast_error_property_submit"));
       } finally {
         setIsSubmitting(false);
       }
@@ -338,20 +340,20 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   const steps: WizardStep[] = [
     {
       id: "property-details",
-      title: "Property Details",
-      description: "Basic info, specs and pricing",
+      title: t("wizard_step_property_details"),
+      description: t("wizard_step_property_details_desc"),
       component: (
         <div className="space-y-8">
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-primary">
-              Basic Information
+              {t("wizard_basic_info")}
             </h3>
             {<ResidentialBasicInfo form={form} enquiry={enquiry} />}
           </div>
           <div className="w-full h-px bg-border" />
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-primary">
-              Specifications & Pricing
+              {t("wizard_specs_pricing")}
             </h3>
             {
               <ResidentialProperySpecs
@@ -367,20 +369,20 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     },
     {
       id: "features-media",
-      title: "Features & Media",
-      description: "Amenities, photos and description",
+      title: t("wizard_step_features_media"),
+      description: t("wizard_step_features_media_desc"),
       component: (
         <div className="space-y-8">
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-primary">
-              Features & Amenities
+              {t("wizard_features_amenities")}
             </h3>
             {<ResidentialFeatures propertyType={propertyType} form={form} />}
           </div>
           <div className="w-full h-px bg-border" />
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-primary">
-              Media & Description
+              {t("wizard_media_description")}
             </h3>
             {
               <ResidentialMedia
@@ -396,8 +398,8 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     },
     {
       id: "review",
-      title: "Review",
-      description: "Review and submit",
+      title: t("wizard_step_review"),
+      description: t("wizard_step_review_desc"),
       component: <ResidentialReview propertyType={propertyType} form={form} />,
       isCompleted: completedSteps.has(2),
     },

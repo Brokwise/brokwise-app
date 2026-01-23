@@ -7,6 +7,7 @@ import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2, Wand2Icon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import {
   Form,
@@ -438,6 +439,7 @@ const createEnquirySchema = z
 type CreateEnquiryFormValues = z.infer<typeof createEnquirySchema>;
 
 const CreateEnquiryPage = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { companyData } = useApp();
   const { createEnquiry, isPending: isBrokerPending } = useCreateEnquiry();
@@ -613,7 +615,7 @@ const CreateEnquiryPage = () => {
     <div className="space-y-6">
       <div className="border-b border-border/40 pb-2 mb-6">
         <h3 className="text-xl font-instrument-serif text-foreground/90">
-          Size Requirement
+          {t("form_size_requirement")}
         </h3>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -622,7 +624,7 @@ const CreateEnquiryPage = () => {
           name="size.min"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-muted-foreground">Min Size</FormLabel>
+              <FormLabel className="text-muted-foreground">{t("form_min_size")}</FormLabel>
               <FormControl>
                 <NumberInput
                   {...field}
@@ -639,7 +641,7 @@ const CreateEnquiryPage = () => {
           name="size.max"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-muted-foreground">Max Size</FormLabel>
+              <FormLabel className="text-muted-foreground">{t("form_max_size")}</FormLabel>
               <FormControl>
                 <NumberInput
                   {...field}
@@ -656,7 +658,7 @@ const CreateEnquiryPage = () => {
           name="size.unit"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-muted-foreground">Unit</FormLabel>
+              <FormLabel className="text-muted-foreground">{t("form_unit")}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
@@ -691,10 +693,10 @@ const CreateEnquiryPage = () => {
       {/* Header */}
       <div className="space-y-2 md:space-y-4 text-left border-b border-border/40 pb-3 md:pb-8">
         <h1 className="text-2xl md:text-4xl font-instrument-serif text-primary tracking-tight">
-          Post a Requirement
+          {t("page_create_enquiry_title")}
         </h1>
         <p className="text-muted-foreground font-inter text-md md:text-lg">
-          Tell us what you are looking for, and we will find the perfect match.
+          {t("page_create_enquiry_subtitle")}
         </p>
       </div>
 
@@ -711,7 +713,7 @@ const CreateEnquiryPage = () => {
           <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-2 mb-6">
               <h3 className="text-xl font-instrument-serif text-foreground/90">
-                Location
+                {t("form_location")}
               </h3>
             </div>
 
@@ -861,7 +863,7 @@ const CreateEnquiryPage = () => {
           <div className="space-y-6">
             <div className="border-b border-border/40 pb-2 mb-6">
               <h3 className="text-xl font-instrument-serif text-foreground/90">
-                Property Details
+                {t("form_property_details")}
               </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -932,7 +934,7 @@ const CreateEnquiryPage = () => {
           <div className="space-y-6">
             <div className="border-b border-border/40 pb-2 mb-6">
               <h3 className="text-xl font-instrument-serif text-foreground/90">
-                Budget
+                {t("form_budget")}
               </h3>
             </div>
             {(() => {
@@ -949,7 +951,7 @@ const CreateEnquiryPage = () => {
                   <div className="flex items-center justify-between px-2">
                     <div className="flex flex-col items-center">
                       <span className="text-sm text-muted-foreground uppercase tracking-widest text-[10px] font-semibold mb-1">
-                        Min Budget
+                        {t("form_min_budget")}
                       </span>
                       <div className="text-2xl md:text-3xl font-instrument-serif text-primary">
                         {formatBudgetLabel(currentMin ?? BUDGET_MIN)}
@@ -958,7 +960,7 @@ const CreateEnquiryPage = () => {
                     <div className="h-px w-full mx-6 bg-border/60 transform translate-y-2"></div>
                     <div className="flex flex-col items-center">
                       <span className="text-sm text-muted-foreground uppercase tracking-widest text-[10px] font-semibold mb-1">
-                        Max Budget
+                        {t("form_max_budget")}
                       </span>
                       <div className="text-2xl md:text-3xl font-instrument-serif text-primary">
                         {formatBudgetLabel(currentMax ?? BUDGET_MAX)}
@@ -1001,7 +1003,7 @@ const CreateEnquiryPage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-80 hover:opacity-100 transition-opacity">
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground ml-1">
-                        Exact Minimum Amount
+                        {t("form_exact_min_amount")}
                       </p>
                       <Input
                         type="text"
@@ -1061,7 +1063,7 @@ const CreateEnquiryPage = () => {
 
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground ml-1">
-                        Exact Maximum Amount
+                        {t("form_exact_max_amount")}
                       </p>
                       <Input
                         type="text"
@@ -1147,7 +1149,7 @@ const CreateEnquiryPage = () => {
             <div className="space-y-6">
               <div className="border-b border-border/40 pb-2 mb-6">
                 <h3 className="text-xl font-instrument-serif text-foreground/90">
-                  Configuration
+                  {t("form_configuration")}
                 </h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1253,7 +1255,7 @@ const CreateEnquiryPage = () => {
               <div className="space-y-6">
                 <div className="border-b border-border/40 pb-2 mb-6">
                   <h3 className="text-xl font-instrument-serif text-foreground/90">
-                    Plot Details
+                    {t("form_plot_details")}
                   </h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1356,7 +1358,7 @@ const CreateEnquiryPage = () => {
             <div className="space-y-6">
               <div className="border-b border-border/40 pb-2 mb-6">
                 <h3 className="text-xl font-instrument-serif text-foreground/90">
-                  Capacity
+                  {t("form_capacity")}
                 </h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1425,7 +1427,7 @@ const CreateEnquiryPage = () => {
             <div className="space-y-6">
               <div className="border-b border-border/40 pb-2 mb-6">
                 <h3 className="text-xl font-instrument-serif text-foreground/90">
-                  Industrial Use Only
+                  {t("form_industrial_use")}
                 </h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1485,7 +1487,7 @@ const CreateEnquiryPage = () => {
           <div className="space-y-6">
             <div className="border-b border-border/40 pb-2 mb-6">
               <h3 className="text-xl font-instrument-serif text-foreground/90">
-                Additional Details
+                {t("form_additional_details")}
               </h3>
             </div>
             <FormField
@@ -1515,7 +1517,7 @@ const CreateEnquiryPage = () => {
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <>
-                              Generate Description <Wand2Icon />
+                              {t("form_generate_description")} <Wand2Icon />
                             </>
                           )}
                         </Button>
@@ -1535,7 +1537,7 @@ const CreateEnquiryPage = () => {
               disabled={isPending}
             >
               {isPending && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-              Create Enquiry
+              {t("action_create_enquiry")}
             </Button>
           </div>
         </form>
