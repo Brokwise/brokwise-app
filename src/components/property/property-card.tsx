@@ -44,13 +44,6 @@ export function PropertyCard({ property }: PropertyCardProps) {
             <Home className="h-8 w-8 opacity-20" />
           </div>
         )}
-        <div className="absolute top-2 right-2">
-          <PropertyStatusBadge
-            status={property.listingStatus}
-            deletingStatus={property.deletingStatus}
-            className="shadow-sm"
-          />
-        </div>
         <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm font-mono">
           {property.propertyId}
         </div>
@@ -60,12 +53,21 @@ export function PropertyCard({ property }: PropertyCardProps) {
       <CardHeader className="p-4 pb-2">
         <div className="flex justify-between items-start gap-2">
           <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-base leading-tight line-clamp-1">
-              {property.propertyCategory.replace(/_/g, " ")}{" "}
-              <span className="font-normal text-muted-foreground text-sm">
-                • {property.propertyType.replace(/_/g, " ")}
-              </span>
-            </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-semibold text-base leading-tight">
+                {property.propertyCategory.replace(/_/g, " ")}{" "}
+                <span className="font-normal text-muted-foreground text-sm">
+                  • {property.propertyType.replace(/_/g, " ")}
+                </span>
+              </h3>
+              <div className="mt-1">
+                <PropertyStatusBadge
+                  status={property.listingStatus}
+                  deletingStatus={property.deletingStatus}
+                  className="shadow-sm text-xs px-2 py-0.5"
+                />
+              </div>
+            </div>
             <div className="flex items-center text-sm text-muted-foreground mt-1">
               <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
               <span className="truncate" title={formatAddress(property.address)}>

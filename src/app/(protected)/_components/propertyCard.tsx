@@ -98,9 +98,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     e.preventDefault();
     e.stopPropagation();
     const shareData = {
-      title: `${
-        property.bhk ? `${property.bhk} BHK ` : ""
-      }${property.propertyType.replace(/_/g, " ")}`,
+      title: `${property.bhk ? `${property.bhk} BHK ` : ""
+        }${property.propertyType.replace(/_/g, " ")}`,
       text: `Check out this property: ${formatAddress(
         property.address
       )} - ${formatCurrency(property.totalPrice)}`,
@@ -122,9 +121,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const handleShareWhatsApp = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const propertyTitle = `${
-      property.bhk ? `${property.bhk} BHK ` : ""
-    }${property.propertyType.replace(/_/g, " ")}`;
+    const propertyTitle = `${property.bhk ? `${property.bhk} BHK ` : ""
+      }${property.propertyType.replace(/_/g, " ")}`;
 
     // Using Unicode escapes to ensure emojis render correctly regardless of file encoding
     // \uD83C\uDFE0 = House
@@ -237,7 +235,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 property.featuredMedia.includes(
                   "firebasestorage.googleapis.com"
                 )) ||
-              property.featuredMedia?.includes("picsum.photos")
+                property.featuredMedia?.includes("picsum.photos")
                 ? property.featuredMedia
                 : "/images/placeholder.webp"
             }
@@ -256,19 +254,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               {t("label_same_city")}
             </Badge>
           )}
-          <Badge
-            className={`shadow-sm backdrop-blur-md border-none ${
-              property.listingStatus === "ACTIVE" && !property.deletingStatus
-                ? "bg-emerald-600/90 text-white"
-                : property.deletingStatus
-                ? "bg-red-600/90 text-white"
-                : "bg-background/80 text-foreground"
-            }`}
-          >
-            {property.deletingStatus
-              ? "DELETION REQUEST PENDING"
-              : property.listingStatus.replace("_", " ")}
-          </Badge>
+
         </div>
 
         <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
@@ -287,9 +273,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           <Button
             size="icon"
             variant="secondary"
-            className={`h-8 w-8 rounded-full bg-background/80 backdrop-blur-md hover:bg-background shadow-sm ${
-              isBookmarked ? "text-accent" : ""
-            }`}
+            className={`h-8 w-8 rounded-full bg-background/80 backdrop-blur-md hover:bg-background shadow-sm ${isBookmarked ? "text-accent" : ""
+              }`}
             disabled={(!brokerData && !companyData) || isBookmarkPending}
             onClick={async (e) => {
               e.preventDefault();
@@ -353,9 +338,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Bookmark
-                className={`h-4 w-4 ${
-                  isBookmarked ? "text-accent" : "text-foreground/70"
-                }`}
+                className={`h-4 w-4 ${isBookmarked ? "text-accent" : "text-foreground/70"
+                  }`}
                 fill={isBookmarked ? "currentColor" : "none"}
               />
             )}
@@ -436,6 +420,21 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs font-medium text-accent uppercase tracking-wider">
               <span className="text-xs">{property.propertyCategory}</span>
+              <Badge
+                variant="outline"
+                className={`h-5 border-none px-1.5 font-normal ${property.listingStatus === "ACTIVE" && !property.deletingStatus
+                  ? "bg-emerald-100/50 text-emerald-700 hover:bg-emerald-100/50"
+                  : property.deletingStatus
+                    ? "bg-red-100/50 text-red-700 hover:bg-red-100/50"
+                    : "bg-gray-100/50 text-gray-700 hover:bg-gray-100/50"
+                  }`}
+              >
+                {property.deletingStatus
+                  ? "Deletion Pending"
+                  : property.listingStatus === "ACTIVE"
+                    ? "Active"
+                    : property.listingStatus.replace("_", " ")}
+              </Badge>
             </div>
             <h3 className="font-semibold text-sm! md:text-sm line-clamp-1 text-foreground leading-tight">
               {property.bhk ? `${property.bhk} BHK ` : ""}
