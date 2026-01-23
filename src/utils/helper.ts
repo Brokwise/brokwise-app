@@ -86,6 +86,26 @@ export const formatCurrencyEnquiry = (amount: number) => {
   return amount.toLocaleString("en-IN");
 };
 
+// Formats price in shortened Cr/L format with ₹ symbol
+export const formatPriceShort = (amount: number) => {
+  if (amount >= 10000000) {
+    const value = amount / 10000000;
+    // Remove trailing zeros: 12.00 -> 12, 12.50 -> 12.5
+    const formatted = value % 1 === 0 ? value.toFixed(0) : value.toFixed(2).replace(/\.?0+$/, '');
+    return `₹${formatted} Cr`;
+  }
+  if (amount >= 100000) {
+    const value = amount / 100000;
+    const formatted = value % 1 === 0 ? value.toFixed(0) : value.toFixed(2).replace(/\.?0+$/, '');
+    return `₹${formatted} L`;
+  }
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
 export const getStatusColor = (status: string) => {
   switch (status) {
     case "active":

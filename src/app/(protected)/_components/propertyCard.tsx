@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { formatCurrency, formatAddress } from "@/utils/helper";
+import { formatCurrency, formatAddress, formatPriceShort } from "@/utils/helper";
 import { toast } from "sonner";
 import { createRoot } from "react-dom/client";
 import { format } from "date-fns";
@@ -64,6 +64,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const { t } = useTranslation();
 
   const isCompany = userData?.userType === "company";
+
+  const rateDisplay =
+    property.rate && property.sizeUnit
+      ? `${formatPriceShort(property.rate)}/${property.sizeUnit.toLowerCase().replace(/_/g, " ")}`
+      : null;
 
   // Check if property is private/enquiry-only
   const isPrivateProperty =
@@ -98,9 +103,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     e.preventDefault();
     e.stopPropagation();
     const shareData = {
-      title: `${
-        property.bhk ? `${property.bhk} BHK ` : ""
-      }${property.propertyType.replace(/_/g, " ")}`,
+      title: `${property.bhk ? `${property.bhk} BHK ` : ""
+        }${property.propertyType.replace(/_/g, " ")}`,
       text: `Check out this property: ${formatAddress(
         property.address
       )} - ${formatCurrency(property.totalPrice)}`,
@@ -122,9 +126,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const handleShareWhatsApp = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const propertyTitle = `${
-      property.bhk ? `${property.bhk} BHK ` : ""
-    }${property.propertyType.replace(/_/g, " ")}`;
+    const propertyTitle = `${property.bhk ? `${property.bhk} BHK ` : ""
+      }${property.propertyType.replace(/_/g, " ")}`;
 
     // Using Unicode escapes to ensure emojis render correctly regardless of file encoding
     // \uD83C\uDFE0 = House
@@ -237,7 +240,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 property.featuredMedia.includes(
                   "firebasestorage.googleapis.com"
                 )) ||
-              property.featuredMedia?.includes("picsum.photos")
+                property.featuredMedia?.includes("picsum.photos")
                 ? property.featuredMedia
                 : "/images/placeholder.webp"
             }
@@ -256,19 +259,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               {t("label_same_city")}
             </Badge>
           )}
-          <Badge
-            className={`shadow-sm backdrop-blur-md border-none ${
-              property.listingStatus === "ACTIVE" && !property.deletingStatus
-                ? "bg-emerald-600/90 text-white"
-                : property.deletingStatus
-                ? "bg-red-600/90 text-white"
-                : "bg-background/80 text-foreground"
-            }`}
-          >
-            {property.deletingStatus
-              ? "DELETION REQUEST PENDING"
-              : property.listingStatus.replace("_", " ")}
-          </Badge>
+
         </div>
 
         <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
@@ -287,9 +278,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           <Button
             size="icon"
             variant="secondary"
-            className={`h-8 w-8 rounded-full bg-background/80 backdrop-blur-md hover:bg-background shadow-sm ${
-              isBookmarked ? "text-accent" : ""
-            }`}
+            className={`h-8 w-8 rounded-full bg-background/80 backdrop-blur-md hover:bg-background shadow-sm ${isBookmarked ? "text-accent" : ""
+              }`}
             disabled={(!brokerData && !companyData) || isBookmarkPending}
             onClick={async (e) => {
               e.preventDefault();
@@ -353,9 +343,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Bookmark
-                className={`h-4 w-4 ${
-                  isBookmarked ? "text-accent" : "text-foreground/70"
-                }`}
+                className={`h-4 w-4 ${isBookmarked ? "text-accent" : "text-foreground/70"
+                  }`}
                 fill={isBookmarked ? "currentColor" : "none"}
               />
             )}
@@ -422,10 +411,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
         {/* Price Tag Overlay (Luxurious Touch) */}
         <div className="absolute bottom-3 right-3 z-10">
-          <div className="bg-background/95 backdrop-blur shadow-md px-3 py-1.5 rounded-lg border border-accent/10">
-            <p className="text-lg font-bold text-accent">
-              {formatCurrency(property.totalPrice)}
+          <div className="bg-background/95 backdrop-blur shadow-md px-3 py-1.5 rounded-lg border border-accent/10 flex flex-col items-end">
+            <p className="text-lg font-bold text-accent leading-none">
+              {formatPriceShort(property.totalPrice)}
             </p>
+            {rateDisplay && (
+              <p className="text-[10px] text-muted-foreground font-medium mt-1">
+                {rateDisplay}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -433,9 +427,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       {/* Content Section */}
       <CardContent className="p-3 flex-grow flex flex-col gap-1 md:gap-2">
         <div className="flex justify-between items-start gap-1 md:gap-1">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-medium text-accent uppercase tracking-wider">
-              <span className="text-xs">{property.propertyCategory}</span>
+          <div className="space-y-1 flex-1 min-w-0">
+            <div className="text-xs font-medium text-accent uppercase tracking-wider">
+              {property.propertyCategory}
             </div>
             <h3 className="font-semibold text-sm! md:text-sm line-clamp-1 text-foreground leading-tight">
               {property.bhk ? `${property.bhk} BHK ` : ""}
@@ -448,6 +442,20 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               </span>
             </div>
           </div>
+          <Badge
+            className={`shadow-sm backdrop-blur-md border-none shrink-0 ${property.listingStatus === "ACTIVE" && !property.deletingStatus
+                ? "bg-emerald-600/90 text-white"
+                : property.deletingStatus
+                  ? "bg-red-600/90 text-white"
+                  : "bg-background/80 text-foreground"
+              }`}
+          >
+            {property.deletingStatus
+              ? "Deletion Pending"
+              : property.listingStatus === "ACTIVE"
+                ? "Active"
+                : property.listingStatus.replace("_", " ")}
+          </Badge>
         </div>
 
         <div className="h-px bg-border/40 my-1" />

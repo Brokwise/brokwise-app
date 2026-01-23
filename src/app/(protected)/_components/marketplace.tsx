@@ -189,6 +189,13 @@ export const MarketPlace = () => {
     }
   }, [selectedPropertyId]);
 
+  // Scroll to top when page changes
+  useEffect(() => {
+    if (propertiesScrollRef.current) {
+      propertiesScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [currentPage]);
+
   const filteredProperties = useMemo(() => {
     if (!properties) return [];
 
@@ -574,6 +581,18 @@ export const MarketPlace = () => {
                         </span>
                       )}
                     </p>
+                    {totalPages > 1 && (
+                      <p className="text-sm text-muted-foreground">
+                        Page{" "}
+                        <span className="font-medium text-foreground">
+                          {currentPage}
+                        </span>{" "}
+                        of{" "}
+                        <span className="font-medium text-foreground">
+                          {totalPages}
+                        </span>
+                      </p>
+                    )}
                   </div>
                 )}
 
