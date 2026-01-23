@@ -123,57 +123,75 @@ const CreditPackCard = ({
     pack,
     isSelected,
     onSelect,
-    isBestValue,
+    badgeText,
+    badgeVariant = "default",
 }: {
     pack: CreditPack;
     isSelected: boolean;
     onSelect: () => void;
-    isBestValue?: boolean;
+    badgeText?: string;
+    badgeVariant?: "default" | "popular" | "value";
 }) => {
-    const valuePerRupee = (pack.credits / pack.priceInr).toFixed(1);
+    const badgeStyles = {
+        default: "bg-muted text-muted-foreground",
+        popular: "bg-primary text-primary-foreground",
+        value: "bg-green-500 text-white",
+    };
 
     return (
         <Card
             className={cn(
-                "cursor-pointer transition-all hover:shadow-lg relative overflow-hidden",
+                "cursor-pointer transition-all duration-200 relative overflow-hidden group",
                 isSelected
-                    ? "border-primary ring-2 ring-primary/20"
-                    : "hover:border-primary/50"
+                    ? "border-primary ring-2 ring-primary/30 shadow-lg shadow-primary/10"
+                    : "hover:border-primary/50 hover:shadow-md"
             )}
             onClick={onSelect}
         >
-            {isBestValue && (
-                <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-semibold rounded-bl-lg flex items-center gap-1">
-                    <Sparkles className="h-3 w-3" />
-                    Best Value
+            {/* Badge */}
+            {badgeText && (
+                <div className={cn(
+                    "absolute top-0 right-0 px-3 py-1.5 text-xs font-semibold rounded-bl-xl flex items-center gap-1.5",
+                    badgeStyles[badgeVariant]
+                )}>
+                    {badgeVariant === "popular" && <Sparkles className="h-3 w-3" />}
+                    {badgeVariant === "value" && <TrendingUp className="h-3 w-3" />}
+                    {badgeText}
                 </div>
             )}
-            <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center justify-between">
-                    {pack.name}
-                    {isSelected && (
-                        <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-                            <Check className="h-4 w-4 text-primary-foreground" />
-                        </div>
-                    )}
-                </CardTitle>
-                <CardDescription>{pack.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-                <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold">{pack.credits}</span>
-                    <span className="text-muted-foreground">credits</span>
+
+            {/* Selection Indicator */}
+            {isSelected && (
+                <div className="absolute top-3 left-3 h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-md">
+                    <Check className="h-4 w-4 text-primary-foreground" />
                 </div>
-                <div className="flex items-center justify-between">
-                    <span className="text-2xl font-semibold text-primary">
-                        ₹{pack.priceInr}
-                    </span>
-                    <Badge variant="secondary" className="text-xs">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        {valuePerRupee} credits/₹
-                    </Badge>
+            )}
+
+            <CardHeader className={cn("pb-3", badgeText && "pt-8")}>
+                <CardTitle className="text-xl font-bold">{pack.name}</CardTitle>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+                {/* Credits Display */}
+                <div className="text-center py-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-baseline justify-center gap-1">
+                        <Coins className="h-6 w-6 text-primary mr-1" />
+                        <span className="text-4xl font-bold text-foreground">{pack.credits.toLocaleString()}</span>
+                    </div>
+                    <span className="text-sm text-muted-foreground">credits</span>
+                </div>
+
+                {/* Price */}
+                <div className="text-center">
+                    <span className="text-3xl font-bold text-primary">₹{pack.priceInr}</span>
                 </div>
             </CardContent>
+
+            {/* Bottom indicator bar */}
+            <div className={cn(
+                "h-1 w-full transition-all duration-200",
+                isSelected ? "bg-primary" : "bg-muted group-hover:bg-primary/30"
+            )} />
         </Card>
     );
 };
@@ -472,15 +490,30 @@ const CreditsPage = () => {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {creditPacks.map((pack, index) => (
-                                        <CreditPackCard
-                                            key={pack.id}
-                                            pack={pack}
-                                            isSelected={selectedPackId === pack.id}
-                                            onSelect={() => setSelectedPackId(pack.id)}
-                                            isBestValue={index === creditPacks.length - 1}
-                                        />
-                                    ))}
+                                    {creditPacks.map((pack, index) => {
+                                        // Determine badge based on pack position
+                                        let badgeText: string | undefined;
+                                        let badgeVariant: "default" | "popular" | "value" | undefined;
+
+                                        if (index === 1) {
+                                            badgeText = "Popular";
+                                            badgeVariant = "popular";
+                                        } else if (index === creditPacks.length - 1) {
+                                            badgeText = "Most Credits";
+                                            badgeVariant = "value";
+                                        }
+
+                                        return (
+                                            <CreditPackCard
+                                                key={pack.id}
+                                                pack={pack}
+                                                isSelected={selectedPackId === pack.id}
+                                                onSelect={() => setSelectedPackId(pack.id)}
+                                                badgeText={badgeText}
+                                                badgeVariant={badgeVariant}
+                                            />
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
