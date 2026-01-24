@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Conversation } from "@/models/types/chat";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -14,6 +15,8 @@ export const ConversationList = ({
   selectedId,
   onSelect,
 }: ConversationListProps) => {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-col gap-1 pb-4">
       {conversations.map((conv) => {
@@ -66,7 +69,7 @@ export const ConversationList = ({
                 "truncate text-sm transition-colors",
                 isSelected ? "text-primary/70" : "text-muted-foreground"
               )}>
-                {conv.lastMessage || "No messages yet"}
+                {conv.lastMessage || t("page_messages_no_messages_list")}
               </p>
             </div>
           </div>

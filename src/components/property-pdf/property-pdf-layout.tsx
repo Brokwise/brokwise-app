@@ -8,18 +8,24 @@ import type { Property } from "@/types/property";
 type PropertyPdfLayoutProps = {
   property: Property;
   exportedOnLabel: string;
+  /** Map of original image URLs to base64 data URLs for PDF rendering */
+  imageMap?: Map<string, string>;
 };
 
 export const PropertyPdfLayout = React.forwardRef<
   HTMLDivElement,
   PropertyPdfLayoutProps
->(({ property, exportedOnLabel }, ref) => {
+>(({ property, exportedOnLabel, imageMap }, ref) => {
   const allImages = [
     ...(property.featuredMedia ? [property.featuredMedia] : []),
     ...(property.images ?? []),
   ];
   const pdfImageUrls = allImages.filter((m) => !!m && !m.toLowerCase().endsWith(".mp4"));
-  const pdfCoverImage = pdfImageUrls[0] || "/images/placeholder.webp";
+
+  // Use base64 URLs if available, otherwise fall back to original URLs
+  const getImageSrc = (url: string) => imageMap?.get(url) ?? url;
+
+  const pdfCoverImage = pdfImageUrls[0] ? getImageSrc(pdfImageUrls[0]) : "/images/placeholder.webp";
   const pdfThumbImages = pdfImageUrls.slice(1, 7);
 
   return (
@@ -75,7 +81,7 @@ export const PropertyPdfLayout = React.forwardRef<
 
         {/* Photos */}
         {pdfImageUrls.length > 0 ? (
-          <div className="rounded-xl border p-4">
+          <div className="rounded-xl border p-4 break-inside-avoid">
             <div className="flex items-center justify-between mb-3">
               <div className="text-sm font-semibold">Photos</div>
               <div className="text-xs text-neutral-600">
@@ -83,16 +89,13 @@ export const PropertyPdfLayout = React.forwardRef<
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 auto-rows-[108px]">
+            <div className="grid grid-cols-3 gap-3 auto-rows-[120px]">
               {/* Hero */}
-              <div className="col-span-2 row-span-2 rounded-xl overflow-hidden border bg-neutral-100">
+              <div className="col-span-2 row-span-2 rounded-xl overflow-hidden border bg-neutral-100 relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={pdfCoverImage}
                   alt="Property cover"
-                  crossOrigin="anonymous"
-                  referrerPolicy="no-referrer"
-                  loading="eager"
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.currentTarget.src = "/images/placeholder.webp";
@@ -103,15 +106,12 @@ export const PropertyPdfLayout = React.forwardRef<
               {pdfThumbImages.slice(0, 4).map((url, idx) => (
                 <div
                   key={`${url}-${idx}`}
-                  className="rounded-xl overflow-hidden border bg-neutral-100"
+                  className="rounded-xl overflow-hidden border bg-neutral-100 relative"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={url}
+                    src={getImageSrc(url)}
                     alt={`Property photo ${idx + 2}`}
-                    crossOrigin="anonymous"
-                    referrerPolicy="no-referrer"
-                    loading="eager"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.src = "/images/placeholder.webp";
@@ -129,7 +129,7 @@ export const PropertyPdfLayout = React.forwardRef<
             )}
           </div>
         ) : (
-          <div className="rounded-xl border p-4">
+          <div className="rounded-xl border p-4 break-inside-avoid">
             <div className="text-sm font-semibold mb-1">Photos</div>
             <div className="text-sm text-neutral-700">No images available</div>
           </div>
@@ -229,30 +229,30 @@ export const PropertyPdfLayout = React.forwardRef<
         {(property.floorPlans?.length ||
           property.jamabandiUrl ||
           property.khasraPlanUrl) && (
-          <div className="rounded-md border p-4">
-            <div className="text-sm font-semibold mb-2">Documents</div>
-            <div className="text-sm space-y-1">
-              {property.floorPlans?.map((plan, idx) => (
-                <div key={idx}>
-                  <span className="font-semibold">Floor Plan {idx + 1}:</span>{" "}
-                  {plan}
-                </div>
-              ))}
-              {property.jamabandiUrl && (
-                <div>
-                  <span className="font-semibold">Jamabandi:</span>{" "}
-                  {property.jamabandiUrl}
-                </div>
-              )}
-              {property.khasraPlanUrl && (
-                <div>
-                  <span className="font-semibold">Khasra Plan:</span>{" "}
-                  {property.khasraPlanUrl}
-                </div>
-              )}
+            <div className="rounded-md border p-4">
+              <div className="text-sm font-semibold mb-2">Documents</div>
+              <div className="text-sm space-y-1">
+                {property.floorPlans?.map((plan, idx) => (
+                  <div key={idx}>
+                    <span className="font-semibold">Floor Plan {idx + 1}:</span>{" "}
+                    {plan}
+                  </div>
+                ))}
+                {property.jamabandiUrl && (
+                  <div>
+                    <span className="font-semibold">Jamabandi:</span>{" "}
+                    {property.jamabandiUrl}
+                  </div>
+                )}
+                {property.khasraPlanUrl && (
+                  <div>
+                    <span className="font-semibold">Khasra Plan:</span>{" "}
+                    {property.khasraPlanUrl}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         <div className="flex items-center justify-between text-xs text-neutral-600 border-t pt-4">
           <div>

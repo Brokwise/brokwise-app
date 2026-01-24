@@ -10,6 +10,7 @@ import {
 import { Contact, ContactSource, ContactType } from "@/models/types/contact";
 import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 // UI Components
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -83,6 +84,7 @@ const ContactsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
+  const { t } = useTranslation();
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -139,12 +141,12 @@ const ContactsPage = () => {
 
     deleteContact(contactToDelete._id, {
       onSuccess: () => {
-        toast.success("Contact deleted successfully");
+        toast.success(t("toast_contact_deleted"));
         setDeleteDialogOpen(false);
         setContactToDelete(null);
       },
       onError: (error) => {
-        toast.error(error.message || "Failed to delete contact");
+        toast.error(error.message || t("toast_error_contact_delete"));
       },
     });
   };
@@ -152,13 +154,13 @@ const ContactsPage = () => {
   const getSourceBadge = (source: ContactSource) => {
     const config = {
       ENQUIRY_SUBMISSION: {
-        label: "Enquiry",
+        label: t("page_contacts_source_enquiry"),
         className:
           "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800",
         icon: FileText,
       },
       PROPERTY_INQUIRY: {
-        label: "Property",
+        label: t("page_contacts_source_property"),
         className:
           "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
         icon: Home,
@@ -169,13 +171,13 @@ const ContactsPage = () => {
   const getContactTypeBadge = (type: ContactType) => {
     const config = {
       SENT: {
-        label: "Sent",
+        label: t("page_contacts_type_sent"),
         className:
           "bg-green-500/15 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800",
         icon: FileText,
       },
       RECEIVED: {
-        label: "Received",
+        label: t("page_contacts_type_received"),
         className:
           "bg-blue-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
         icon: Home,
@@ -192,11 +194,10 @@ const ContactsPage = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Contacts
+            {t("page_contacts_title")}
           </h1>
           <p className="text-muted-foreground text-sm max-w-2xl">
-            Manage and organize all your contacts from enquiry submissions and
-            property inquiries.
+            {t("page_contacts_subtitle")}
           </p>
         </div>
       </div>
@@ -204,27 +205,27 @@ const ContactsPage = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatsCard
-          title="Total Contacts"
+          title={t("page_contacts_total")}
           value={stats?.total ?? 0}
           icon={Users}
           isLoading={isStatsLoading}
         />
         <StatsCard
-          title="From Enquiries"
+          title={t("page_contacts_from_enquiries")}
           value={stats?.bySource?.ENQUIRY_SUBMISSION ?? 0}
           icon={FileText}
           isLoading={isStatsLoading}
           className="text-blue-600 dark:text-blue-400"
         />
         <StatsCard
-          title="From Properties"
+          title={t("page_contacts_from_properties")}
           value={stats?.bySource?.PROPERTY_INQUIRY ?? 0}
           icon={Home}
           isLoading={isStatsLoading}
           className="text-emerald-600 dark:text-emerald-400"
         />
         <StatsCard
-          title="This Month"
+          title={t("page_contacts_this_month")}
           value={stats?.thisMonth ?? 0}
           icon={TrendingUp}
           isLoading={isStatsLoading}
@@ -242,19 +243,19 @@ const ContactsPage = () => {
           >
             <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex h-full">
               <TabsTrigger value="all" className="text-xs sm:text-sm">
-                All
+                {t("page_contacts_tab_all")}
               </TabsTrigger>
               <TabsTrigger
                 value="ENQUIRY_SUBMISSION"
                 className="text-xs sm:text-sm"
               >
-                Enquiries
+                {t("page_contacts_tab_enquiries")}
               </TabsTrigger>
               <TabsTrigger
                 value="PROPERTY_INQUIRY"
                 className="text-xs sm:text-sm"
               >
-                Properties
+                {t("page_contacts_tab_properties")}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -267,12 +268,12 @@ const ContactsPage = () => {
             }}
           >
             <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by type" />
+              <SelectValue placeholder={t("page_contacts_filter_type")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="SENT">Sent (Shared)</SelectItem>
-              <SelectItem value="RECEIVED">Received</SelectItem>
+              <SelectItem value="all">{t("label_all_types")}</SelectItem>
+              <SelectItem value="SENT">{t("page_contacts_type_sent")}</SelectItem>
+              <SelectItem value="RECEIVED">{t("page_contacts_type_received")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -280,7 +281,7 @@ const ContactsPage = () => {
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name or company..."
+            placeholder={t("page_contacts_search_placeholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 pr-10"
@@ -309,14 +310,14 @@ const ContactsPage = () => {
         ) : contactsError ? (
           <div className="flex h-[400px] w-full flex-col items-center justify-center rounded-lg border border-dashed bg-muted/40 p-8 text-center">
             <p className="text-red-500 font-medium">
-              Unable to load contacts at the moment.
+              {t("page_contacts_error")}
             </p>
             <Button
               variant="link"
               onClick={() => window.location.reload()}
               className="mt-2"
             >
-              Try again
+              {t("page_contacts_try_again")}
             </Button>
           </div>
         ) : displayedContacts.length === 0 ? (
@@ -326,17 +327,17 @@ const ContactsPage = () => {
                 <Users className="h-6 w-6" />
               </EmptyMedia>
               <EmptyTitle>
-                {searchQuery ? "No contacts found" : "No contacts yet"}
+                {searchQuery ? t("page_contacts_no_contacts_search") : t("page_contacts_no_contacts_yet")}
               </EmptyTitle>
               <EmptyDescription>
                 {searchQuery
-                  ? `No contacts match "${searchQuery}". Try a different search term.`
-                  : "Contacts will appear here when you receive enquiries or property inquiries."}
+                  ? `${t("empty_no_contacts_search", { query: searchQuery })}`
+                  : t("page_contacts_empty_desc")}
               </EmptyDescription>
             </EmptyHeader>
             {searchQuery && (
               <Button variant="outline" onClick={() => setSearchQuery("")}>
-                Clear Search
+                {t("page_contacts_clear_search")}
               </Button>
             )}
           </Empty>
@@ -364,7 +365,7 @@ const ContactsPage = () => {
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
-              Previous
+              {t("page_contacts_previous")}
             </Button>
             <Button
               variant="outline"
@@ -374,7 +375,7 @@ const ContactsPage = () => {
               }
               disabled={currentPage === pagination.totalPages}
             >
-              Next
+              {t("page_contacts_next")}
             </Button>
           </div>
         </div>
@@ -384,19 +385,17 @@ const ContactsPage = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Contact</AlertDialogTitle>
+            <AlertDialogTitle>{t("page_contacts_delete_title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete{" "}
-              <span className="font-semibold text-foreground">
-                {contactToDelete?.contact
+              {t("confirm_delete_contact_desc", {
+                name: contactToDelete?.contact
                   ? `${contactToDelete.contact.firstName} ${contactToDelete.contact.lastName}`
-                  : "this contact"}
-              </span>
-              ? This action cannot be undone.
+                  : t("page_contacts_delete_title").toLowerCase()
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>{t("action_cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               disabled={isDeleting}
@@ -405,10 +404,10 @@ const ContactsPage = () => {
               {isDeleting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
+                  {t("page_contacts_deleting")}
                 </>
               ) : (
-                "Delete"
+                t("action_delete")
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -487,6 +486,7 @@ const ContactCard = ({
   getSourceBadge,
   getContactTypeBadge
 }: ContactCardProps) => {
+  const { t } = useTranslation();
   const sourceBadge = getSourceBadge(contact.source);
   const typeBadge = contact.contactType && getContactTypeBadge(contact.contactType)
   const SourceIcon = sourceBadge.icon;
@@ -532,7 +532,7 @@ const ContactCard = ({
                   )}
                 >
                   {contact.contactType === "RECEIVED" ? <Inbox className="mr-1 h-3 w-3" /> : <Send className="mr-1 h-3 w-3"></Send>}
-                  {contact.contactType == "SENT" ? "SHARED" : contact.contactType}
+                  {contact.contactType == "SENT" ? t("page_contacts_type_shared") : t("page_contacts_type_received")}
                 </Badge>}
               </div>
 
@@ -582,7 +582,7 @@ const ContactCard = ({
                   {context.enquiryTitle && (
                     <div className="flex items-center gap-2 text-xs">
                       <FileText className="h-3 w-3 text-muted-foreground shrink-0" />
-                      <span className="text-muted-foreground">Enquiry:</span>
+                      <span className="text-muted-foreground">{t("page_contacts_label_enquiry")}</span>
                       <span className="font-medium truncate">
                         {context.enquiryTitle}
                       </span>
@@ -591,7 +591,7 @@ const ContactCard = ({
                   {context.propertyTitle && (
                     <div className="flex items-center gap-2 text-xs">
                       <Home className="h-3 w-3 text-muted-foreground shrink-0" />
-                      <span className="text-muted-foreground">Property:</span>
+                      <span className="text-muted-foreground">{t("page_contacts_label_property")}</span>
                       <span className="font-medium truncate">
                         {context.propertyTitle}
                       </span>
@@ -600,7 +600,7 @@ const ContactCard = ({
                   {context.availability && (
                     <div className="flex items-center gap-2 text-xs">
                       <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
-                      <span className="text-muted-foreground">Available:</span>
+                      <span className="text-muted-foreground">{t("page_contacts_label_available")}</span>
                       <span className="font-medium">
                         {context.availability}
                       </span>
@@ -613,7 +613,7 @@ const ContactCard = ({
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
                 <CalendarDays className="h-3 w-3" />
                 <span>
-                  Connected{" "}
+                  {t("page_contacts_connected")}{" "}
                   {formatDistanceToNow(
                     new Date(contact.connectedAt || contact.createdAt),
                     {
@@ -643,7 +643,7 @@ const ContactCard = ({
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete Contact
+                {t("page_contacts_delete_contact")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -10,6 +10,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface PropertyActionsBarProps {
     onExportPdf: () => void;
@@ -30,10 +31,11 @@ export const PropertyActionsBar = ({
     shareUrl,
     propertyTitle = "Property",
 }: PropertyActionsBarProps) => {
+    const { t } = useTranslation();
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(shareUrl);
-        toast.success("Link copied to clipboard!");
+        toast.success(t("toast_link_copied"));
     };
 
     const handleShareWhatsApp = () => {
@@ -60,26 +62,26 @@ export const PropertyActionsBar = ({
     };
 
     return (
-        <div className="flex items-center justify-end flex-wrap gap-2">
+        <div className="flex items-center justify-end gap-2">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="gap-2">
                         <Share2 className="h-4 w-4" />
-                        <span className="hidden sm:inline">Share</span>
+                        <span className="hidden sm:inline">{t("action_share")}</span>
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem onClick={handleCopyLink}>
                         <Link2 className="mr-2 h-4 w-4" />
-                        Copy Link
+                        {t("property_copy_link")}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleShareWhatsApp}>
                         <MessageCircle className="mr-2 h-4 w-4" />
-                        Share via WhatsApp
+                        {t("property_share_whatsapp")}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleNativeShare}>
                         <Share2 className="mr-2 h-4 w-4" />
-                        Share Property
+                        {t("property_share_property")}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -98,7 +100,7 @@ export const PropertyActionsBar = ({
                 ) : (
                     <Bookmark className="h-4 w-4" />
                 )}
-                <span className="hidden sm:inline">{isBookmarked ? "Saved" : "Save"}</span>
+                <span className="hidden sm:inline">{isBookmarked ? t("property_saved") : t("action_save")}</span>
             </Button>
 
             <Button variant="default" size="sm" onClick={onExportPdf} disabled={isExportingPdf} className="gap-2">
@@ -107,7 +109,7 @@ export const PropertyActionsBar = ({
                 ) : (
                     <Download className="h-4 w-4" />
                 )}
-                <span className="hidden sm:inline">Download</span>
+                <span className="hidden sm:inline">{t("action_download")}</span>
             </Button>
         </div>
     );

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
+import { createRoot } from "react-dom/client";
 import { useGetProperty } from "@/hooks/useProperty";
 import { useToggleBookmark } from "@/hooks/useBookmarks";
 import { useApp } from "@/context/AppContext";
@@ -16,6 +17,7 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 // Components
 import { PropertyHeader } from "./_components/property-header";
@@ -27,7 +29,7 @@ import { DocumentsList } from "./_components/documents-list";
 import { PropertySidebar } from "./_components/property-sidebar";
 
 import { PropertyPdfLayout } from "@/components/property-pdf/property-pdf-layout";
-import { exportElementAsPdf, makeSafeFilePart } from "@/utils/pdf";
+import { exportElementAsPdf, makeSafeFilePart, imagesToBase64 } from "@/utils/pdf";
 import {
   Dialog,
   DialogContent,
@@ -48,12 +50,11 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { userData, brokerData, setBrokerData, companyData, setCompanyData } = useApp();
   const { toggleBookmarkAsync, isPending: isBookmarkPending } = useToggleBookmark();
   const [isExportingPdf, setIsExportingPdf] = useState(false);
-  const [exportedOnLabel, setExportedOnLabel] = useState<string>("");
   const [isFlagDialogOpen, setIsFlagDialogOpen] = useState(false);
   const [flagReason, setFlagReason] = useState("");
   const [flagNotes, setFlagNotes] = useState("");
   const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
-  const pdfRef = useRef<HTMLDivElement | null>(null);
+  const { t } = useTranslation();
 
   // Check bookmark status from the correct user data (same pattern as PropertyCard)
   const isCompany = userData?.userType === "company";
@@ -77,26 +78,69 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
 
   const handleExportPdf = useCallback(async () => {
     if (!property) return;
-    if (!pdfRef.current) return;
+
+    let host: HTMLDivElement | null = null;
+    let root: ReturnType<typeof createRoot> | null = null;
 
     try {
       setIsExportingPdf(true);
-      setExportedOnLabel(format(new Date(), "PPP p"));
 
-      // Ensure latest layout is painted before capture.
-      await new Promise((r) => setTimeout(r, 75));
+      const exportedOnLabel = format(new Date(), "PPP p");
+
+      // Collect all image URLs for pre-fetching
+      const allImageUrls = [
+        ...(property.featuredMedia ? [property.featuredMedia] : []),
+        ...(property.images ?? []),
+      ].filter((m) => !!m && !m.toLowerCase().endsWith(".mp4"));
+
+      // Pre-fetch and convert images to base64
+      const imageMap = await imagesToBase64(allImageUrls);
+
+      host = document.createElement("div");
+      host.style.position = "fixed";
+      host.style.left = "-10000px";
+      host.style.top = "0";
+      host.style.zIndex = "2147483647";
+      document.body.appendChild(host);
+
+      root = createRoot(host);
+      root.render(
+        <div className="w-[794px] bg-white text-black">
+          <PropertyPdfLayout
+            property={property}
+            exportedOnLabel={exportedOnLabel}
+            imageMap={imageMap}
+          />
+        </div>
+      );
+
+      // Ensure layout is painted before capture.
+      await new Promise((r) => setTimeout(r, 300));
+
+      const element = host.querySelector(
+        "[data-property-pdf]"
+      ) as HTMLElement | null;
+      if (!element) {
+        throw new Error("PDF layout failed to render");
+      }
 
       const safeId = makeSafeFilePart(
         property.propertyId || property._id || "property"
       );
       await exportElementAsPdf({
-        element: pdfRef.current,
+        element,
         fileName: `Brokwise_Property_${safeId}.pdf`,
       });
     } catch (e) {
       console.error(e);
       toast.error("Failed to export PDF. Please try again.");
     } finally {
+      try {
+        root?.unmount();
+      } catch {
+        // no-op
+      }
+      host?.remove();
       setIsExportingPdf(false);
     }
   }, [property]);
@@ -107,7 +151,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
     try {
       // Mock API call
       await new Promise((resolve) => setTimeout(resolve, 900));
-      toast.success("Thanks for reporting. We'll review this property soon.");
+      toast.success(t("toast_report_submitted"));
       setIsFlagDialogOpen(false);
       setFlagReason("");
       setFlagNotes("");
@@ -117,14 +161,14 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
     } finally {
       setIsSubmittingFlag(false);
     }
-  }, [flagReason, property]);
+  }, [flagReason, property, t]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading property details...</p>
+          <p className="text-muted-foreground">{t("loading_property")}</p>
         </div>
       </div>
     );
@@ -142,16 +186,15 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
                 <ShieldX className="h-8 w-8 text-destructive" />
               </div>
-              <CardTitle className="text-xl">Access Restricted</CardTitle>
+              <CardTitle className="text-xl">{t("access_restricted")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                You don&apos;t have permission to view this property. This
-                property may be private or you may not be associated with it.
+                {t("access_restricted_property")}
               </p>
               <Button className="w-full" onClick={() => router.back()}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Go Back
+                {t("action_go_back")}
               </Button>
             </CardContent>
           </Card>
@@ -290,7 +333,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
             {/* Localities (if needed inline) */}
             {property.localities && property.localities.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Nearby Localities</h3>
+                <h3 className="text-lg font-semibold">{t("property_nearby_localities")}</h3>
                 <div className="flex flex-wrap gap-2">
                   {property.localities.map((locality, index) => (
                     <div key={index} className="px-3 py-1 bg-muted/50 rounded-full text-sm flex items-center gap-1.5 border border-border/50">
@@ -312,41 +355,41 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
       <Dialog open={isFlagDialogOpen} onOpenChange={setIsFlagDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Flag this property</DialogTitle>
+            <DialogTitle>{t("flag_property_title")}</DialogTitle>
             <DialogDescription>
-              Tell us what seems wrong so we can review this listing.
+              {t("flag_property_desc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="flag-reason">Reason</Label>
+              <Label htmlFor="flag-reason">{t("label_reason")}</Label>
               <Select value={flagReason} onValueChange={setFlagReason}>
                 <SelectTrigger id="flag-reason">
-                  <SelectValue placeholder="Select a reason" />
+                  <SelectValue placeholder={t("label_select_reason")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="MISLEADING_INFORMATION">
-                    Misleading information
+                    {t("label_misleading_info")}
                   </SelectItem>
                   <SelectItem value="INCORRECT_PRICING">
-                    Incorrect pricing
+                    {t("label_incorrect_pricing")}
                   </SelectItem>
                   <SelectItem value="DUPLICATE_LISTING">
-                    Duplicate listing
+                    {t("label_duplicate_listing")}
                   </SelectItem>
-                  <SelectItem value="SCAM_OR_FRAUD">Scam or fraud</SelectItem>
-                  <SelectItem value="SPAM">Spam or promotional</SelectItem>
-                  <SelectItem value="OTHER">Other</SelectItem>
+                  <SelectItem value="SCAM_OR_FRAUD">{t("label_scam_fraud")}</SelectItem>
+                  <SelectItem value="SPAM">{t("label_spam")}</SelectItem>
+                  <SelectItem value="OTHER">{t("label_other")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="flag-notes">Additional details</Label>
+              <Label htmlFor="flag-notes">{t("label_additional_details")}</Label>
               <Textarea
                 id="flag-notes"
                 value={flagNotes}
                 onChange={(e) => setFlagNotes(e.target.value)}
-                placeholder="Share any details that help us investigate."
+                placeholder={t("label_details_placeholder")}
                 className="min-h-[96px]"
               />
             </div>
@@ -357,27 +400,17 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
               onClick={() => setIsFlagDialogOpen(false)}
               disabled={isSubmittingFlag}
             >
-              Cancel
+              {t("action_cancel")}
             </Button>
             <Button
               onClick={handleSubmitFlag}
               disabled={!flagReason || isSubmittingFlag}
             >
-              {isSubmittingFlag ? "Submitting..." : "Submit report"}
+              {isSubmittingFlag ? t("submitting") : t("action_submit_report")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-
-      {/* Hidden PDF layout */}
-      <div className="fixed left-[-10000px] top-0 w-[794px] bg-white text-black">
-        <PropertyPdfLayout
-          ref={pdfRef}
-          property={property}
-          exportedOnLabel={exportedOnLabel}
-        />
-      </div>
     </main>
   );
 };

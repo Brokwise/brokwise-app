@@ -51,21 +51,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import useAxios from "@/hooks/useAxios";
-
-const leaveReasonOptions = [
-  { value: "Found a better opportunity", label: "Found a better opportunity" },
-  {
-    value: "Company is no longer active",
-    label: "Company is no longer active",
-  },
-  {
-    value: "Switching to another company",
-    label: "Switching to another company",
-  },
-  { value: "OTHER", label: "Other (please specify)" },
-];
+import { useTranslation } from "react-i18next";
 
 const ProfilePage = () => {
+  const { t } = useTranslation();
+
+  const leaveReasonOptions = [
+    { value: "Found a better opportunity", label: t("page_profile_leave_reason_better") },
+    {
+      value: "Company is no longer active",
+      label: t("page_profile_leave_reason_inactive"),
+    },
+    {
+      value: "Switching to another company",
+      label: t("page_profile_leave_reason_switching"),
+    },
+    { value: "OTHER", label: t("page_profile_leave_reason_other") },
+  ];
   const {
     brokerData,
     brokerDataLoading,
@@ -88,8 +90,8 @@ const ProfilePage = () => {
 
   const brokerCompanyDetails =
     brokerData &&
-    brokerData.companyId &&
-    typeof brokerData.companyId === "object"
+      brokerData.companyId &&
+      typeof brokerData.companyId === "object"
       ? brokerData.companyId
       : null;
 
@@ -102,11 +104,11 @@ const ProfilePage = () => {
     try {
       setLoading(true);
       await sendPasswordResetEmail(firebaseAuth, user.email);
-      toast.success("Password reset email sent to " + user.email);
+      toast.success(t("page_profile_password_reset_sent") + " " + user.email);
     } catch (error) {
       console.error(error);
       toast.error(
-        (error as { message: string }).message || "Failed to send reset email"
+        (error as { message: string }).message || t("page_profile_password_reset_error")
       );
     } finally {
       setLoading(false);
@@ -116,11 +118,11 @@ const ProfilePage = () => {
   const handleAddPassword = async () => {
     if (!user || !user.email) return;
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("page_profile_passwords_mismatch"));
       return;
     }
     if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error(t("page_profile_password_too_short"));
       return;
     }
 
@@ -128,16 +130,16 @@ const ProfilePage = () => {
       setLoading(true);
       const credential = EmailAuthProvider.credential(user.email, newPassword);
       await linkWithCredential(user, credential);
-      toast.success("Password set successfully");
+      toast.success(t("page_profile_password_set_success"));
       setIsPasswordDialogOpen(false);
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
       if ((error as { code: string }).code === "auth/requires-recent-login") {
-        toast.error("Please log out and log in again to set a password");
+        toast.error(t("page_profile_relogin_required"));
       } else {
         toast.error(
-          (error as { message: string }).message || "Failed to set password"
+          (error as { message: string }).message || t("page_profile_password_set_error")
         );
       }
     } finally {
@@ -156,7 +158,7 @@ const ProfilePage = () => {
 
   const handleLeaveCompany = async () => {
     if (!isLeaveReasonValid) {
-      toast.error("Please share a valid reason (max 500 characters).");
+      toast.error(t("page_profile_leave_reason_invalid"));
       return;
     }
     try {
@@ -188,7 +190,7 @@ const ProfilePage = () => {
         (error as { response?: { data?: { message?: string } } }).response?.data
           ?.message ||
         (error as { message?: string }).message ||
-        "Failed to leave the company.";
+        t("page_profile_leave_error");
       toast.error(message);
     } finally {
       setIsLeavingCompany(false);
@@ -197,14 +199,14 @@ const ProfilePage = () => {
 
   if (brokerDataLoading || companyDataLoading) {
     return (
-      <div className="flex items-center justify-center h-full">Loading...</div>
+      <div className="flex items-center justify-center h-full">{t("page_profile_loading")}</div>
     );
   }
 
   if (!brokerData && !companyData) {
     return (
       <div className="flex items-center justify-center h-full">
-        Profile not found
+        {t("page_profile_not_found")}
       </div>
     );
   }
@@ -224,7 +226,7 @@ const ProfilePage = () => {
     return (
       <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Company Profile</h1>
+          <h1 className="text-3xl font-bold">{t("page_profile_company_title")}</h1>
         </div>
 
         <Card>
@@ -250,21 +252,21 @@ const ProfilePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Mail className="h-4 w-4" /> Email
+                  <Mail className="h-4 w-4" /> {t("page_profile_label_email")}
                 </h3>
                 <p className="text-lg font-medium">{companyData.email}</p>
               </div>
 
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Phone className="h-4 w-4" /> Mobile
+                  <Phone className="h-4 w-4" /> {t("page_profile_label_mobile")}
                 </h3>
                 <p className="text-lg font-medium">{companyData.mobile}</p>
               </div>
 
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <MapPin className="h-4 w-4" /> Location
+                  <MapPin className="h-4 w-4" /> {t("page_profile_label_location")}
                 </h3>
                 <div className="space-y-0.5">
                   <p className="text-lg font-medium">{companyData.city}</p>
@@ -278,16 +280,16 @@ const ProfilePage = () => {
 
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <FileText className="h-4 w-4" /> GSTIN
+                  <FileText className="h-4 w-4" /> {t("page_profile_label_gstin")}
                 </h3>
                 <p className="text-lg font-medium">
-                  {companyData.gstin || "N/A"}
+                  {companyData.gstin || t("page_profile_na")}
                 </p>
               </div>
 
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Users className="h-4 w-4" /> Employees
+                  <Users className="h-4 w-4" /> {t("page_profile_label_employees")}
                 </h3>
                 <p className="text-lg font-medium">
                   {companyData.noOfEmployees || 0}
@@ -304,7 +306,7 @@ const ProfilePage = () => {
   if (!brokerProfile) {
     return (
       <div className="flex items-center justify-center h-full">
-        Profile not found
+        {t("page_profile_not_found")}
       </div>
     );
   }
@@ -312,8 +314,8 @@ const ProfilePage = () => {
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">My Profile</h1>
-        <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
+        <h1 className="text-3xl font-bold">{t("page_profile_title")}</h1>
+        <Button onClick={() => setIsEditing(true)}>{t("page_profile_edit")}</Button>
       </div>
 
       <Card>
@@ -345,26 +347,26 @@ const ProfilePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Phone className="h-4 w-4" /> Contact
+                <Phone className="h-4 w-4" /> {t("page_profile_label_contact")}
               </h3>
               <p className="text-lg font-medium">{brokerProfile.mobile}</p>
             </div>
 
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Briefcase className="h-4 w-4" /> Experience
+                <Briefcase className="h-4 w-4" /> {t("page_profile_label_experience")}
               </h3>
               <p className="text-lg font-medium">
                 {brokerProfile.yearsOfExperience === 15
                   ? "15+"
                   : brokerProfile.yearsOfExperience}{" "}
-                Years
+                {t("page_profile_years")}
               </p>
             </div>
 
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <MapPin className="h-4 w-4" /> Location
+                <MapPin className="h-4 w-4" /> {t("page_profile_label_location")}
               </h3>
               <div className="space-y-0.5">
                 <p className="text-lg font-medium">{brokerProfile.city}</p>
@@ -378,10 +380,10 @@ const ProfilePage = () => {
 
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Award className="h-4 w-4" /> RERA Number
+                <Award className="h-4 w-4" /> {t("page_profile_label_rera")}
               </h3>
               <p className="text-lg font-medium">
-                {brokerProfile.reraNumber || "N/A"}
+                {brokerProfile.reraNumber || t("page_profile_na")}
               </p>
             </div>
           </div>
@@ -394,9 +396,9 @@ const ProfilePage = () => {
             <Lock className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <CardTitle className="text-xl">Security</CardTitle>
+            <CardTitle className="text-xl">{t("page_profile_security_title")}</CardTitle>
             <CardDescription>
-              Manage your password and account security
+              {t("page_profile_security_desc")}
             </CardDescription>
           </div>
         </CardHeader>
@@ -404,12 +406,12 @@ const ProfilePage = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Key className="h-4 w-4" /> Password
+                <Key className="h-4 w-4" /> {t("page_profile_label_password")}
               </h3>
               <p className="text-sm">
                 {hasPassword
-                  ? "You have a password set for your account."
-                  : "You currently sign in with Google. Set a password to sign in with email."}
+                  ? t("page_profile_has_password")
+                  : t("page_profile_no_password")}
               </p>
             </div>
             {hasPassword ? (
@@ -418,7 +420,7 @@ const ProfilePage = () => {
                 onClick={handleResetPassword}
                 disabled={loading}
               >
-                Reset Password
+                {t("page_profile_reset_password")}
               </Button>
             ) : (
               <Dialog
@@ -426,34 +428,34 @@ const ProfilePage = () => {
                 onOpenChange={setIsPasswordDialogOpen}
               >
                 <DialogTrigger asChild>
-                  <Button variant="outline">Set Password</Button>
+                  <Button variant="outline">{t("page_profile_set_password")}</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Set Password</DialogTitle>
+                    <DialogTitle>{t("page_profile_set_password")}</DialogTitle>
                     <DialogDescription>
-                      Create a password to sign in with your email address.
+                      {t("page_profile_set_password_desc")}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                      <Label htmlFor="new-password">New Password</Label>
+                      <Label htmlFor="new-password">{t("page_profile_new_password")}</Label>
                       <Input
                         id="new-password"
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Enter new password"
+                        placeholder={t("page_profile_new_password_placeholder")}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirm Password</Label>
+                      <Label htmlFor="confirm-password">{t("page_profile_confirm_password")}</Label>
                       <Input
                         id="confirm-password"
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Confirm new password"
+                        placeholder={t("page_profile_confirm_password_placeholder")}
                       />
                     </div>
                   </div>
@@ -463,10 +465,10 @@ const ProfilePage = () => {
                       onClick={() => setIsPasswordDialogOpen(false)}
                       disabled={loading}
                     >
-                      Cancel
+                      {t("action_cancel")}
                     </Button>
                     <Button onClick={handleAddPassword} disabled={loading}>
-                      {loading ? "Setting Password..." : "Set Password"}
+                      {loading ? t("page_profile_setting_password") : t("page_profile_set_password")}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -488,7 +490,7 @@ const ProfilePage = () => {
                   <CardTitle className="text-xl">
                     {brokerCompanyDetails.name}
                   </CardTitle>
-                  <CardDescription>Company Details</CardDescription>
+                  <CardDescription>{t("page_profile_company_details")}</CardDescription>
                 </div>
               </div>
               <Dialog
@@ -497,27 +499,26 @@ const ProfilePage = () => {
               >
                 <DialogTrigger asChild>
                   <Button variant="destructive" disabled={isLeavingCompany}>
-                    Leave Company
+                    {t("page_profile_leave_company")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Leave company</DialogTitle>
+                    <DialogTitle>{t("page_profile_leave_title")}</DialogTitle>
                     <DialogDescription>
-                      You will no longer be associated with{" "}
-                      {brokerCompanyDetails.name}. You can request to join again
-                      later.
+                      {t("page_profile_leave_desc")}{" "}
+                      {brokerCompanyDetails.name}. {t("page_profile_leave_desc_suffix")}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-2">
                     <div className="space-y-2">
-                      <Label htmlFor="leave-reason">Reason</Label>
+                      <Label htmlFor="leave-reason">{t("page_profile_leave_reason")}</Label>
                       <Select
                         value={leaveReason}
                         onValueChange={setLeaveReason}
                       >
                         <SelectTrigger id="leave-reason">
-                          <SelectValue placeholder="Select a reason" />
+                          <SelectValue placeholder={t("page_profile_leave_select_reason")} />
                         </SelectTrigger>
                         <SelectContent>
                           {leaveReasonOptions.map((option) => (
@@ -531,7 +532,7 @@ const ProfilePage = () => {
                     {isOtherLeaveReason && (
                       <div className="space-y-2">
                         <Label htmlFor="leave-reason-custom">
-                          Custom message
+                          {t("page_profile_leave_custom_message")}
                         </Label>
                         <Textarea
                           id="leave-reason-custom"
@@ -539,12 +540,12 @@ const ProfilePage = () => {
                           onChange={(event) =>
                             setCustomLeaveReason(event.target.value)
                           }
-                          placeholder="Share your reason for leaving."
+                          placeholder={t("page_profile_leave_custom_placeholder")}
                           className="min-h-[96px]"
                           maxLength={500}
                         />
                         <p className="text-xs text-muted-foreground">
-                          {trimmedCustomLeaveReason.length}/500 characters
+                          {trimmedCustomLeaveReason.length}/500 {t("page_profile_leave_chars")}
                         </p>
                       </div>
                     )}
@@ -555,14 +556,14 @@ const ProfilePage = () => {
                       onClick={() => setIsLeaveDialogOpen(false)}
                       disabled={isLeavingCompany}
                     >
-                      Cancel
+                      {t("action_cancel")}
                     </Button>
                     <Button
                       variant="destructive"
                       onClick={handleLeaveCompany}
                       disabled={!isLeaveReasonValid || isLeavingCompany}
                     >
-                      {isLeavingCompany ? "Leaving..." : "Leave Company"}
+                      {isLeavingCompany ? t("page_profile_leaving") : t("page_profile_leave_company")}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -573,7 +574,7 @@ const ProfilePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Mail className="h-4 w-4" /> Email
+                  <Mail className="h-4 w-4" /> {t("page_profile_label_email")}
                 </h3>
                 <p className="text-lg font-medium">
                   {brokerCompanyDetails.email}
@@ -582,7 +583,7 @@ const ProfilePage = () => {
 
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Phone className="h-4 w-4" /> Mobile
+                  <Phone className="h-4 w-4" /> {t("page_profile_label_mobile")}
                 </h3>
                 <p className="text-lg font-medium">
                   {brokerCompanyDetails.mobile}
@@ -591,7 +592,7 @@ const ProfilePage = () => {
 
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <MapPin className="h-4 w-4" /> Location
+                  <MapPin className="h-4 w-4" /> {t("page_profile_label_location")}
                 </h3>
                 <div className="space-y-0.5">
                   <p className="text-lg font-medium">
@@ -607,16 +608,16 @@ const ProfilePage = () => {
 
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <FileText className="h-4 w-4" /> GSTIN
+                  <FileText className="h-4 w-4" /> {t("page_profile_label_gstin")}
                 </h3>
                 <p className="text-lg font-medium">
-                  {brokerCompanyDetails.gstin || "N/A"}
+                  {brokerCompanyDetails.gstin || t("page_profile_na")}
                 </p>
               </div>
 
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Users className="h-4 w-4" /> Employees
+                  <Users className="h-4 w-4" /> {t("page_profile_label_employees")}
                 </h3>
                 <p className="text-lg font-medium">
                   {brokerCompanyDetails.noOfEmployees || 0}
@@ -625,7 +626,7 @@ const ProfilePage = () => {
 
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Award className="h-4 w-4" /> Status
+                  <Award className="h-4 w-4" /> {t("page_profile_label_status")}
                 </h3>
                 <Badge
                   variant={
@@ -649,10 +650,10 @@ const ProfilePage = () => {
               </div>
               <div>
                 <CardTitle className="text-xl">
-                  {brokerProfile.companyName || "Company Details"}
+                  {brokerProfile.companyName || t("page_profile_company_details")}
                 </CardTitle>
                 <CardDescription>
-                  Associated Company Information
+                  {t("page_profile_associated_company")}
                 </CardDescription>
               </div>
             </div>
@@ -661,10 +662,10 @@ const ProfilePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <FileText className="h-4 w-4" /> GSTIN
+                  <FileText className="h-4 w-4" /> {t("page_profile_label_gstin")}
                 </h3>
                 <p className="text-lg font-medium">
-                  {brokerProfile.gstin || "N/A"}
+                  {brokerProfile.gstin || t("page_profile_na")}
                 </p>
               </div>
             </div>

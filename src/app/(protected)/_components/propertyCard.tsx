@@ -160,6 +160,16 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
       const exportedOnLabel = format(new Date(), "PPP p");
 
+      // Collect all image URLs for pre-fetching
+      const allImageUrls = [
+        ...(property.featuredMedia ? [property.featuredMedia] : []),
+        ...(property.images ?? []),
+      ].filter((m) => !!m && !m.toLowerCase().endsWith(".mp4"));
+
+      // Pre-fetch and convert images to base64
+      const { imagesToBase64 } = await import("@/utils/pdf");
+      const imageMap = await imagesToBase64(allImageUrls);
+
       host = document.createElement("div");
       host.style.position = "fixed";
       host.style.left = "-10000px";
@@ -173,12 +183,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           <PropertyPdfLayout
             property={property}
             exportedOnLabel={exportedOnLabel}
+            imageMap={imageMap}
           />
         </div>
       );
 
       // Ensure layout is painted before capture.
-      await new Promise((r) => setTimeout(r, 75));
+      await new Promise((r) => setTimeout(r, 300));
 
       const element = host.querySelector(
         "[data-property-pdf]"
@@ -444,10 +455,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           </div>
           <Badge
             className={`shadow-sm backdrop-blur-md border-none shrink-0 ${property.listingStatus === "ACTIVE" && !property.deletingStatus
-                ? "bg-emerald-600/90 text-white"
-                : property.deletingStatus
-                  ? "bg-red-600/90 text-white"
-                  : "bg-background/80 text-foreground"
+              ? "bg-emerald-600/90 text-white"
+              : property.deletingStatus
+                ? "bg-red-600/90 text-white"
+                : "bg-background/80 text-foreground"
               }`}
           >
             {property.deletingStatus

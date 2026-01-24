@@ -1,22 +1,27 @@
+"use client";
+
 import { FileText } from "lucide-react";
 import { Property } from "@/types/property";
+import { useTranslation } from "react-i18next";
 
 interface DocumentsListProps {
     property: Property;
 }
 
 export const DocumentsList = ({ property }: DocumentsListProps) => {
+    const { t } = useTranslation();
+
     const documents = [
         ...(property.floorPlans?.map((url, i) => ({
-            name: `Floor Plan ${i + 1}`,
+            name: `${t("property_floor_plan")} ${i + 1}`,
             url,
-            type: "Floor Plan",
+            type: t("property_floor_plan_type"),
         })) || []),
         ...(property.jamabandiUrl
-            ? [{ name: "Jamabandi Document", url: property.jamabandiUrl, type: "Legal" }]
+            ? [{ name: t("label_jamabandi_document"), url: property.jamabandiUrl, type: t("property_legal_type") }]
             : []),
         ...(property.khasraPlanUrl
-            ? [{ name: "Khasra Plan", url: property.khasraPlanUrl, type: "Legal" }]
+            ? [{ name: t("label_khasra_plan"), url: property.khasraPlanUrl, type: t("property_legal_type") }]
             : []),
     ];
 
@@ -24,7 +29,7 @@ export const DocumentsList = ({ property }: DocumentsListProps) => {
 
     return (
         <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Documents</h3>
+            <h3 className="text-lg font-semibold">{t("label_documents")}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {documents.map((doc, index) => (
                     <a

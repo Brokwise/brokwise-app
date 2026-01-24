@@ -11,6 +11,7 @@ import { ArrowLeft, MessageSquarePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Conversation } from "@/models/types/chat";
+import { useTranslation } from "react-i18next";
 
 const MessagePage = () => {
   const { conversations, isLoadingConversations } = useGetConversations();
@@ -21,6 +22,7 @@ const MessagePage = () => {
     string | null
   >(null);
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
   const currentUserId = brokerData?._id || companyData?._id;
 
@@ -87,7 +89,7 @@ const MessagePage = () => {
       >
         <div className="flex h-[80px] shrink-0 items-center justify-between border-b border-border/20 px-6">
           <h1 className="font-instrument-serif text-3xl font-medium tracking-tight text-foreground">
-            Messages
+            {t("page_messages_title")}
           </h1>
           <Button
             variant="ghost"
@@ -95,7 +97,7 @@ const MessagePage = () => {
             onClick={handleStartChat}
             disabled={isCreatingConversation || !currentUserId || isLoadingConversations}
             className="h-10 w-10 rounded-full text-muted-foreground transition-colors hover:bg-accent/10 hover:text-accent"
-            title="Start new chat"
+            title={t("page_messages_start_chat")}
           >
             <MessageSquarePlus className="h-5 w-5" />
           </Button>
@@ -121,10 +123,10 @@ const MessagePage = () => {
                 </div>
                 <div className="space-y-2">
                   <h3 className="font-instrument-serif text-lg text-foreground">
-                    No messages yet
+                    {t("page_messages_no_messages")}
                   </h3>
                   <p className="text-sm font-light">
-                    Start a conversation with our support team to get help with your inquiries.
+                    {t("page_messages_no_messages_desc")}
                   </p>
                 </div>
                 <Button
@@ -133,8 +135,8 @@ const MessagePage = () => {
                   className="h-10 rounded-xl bg-primary px-6 font-medium text-primary-foreground hover:bg-primary/90"
                 >
                   {isCreatingConversation
-                    ? "Starting..."
-                    : "Start Support Chat"}
+                    ? t("page_messages_starting")
+                    : t("page_messages_start_support")}
                 </Button>
               </div>
             )}
@@ -171,7 +173,7 @@ const MessagePage = () => {
                 <span className="font-instrument-serif text-lg font-medium leading-none text-foreground">
                   {partnerDetails?.name}
                 </span>
-                <span className="text-xs text-muted-foreground">Active now</span>
+                <span className="text-xs text-muted-foreground">{t("page_messages_active_now")}</span>
               </div>
             </div>
 
@@ -194,10 +196,10 @@ const MessagePage = () => {
                   <MessageSquarePlus className="h-8 w-8 text-muted-foreground/40" strokeWidth={1.5} />
                 </div>
                 <h3 className="font-instrument-serif text-2xl font-medium text-foreground">
-                  Select a conversation
+                  {t("page_messages_select_conversation")}
                 </h3>
                 <p className="text-sm font-light text-muted-foreground">
-                  Choose a chat from the sidebar to start messaging
+                  {t("page_messages_select_conversation_desc")}
                 </p>
               </div>
             )}

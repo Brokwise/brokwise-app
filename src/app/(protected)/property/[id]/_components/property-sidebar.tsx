@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +13,7 @@ import { MapPin, ExternalLink, CalendarClock } from "lucide-react";
 import { MapBox } from "./mapBox";
 import { useApp } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 interface PropertySidebarProps {
     property: Property;
@@ -19,6 +22,7 @@ interface PropertySidebarProps {
 export const PropertySidebar = ({ property }: PropertySidebarProps) => {
     const { brokerData } = useApp();
     const router = useRouter();
+    const { t } = useTranslation();
 
     const isOwner = property.listedBy?._id === brokerData?._id;
 
@@ -29,12 +33,14 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                 <div className="bg-primary/5 p-5 border-b border-primary/10">
                     <div className="flex flex-col gap-2">
                         <div>
-                            <span className="text-sm text-muted-foreground block mb-1">Asking Price</span>
-                            <div className="flex items-baseline gap-2">
+                            <span className="text-sm text-muted-foreground block mb-1">{t("property_asking_price")}</span>
+                            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                                 <span className="text-3xl font-bold text-primary">{formatCurrency(property.totalPrice)}</span>
-                                <span className="text-sm font-medium text-muted-foreground">
-                                    ({formatCurrency(property.rate)} / {property.sizeUnit?.toLowerCase().replace("_", " ")})
-                                </span>
+                                {property.rate && property.sizeUnit && (
+                                    <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                                        ({formatCurrency(property.rate)} / {property.sizeUnit.toLowerCase().replace("_", " ")})
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -47,7 +53,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                 <CardContent className="p-5 space-y-5">
                     {/* Status Badge */}
                     <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Status</span>
+                        <span className="text-muted-foreground">{t("property_status")}</span>
                         <Badge
                             variant={
                                 property.listingStatus === "ACTIVE"
@@ -64,7 +70,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                         </Badge>
                     </div>
                     <div className="text-xs text-muted-foreground flex justify-between">
-                        <span>Updated</span>
+                        <span>{t("property_updated")}</span>
                         <span>{format(new Date(property.updatedAt), "PPP")}</span>
                     </div>
 
@@ -72,7 +78,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
 
                     {isOwner && property.listingStatus === "ENQUIRY_ONLY" && (
                         <div className="p-3 bg-muted rounded-md text-sm">
-                            Submitted for Enquiry: {" "}
+                            {t("property_submitted_for_enquiry")}: {" "}
                             <Button
                                 variant="link"
                                 className="p-0 h-auto"
@@ -123,7 +129,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                                 }}
                             >
                                 <CalendarClock className="mr-2 h-4 w-4" />
-                                Schedule Visit
+                                {t("property_schedule_visit")}
                             </Button>
                         </div>
                     )}
@@ -135,7 +141,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                 <div className="flex items-center justify-between p-4 border-b">
                     <h3 className="font-semibold flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
-                        Location
+                        {t("label_location")}
                     </h3>
                     <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" asChild>
                         <a
@@ -143,7 +149,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            Open Maps <ExternalLink className="h-3 w-3" />
+                            {t("property_open_maps")} <ExternalLink className="h-3 w-3" />
                         </a>
                     </Button>
                 </div>

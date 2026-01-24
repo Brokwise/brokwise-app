@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface PropertyDescriptionProps {
     description: string;
@@ -11,6 +12,7 @@ interface PropertyDescriptionProps {
 
 export const PropertyDescription = ({ description }: PropertyDescriptionProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const { t } = useTranslation();
     const maxLength = 300;
     const shouldTruncate = description.length > maxLength;
 
@@ -19,7 +21,7 @@ export const PropertyDescription = ({ description }: PropertyDescriptionProps) =
     return (
         <Card className="shadow-sm">
             <CardHeader>
-                <CardTitle className="text-xl">Description</CardTitle>
+                <CardTitle className="text-xl">{t("label_description")}</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className={`prose prose-sm max-w-none text-muted-foreground leading-relaxed whitespace-pre-wrap ${!isExpanded && shouldTruncate ? "mask-gradient-bottom" : ""}`}>
@@ -34,9 +36,9 @@ export const PropertyDescription = ({ description }: PropertyDescriptionProps) =
                         onClick={() => setIsExpanded(!isExpanded)}
                     >
                         {isExpanded ? (
-                            <>Show Less <ChevronUp className="ml-1 h-3 w-3" /></>
+                            <>{t("property_show_less")} <ChevronUp className="ml-1 h-3 w-3" /></>
                         ) : (
-                            <>Read More <ChevronDown className="ml-1 h-3 w-3" /></>
+                            <>{t("property_read_more")} <ChevronDown className="ml-1 h-3 w-3" /></>
                         )}
                     </Button>
                 )}

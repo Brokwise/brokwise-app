@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { Property } from "@/types/property";
+import { useTranslation } from "react-i18next";
 
 interface PropertyHeaderProps {
     property: Property;
@@ -20,6 +21,7 @@ export const PropertyHeader = ({
     onFlag,
 }: PropertyHeaderProps) => {
     const router = useRouter();
+    const { t } = useTranslation();
 
     return (
         <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4">
@@ -55,20 +57,20 @@ export const PropertyHeader = ({
                 <div className="flex items-center gap-2">
                     {property.deletingStatus && (
                         <Badge variant="destructive" className="hidden sm:inline-flex">
-                            Pending removal
+                            {t("label_pending_removal")}
                         </Badge>
                     )}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="icon" className="rounded-xl h-10 w-10 border-2">
                                 <MoreVertical className="h-5 w-5" />
-                                <span className="sr-only">Open actions</span>
+                                <span className="sr-only">{t("action_open_actions")}</span>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={onFlag} className="text-destructive">
                                 <ShieldX className="mr-2 h-4 w-4" />
-                                Report Property
+                                {t("property_report_property")}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

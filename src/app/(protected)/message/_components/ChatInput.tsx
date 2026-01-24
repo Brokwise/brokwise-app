@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTranslation } from "react-i18next";
 
 interface ChatInputProps {
   onSend: (data: {
@@ -43,6 +44,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
   const [pendingFile, setPendingFile] = useState<PendingFile | null>(null);
   const [caption, setCaption] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
 
   const handleSend = () => {
     if (message.trim()) {
@@ -72,7 +74,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
 
     // Check file size (e.g. 10MB limit)
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("File is too large. Max size is 10MB.");
+      toast.error(t("page_messages_file_too_large"));
       return;
     }
 
@@ -110,11 +112,11 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
         content: caption.trim() || undefined,
       });
 
-      toast.success("File sent successfully");
+      toast.success(t("page_messages_file_sent"));
       handleCancelUpload();
     } catch (error) {
       console.error("File upload failed", error);
-      toast.error("Failed to upload file");
+      toast.error(t("page_messages_file_error"));
     } finally {
       setIsUploading(false);
     }
@@ -137,7 +139,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
         <DialogContent className="max-w-md rounded-2xl border-border/40 bg-background p-0 shadow-2xl">
           <DialogHeader className="border-b border-border/30 px-6 py-4">
             <DialogTitle className="font-instrument-serif text-xl font-medium">
-              {pendingFile?.isImage ? "Send Image" : "Send File"}
+              {pendingFile?.isImage ? t("page_messages_send_image") : t("page_messages_send_file")}
             </DialogTitle>
           </DialogHeader>
 
@@ -167,11 +169,11 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
             {/* Caption input for images */}
             {pendingFile?.isImage && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Add a caption (optional)</label>
+                <label className="text-sm font-medium text-muted-foreground">{t("page_messages_add_caption")}</label>
                 <Textarea
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  placeholder="Write a caption..."
+                  placeholder={t("page_messages_write_caption")}
                   className="min-h-[60px] resize-none rounded-xl border-border/30 bg-muted/20 focus-visible:ring-1 focus-visible:ring-primary/30"
                 />
               </div>
@@ -185,7 +187,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
               disabled={isUploading}
               className="rounded-xl"
             >
-              Cancel
+              {t("action_cancel")}
             </Button>
             <Button
               onClick={handleConfirmUpload}
@@ -195,12 +197,12 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
               {isUploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
+                  {t("page_messages_sending")}
                 </>
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  Send
+                  {t("page_messages_send")}
                 </>
               )}
             </Button>
@@ -225,7 +227,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
             className="h-10 w-10 rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
             onClick={triggerFileSelect}
             disabled={disabled || isUploading}
-            title="Attach file"
+            title={t("page_messages_attach_file")}
           >
             <Paperclip className="h-5 w-5" />
           </Button>
@@ -236,7 +238,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
                 size="icon"
                 className="h-10 w-10 rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
                 disabled={disabled || isUploading}
-                title="Add emoji"
+                title={t("page_messages_add_emoji")}
               >
                 <Smile className="h-5 w-5" />
               </Button>
@@ -257,7 +259,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
+          placeholder={t("page_messages_type_message")}
           className="min-h-[44px] max-h-[120px] flex-1 resize-none rounded-2xl border-transparent bg-muted/30 px-4 py-3 placeholder:text-muted-foreground/60 focus:border-border/30 focus:ring-0 focus-visible:ring-1 focus-visible:ring-primary/20 scrollbar-hide"
           disabled={disabled || isUploading}
         />
