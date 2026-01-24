@@ -90,7 +90,38 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                     {!property.deletingStatus && property.listingStatus !== "ENQUIRY_ONLY" && (
                         <div className="space-y-3">
                             <MakeOffer property={property} />
-                            <Button variant="outline" className="w-full" onClick={() => { }}>
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={() => {
+                                    // Create a Google Calendar event URL
+                                    const eventTitle = encodeURIComponent(
+                                        `Property Visit: ${property.bhk ? `${property.bhk} BHK ` : ""}${property.propertyType.replace(/_/g, " ")}`
+                                    );
+                                    const eventDetails = encodeURIComponent(
+                                        `Property Visit\n\nProperty ID: ${property.propertyId || property._id}\nPrice: ${formatCurrency(property.totalPrice)}\nSize: ${property.size} ${property.sizeUnit?.replace("SQ_", "")}\nAddress: ${formatAddress(property.address)}\n\nView Property: ${typeof window !== "undefined" ? window.location.href : ""}`
+                                    );
+                                    const eventLocation = encodeURIComponent(formatAddress(property.address));
+
+                                    // Schedule for tomorrow at 10am, 1 hour duration
+                                    const tomorrow = new Date();
+                                    tomorrow.setDate(tomorrow.getDate() + 1);
+                                    tomorrow.setHours(10, 0, 0, 0);
+                                    const endTime = new Date(tomorrow);
+                                    endTime.setHours(11, 0, 0, 0);
+
+                                    // Format dates for Google Calendar (YYYYMMDDTHHMMSS format)
+                                    const formatDate = (date: Date) =>
+                                        date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+
+                                    const startDate = formatDate(tomorrow);
+                                    const endDate = formatDate(endTime);
+
+                                    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&details=${eventDetails}&location=${eventLocation}&dates=${startDate}/${endDate}`;
+
+                                    window.open(googleCalendarUrl, "_blank", "noopener,noreferrer");
+                                }}
+                            >
                                 <CalendarClock className="mr-2 h-4 w-4" />
                                 Schedule Visit
                             </Button>
