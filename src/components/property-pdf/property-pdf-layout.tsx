@@ -23,12 +23,7 @@ export const PropertyPdfLayout = React.forwardRef<
   const pdfImageUrls = allImages.filter((m) => !!m && !m.toLowerCase().endsWith(".mp4"));
 
   // Use base64 URLs if available, otherwise fall back to original URLs
-  const getImageSrc = (url: string) => {
-    if (imageMap?.has(url)) {
-      return imageMap.get(url)!;
-    }
-    return url;
-  };
+  const getImageSrc = (url: string) => imageMap?.get(url) ?? url;
 
   const pdfCoverImage = pdfImageUrls[0] ? getImageSrc(pdfImageUrls[0]) : "/images/placeholder.webp";
   const pdfThumbImages = pdfImageUrls.slice(1, 7);
