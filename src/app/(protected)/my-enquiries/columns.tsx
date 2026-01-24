@@ -24,6 +24,7 @@ import {
 import { formatEnquiryLocation } from "@/utils/helper";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 // Helper for Budget Formatting (matching EnquiryCard)
 const formatBudget = (amount: number) => {
@@ -36,7 +37,10 @@ const formatBudget = (amount: number) => {
     return amount.toLocaleString("en-IN");
 };
 
-const getStatusBadge = (status: string) => {
+// Helper component for translated status badge
+const StatusBadge = ({ status }: { status: string }) => {
+    const { t } = useTranslation();
+
     switch (status) {
         case "active":
             return (
@@ -44,7 +48,7 @@ const getStatusBadge = (status: string) => {
                     variant="default"
                     className="bg-green-500/15 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-500/25"
                 >
-                    Active
+                    {t("label_active")}
                 </Badge>
             );
         case "closed":
@@ -53,7 +57,7 @@ const getStatusBadge = (status: string) => {
                     variant="secondary"
                     className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200"
                 >
-                    Closed
+                    {t("label_closed")}
                 </Badge>
             );
         case "expired":
@@ -62,7 +66,7 @@ const getStatusBadge = (status: string) => {
                     variant="destructive"
                     className="bg-red-500/15 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-500/25"
                 >
-                    Expired
+                    {t("label_expired")}
                 </Badge>
             );
         default:
@@ -70,10 +74,102 @@ const getStatusBadge = (status: string) => {
     }
 };
 
+// Header components that use translation
+const TypeHeader = () => {
+    const { t } = useTranslation();
+    return <span>{t("table_col_type")}</span>;
+};
+
+const CategoryHeader = ({ column }: { column: { toggleSorting: (asc: boolean) => void; getIsSorted: () => string | boolean } }) => {
+    const { t } = useTranslation();
+    return (
+        <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+            {t("table_col_category")}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+    );
+};
+
+const BudgetHeader = ({ column }: { column: { toggleSorting: (asc: boolean) => void; getIsSorted: () => string | boolean } }) => {
+    const { t } = useTranslation();
+    return (
+        <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+            {t("table_col_budget")}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+    );
+};
+
+const LocationHeader = () => {
+    const { t } = useTranslation();
+    return <span>{t("table_col_location")}</span>;
+};
+
+const SpecsHeader = () => {
+    const { t } = useTranslation();
+    return <span>{t("table_col_specs")}</span>;
+};
+
+const ResponsesHeader = ({ column }: { column: { toggleSorting: (asc: boolean) => void; getIsSorted: () => string | boolean } }) => {
+    const { t } = useTranslation();
+    return (
+        <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+            {t("table_col_responses")}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+    );
+};
+
+const StatusHeader = () => {
+    const { t } = useTranslation();
+    return <span>{t("table_col_status")}</span>;
+};
+
+const CreatedHeader = ({ column }: { column: { toggleSorting: (asc: boolean) => void; getIsSorted: () => string | boolean } }) => {
+    const { t } = useTranslation();
+    return (
+        <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+            {t("table_col_created")}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+    );
+};
+
+// Specs cell component
+const SpecsCell = ({ enquiry }: { enquiry: Enquiry }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="flex gap-2 text-xs text-muted-foreground">
+            {enquiry.bhk && (
+                <span className="flex items-center gap-1 bg-secondary/50 px-1.5 py-0.5 rounded">
+                    <BedDouble className="h-3 w-3" /> {enquiry.bhk} {t("label_bhk")}
+                </span>
+            )}
+            {enquiry.washrooms && (
+                <span className="flex items-center gap-1 bg-secondary/50 px-1.5 py-0.5 rounded">
+                    <Bath className="h-3 w-3" /> {enquiry.washrooms} {t("label_bath")}
+                </span>
+            )}
+        </div>
+    );
+};
+
 export const columns: ColumnDef<Enquiry>[] = [
     {
-        accessorKey: "enquiryType", // Using this for ID/Type combined view nicely? Or just standard Type
-        header: "Type",
+        accessorKey: "enquiryType",
+        header: () => <TypeHeader />,
         cell: ({ row }) => {
             const type = row.getValue("enquiryType") as string;
             return (
@@ -85,17 +181,7 @@ export const columns: ColumnDef<Enquiry>[] = [
     },
     {
         accessorKey: "enquiryCategory",
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Category
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        header: ({ column }) => <CategoryHeader column={column} />,
         cell: ({ row }) => (
             <div className="flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -105,15 +191,7 @@ export const columns: ColumnDef<Enquiry>[] = [
     },
     {
         accessorKey: "budget",
-        header: ({ column }) => (
-            <Button
-                variant="ghost"
-                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-                Budget
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-        ),
+        header: ({ column }) => <BudgetHeader column={column} />,
         cell: ({ row }) => {
             const budget = row.original.budget;
             return (
@@ -128,7 +206,7 @@ export const columns: ColumnDef<Enquiry>[] = [
     },
     {
         id: "location",
-        header: "Location",
+        header: () => <LocationHeader />,
         cell: ({ row }) => {
             const loc = formatEnquiryLocation(row.original);
             return (
@@ -141,36 +219,12 @@ export const columns: ColumnDef<Enquiry>[] = [
     },
     {
         id: "specs",
-        header: "Specs",
-        cell: ({ row }) => {
-            const enquiry = row.original;
-            return (
-                <div className="flex gap-2 text-xs text-muted-foreground">
-                    {enquiry.bhk && (
-                        <span className="flex items-center gap-1 bg-secondary/50 px-1.5 py-0.5 rounded">
-                            <BedDouble className="h-3 w-3" /> {enquiry.bhk} BHK
-                        </span>
-                    )}
-                    {enquiry.washrooms && (
-                        <span className="flex items-center gap-1 bg-secondary/50 px-1.5 py-0.5 rounded">
-                            <Bath className="h-3 w-3" /> {enquiry.washrooms} Bath
-                        </span>
-                    )}
-                </div>
-            )
-        }
+        header: () => <SpecsHeader />,
+        cell: ({ row }) => <SpecsCell enquiry={row.original} />,
     },
     {
         accessorKey: "submissionCount",
-        header: ({ column }) => (
-            <Button
-                variant="ghost"
-                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-                Responses
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-        ),
+        header: ({ column }) => <ResponsesHeader column={column} />,
         cell: ({ row }) => {
             const count = row.getValue("submissionCount") as number;
             return (
@@ -183,25 +237,15 @@ export const columns: ColumnDef<Enquiry>[] = [
     },
     {
         accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => getStatusBadge(row.getValue("status")),
+        header: () => <StatusHeader />,
+        cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
         filterFn: (row, id, value) => {
             return value === "all" || row.getValue(id) === value;
         },
     },
     {
         accessorKey: "createdAt",
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Created
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        header: ({ column }) => <CreatedHeader column={column} />,
         cell: ({ row }) => {
             return (
                 <div className="text-xs text-muted-foreground whitespace-nowrap">
@@ -218,23 +262,24 @@ export const columns: ColumnDef<Enquiry>[] = [
 
 const ActionCell = ({ enquiry }: { enquiry: Enquiry }) => {
     const router = useRouter();
+    const { t } = useTranslation();
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
+                    <span className="sr-only">{t("table_open_menu")}</span>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>{t("table_actions")}</DropdownMenuLabel>
                 <DropdownMenuItem
                     onClick={() => router.push(`/enquiries/${enquiry._id}`)}
                     className="cursor-pointer"
                 >
                     <Eye className="mr-2 h-4 w-4" />
-                    View Details
+                    {t("table_view_details")}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

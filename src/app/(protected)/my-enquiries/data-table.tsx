@@ -46,6 +46,7 @@ import {
     AlertCircle,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from "react-i18next";
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -62,6 +63,7 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+    const { t } = useTranslation();
 
     const table = useReactTable({
         data,
@@ -92,7 +94,7 @@ export function DataTable<TData, TValue>({
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" className="w-full sm:w-auto h-10">
                                     <Columns3 className="mr-2 h-4 w-4" />
-                                    Columns
+                                    {t("label_columns")}
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-[200px]">
@@ -119,11 +121,11 @@ export function DataTable<TData, TValue>({
 
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <div>
-                            Showing {table.getFilteredRowModel().rows.length} of {data.length}{" "}
-                            enquiries
+                            {t("page_my_enquiries_showing")} {table.getFilteredRowModel().rows.length} {t("page_my_enquiries_of")} {data.length}{" "}
+                            {t("page_my_enquiries_enquiries")}
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="hidden sm:inline">Rows per page:</span>
+                            <span className="hidden sm:inline">{t("page_my_enquiries_rows_per_page")}</span>
                             <Select
                                 value={`${table.getState().pagination.pageSize}`}
                                 onValueChange={(value) => {
@@ -157,7 +159,7 @@ export function DataTable<TData, TValue>({
                     <Alert variant="destructive" className="mb-4">
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>
-                            Failed to load enquiries. Please try again later.
+                            {t("page_my_enquiries_failed_load")}
                         </AlertDescription>
                     </Alert>
                 )}
@@ -208,7 +210,7 @@ export function DataTable<TData, TValue>({
                                                 colSpan={columns.length}
                                                 className="h-24 text-center text-muted-foreground"
                                             >
-                                                No enquiries found matching your criteria.
+                                                {t("page_my_enquiries_no_match_table")}
                                             </TableCell>
                                         </TableRow>
                                     )}
@@ -218,7 +220,7 @@ export function DataTable<TData, TValue>({
 
                         <div className="flex items-center justify-between mt-4">
                             <div className="text-sm text-muted-foreground">
-                                Page {table.getState().pagination.pageIndex + 1} of{" "}
+                                {t("label_page")} {table.getState().pagination.pageIndex + 1} {t("label_of")}{" "}
                                 {table.getPageCount()}
                             </div>
                             <div className="flex items-center space-x-2">
