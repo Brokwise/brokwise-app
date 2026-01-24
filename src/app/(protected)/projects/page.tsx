@@ -5,8 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Construction } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 const ProjectsPage = () => {
+  const { t } = useTranslation();
+
   return (
     <main className="container mx-auto py-8 h-[80vh] flex items-center justify-center">
       <Card className="w-full max-w-md border-none shadow-none bg-transparent">
@@ -17,16 +20,15 @@ const ProjectsPage = () => {
 
           <div className="space-y-2">
             <h1 className="text-3xl font-instrument-serif text-foreground tracking-tight">
-              Coming Soon
+              {t("page_projects_title")}
             </h1>
             <p className="text-muted-foreground">
-              We are working hard to bring you the projects section. Stay tuned
-              for updates!
+              {t("page_projects_desc")}
             </p>
           </div>
 
           <Link href="/">
-            <Button variant="default">Back to Home</Button>
+            <Button variant="default">{t("page_projects_back_home")}</Button>
           </Link>
         </CardContent>
       </Card>
