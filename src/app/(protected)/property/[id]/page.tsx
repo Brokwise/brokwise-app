@@ -49,6 +49,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   const [flagReason, setFlagReason] = useState("");
   const [flagNotes, setFlagNotes] = useState("");
   const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const pdfRef = useRef<HTMLDivElement | null>(null);
 
   // const offerSectionRef = useRef<HTMLDivElement>(null);
@@ -219,11 +220,17 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
             <PropertyActionsBar
               onExportPdf={handleExportPdf}
               isExportingPdf={isExportingPdf}
-              onShare={() => {
-                toast.success("Link copied to clipboard!");
-                navigator.clipboard.writeText(window.location.href);
+              isBookmarked={isBookmarked}
+              onToggleBookmark={() => {
+                setIsBookmarked(!isBookmarked);
+                if (!isBookmarked) {
+                  toast.success("Property saved to bookmarks!");
+                } else {
+                  toast.info("Property removed from bookmarks");
+                }
               }}
-              onBookmark={() => toast.success("Property saved to bookmarks!")}
+              shareUrl={typeof window !== "undefined" ? window.location.href : ""}
+              propertyTitle={`Property #${property.propertyId || "N/A"}`}
             />
             <PropertySidebar property={property} />
           </div>
