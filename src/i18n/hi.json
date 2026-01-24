@@ -73,7 +73,6 @@
   "account_not_found_desc": "इस ईमेल से कोई अकाउंट नहीं मिला।",
   "no_account_with_email": "इस ईमेल से कोई अकाउंट नहीं है",
   "create_account_suggestion": "क्या आप नया अकाउंट बनाना चाहेंगे?",
-
   "nav_home": "होम",
   "nav_bookmarks": "बुकमार्क्स",
   "nav_my_listings": "मेरी लिस्टिंग्स",
@@ -100,7 +99,6 @@
   "nav_subscription": "सब्सक्रिप्शन",
   "nav_enterprise": "एंटरप्राइज़",
   "nav_professional": "प्रोफेशनल",
-
   "action_create": "क्रिएट करें",
   "action_submit": "सबमिट करें",
   "action_save": "सेव करें",
@@ -138,7 +136,6 @@
   "action_share_details": "डीटेल्स शेयर करें",
   "action_submit_report": "रिपोर्ट सबमिट करें",
   "action_close": "बंद करें",
-
   "label_all_types": "सभी टाइप्स",
   "label_all": "सभी",
   "label_filters": "फ़िल्टर्स",
@@ -179,7 +176,6 @@
   "label_select_reason": "रीज़न सेलेक्ट करें",
   "label_details_placeholder": "कोई डीटेल्स जो इन्वेस्टिगेशन में हेल्प करे।",
   "label_confirm_new_password": "नए पासवर्ड को कन्फर्म करें",
-
   "category_residential": "रेज़िडेंशियल",
   "category_commercial": "कमर्शियल",
   "category_industrial": "इंडस्ट्रियल",
@@ -198,14 +194,12 @@
   "category_industrial_park": "इंडस्ट्रियल पार्क",
   "category_industrial_land": "इंडस्ट्रियल लैंड",
   "category_warehouse": "वेयरहाउस",
-
   "category_residential_desc": "फ्लैट्स, विला और रेज़िडेंशियल लैंड",
   "category_commercial_desc": "शॉप्स, ऑफिसेस, होटल्स और कमर्शियल स्पेसेस",
   "category_industrial_desc": "इंडस्ट्रियल पार्क्स, वेयरहाउसेस और इंडस्ट्रियल लैंड",
   "category_agricultural_desc": "एग्रीकल्चरल लैंड और फार्मिंग प्रॉपर्टीज़",
   "category_resort_desc": "रिसॉर्ट प्रॉपर्टीज़ और हॉस्पिटैलिटी वेन्यूज़",
   "category_farmhouse_desc": "फार्महाउसेस और इंडिविजुअल प्रॉपर्टीज़",
-
   "toast_property_created": "प्रॉपर्टी सक्सेसफुली क्रिएट हो गई!",
   "toast_property_deleted": "प्रॉपर्टी डिलीट हो गई",
   "toast_property_saved_draft": "प्रॉपर्टी ड्राफ्ट में सेव हो गई",
@@ -233,7 +227,6 @@
   "toast_notification_read": "नोटिफिकेशन रीड हो गई",
   "toast_report_submitted": "रिपोर्ट सबमिट हो गई। हम जल्द रिव्यू करेंगे।",
   "toast_offer_sent": "ऑफ़र भेज दिया गया!",
-
   "toast_error_property_create": "प्रॉपर्टी क्रिएट करने में प्रॉब्लम हुई। फिर से ट्राई करें।",
   "toast_error_property_delete": "प्रॉपर्टी डिलीट करने में प्रॉब्लम हुई।",
   "toast_error_property_submit": "प्रॉपर्टी सबमिट करने में प्रॉब्लम हुई। फिर से ट्राई करें।",
@@ -272,7 +265,6 @@
   "toast_error_hold_plot": "प्लॉट होल्ड करने में प्रॉब्लम हुई",
   "toast_error_user_not_found": "यूज़र या ब्रोकर डेटा नहीं मिला",
   "toast_error_load_properties": "प्रॉपर्टीज़ लोड करने में प्रॉब्लम हुई। फिर से ट्राई करें।",
-
   "empty_no_properties": "कोई प्रॉपर्टी नहीं मिली",
   "empty_no_properties_desc": "आपकी सर्च के हिसाब से कोई प्रॉपर्टी नहीं मिली। फ़िल्टर्स बदलकर देखें।",
   "empty_no_listings": "कोई लिस्टिंग नहीं मिली",
@@ -298,11 +290,9 @@
   "empty_no_proposed_properties": "अभी तक कोई प्रॉपर्टी प्रपोज़ नहीं हुई है।",
   "empty_no_matching_properties_enquiry": "कोई मैचिंग प्रॉपर्टी नहीं मिली",
   "empty_no_matching_properties_enquiry_desc": "आपके पास इस इन्क्वायरी से मैच करने वाली कोई एक्टिव प्रॉपर्टी नहीं है। नई क्रिएट करने की ट्राई करें!",
-
   "access_restricted": "एक्सेस रिस्ट्रिक्टेड",
   "access_restricted_property": "आपको यह प्रॉपर्टी देखने की परमिशन नहीं है। यह प्रॉपर्टी प्राइवेट हो सकती है।",
   "access_restricted_desc": "आपको यह देखने की परमिशन नहीं है।",
-
   "confirm_delete_contact_title": "कॉन्टैक्ट डिलीट करें",
   "confirm_delete_contact_desc": "क्या आप {{name}} को डिलीट करना चाहते हैं? यह एक्शन अनडू नहीं होगा।",
   "confirm_remove_broker_title": "ब्रोकर रिमूव करें?",
@@ -316,7 +306,6 @@
   "share_contact_desc": "ऑफ़र करने वाले यूज़र के साथ अपने कॉन्टैक्ट डीटेल्स शेयर करें। कॉल के लिए अवेलेबल टाइम सेलेक्ट करें।",
   "filter_properties_title": "प्रॉपर्टीज़ फ़िल्टर करें",
   "filter_properties_desc": "अपनी रिक्वायरमेंट्स से मैच करने वाली प्रॉपर्टीज़ खोजने के लिए फ़िल्टर्स यूज़ करें।",
-
   "offer_submit_final_title": "फाइनल ऑफ़र सबमिट करें",
   "offer_submit_title": "ऑफ़र सबमिट करें",
   "offer_final_desc": "यह इस प्रॉपर्टी पर ऑफ़र करने का लास्ट चांस है। रिजेक्ट होने पर दोबारा ऑफ़र नहीं कर पाएंगे।",
@@ -335,7 +324,6 @@
   "offer_your_property": "आपकी प्रॉपर्टी",
   "offer_higher_than_asking": "ऑफ़र, आस्किंग रेट से ज़्यादा नहीं हो सकती।",
   "offer_total_higher_than_asking": "ऑफ़र टोटल, आस्किंग टोटल से ज़्यादा नहीं हो सकता।",
-
   "loading": "लोड हो रहा है...",
   "submitting": "सबमिट हो रहा है...",
   "sharing": "शेयर हो रहा है...",
@@ -350,7 +338,6 @@
   "error_loading": "लोड करने में प्रॉब्लम हुई। फिर से ट्राई करें।",
   "your_listing_created": "आपकी लिस्टिंग सक्सेसफुली क्रिएट हो गई",
   "search_properties": "प्रॉपर्टीज़ सर्च करें...",
-
   "validation_state_required": "स्टेट रिक्वायर्ड है",
   "validation_city_required": "सिटी रिक्वायर्ड है",
   "validation_address_required": "एड्रेस रिक्वायर्ड है",
@@ -370,14 +357,12 @@
   "validation_featured_media_url": "फीचर्ड मीडिया वैलिड URL होनी चाहिए",
   "validation_images_required": "कम से कम एक इमेज रिक्वायर्ड है",
   "validation_field_required": "{{field}} रिक्वायर्ड है",
-
   "page_bookmarks_title": "बुकमार्क्स",
   "page_bookmarks_subtitle": "आपकी सेव्ड प्रॉपर्टीज़ और इन्क्वायरीज़ एक जगह।",
   "page_bookmarks_saved_properties": "सेव्ड प्रॉपर्टीज़",
   "page_bookmarks_saved_enquiries": "सेव्ड इन्क्वायरीज़",
   "page_bookmarks_empty_properties": "अभी कोई सेव्ड प्रॉपर्टी नहीं। किसी लिस्टिंग को बुकमार्क करें बाद में देखने के लिए।",
   "page_bookmarks_empty_enquiries": "अभी कोई सेव्ड इन्क्वायरी नहीं। किसी इन्क्वायरी को बुकमार्क करें यहाँ ट्रैक करने के लिए।",
-
   "page_create_property_title": "नई प्रॉपर्टी लिस्ट करें",
   "page_create_property_subtitle": "मार्केट पर अपनी प्रीमियम प्रॉपर्टी लिस्ट करने के लिए कैटेगरी सेलेक्ट करें।",
   "page_create_property_incomplete": "{{count}} इनकम्प्लीट लिस्टिंग",
@@ -385,7 +370,6 @@
   "page_create_property_continue_desc": "जहाँ छोड़ा था वहाँ से कंटिन्यू करें और अपनी प्रॉपर्टी लिस्टिंग्स कम्प्लीट करें",
   "page_create_property_view_drafts": "ड्राफ्ट्स देखें",
   "page_create_property_create": "क्रिएट करें",
-
   "type_flat": "फ्लैट",
   "type_villa": "विला",
   "type_land": "लैंड",
@@ -402,7 +386,6 @@
   "type_resort": "रिसॉर्ट",
   "type_farm_house": "फार्म हाउस",
   "type_individual": "इंडिविजुअल",
-
   "amenity_balcony": "बालकनी",
   "amenity_attached_washroom": "अटैच्ड वाशरूम",
   "amenity_cupboard": "कपबोर्ड",
@@ -438,7 +421,6 @@
   "amenity_pet_friendly": "पेट फ्रेंडली",
   "amenity_jacuzzi_spa": "जकूज़ी स्पा",
   "amenity_fire_pit": "फायर पिट",
-
   "page_my_properties_title": "मेरी प्रॉपर्टीज़",
   "page_my_properties_subtitle": "अपनी सभी प्रॉपर्टी लिस्टिंग्स मैनेज और देखें",
   "page_add_property": "प्रॉपर्टी ऐड करें",
@@ -459,7 +441,6 @@
   "error_load_properties": "प्रॉपर्टीज़ लोड करने में प्रॉब्लम हुई। बाद में ट्राई करें।",
   "label_privacy": "प्राइवेसी",
   "label_terms": "टर्म्स",
-
   "wizard_step_property_details": "प्रॉपर्टी डीटेल्स",
   "wizard_step_property_details_desc": "बेसिक इन्फो, स्पेक्स और प्राइसिंग",
   "wizard_step_features_media": "फीचर्स & मीडिया",
@@ -470,7 +451,6 @@
   "wizard_specs_pricing": "स्पेसिफिकेशन्स & प्राइसिंग",
   "wizard_features_amenities": "फीचर्स & एमेनिटीज़",
   "wizard_media_description": "मीडिया & डिस्क्रिप्शन",
-
   "form_property_type": "प्रॉपर्टी टाइप",
   "form_select_property_type": "प्रॉपर्टी टाइप सेलेक्ट करें",
   "form_state": "स्टेट",
@@ -488,7 +468,6 @@
   "form_featured_media": "फीचर्ड मीडिया",
   "form_images": "इमेजेस",
   "form_floor_plans": "फ्लोर प्लान्स",
-
   "page_create_enquiry_title": "रिक्वायरमेंट पोस्ट करें",
   "page_create_enquiry_subtitle": "बताएं आप क्या ढूंढ रहे हैं, हम परफेक्ट मैच ढूंढेंगे।",
   "form_location": "लोकेशन",
@@ -530,7 +509,6 @@
   "form_description": "डिस्क्रिप्शन",
   "form_description_placeholder": "अपनी रिक्वायरमेंट्स डीटेल में बताएं...",
   "form_generate_description": "डिस्क्रिप्शन जनरेट करें",
-
   "page_property_details_title": "प्रॉपर्टी डीटेल्स",
   "label_price": "प्राइस",
   "label_rate": "रेट",
@@ -556,7 +534,6 @@
   "label_status_unknown": "स्टेटस अज्ञात",
   "action_go_back": "वापस जाएं",
   "action_open_actions": "एक्शन्स ओपन करें",
-
   "page_enquiry_details_title": "इन्क्वायरी डीटेल्स",
   "label_back_to_enquiries": "इन्क्वायरीज़ पर वापस जाएं",
   "label_enquiry_in": "इन्क्वायरी",
@@ -585,7 +562,6 @@
   "dialog_close_enquiry_title": "इन्क्वायरी क्लोज़ करें",
   "dialog_close_enquiry_desc": "क्या आप यह इन्क्वायरी क्लोज़ करना चाहते हैं? यह एक्शन अनडू नहीं होगा।",
   "dialog_type_to_confirm": "कन्फर्म करने के लिए टाइप करें",
-
   "label_road": "रोड",
   "label_corner": "कॉर्नर",
   "label_north": "नॉर्थ",
@@ -599,16 +575,13 @@
   "label_near_ring_road": "रिंग रोड के पास",
   "label_riico_area": "RIICO एरिया",
   "label_sez": "SEZ",
-
   "label_sq_ft": "स्क्वायर फीट",
   "label_sq_meter": "स्क्वायर मीटर",
   "label_sq_yards": "स्क्वायर यार्ड्स",
   "label_acres": "एकड़",
   "label_hectare": "हेक्टेयर",
   "label_bigha": "बीघा",
-
   "property_submitted_for": "यह प्रॉपर्टी सबमिट की गई थी",
-
   "mobile_aadhaar_hint": "वेरिफिकेशन के लिए अपने आधार से लिंक्ड मोबाइल नंबर दर्ज करें।",
   "mobile_company_hint": "मोबाइल नंबर आपकी फर्म का प्राइमरी या एडमिन का नंबर होना चाहिए।",
   "country_code": "कंट्री कोड",
@@ -616,7 +589,6 @@
   "notify_me": "मुझे नोटिफाई करें",
   "notify_me_success": "जब ब्रोकवाइज़ आपके देश में लॉन्च होगा, हम आपको नोटिफाई करेंगे!",
   "notify_mobile_placeholder": "आपका मोबाइल नंबर (वैकल्पिक)",
-
   "deletion_reason_label": "डिलीशन का कारण",
   "select_deletion_reason": "कारण चुनें",
   "deletion_reason_sold": "प्रॉपर्टी बिक गई है",
@@ -631,7 +603,6 @@
   "request_property_deletion": "प्रॉपर्टी डिलीशन रिक्वेस्ट",
   "request_property_deletion_desc": "इस प्रॉपर्टी को डिलीट करने का कारण बताएं। यह रिक्वेस्ट एडमिन को अप्रूवल के लिए भेजी जाएगी।",
   "submit_request": "रिक्वेस्ट सबमिट करें",
-
   "chatbot_title": "ब्रोकवाइज असिस्टेंट",
   "chatbot_subtitle": "आपकी मदद के लिए यहाँ",
   "chatbot_welcome_title": "नमस्ते! मैं आपका ब्रोकवाइज असिस्टेंट हूँ",
@@ -642,5 +613,59 @@
   "chatbot_suggestion_3": "बुकमार्क कैसे मैनेज करें",
   "chatbot_input_placeholder": "ब्रोकवाइज के बारे में कुछ भी पूछें...",
   "chatbot_clear_title": "चैट साफ़ करें",
-  "chatbot_clear_description": "क्या आप सभी मैसेज हटाना चाहते हैं? यह कार्रवाई पूर्ववत नहीं की जा सकती।"
+  "chatbot_clear_description": "क्या आप सभी मैसेज हटाना चाहते हैं? यह कार्रवाई पूर्ववत नहीं की जा सकती।",
+  "property_asking_price": "आस्किंग प्राइस",
+  "property_status": "स्टेटस",
+  "property_updated": "अपडेटेड",
+  "property_submitted_for_enquiry": "इन्क्वायरी के लिए सबमिट",
+  "property_schedule_visit": "विज़िट शेड्यूल करें",
+  "property_open_maps": "मैप्स ओपन करें",
+  "property_report_property": "प्रॉपर्टी रिपोर्ट करें",
+  "property_key_facts": "की प्रॉपर्टी फैक्ट्स",
+  "property_category": "कैटेगरी",
+  "property_property_type": "प्रॉपर्टी टाइप",
+  "property_plot_type": "प्लॉट टाइप",
+  "property_bedrooms": "बेडरूम्स",
+  "property_bathrooms": "बाथरूम्स",
+  "property_front_facing": "फ्रंट फेसिंग",
+  "property_side_facing": "साइड फेसिंग",
+  "property_front_road": "फ्रंट रोड",
+  "property_side_road": "साइड रोड",
+  "property_possession": "पज़ेशन",
+  "property_project_area": "प्रोजेक्ट एरिया",
+  "property_society": "सोसाइटी",
+  "property_rental_income": "रेंटल इनकम",
+  "property_copy_link": "लिंक कॉपी करें",
+  "property_share_whatsapp": "व्हाट्सऐप पर शेयर करें",
+  "property_share_property": "प्रॉपर्टी शेयर करें",
+  "property_saved": "सेव्ड",
+  "property_read_more": "और पढ़ें",
+  "property_show_less": "कम दिखाएं",
+  "property_floor_plan": "फ्लोर प्लान",
+  "property_floor_plan_type": "फ्लोर प्लान",
+  "property_legal_type": "लीगल",
+  "property_your_property": "आपकी प्रॉपर्टी",
+  "property_your_offer_status": "आपकी ऑफ़र की स्टेटस",
+  "property_offered_rate": "ऑफ़र्ड रेट",
+  "property_offer_sent": "ऑफ़र भेज दी गई",
+  "property_your_offer_sent": "आपकी ऑफ़र भेज दी गई!",
+  "property_submit_final_offer_btn": "फाइनल ऑफ़र सबमिट करें (लास्ट चांस)",
+  "property_final_review_pending": "फाइनल रिव्यू पेंडिंग",
+  "property_final_review_pending_desc": "आपकी फाइनल ऑफ़र रिव्यू में है। यह आपका लास्ट अटेम्प्ट है।",
+  "property_final_offer_accepted": "फाइनल ऑफ़र एक्सेप्ट!",
+  "property_final_offer_accepted_desc": "बधाई हो! आपकी फाइनल ऑफ़र एक्सेप्ट हो गई।",
+  "property_final_offer_rejected": "फाइनल ऑफ़र रिजेक्ट",
+  "property_no_more_offers": "इस प्रॉपर्टी पर अब और ऑफ़र नहीं कर सकते।",
+  "property_no_reason_provided": "कोई कारण नहीं दिया गया।",
+  "property_reason": "कारण",
+  "property_no_offer_yet": "आपने अभी तक इस प्रॉपर्टी पर ऑफ़र नहीं की है। आस्किंग रेट है",
+  "property_submit_final_offer": "फाइनल ऑफ़र सबमिट करें",
+  "property_final_offer_warning": "यह इस प्रॉपर्टी पर ऑफ़र करने का लास्ट चांस है। रिजेक्ट होने पर दोबारा ऑफ़र नहीं कर पाएंगे।",
+  "property_offer_warning": "इस प्रॉपर्टी के लिए अपनी बेस्ट ऑफ़र सबमिट करें। रिजेक्ट होने पर एक फाइनल ऑफ़र का चांस मिलेगा।",
+  "property_per_unit": "प्रति यूनिट",
+  "property_total": "टोटल",
+  "property_offer_rate_label": "ऑफ़र रेट",
+  "property_offer_total_label": "ऑफ़र टोटल",
+  "property_asking_total": "आस्किंग टोटल",
+  "property_nearby_localities": "नज़दीकी लोकैलिटीज़"
 }

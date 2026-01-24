@@ -73,7 +73,6 @@
   "account_not_found_desc": "We couldn't find an account with this email address.",
   "no_account_with_email": "No account exists with",
   "create_account_suggestion": "Would you like to create a new account instead?",
-
   "nav_home": "Home",
   "nav_bookmarks": "Bookmarks",
   "nav_my_listings": "My Listings",
@@ -100,7 +99,6 @@
   "nav_subscription": "Subscription",
   "nav_enterprise": "Enterprise",
   "nav_professional": "Professional",
-
   "action_create": "Create",
   "action_submit": "Submit",
   "action_save": "Save",
@@ -138,7 +136,6 @@
   "action_share_details": "Share Details",
   "action_submit_report": "Submit report",
   "action_close": "Close",
-
   "label_all_types": "All Types",
   "label_all": "All",
   "label_filters": "Filters",
@@ -179,7 +176,6 @@
   "label_select_reason": "Select a reason",
   "label_details_placeholder": "Share any details that help us investigate.",
   "label_confirm_new_password": "Confirm new password",
-
   "category_residential": "Residential",
   "category_commercial": "Commercial",
   "category_industrial": "Industrial",
@@ -198,14 +194,12 @@
   "category_industrial_park": "Industrial Park",
   "category_industrial_land": "Industrial Land",
   "category_warehouse": "Warehouse",
-
   "category_residential_desc": "Flats, Villas, and Residential Land",
   "category_commercial_desc": "Shops, Offices, Hotels, and Commercial Spaces",
   "category_industrial_desc": "Industrial Parks, Warehouses, and Industrial Land",
   "category_agricultural_desc": "Agricultural Land and Farming Properties",
   "category_resort_desc": "Resort Properties and Hospitality Venues",
   "category_farmhouse_desc": "Farm Houses and Individual Properties",
-
   "toast_property_created": "Property created successfully!",
   "toast_property_deleted": "Property deleted successfully",
   "toast_property_saved_draft": "Property saved as draft successfully",
@@ -233,7 +227,6 @@
   "toast_notification_read": "Notification marked as read",
   "toast_report_submitted": "Thanks for reporting. We'll review this property soon.",
   "toast_offer_sent": "Offer sent!",
-
   "toast_error_property_create": "Failed to create property. Please try again.",
   "toast_error_property_delete": "An unknown error occurred while deleting the property.",
   "toast_error_property_submit": "Failed to submit property. Please try again.",
@@ -272,7 +265,6 @@
   "toast_error_hold_plot": "Failed to hold plot",
   "toast_error_user_not_found": "User or broker data not found",
   "toast_error_load_properties": "Failed to load properties. Please try again later.",
-
   "empty_no_properties": "No properties found",
   "empty_no_properties_desc": "We couldn't find any properties matching your criteria. Try adjusting your filters.",
   "empty_no_listings": "No properties found",
@@ -298,11 +290,9 @@
   "empty_no_proposed_properties": "No properties have been proposed yet.",
   "empty_no_matching_properties_enquiry": "No matching properties found",
   "empty_no_matching_properties_enquiry_desc": "You don't have any active properties that match this enquiry. Try creating a new one!",
-
   "access_restricted": "Access Restricted",
   "access_restricted_property": "You don't have permission to view this property. This property may be private or you may not be associated with it.",
   "access_restricted_desc": "You don't have permission to view this property.",
-
   "confirm_delete_contact_title": "Delete Contact",
   "confirm_delete_contact_desc": "Are you sure you want to delete {{name}}? This action cannot be undone.",
   "confirm_remove_broker_title": "Remove Broker?",
@@ -316,7 +306,6 @@
   "share_contact_desc": "Share your contact details with the user who made the offer. Pick a time when you are available for a call.",
   "filter_properties_title": "Filter Properties",
   "filter_properties_desc": "Use filters to find properties that match your requirements.",
-
   "offer_submit_final_title": "Submit Final Offer",
   "offer_submit_title": "Submit Offer",
   "offer_final_desc": "This is your last chance to make an offer on this property. If rejected, you won't be able to submit another offer.",
@@ -335,7 +324,6 @@
   "offer_your_property": "Your Property",
   "offer_higher_than_asking": "Offer cannot be higher than asking rate.",
   "offer_total_higher_than_asking": "Offer total cannot be higher than asking total.",
-
   "loading": "Loading...",
   "submitting": "Submitting...",
   "sharing": "Sharing...",
@@ -350,7 +338,6 @@
   "error_loading": "Failed to load. Please try again.",
   "your_listing_created": "Your listing has been successfully created",
   "search_properties": "Search properties...",
-
   "validation_state_required": "State is required",
   "validation_city_required": "City is required",
   "validation_address_required": "Address is required",
@@ -370,14 +357,12 @@
   "validation_featured_media_url": "Featured media must be a valid URL",
   "validation_images_required": "At least one image is required",
   "validation_field_required": "{{field}} is required",
-
   "page_bookmarks_title": "Bookmarks",
   "page_bookmarks_subtitle": "Your saved properties and enquiries in one place.",
   "page_bookmarks_saved_properties": "Saved Properties",
   "page_bookmarks_saved_enquiries": "Saved Enquiries",
   "page_bookmarks_empty_properties": "No saved properties yet. Bookmark a listing to find it here later.",
   "page_bookmarks_empty_enquiries": "No saved enquiries yet. Bookmark an enquiry to track it here.",
-
   "page_create_property_title": "List a new property",
   "page_create_property_subtitle": "Select a category to begin listing your premium property on the market.",
   "page_create_property_incomplete": "{{count}} incomplete listing",
@@ -385,7 +370,6 @@
   "page_create_property_continue_desc": "Continue where you left off and complete your property listings",
   "page_create_property_view_drafts": "View Drafts",
   "page_create_property_create": "Create",
-
   "type_flat": "Flat",
   "type_villa": "Villa",
   "type_land": "Land",
@@ -402,7 +386,6 @@
   "type_resort": "Resort",
   "type_farm_house": "Farm House",
   "type_individual": "Individual",
-
   "amenity_balcony": "Balcony",
   "amenity_attached_washroom": "Attached Washroom",
   "amenity_cupboard": "Cupboard",
@@ -438,7 +421,6 @@
   "amenity_pet_friendly": "Pet Friendly",
   "amenity_jacuzzi_spa": "Jacuzzi Spa",
   "amenity_fire_pit": "Fire Pit",
-
   "page_my_properties_title": "My Properties",
   "page_my_properties_subtitle": "Manage and view all your property listings",
   "page_add_property": "Add Property",
@@ -459,7 +441,6 @@
   "error_load_properties": "Failed to load properties. Please try again later.",
   "label_privacy": "Privacy",
   "label_terms": "Terms",
-
   "wizard_step_property_details": "Property Details",
   "wizard_step_property_details_desc": "Basic info, specs and pricing",
   "wizard_step_features_media": "Features & Media",
@@ -470,7 +451,6 @@
   "wizard_specs_pricing": "Specifications & Pricing",
   "wizard_features_amenities": "Features & Amenities",
   "wizard_media_description": "Media & Description",
-
   "form_property_type": "Property Type",
   "form_select_property_type": "Select Property Type",
   "form_state": "State",
@@ -488,7 +468,6 @@
   "form_featured_media": "Featured Media",
   "form_images": "Images",
   "form_floor_plans": "Floor Plans",
-
   "page_create_enquiry_title": "Post a Requirement",
   "page_create_enquiry_subtitle": "Tell us what you are looking for, and we will find the perfect match.",
   "form_location": "Location",
@@ -530,7 +509,6 @@
   "form_description": "Description",
   "form_description_placeholder": "Describe your requirements in detail...",
   "form_generate_description": "Generate Description",
-
   "page_property_details_title": "Property Details",
   "label_price": "Price",
   "label_rate": "Rate",
@@ -556,7 +534,6 @@
   "label_status_unknown": "Status Unknown",
   "action_go_back": "Go Back",
   "action_open_actions": "Open actions",
-
   "page_enquiry_details_title": "Enquiry Details",
   "label_back_to_enquiries": "Back to Enquiries",
   "label_enquiry_in": "Enquiry in",
@@ -585,7 +562,6 @@
   "dialog_close_enquiry_title": "Close Enquiry",
   "dialog_close_enquiry_desc": "Are you sure you want to close this enquiry? This action cannot be undone.",
   "dialog_type_to_confirm": "Type to confirm",
-
   "label_road": "Road",
   "label_corner": "Corner",
   "label_north": "North",
@@ -599,16 +575,13 @@
   "label_near_ring_road": "Near Ring Road",
   "label_riico_area": "RIICO Area",
   "label_sez": "SEZ",
-
   "label_sq_ft": "Sq Ft",
   "label_sq_meter": "Sq Meter",
   "label_sq_yards": "Sq Yards",
   "label_acres": "Acres",
   "label_hectare": "Hectare",
   "label_bigha": "Bigha",
-
   "property_submitted_for": "This property was submitted for",
-
   "mobile_aadhaar_hint": "Please enter the mobile number linked with your Aadhaar for verification purposes.",
   "mobile_company_hint": "Mobile should be the primary mobile no. or admin's no. of your firm.",
   "country_code": "Country Code",
@@ -616,7 +589,6 @@
   "notify_me": "Notify Me",
   "notify_me_success": "We'll notify you when Brokwise launches in your country!",
   "notify_mobile_placeholder": "Your mobile number (optional)",
-
   "deletion_reason_label": "Reason for Deletion",
   "select_deletion_reason": "Select a reason",
   "deletion_reason_sold": "Property has been sold",
@@ -631,7 +603,6 @@
   "request_property_deletion": "Request Property Deletion",
   "request_property_deletion_desc": "Please provide a reason for deleting this property. This request will be sent to the admin for approval.",
   "submit_request": "Submit Request",
-
   "chatbot_title": "Brokwise Assistant",
   "chatbot_subtitle": "Here to help you",
   "chatbot_welcome_title": "Hi! I'm your Brokwise Assistant",
@@ -642,5 +613,59 @@
   "chatbot_suggestion_3": "Managing bookmarks",
   "chatbot_input_placeholder": "Ask me anything about Brokwise...",
   "chatbot_clear_title": "Clear Chat",
-  "chatbot_clear_description": "Are you sure you want to clear all messages? This action cannot be undone."
+  "chatbot_clear_description": "Are you sure you want to clear all messages? This action cannot be undone.",
+  "property_asking_price": "Asking Price",
+  "property_status": "Status",
+  "property_updated": "Updated",
+  "property_submitted_for_enquiry": "Submitted for Enquiry",
+  "property_schedule_visit": "Schedule Visit",
+  "property_open_maps": "Open Maps",
+  "property_report_property": "Report Property",
+  "property_key_facts": "Key Property Facts",
+  "property_category": "Category",
+  "property_property_type": "Property Type",
+  "property_plot_type": "Plot Type",
+  "property_bedrooms": "Bedrooms",
+  "property_bathrooms": "Bathrooms",
+  "property_front_facing": "Front Facing",
+  "property_side_facing": "Side Facing",
+  "property_front_road": "Front Road",
+  "property_side_road": "Side Road",
+  "property_possession": "Possession",
+  "property_project_area": "Project Area",
+  "property_society": "Society",
+  "property_rental_income": "Rental Income",
+  "property_copy_link": "Copy Link",
+  "property_share_whatsapp": "Share via WhatsApp",
+  "property_share_property": "Share Property",
+  "property_saved": "Saved",
+  "property_read_more": "Read More",
+  "property_show_less": "Show Less",
+  "property_floor_plan": "Floor Plan",
+  "property_floor_plan_type": "Floor Plan",
+  "property_legal_type": "Legal",
+  "property_your_property": "Your Property",
+  "property_your_offer_status": "Your Offer Status",
+  "property_offered_rate": "Offered Rate",
+  "property_offer_sent": "Offer sent",
+  "property_your_offer_sent": "Your offer has been sent!",
+  "property_submit_final_offer_btn": "Submit Final Offer (Last Chance)",
+  "property_final_review_pending": "Final Review Pending",
+  "property_final_review_pending_desc": "Your final offer is under review. This is your last attempt.",
+  "property_final_offer_accepted": "Final Offer Accepted!",
+  "property_final_offer_accepted_desc": "Congratulations! Your final offer has been accepted.",
+  "property_final_offer_rejected": "Final Offer Rejected",
+  "property_no_more_offers": "You cannot submit more offers for this property.",
+  "property_no_reason_provided": "No reason provided.",
+  "property_reason": "Reason",
+  "property_no_offer_yet": "You haven't made an offer on this property yet. The asking rate is",
+  "property_submit_final_offer": "Submit Final Offer",
+  "property_final_offer_warning": "This is your last chance to make an offer on this property. If rejected, you won't be able to submit another offer.",
+  "property_offer_warning": "Submit your best offer for this property. If rejected, you will have one chance to submit a final offer.",
+  "property_per_unit": "Per Unit",
+  "property_total": "Total",
+  "property_offer_rate_label": "Offer Rate",
+  "property_offer_total_label": "Offer Total",
+  "property_asking_total": "Asking Total",
+  "property_nearby_localities": "Nearby Localities"
 }

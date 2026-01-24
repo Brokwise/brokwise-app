@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useTranslation } from "react-i18next";
 
 interface MakeOfferProps {
   property: Property;
@@ -38,6 +39,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
   const { offerPrice, isPending: isSubmitting } = useOfferPrice();
   const { submitFinalOffer, isPending: isSubmittingFinal } =
     useSubmitFinalOffer();
+  const { t } = useTranslation();
 
   const [open, setOpen] = useState(false);
   const [rate, setRate] = useState<string>("");
@@ -52,7 +54,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
 
   if (isOwnListing) {
     return <Alert>
-      <AlertDescription className="flex gap-2"><Info /> Your Property</AlertDescription>
+      <AlertDescription className="flex gap-2"><Info /> {t("property_your_property")}</AlertDescription>
     </Alert>;
   }
   const myOffer = property.offers?.find((offer) => {
@@ -82,17 +84,17 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
       priceMode === "total" && size ? offerValue / size : offerValue;
 
     if (isNaN(offerValue) || offerValue <= 0) {
-      toast.error("Please enter a valid rate");
+      toast.error(t("toast_error_invalid_rate"));
       return;
     }
 
     if (priceMode === "perUnit" && offerRate > property.rate) {
-      toast.error("Offer rate cannot be higher than the asking rate");
+      toast.error(t("toast_error_rate_higher"));
       return;
     }
 
     if (priceMode === "total" && offerValue > maxTotal) {
-      toast.error("Offer total cannot be higher than the asking total");
+      toast.error(t("toast_error_total_higher"));
       return;
     }
 
@@ -119,13 +121,13 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
     switch (status) {
       case "pending":
       case "final_pending":
-        return <Badge className="bg-green-500">Sent</Badge>;
+        return <Badge className="bg-green-500">{t("offer_sent")}</Badge>;
       case "accepted":
       case "final_accepted":
-        return <Badge className="bg-green-500">Accepted</Badge>;
+        return <Badge className="bg-green-500">{t("offer_accepted")}</Badge>;
       case "rejected":
       case "final_rejected":
-        return <Badge className="bg-red-500">Rejected</Badge>;
+        return <Badge className="bg-red-500">{t("offer_rejected")}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -136,8 +138,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
       return (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            You haven&apos;t made an offer on this property yet. The asking rate
-            is{" "}
+            {t("property_no_offer_yet")}{" "}
             <span className="font-semibold text-foreground">
               {formatCurrency(property.rate)}
             </span>
@@ -145,7 +146,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
           </p>
           <Button onClick={() => setOpen(true)} className="w-full">
             <Gavel className="mr-2 h-4 w-4" />
-            Make an Offer
+            {t("action_make_offer")}
           </Button>
         </div>
       );
@@ -156,17 +157,17 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Your Offer Status</span>
+          <span className="text-sm font-medium">{t("property_your_offer_status")}</span>
           {getStatusBadge(status)}
         </div>
 
         <div className="p-3 bg-muted rounded-lg space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Offered Rate:</span>
+            <span className="text-muted-foreground">{t("property_offered_rate")}:</span>
             <span className="font-semibold">{formatCurrency(offerRate)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Asking Rate:</span>
+            <span className="text-muted-foreground">{t("label_asking_rate")}:</span>
             <span>{formatCurrency(property.rate)}</span>
           </div>
         </div>
@@ -174,9 +175,9 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
         {status === "pending" && (
           <Alert className="bg-green-50 border-green-200">
             <Clock className="h-4 w-4 text-green-600" />
-            <AlertTitle className="text-green-800">Offer sent</AlertTitle>
+            <AlertTitle className="text-green-800">{t("property_offer_sent")}</AlertTitle>
             <AlertDescription className="text-green-700">
-              Your offer has been sent!
+              {t("property_your_offer_sent")}
             </AlertDescription>
           </Alert>
         )}
@@ -184,10 +185,9 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
         {status === "accepted" && (
           <Alert className="bg-green-50 border-green-200">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <AlertTitle className="text-green-800">Offer Accepted!</AlertTitle>
+            <AlertTitle className="text-green-800">{t("offer_accepted")}</AlertTitle>
             <AlertDescription className="text-green-700">
-              Congratulations! Your offer has been accepted. We will contact you
-              shortly.
+              {t("offer_accepted_desc")}
             </AlertDescription>
           </Alert>
         )}
@@ -196,9 +196,9 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
           <div className="space-y-3">
             <Alert variant="destructive">
               <XCircle className="h-4 w-4" />
-              <AlertTitle>Offer Rejected</AlertTitle>
+              <AlertTitle>{t("offer_rejected")}</AlertTitle>
               <AlertDescription>
-                Reason: {rejectionReason || "No reason provided."}
+                {t("property_reason")}: {rejectionReason || t("property_no_reason_provided")}
               </AlertDescription>
             </Alert>
             <Button
@@ -209,7 +209,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
               className="w-full"
               variant="outline"
             >
-              Submit Final Offer (Last Chance)
+              {t("property_submit_final_offer_btn")}
             </Button>
           </div>
         )}
@@ -218,10 +218,10 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
           <Alert className="bg-yellow-50 border-yellow-200">
             <Clock className="h-4 w-4 text-yellow-600" />
             <AlertTitle className="text-yellow-800">
-              Final Review Pending
+              {t("property_final_review_pending")}
             </AlertTitle>
             <AlertDescription className="text-yellow-700">
-              Your final offer is under review. This is your last attempt.
+              {t("property_final_review_pending_desc")}
             </AlertDescription>
           </Alert>
         )}
@@ -230,10 +230,10 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
           <Alert className="bg-green-50 border-green-200">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <AlertTitle className="text-green-800">
-              Final Offer Accepted!
+              {t("property_final_offer_accepted")}
             </AlertTitle>
             <AlertDescription className="text-green-700">
-              Congratulations! Your final offer has been accepted.
+              {t("property_final_offer_accepted_desc")}
             </AlertDescription>
           </Alert>
         )}
@@ -241,11 +241,11 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
         {status === "final_rejected" && (
           <Alert variant="destructive">
             <XCircle className="h-4 w-4" />
-            <AlertTitle>Final Offer Rejected</AlertTitle>
+            <AlertTitle>{t("property_final_offer_rejected")}</AlertTitle>
             <AlertDescription>
-              Reason: {rejectionReason || "No reason provided."}
+              {t("property_reason")}: {rejectionReason || t("property_no_reason_provided")}
               <div className="mt-2 font-semibold">
-                You cannot submit more offers for this property.
+                {t("property_no_more_offers")}
               </div>
             </AlertDescription>
           </Alert>
@@ -258,7 +258,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Make an Offer</CardTitle>
+          <CardTitle>{t("action_make_offer")}</CardTitle>
         </CardHeader>
         <CardContent>{renderOfferContent()}</CardContent>
       </Card>
@@ -267,12 +267,12 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {isFinalOfferMode ? "Submit Final Offer" : "Submit Offer"}
+              {isFinalOfferMode ? t("property_submit_final_offer") : t("action_submit_offer")}
             </DialogTitle>
             <DialogDescription>
               {isFinalOfferMode
-                ? "This is your last chance to make an offer on this property. If rejected, you won't be able to submit another offer."
-                : "Submit your best offer for this property. If rejected, you will have one chance to submit a final offer."}
+                ? t("property_final_offer_warning")
+                : t("property_offer_warning")}
             </DialogDescription>
           </DialogHeader>
 
@@ -286,7 +286,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
                   setRate("");
                 }}
               >
-                Per Unit
+                {t("property_per_unit")}
               </Button>
               <Button
                 type="button"
@@ -297,17 +297,17 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
                 }}
                 disabled={!property.size}
               >
-                Total
+                {t("property_total")}
               </Button>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="rate">
                 {priceMode === "perUnit"
-                  ? `Offer Rate (per ${property.sizeUnit
+                  ? `${t("property_offer_rate_label")} (per ${property.sizeUnit
                     ?.toLowerCase()
                     .replace("_", " ")})`
-                  : "Offer Total"}
+                  : t("property_offer_total_label")}
               </Label>
               <div className="relative">
                 <span className="absolute left-3 top-2.5 text-muted-foreground">
@@ -318,8 +318,8 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
                   type="number"
                   placeholder={
                     priceMode === "perUnit"
-                      ? `Max: ${property.rate}`
-                      : `Max: ${(Number(property.size) || 0) * property.rate}`
+                      ? `${t("label_max")}: ${property.rate}`
+                      : `${t("label_max")}: ${(Number(property.size) || 0) * property.rate}`
                   }
                   className="pl-7"
                   value={rate}
@@ -333,11 +333,11 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Asking Rate: {formatCurrency(property.rate)}
+                {t("label_asking_rate")}: {formatCurrency(property.rate)}
                 {property.size ? (
                   <>
                     {" "}
-                    • Asking Total:{" "}
+                    • {t("property_asking_total")}:{" "}
                     {formatCurrency(property.rate * property.size)}
                   </>
                 ) : null}
@@ -353,8 +353,8 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
                 <div className="text-sm text-destructive flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" />
                   {priceMode === "perUnit"
-                    ? "Offer cannot be higher than asking rate."
-                    : "Offer total cannot be higher than asking total."}
+                    ? t("offer_higher_than_asking")
+                    : t("offer_total_higher_than_asking")}
                 </div>
               )}
 
@@ -364,7 +364,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
                 variant="outline"
                 onClick={() => setOpen(false)}
               >
-                Cancel
+                {t("action_cancel")}
               </Button>
               <Button
                 type="submit"
@@ -380,8 +380,8 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
                 }
               >
                 {isSubmitting || isSubmittingFinal
-                  ? "Submitting..."
-                  : "Submit Offer"}
+                  ? t("submitting")
+                  : t("action_submit_offer")}
               </Button>
             </DialogFooter>
           </form>

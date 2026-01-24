@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 // Components
 import { PropertyHeader } from "./_components/property-header";
@@ -53,6 +54,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   const [flagReason, setFlagReason] = useState("");
   const [flagNotes, setFlagNotes] = useState("");
   const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
+  const { t } = useTranslation();
 
   // Check bookmark status from the correct user data (same pattern as PropertyCard)
   const isCompany = userData?.userType === "company";
@@ -149,7 +151,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
     try {
       // Mock API call
       await new Promise((resolve) => setTimeout(resolve, 900));
-      toast.success("Thanks for reporting. We'll review this property soon.");
+      toast.success(t("toast_report_submitted"));
       setIsFlagDialogOpen(false);
       setFlagReason("");
       setFlagNotes("");
@@ -166,7 +168,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading property details...</p>
+          <p className="text-muted-foreground">{t("loading_property")}</p>
         </div>
       </div>
     );
@@ -184,16 +186,15 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
                 <ShieldX className="h-8 w-8 text-destructive" />
               </div>
-              <CardTitle className="text-xl">Access Restricted</CardTitle>
+              <CardTitle className="text-xl">{t("access_restricted")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                You don&apos;t have permission to view this property. This
-                property may be private or you may not be associated with it.
+                {t("access_restricted_property")}
               </p>
               <Button className="w-full" onClick={() => router.back()}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Go Back
+                {t("action_go_back")}
               </Button>
             </CardContent>
           </Card>
@@ -332,7 +333,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
             {/* Localities (if needed inline) */}
             {property.localities && property.localities.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Nearby Localities</h3>
+                <h3 className="text-lg font-semibold">{t("property_nearby_localities")}</h3>
                 <div className="flex flex-wrap gap-2">
                   {property.localities.map((locality, index) => (
                     <div key={index} className="px-3 py-1 bg-muted/50 rounded-full text-sm flex items-center gap-1.5 border border-border/50">
@@ -354,41 +355,41 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
       <Dialog open={isFlagDialogOpen} onOpenChange={setIsFlagDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Flag this property</DialogTitle>
+            <DialogTitle>{t("flag_property_title")}</DialogTitle>
             <DialogDescription>
-              Tell us what seems wrong so we can review this listing.
+              {t("flag_property_desc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="flag-reason">Reason</Label>
+              <Label htmlFor="flag-reason">{t("label_reason")}</Label>
               <Select value={flagReason} onValueChange={setFlagReason}>
                 <SelectTrigger id="flag-reason">
-                  <SelectValue placeholder="Select a reason" />
+                  <SelectValue placeholder={t("label_select_reason")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="MISLEADING_INFORMATION">
-                    Misleading information
+                    {t("label_misleading_info")}
                   </SelectItem>
                   <SelectItem value="INCORRECT_PRICING">
-                    Incorrect pricing
+                    {t("label_incorrect_pricing")}
                   </SelectItem>
                   <SelectItem value="DUPLICATE_LISTING">
-                    Duplicate listing
+                    {t("label_duplicate_listing")}
                   </SelectItem>
-                  <SelectItem value="SCAM_OR_FRAUD">Scam or fraud</SelectItem>
-                  <SelectItem value="SPAM">Spam or promotional</SelectItem>
-                  <SelectItem value="OTHER">Other</SelectItem>
+                  <SelectItem value="SCAM_OR_FRAUD">{t("label_scam_fraud")}</SelectItem>
+                  <SelectItem value="SPAM">{t("label_spam")}</SelectItem>
+                  <SelectItem value="OTHER">{t("label_other")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="flag-notes">Additional details</Label>
+              <Label htmlFor="flag-notes">{t("label_additional_details")}</Label>
               <Textarea
                 id="flag-notes"
                 value={flagNotes}
                 onChange={(e) => setFlagNotes(e.target.value)}
-                placeholder="Share any details that help us investigate."
+                placeholder={t("label_details_placeholder")}
                 className="min-h-[96px]"
               />
             </div>
@@ -399,13 +400,13 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
               onClick={() => setIsFlagDialogOpen(false)}
               disabled={isSubmittingFlag}
             >
-              Cancel
+              {t("action_cancel")}
             </Button>
             <Button
               onClick={handleSubmitFlag}
               disabled={!flagReason || isSubmittingFlag}
             >
-              {isSubmittingFlag ? "Submitting..." : "Submit report"}
+              {isSubmittingFlag ? t("submitting") : t("action_submit_report")}
             </Button>
           </DialogFooter>
         </DialogContent>
