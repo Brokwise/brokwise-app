@@ -57,14 +57,14 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
     | z.infer<typeof loginFormSchema>;
   const defaultValues = isSignup
     ? {
-        email: "",
-        password: "",
-        confirmPassword: "",
-      }
+      email: "",
+      password: "",
+      confirmPassword: "",
+    }
     : {
-        email: "",
-        password: "",
-      };
+      email: "",
+      password: "",
+    };
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     mode: "onChange",
@@ -126,7 +126,7 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         return;
       }
       const actionCodeSettings = {
-        url: `${window.location.origin}/app`,
+        url: `${window.location.origin}`,
         handleCodeInApp: false,
       };
       await sendEmailVerification(user, actionCodeSettings);
@@ -225,11 +225,10 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
 
       const statePayload = `${isNative}---${target}`;
       alert(statePayload);
-      const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${
-        Config.googleOauthClientId
-      }&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${encodeURIComponent(
-        statePayload
-      )}`;
+      const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${Config.googleOauthClientId
+        }&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${encodeURIComponent(
+          statePayload
+        )}`;
 
       if (isNative) {
         await Browser.open({ url: authUrl });
@@ -365,9 +364,8 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
           )}
           <Button
             type="button"
-            className={`w-full ${
-              !isValid && !loading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`w-full ${!isValid && !loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             size={"lg"}
             disabled={loading}
             onClick={async () => {

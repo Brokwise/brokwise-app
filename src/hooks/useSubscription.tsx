@@ -18,6 +18,17 @@ import {
 } from "@/models/types/subscription";
 import { getRazorpayPlan } from "@/config/tier_limits";
 
+// Response type for createSubscription endpoint
+interface CreateSubscriptionResponse {
+  subscription: SubscriptionResponse;
+  razorpay: {
+    subscriptionId: string; // sub_xxx - use this for checkout
+    shortUrl: string;
+    keyId: string;
+  };
+  message: string;
+}
+
 /**
  * Hook to get all available subscription plans
  */
@@ -157,7 +168,7 @@ export const useCreateSubscription = () => {
   const queryClient = useQueryClient();
 
   const { mutateAsync, isPending, error } = useMutation<
-    { subscription: SubscriptionResponse; message: string },
+    CreateSubscriptionResponse,
     AxiosError<{ message: string }>,
     CreateSubscriptionPayload
   >({
@@ -298,17 +309,21 @@ export const useSubscription = () => {
         return;
       }
 
-      // First create the subscription on our backend
-      await createSubscription({
+      // Create the subscription on our backend - this creates a Razorpay subscription
+      // and returns the subscription_id (sub_xxx) to use for checkout
+      const result = await createSubscription({
         tier: selectedTier,
         duration: selectedDuration,
         razorpayPlanId: razorpayPlan.planId,
       });
 
+      // Use the subscription_id from the backend response, NOT the plan_id
+      const { subscriptionId, keyId } = result.razorpay;
+
       // Open Razorpay checkout for subscription
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        subscription_id: razorpayPlan.planId,
+        key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        subscription_id: subscriptionId, // Use sub_xxx from backend, NOT plan_xxx
         name: "Brokwise",
         description: `${selectedTier} Plan - ${selectedDuration.replace("_", " ")}`,
         prefill: {
