@@ -15,6 +15,7 @@ interface PropertyActionsBarProps {
     onExportPdf: () => void;
     isExportingPdf: boolean;
     isBookmarked: boolean;
+    isBookmarkPending?: boolean;
     onToggleBookmark: () => void;
     shareUrl: string;
     propertyTitle?: string;
@@ -24,6 +25,7 @@ export const PropertyActionsBar = ({
     onExportPdf,
     isExportingPdf,
     isBookmarked,
+    isBookmarkPending = false,
     onToggleBookmark,
     shareUrl,
     propertyTitle = "Property",
@@ -86,9 +88,12 @@ export const PropertyActionsBar = ({
                 variant={isBookmarked ? "default" : "outline"}
                 size="sm"
                 onClick={onToggleBookmark}
+                disabled={isBookmarkPending}
                 className={`gap-2 ${isBookmarked ? "bg-primary text-primary-foreground" : ""}`}
             >
-                {isBookmarked ? (
+                {isBookmarkPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isBookmarked ? (
                     <BookmarkCheck className="h-4 w-4" />
                 ) : (
                     <Bookmark className="h-4 w-4" />

@@ -2,6 +2,8 @@
 
 import React, { useCallback, useRef, useState } from "react";
 import { useGetProperty } from "@/hooks/useProperty";
+import { useToggleBookmark } from "@/hooks/useBookmarks";
+import { useApp } from "@/context/AppContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,14 +45,23 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
   const router = useRouter();
   const { property, isLoading, error } = useGetProperty(id);
+  const { userData, brokerData, setBrokerData, companyData, setCompanyData } = useApp();
+  const { toggleBookmarkAsync, isPending: isBookmarkPending } = useToggleBookmark();
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [exportedOnLabel, setExportedOnLabel] = useState<string>("");
   const [isFlagDialogOpen, setIsFlagDialogOpen] = useState(false);
   const [flagReason, setFlagReason] = useState("");
   const [flagNotes, setFlagNotes] = useState("");
   const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const pdfRef = useRef<HTMLDivElement | null>(null);
+
+  // Check bookmark status from the correct user data (same pattern as PropertyCard)
+  const isCompany = userData?.userType === "company";
+  const isBookmarked = property
+    ? isCompany
+      ? !!companyData?.bookmarkedPropertyIds?.includes(property._id)
+      : !!brokerData?.bookmarkedPropertyIds?.includes(property._id)
+    : false;
 
   // const offerSectionRef = useRef<HTMLDivElement>(null);
   // const calendarSectionRef = useRef<HTMLDivElement>(null);
@@ -221,12 +232,74 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
               onExportPdf={handleExportPdf}
               isExportingPdf={isExportingPdf}
               isBookmarked={isBookmarked}
-              onToggleBookmark={() => {
-                setIsBookmarked(!isBookmarked);
-                if (!isBookmarked) {
-                  toast.success("Property saved to bookmarks!");
-                } else {
-                  toast.info("Property removed from bookmarks");
+              isBookmarkPending={isBookmarkPending}
+              onToggleBookmark={async () => {
+                if (!property) return;
+
+                if (!brokerData && !companyData) {
+                  toast.error("Please complete your profile to use bookmarks");
+                  return;
+                }
+
+                if (isCompany && companyData) {
+                  const prev = companyData.bookmarkedPropertyIds ?? [];
+                  const next = isBookmarked
+                    ? prev.filter((id) => id !== property._id)
+                    : [property._id, ...prev.filter((id) => id !== property._id)];
+
+                  // Optimistic update
+                  setCompanyData({ ...companyData, bookmarkedPropertyIds: next });
+
+                  try {
+                    const res = await toggleBookmarkAsync({
+                      itemType: "PROPERTY",
+                      itemId: property._id,
+                    });
+                    setCompanyData({
+                      ...companyData,
+                      bookmarkedPropertyIds: res.bookmarkedPropertyIds,
+                      bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
+                    });
+                    toast.success(
+                      res.isBookmarked
+                        ? "Property saved to bookmarks!"
+                        : "Property removed from bookmarks"
+                    );
+                  } catch {
+                    // Rollback on error
+                    setCompanyData({
+                      ...companyData,
+                      bookmarkedPropertyIds: prev,
+                    });
+                  }
+                } else if (brokerData) {
+                  const prev = brokerData.bookmarkedPropertyIds ?? [];
+                  const next = isBookmarked
+                    ? prev.filter((id) => id !== property._id)
+                    : [property._id, ...prev.filter((id) => id !== property._id)];
+
+                  // Optimistic update
+                  setBrokerData({ ...brokerData, bookmarkedPropertyIds: next });
+
+                  try {
+                    const res = await toggleBookmarkAsync({
+                      itemType: "PROPERTY",
+                      itemId: property._id,
+                    });
+                    setBrokerData({
+                      ...brokerData,
+                      bookmarkedPropertyIds: res.bookmarkedPropertyIds,
+                      bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
+                    });
+                    toast.success(
+                      res.isBookmarked
+                        ? "Property saved to bookmarks!"
+                        : "Property removed from bookmarks"
+                    );
+                  } catch {
+                    // Rollback on error
+                    setBrokerData({ ...brokerData, bookmarkedPropertyIds: prev });
+                  }
                 }
               }}
               shareUrl={typeof window !== "undefined" ? window.location.href : ""}
