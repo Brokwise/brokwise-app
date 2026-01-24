@@ -92,6 +92,7 @@ export function ChatbotWidget() {
           <SheetContent
             side="bottom"
             className="h-[85vh] p-0 rounded-t-3xl overflow-hidden"
+            hideCloseButton
           >
             <ChatContent />
           </SheetContent>
