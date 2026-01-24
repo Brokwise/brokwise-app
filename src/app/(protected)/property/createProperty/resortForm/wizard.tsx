@@ -116,7 +116,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
         "sizeUnit",
         "rate",
       ],
-      1: ["description", "featuredMedia", "images"],
+      1: ["description", "featuredMedia", "floorPlans"],
       2: [],
     };
 
@@ -155,7 +155,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
           rate: "Rate per unit is required",
           description: "Description is required",
           featuredMedia: "Featured media is required",
-          images: "At least one image is required",
+          floorPlans: "Floor plans are required",
         };
 
         form.setError(field as keyof ResortPropertyFormData, {

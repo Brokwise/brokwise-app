@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  PROPERTY_LIMITS,
   formatIndianNumber,
   parseIntegerWithMax,
   parseRoadWidthInput,
@@ -49,6 +48,12 @@ export const CommercialPropertySpecs: React.FC<
   const rate = form.watch("rate");
   const totalPrice = form.watch("totalPrice");
   const plotType = form.watch("plotType");
+  const roadWidthUnit = form.watch("roadWidthUnit") || "METER";
+
+  const roadWidthOptionsMeters = [3.75, 5.5, 7.0, 10.5, 14.0, 21.0];
+  const roadWidthOptionsFeet = [12, 18, 23, 35, 46, 70];
+  const roadWidthOptions = roadWidthUnit === "FEET" ? roadWidthOptionsFeet : roadWidthOptionsMeters;
+  const roadWidthUnitLabel = roadWidthUnit === "FEET" ? "ft" : "m";
 
   const effectiveSize = size && size > 0 ? size : 0;
 
@@ -116,7 +121,7 @@ export const CommercialPropertySpecs: React.FC<
                   className={cn(
                     "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
                     fieldState.error &&
-                      "bg-destructive/10 ring-1 ring-destructive"
+                    "bg-destructive/10 ring-1 ring-destructive"
                   )}
                   data-field="sizeUnit"
                 >
@@ -163,7 +168,7 @@ export const CommercialPropertySpecs: React.FC<
                   className={cn(
                     "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
                     fieldState.error &&
-                      "bg-destructive/10 ring-1 ring-destructive"
+                    "bg-destructive/10 ring-1 ring-destructive"
                   )}
                   data-field="floor"
                 >
@@ -245,7 +250,7 @@ export const CommercialPropertySpecs: React.FC<
                     className={cn(
                       "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
                       fieldState.error &&
-                        "bg-destructive/10 ring-1 ring-destructive"
+                      "bg-destructive/10 ring-1 ring-destructive"
                     )}
                     data-field="beds"
                   >
@@ -315,7 +320,7 @@ export const CommercialPropertySpecs: React.FC<
                   className={cn(
                     "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
                     fieldState.error &&
-                      "bg-destructive/10 ring-1 ring-destructive"
+                    "bg-destructive/10 ring-1 ring-destructive"
                   )}
                   data-field="propertyStatus"
                 >
@@ -384,7 +389,7 @@ export const CommercialPropertySpecs: React.FC<
                     className={cn(
                       "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
                       fieldState.error &&
-                        "bg-destructive/10 ring-1 ring-destructive"
+                      "bg-destructive/10 ring-1 ring-destructive"
                     )}
                     data-field="plotType"
                   >
@@ -413,37 +418,38 @@ export const CommercialPropertySpecs: React.FC<
             )}
           />
 
+          {/* Road Width Unit Toggle - Inline */}
           <FormField
             control={form.control}
-            name="facing"
-            render={({ field, fieldState }) => (
+            name="roadWidthUnit"
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Front Facing <span className="text-destructive">*</span>
+                  Road Width Unit <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
-                  <div
-                    className={cn(
-                      "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
-                      fieldState.error &&
-                        "bg-destructive/10 ring-1 ring-destructive"
-                    )}
-                    data-field="facing"
-                  >
-                    {["NORTH", "SOUTH", "EAST", "WEST"].map((dir) => (
-                      <Button
-                        key={dir}
+                  <div className="inline-flex rounded-lg border bg-muted p-1">
+                    {[
+                      { value: "METER", label: "Meters" },
+                      { value: "FEET", label: "Feet" },
+                    ].map((item) => (
+                      <button
+                        key={item.value}
                         type="button"
-                        variant="selection"
-                        onClick={() => field.onChange(dir)}
+                        onClick={() => {
+                          field.onChange(item.value);
+                          form.setValue("frontRoadWidth", undefined);
+                          form.setValue("sideRoadWidth", undefined);
+                        }}
                         className={cn(
-                          field.value === dir
-                            ? "bg-primary text-primary-foreground"
-                            : ""
+                          "px-4 py-2 text-sm font-medium rounded-md transition-all",
+                          field.value === item.value
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
                         )}
                       >
-                        {dir.charAt(0) + dir.slice(1).toLowerCase()}
-                      </Button>
+                        {item.label}
+                      </button>
                     ))}
                   </div>
                 </FormControl>
@@ -452,65 +458,264 @@ export const CommercialPropertySpecs: React.FC<
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="frontRoadWidth"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Front Road Width (in feet){" "}
-                  <span className="text-destructive">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder={`Enter front road width (max ${PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)`}
-                    value={field.value ?? ""}
-                    onChange={(e) =>
-                      field.onChange(parseRoadWidthInput(e.target.value))
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Front Road Details Card */}
+          <div className="space-y-4 p-4 rounded-xl bg-muted/30 border">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <span className="w-1 h-4 bg-primary rounded-full" />
+              Front Road Details
+            </h3>
+
+            <FormField
+              control={form.control}
+              name="facing"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel>
+                    Facing Direction <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <div
+                      className={cn(
+                        "p-3 rounded-lg transition-colors",
+                        fieldState.error &&
+                        "bg-destructive/10 ring-1 ring-destructive"
+                      )}
+                      data-field="facing"
+                    >
+                      {/* Compass Visual Selector */}
+                      <div className="flex flex-col items-center gap-2">
+                        {/* North */}
+                        <Button
+                          type="button"
+                          variant="selection"
+                          size="sm"
+                          onClick={() => field.onChange("NORTH")}
+                          className={cn(
+                            "w-16 h-10",
+                            field.value === "NORTH"
+                              ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
+                              : ""
+                          )}
+                        >
+                          N
+                        </Button>
+
+                        {/* West - Center - East row */}
+                        <div className="flex items-center gap-4">
+                          <Button
+                            type="button"
+                            variant="selection"
+                            size="sm"
+                            onClick={() => field.onChange("WEST")}
+                            className={cn(
+                              "w-16 h-10",
+                              field.value === "WEST"
+                                ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
+                                : ""
+                            )}
+                          >
+                            W
+                          </Button>
+
+                          {/* Compass center indicator */}
+                          <div className="w-12 h-12 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-primary" />
+                          </div>
+
+                          <Button
+                            type="button"
+                            variant="selection"
+                            size="sm"
+                            onClick={() => field.onChange("EAST")}
+                            className={cn(
+                              "w-16 h-10",
+                              field.value === "EAST"
+                                ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
+                                : ""
+                            )}
+                          >
+                            E
+                          </Button>
+                        </div>
+
+                        {/* South */}
+                        <Button
+                          type="button"
+                          variant="selection"
+                          size="sm"
+                          onClick={() => field.onChange("SOUTH")}
+                          className={cn(
+                            "w-16 h-10",
+                            field.value === "SOUTH"
+                              ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
+                              : ""
+                          )}
+                        >
+                          S
+                        </Button>
+                      </div>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="frontRoadWidth"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel>
+                    Road Width <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <div className="space-y-3">
+                      <div
+                        className={cn(
+                          "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
+                          fieldState.error &&
+                          "bg-destructive/10 ring-1 ring-destructive"
+                        )}
+                        data-field="frontRoadWidth"
+                      >
+                        {roadWidthOptions.map((width) => (
+                          <Button
+                            key={width}
+                            type="button"
+                            variant="selection"
+                            size="sm"
+                            onClick={() => field.onChange(width)}
+                            className={cn(
+                              "min-w-[70px]",
+                              field.value === width
+                                ? "bg-primary text-primary-foreground"
+                                : ""
+                            )}
+                          >
+                            {width} {roadWidthUnitLabel}
+                          </Button>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="Custom width"
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(parseRoadWidthInput(e.target.value))
+                          }
+                          className="max-w-[140px]"
+                        />
+                        <span className="text-sm text-muted-foreground">
+                          {roadWidthUnitLabel}
+                        </span>
+                      </div>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           {plotType === "CORNER" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4 p-4 rounded-xl bg-muted/30 border">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <span className="w-1 h-4 bg-primary rounded-full" />
+                Side Road Details
+              </h3>
+
               <FormField
                 control={form.control}
                 name="sideFacing"
                 render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>
-                      Side Facing <span className="text-destructive">*</span>
+                      Facing Direction <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
                       <div
                         className={cn(
-                          "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
+                          "p-3 rounded-lg transition-colors",
                           fieldState.error &&
-                            "bg-destructive/10 ring-1 ring-destructive"
+                          "bg-destructive/10 ring-1 ring-destructive"
                         )}
                         data-field="sideFacing"
                       >
-                        {["NORTH", "SOUTH", "EAST", "WEST"].map((dir) => (
+                        {/* Compass Visual Selector */}
+                        <div className="flex flex-col items-center gap-2">
+                          {/* North */}
                           <Button
-                            key={dir}
                             type="button"
                             variant="selection"
-                            onClick={() => field.onChange(dir)}
+                            size="sm"
+                            onClick={() => field.onChange("NORTH")}
                             className={cn(
-                              field.value === dir
-                                ? "bg-primary text-primary-foreground"
+                              "w-16 h-10",
+                              field.value === "NORTH"
+                                ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
                                 : ""
                             )}
                           >
-                            {dir.charAt(0) + dir.slice(1).toLowerCase()}
+                            N
                           </Button>
-                        ))}
+
+                          {/* West - Center - East row */}
+                          <div className="flex items-center gap-4">
+                            <Button
+                              type="button"
+                              variant="selection"
+                              size="sm"
+                              onClick={() => field.onChange("WEST")}
+                              className={cn(
+                                "w-16 h-10",
+                                field.value === "WEST"
+                                  ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
+                                  : ""
+                              )}
+                            >
+                              W
+                            </Button>
+
+                            {/* Compass center indicator */}
+                            <div className="w-12 h-12 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-primary" />
+                            </div>
+
+                            <Button
+                              type="button"
+                              variant="selection"
+                              size="sm"
+                              onClick={() => field.onChange("EAST")}
+                              className={cn(
+                                "w-16 h-10",
+                                field.value === "EAST"
+                                  ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
+                                  : ""
+                              )}
+                            >
+                              E
+                            </Button>
+                          </div>
+
+                          {/* South */}
+                          <Button
+                            type="button"
+                            variant="selection"
+                            size="sm"
+                            onClick={() => field.onChange("SOUTH")}
+                            className={cn(
+                              "w-16 h-10",
+                              field.value === "SOUTH"
+                                ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
+                                : ""
+                            )}
+                          >
+                            S
+                          </Button>
+                        </div>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -521,22 +726,55 @@ export const CommercialPropertySpecs: React.FC<
               <FormField
                 control={form.control}
                 name="sideRoadWidth"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>
-                      Side Road Width (in feet){" "}
-                      <span className="text-destructive">*</span>
+                      Road Width <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        placeholder={`Enter side road width (max ${PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)`}
-                        value={field.value ?? ""}
-                        onChange={(e) =>
-                          field.onChange(parseRoadWidthInput(e.target.value))
-                        }
-                      />
+                      <div className="space-y-3">
+                        <div
+                          className={cn(
+                            "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
+                            fieldState.error &&
+                            "bg-destructive/10 ring-1 ring-destructive"
+                          )}
+                          data-field="sideRoadWidth"
+                        >
+                          {roadWidthOptions.map((width) => (
+                            <Button
+                              key={width}
+                              type="button"
+                              variant="selection"
+                              size="sm"
+                              onClick={() => field.onChange(width)}
+                              className={cn(
+                                "min-w-[70px]",
+                                field.value === width
+                                  ? "bg-primary text-primary-foreground"
+                                  : ""
+                              )}
+                            >
+                              {width} {roadWidthUnitLabel}
+                            </Button>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="Custom width"
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(parseRoadWidthInput(e.target.value))
+                            }
+                            className="max-w-[140px]"
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            {roadWidthUnitLabel}
+                          </span>
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -562,8 +800,8 @@ export const CommercialPropertySpecs: React.FC<
                   propertyType === "SHOWROOM"
                     ? "e.g., Retail, Display, Sales"
                     : propertyType === "HOTEL"
-                    ? "e.g., Hospitality, Tourism, Business"
-                    : "Enter purpose"
+                      ? "e.g., Hospitality, Tourism, Business"
+                      : "Enter purpose"
                 }
                 {...field}
               />
@@ -678,49 +916,49 @@ export const CommercialPropertySpecs: React.FC<
         {(propertyType === "SHOWROOM" ||
           propertyType === "HOTEL" ||
           propertyType === "HOSTEL") && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Rental Income (Optional)</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="rentalIncome.min"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Minimum Rental Income (₹)</FormLabel>
-                    <FormControl>
-                      <NumberInput
-                        placeholder="0"
-                        {...field}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormDescription>Range: 0 to 25L</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Rental Income (Optional)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="rentalIncome.min"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Minimum Rental Income (₹)</FormLabel>
+                      <FormControl>
+                        <NumberInput
+                          placeholder="0"
+                          {...field}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormDescription>Range: 0 to 25L</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="rentalIncome.max"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Maximum Rental Income (₹)</FormLabel>
-                    <FormControl>
-                      <NumberInput
-                        placeholder="2500000"
-                        {...field}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormDescription>Range: 0 to 25L</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="rentalIncome.max"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maximum Rental Income (₹)</FormLabel>
+                      <FormControl>
+                        <NumberInput
+                          placeholder="2500000"
+                          {...field}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormDescription>Range: 0 to 25L</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         <FormField
           control={form.control}

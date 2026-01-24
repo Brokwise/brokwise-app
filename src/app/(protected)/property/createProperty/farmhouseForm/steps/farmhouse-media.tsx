@@ -228,9 +228,7 @@ export const FarmhouseMedia: React.FC<FarmhouseMediaProps> = ({
           name="images"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Images <span className="text-destructive">*</span>
-              </FormLabel>
+              <FormLabel>Images</FormLabel>
               <FormControl>
                 <div className="space-y-4">
                   {!field.value || field.value.length === 0 ? (
@@ -326,7 +324,9 @@ export const FarmhouseMedia: React.FC<FarmhouseMediaProps> = ({
           name="floorPlans"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Floor Plans</FormLabel>
+              <FormLabel>
+                Floor Plans <span className="text-destructive">*</span>
+              </FormLabel>
               <FormControl>
                 <div className="space-y-4">
                   {!field.value || field.value.length === 0 ? (

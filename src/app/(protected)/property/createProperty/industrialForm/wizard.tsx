@@ -126,7 +126,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
         "sizeUnit",
         "rate",
       ],
-      1: ["description", "featuredMedia", "images"],
+      1: ["description", "featuredMedia", "floorPlans"],
       2: [],
     };
 
@@ -165,7 +165,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
           rate: "Rate per unit is required",
           description: "Description is required",
           featuredMedia: "Featured media is required",
-          images: "At least one image is required",
+          floorPlans: "Site plan is required",
         };
 
         form.setError(field as keyof IndustrialPropertyFormData, {

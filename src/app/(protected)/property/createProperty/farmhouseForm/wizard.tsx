@@ -117,7 +117,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
         "sizeUnit",
         "rate",
       ],
-      1: ["description", "featuredMedia", "images"],
+      1: ["description", "featuredMedia", "floorPlans"],
       2: [], // Review step - no validation needed
     };
 
@@ -158,7 +158,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
           rate: "Rate per unit is required",
           description: "Description is required",
           featuredMedia: "Featured media is required",
-          images: "At least one image is required",
+          floorPlans: "Floor plans are required",
         };
 
         form.setError(field as keyof FarmHousePropertyFormData, {

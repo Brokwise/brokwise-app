@@ -122,7 +122,6 @@ export interface SubmitFinalOfferDTO {
 }
 
 //  Main Property Interface
-
 export interface Property {
   _id: string;
   propertyId: string | null;
@@ -164,8 +163,11 @@ export interface Property {
   propertyStatus?: string;
 
   facing?: Facing;
+  sideFacing?: Facing;
   plotType?: PlotType;
   frontRoadWidth?: number;
+  sideRoadWidth?: number;
+  roadWidthUnit?: "METER" | "FEET";
 
   isPenthouse?: boolean;
   bhk?: number;
@@ -186,7 +188,7 @@ export interface Property {
   updatedAt: string;
   deletingStatus?: "pending" | "approved" | "rejected" | null;
 
-  listedByType:"Broker" | "Company"
+  listedByType: "Broker" | "Company"
   submittedForEnquiryId?: Enquiry;
   offers?: PropertyOffer[];
 }

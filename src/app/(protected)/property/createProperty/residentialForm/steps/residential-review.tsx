@@ -97,12 +97,26 @@ const ResidentialReview: React.FC<ResidentialReviewProps> = ({
                 <strong>Facing:</strong>{" "}
                 {form.watch("facing") || "Not selected"}
               </div>
+              {form.watch("plotType") === "CORNER" && (
+                <div>
+                  <strong>Corner Facing:</strong>{" "}
+                  {form.watch("sideFacing") || "Not selected"}
+                </div>
+              )}
               <div>
                 <strong>Front Road Width:</strong>{" "}
                 {form.watch("frontRoadWidth")
-                  ? `${form.watch("frontRoadWidth")} ft`
+                  ? `${form.watch("frontRoadWidth")} m`
                   : "Not provided"}
               </div>
+              {form.watch("plotType") === "CORNER" && (
+                <div>
+                  <strong>Side Road Width:</strong>{" "}
+                  {form.watch("sideRoadWidth")
+                    ? `${form.watch("sideRoadWidth")} m`
+                    : "Not provided"}
+                </div>
+              )}
             </>
           )}
 
