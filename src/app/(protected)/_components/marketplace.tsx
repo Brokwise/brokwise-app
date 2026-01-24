@@ -765,7 +765,7 @@ export const MarketPlace = () => {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
-          className="fixed bottom-24 md:bottom-8 right-20 md:right-6 z-40"
+          className="fixed bottom-44 md:bottom-8 right-4 md:right-6 z-40"
         >
           <Button
             onClick={scrollToTop}
