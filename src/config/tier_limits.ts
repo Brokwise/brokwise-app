@@ -5,7 +5,6 @@ import {
     RazorpayPlanConfig,
 } from "@/models/types/subscription";
 
-// Tier limits configuration - adjust these values based on your business requirements
 export const PRICING: Record<TIER, TierLimits> = {
     STARTER: {
         PROPERTY_LISTING: 5,
@@ -24,9 +23,7 @@ export const PRICING: Record<TIER, TierLimits> = {
     },
 };
 
-// Razorpay Plan IDs mapped to tier and duration
 export const RAZORPAY_PLANS: RazorpayPlanConfig[] = [
-    // ESSENTIAL Plans
     {
         planId: "plan_S7d5i2B8h5gUQe",
         tier: "ESSENTIAL",
@@ -48,7 +45,6 @@ export const RAZORPAY_PLANS: RazorpayPlanConfig[] = [
         amount: 65000,
         currency: "INR",
     },
-    // ELITE Plans
     {
         planId: "plan_S7d8f8kjAawy3p",
         tier: "ELITE",
@@ -72,7 +68,6 @@ export const RAZORPAY_PLANS: RazorpayPlanConfig[] = [
     },
 ];
 
-// Helper function to get Razorpay plan by tier and duration
 export const getRazorpayPlan = (
     tier: TIER,
     duration: SubscriptionDuration
@@ -152,3 +147,9 @@ export const DURATION_SAVINGS: Record<SubscriptionDuration, { label: string; sav
         savingsPercent: 25,
     },
 };
+
+export const CREDITS_PRICE = {
+    REQUEST_CONTACT: 10,
+    MARK_PROPERTY_AS_FEATURED: 10,
+    MARK_ENQUIRY_AS_URGENT: 10
+}

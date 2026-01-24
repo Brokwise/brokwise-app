@@ -9,11 +9,14 @@ import { formatCurrency, formatAddress } from "@/utils/helper";
 import { format } from "date-fns";
 import { MakeOffer } from "./makeOffer";
 import { PropertyOffers } from "./propertyOffers";
-import { MapPin, ExternalLink, CalendarClock } from "lucide-react";
+import { MapPin, ExternalLink, CalendarClock, Info, Coins } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapBox } from "./mapBox";
 import { useApp } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import useCredits from "@/hooks/useCredits";
+import { CREDITS_PRICE } from "@/config/tier_limits";
 
 interface PropertySidebarProps {
     property: Property;
@@ -21,6 +24,7 @@ interface PropertySidebarProps {
 
 export const PropertySidebar = ({ property }: PropertySidebarProps) => {
     const { brokerData } = useApp();
+    const { balance } = useCredits()
     const router = useRouter();
     const { t } = useTranslation();
 
@@ -28,7 +32,6 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
 
     return (
         <div className="space-y-6 sticky top-24">
-            {/* Price & Info Section */}
             <Card className="shadow-md border-primary/10 overflow-hidden">
                 <div className="bg-primary/5 p-5 border-b border-primary/10">
                     <div className="flex flex-col gap-2">
@@ -88,6 +91,40 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                             </Button>
                         </div>
                     )}
+                    {
+                        !isOwner &&
+                        <div className="bg-muted/30 rounded-lg p-4 space-y-4 border border-border">
+                            <div className="flex items-center justify-between">
+                                <span className="font-semibold text-sm">Contact Owner</span>
+                                <Badge variant="secondary" className="flex items-center gap-1.5 px-2 py-1">
+                                    <Coins className="h-3.5 w-3.5 text-primary" />
+                                    <span className="font-medium">{CREDITS_PRICE["REQUEST_CONTACT"]} Credits</span>
+                                </Badge>
+                            </div>
+
+                            <Alert className="bg-blue-50/50 border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/50 py-3">
+                                <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                <AlertDescription className="text-xs text-blue-700 dark:text-blue-300 ml-2">
+                                    100% refund of credits if property doesn't respond within 48 hours
+                                </AlertDescription>
+                            </Alert>
+
+                            <div className="space-y-2">
+                                <Button
+                                    className="w-full font-medium"
+                                    size="lg"
+                                    disabled={balance < CREDITS_PRICE["REQUEST_CONTACT"]}
+                                >
+                                    Request Contact Details
+                                </Button>
+                                {balance < CREDITS_PRICE["REQUEST_CONTACT"] && (
+                                    <p className="text-xs text-center text-destructive font-medium">
+                                        Insufficient credits to perform this action
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    }
 
                     {isOwner && property.listingStatus !== "ENQUIRY_ONLY" && (
                         <PropertyOffers property={property} />

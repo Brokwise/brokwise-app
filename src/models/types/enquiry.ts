@@ -104,6 +104,7 @@ export interface Enquiry {
   createdByCompanyId?: string;
 
   interestedBrokersAndCompanies?: string[];
+  urgent?: boolean;
 
   createdAt: string;
   updatedAt: string;
@@ -214,4 +215,5 @@ export interface CreateEnquiryDTO {
   rentalIncome?: RentalIncomeRange;
   purpose?: string;
   areaType?: AreaType;
+  urgent?: boolean;
 }

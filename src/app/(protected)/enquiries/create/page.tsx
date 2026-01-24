@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, Wand2Icon } from "lucide-react";
+import { Loader2, Wand2Icon, Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -33,6 +33,18 @@ import {
   type AddressSuggestion,
 } from "@/components/ui/address-autocomplete";
 import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useCreateEnquiry } from "@/hooks/useEnquiry";
 import { useCreateCompanyEnquiry } from "@/hooks/useCompany";
 import { PropertyCategory, PropertyType } from "@/models/types/property";
@@ -44,6 +56,9 @@ import {
   formatIndianNumber,
 } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
+import { useCredits } from "@/hooks/useCredits";
+import { CREDITS_PRICE } from "@/config/tier_limits";
+import { useQueryClient } from "@tanstack/react-query";
 
 const BUDGET_MIN = 500000; // ₹5 lakh
 const BUDGET_MAX = 10000000000; // ₹1000 crore
@@ -311,6 +326,7 @@ const createEnquirySchema = z
     areaType: z
       .enum(["NEAR_RING_ROAD", "RIICO_AREA", "SEZ"] as [string, ...string[]])
       .optional(),
+    urgent: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
     // Location requirements
@@ -445,9 +461,14 @@ const CreateEnquiryPage = () => {
   const { createEnquiry, isPending: isBrokerPending } = useCreateEnquiry();
   const { createEnquiry: createCompanyEnquiry, isPending: isCompanyPending } =
     useCreateCompanyEnquiry();
+  const { balance } = useCredits();
+  const queryClient = useQueryClient();
 
   const isPending = companyData ? isCompanyPending : isBrokerPending;
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [showUrgentConfirmation, setShowUrgentConfirmation] = useState(false);
+  const [pendingSubmissionData, setPendingSubmissionData] =
+    useState<CreateEnquiryFormValues | null>(null);
 
   const form = useForm<CreateEnquiryFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -462,6 +483,7 @@ const CreateEnquiryPage = () => {
       localities: [],
       budget: { min: BUDGET_MIN, max: BUDGET_MAX },
       description: "",
+      urgent: false,
     },
   });
 
@@ -558,16 +580,14 @@ const CreateEnquiryPage = () => {
     setValue("isCompany", !!companyData, { shouldValidate: true });
   }, [companyData, setValue]);
 
-  const onSubmit = (data: CreateEnquiryFormValues) => {
-    // We only send the final address string today; placeId is used to enforce "selected from suggestions"
-    // and can be stored later if backend supports it.
+  const handleSubmission = (data: CreateEnquiryFormValues) => {
+
     const payload: Record<string, unknown> = {
       ...(data as unknown as Record<string, unknown>),
     };
     delete payload.addressPlaceId;
     delete payload.locationMode;
     delete payload.isCompany;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const finalPayload = payload as unknown as CreateEnquiryDTO;
 
     if (companyData) {
@@ -577,7 +597,6 @@ const CreateEnquiryPage = () => {
           form.reset();
           router.replace("/enquiries/create/success");
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
           toast.error(
             error.response?.data?.message || "Failed to create enquiry"
@@ -590,14 +609,29 @@ const CreateEnquiryPage = () => {
           toast.success("Enquiry created successfully!");
           form.reset();
           router.replace("/enquiries/create/success");
+          queryClient.invalidateQueries({
+            queryKey: ["wallet-balance"],
+          });
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
           toast.error(
             error.response?.data?.message || "Failed to create enquiry"
           );
         },
       });
+    }
+  };
+
+  const onSubmit = (data: CreateEnquiryFormValues) => {
+    if (data.urgent) {
+      if (balance < CREDITS_PRICE.MARK_ENQUIRY_AS_URGENT) {
+        toast.error("Insufficient credits to mark as Urgent");
+        return;
+      }
+      setPendingSubmissionData(data);
+      setShowUrgentConfirmation(true);
+    } else {
+      handleSubmission(data);
     }
   };
 
@@ -1530,6 +1564,31 @@ const CreateEnquiryPage = () => {
             />
           </div>
 
+          {/* --- Urgent Flag --- */}
+          <div className="space-y-4 rounded-lg border border-border p-4">
+            <FormField
+              control={control}
+              name="urgent"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Mark as Urgent</FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      Get faster responses by marking this enquiry as urgent.
+                      Cost: {CREDITS_PRICE.MARK_ENQUIRY_AS_URGENT} Credits.
+                    </p>
+                  </div>
+                </FormItem>
+              )}
+            />
+          </div>
+
           <div className="">
             <Button
               type="submit"
@@ -1542,6 +1601,44 @@ const CreateEnquiryPage = () => {
           </div>
         </form>
       </Form>
+
+      <AlertDialog
+        open={showUrgentConfirmation}
+        onOpenChange={setShowUrgentConfirmation}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Urgent Enquiry</AlertDialogTitle>
+            <AlertDialogDescription>
+              Marking this enquiry as urgent will deduct{" "}
+              <span className="font-semibold text-foreground">
+                {CREDITS_PRICE.MARK_ENQUIRY_AS_URGENT} credits
+              </span>{" "}
+              from your wallet. Are you sure you want to proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setPendingSubmissionData(null);
+                setShowUrgentConfirmation(false);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingSubmissionData) {
+                  handleSubmission(pendingSubmissionData);
+                  setShowUrgentConfirmation(false);
+                }
+              }}
+            >
+              Confirm & Pay
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -18,20 +18,17 @@ import {
 } from "@/models/types/subscription";
 import { getRazorpayPlan } from "@/config/tier_limits";
 
-// Response type for createSubscription endpoint
 interface CreateSubscriptionResponse {
   subscription: SubscriptionResponse;
   razorpay: {
-    subscriptionId: string; // sub_xxx - use this for checkout
+    subscriptionId: string;
     shortUrl: string;
     keyId: string;
   };
   message: string;
 }
 
-/**
- * Hook to get all available subscription plans
- */
+
 export const useGetPlans = () => {
   const api = useAxios();
   const { data, isLoading, error } = useQuery<PlansResponse>({
@@ -40,7 +37,7 @@ export const useGetPlans = () => {
       const response = await api.get("/subscription/plans");
       return response.data.data;
     },
-    staleTime: 1000 * 60 * 60, // Cache for 1 hour
+    staleTime: 1000 * 60 * 60,
   });
 
   return {

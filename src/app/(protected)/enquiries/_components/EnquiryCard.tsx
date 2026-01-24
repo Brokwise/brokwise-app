@@ -17,6 +17,7 @@ import {
   ArrowRight,
   Clock,
   MessageSquare,
+  Flame,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -95,6 +96,15 @@ export const EnquiryCard = ({
               <Badge className="rounded-md px-2.5 py-0.5 font-medium text-xs bg-blue-600/90 text-white border-none">
                 <MapPin className="h-3 w-3 mr-1" />
                 {t("label_same_city")}
+              </Badge>
+            )}
+            {enquiry.urgent && (
+              <Badge
+                variant="outline"
+                className="rounded-md px-2.5 py-0.5 font-medium text-xs"
+              >
+                <Flame className="h-3 w-3 mr-1 fill-white" />
+                Urgent
               </Badge>
             )}
             <Badge
