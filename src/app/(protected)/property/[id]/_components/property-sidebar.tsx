@@ -116,15 +116,12 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                         </a>
                     </Button>
                 </div>
-                <CardContent className="p-0 relative">
-                    {/* Pass minimal variant and increased height */}
-                    <MapBox property={property} variant="minimal" height="350px" className="rounded-none border-none" />
-
-                    {/* Address Overlay */}
-                    <div className="absolute bottom-0 inset-x-0 bg-background/90 backdrop-blur p-3 pl-24 text-xs border-t text-muted-foreground">
-                        {formatAddress(property.address)}
-                    </div>
+                <CardContent className="p-0">
+                    <MapBox property={property} variant="minimal" height="300px" className="rounded-none border-none" />
                 </CardContent>
+                <div className="p-3 text-xs border-t bg-muted/10 text-muted-foreground">
+                    {formatAddress(property.address)}
+                </div>
             </Card>
         </div>
     );
