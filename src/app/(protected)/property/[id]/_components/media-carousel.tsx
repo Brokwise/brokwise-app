@@ -38,9 +38,9 @@ export const MediaCarousel = ({ images, property }: MediaCarouselProps) => {
             <div className="rounded-xl overflow-hidden bg-muted aspect-video relative border group">
                 {images.length > 0 ? (
                     <Carousel className="w-full h-full">
-                        <CarouselContent className="h-full">
+                        <CarouselContent className="h-full -ml-0">
                             {images.map((image, index) => (
-                                <CarouselItem key={index} className="h-full">
+                                <CarouselItem key={index} className="h-full pl-0 basis-full">
                                     <div className="relative w-full h-full flex items-center justify-center bg-black">
                                         {image.endsWith(".mp4") ? (
                                             <video
@@ -58,7 +58,9 @@ export const MediaCarousel = ({ images, property }: MediaCarouselProps) => {
                                                     src={image}
                                                     alt={`Property Image ${index + 1}`}
                                                     fill
+                                                    sizes="(max-width: 1024px) 100vw, 70vw"
                                                     className="object-cover"
+                                                    priority={index === 0}
                                                     onError={(e) => {
                                                         e.currentTarget.src = "/images/placeholder.webp";
                                                     }}
