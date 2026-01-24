@@ -15,6 +15,7 @@ import {
 import { useGetCurrentSubscription, useGetRemainingQuota } from "@/hooks/useSubscription";
 import { TIER } from "@/models/types/subscription";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 const tierIcons: Record<TIER, React.ReactNode> = {
   STARTER: <Zap className="h-4 w-4" />,
@@ -37,6 +38,7 @@ const tierBgColors: Record<TIER, string> = {
 export const SubscriptionBadge = () => {
   const { subscription, isLoading: subscriptionLoading } = useGetCurrentSubscription();
   const { remaining, isLoading: quotaLoading } = useGetRemainingQuota();
+  const { t } = useTranslation();
 
   const isLoading = subscriptionLoading || quotaLoading;
   const tier: TIER = subscription?.tier || "STARTER";
@@ -57,7 +59,7 @@ export const SubscriptionBadge = () => {
                 <Skeleton className="h-4 w-16" />
               ) : (
                 <span className="font-semibold capitalize">
-                  {tier.toLowerCase()}
+                  {t(`page_subscription_tier_${tier.toLowerCase()}_name`)}
                 </span>
               )}
             </Link>
@@ -66,25 +68,25 @@ export const SubscriptionBadge = () => {
         <TooltipContent side="bottom" className="p-3">
           <div className="space-y-2">
             <p className="font-medium">
-              {tier} Plan
+              {t(`page_subscription_tier_${tier.toLowerCase()}_name`)} {t("page_subscription_plan")}
               {subscription?.status === "active" && (
                 <Badge className="ml-2 bg-green-100 text-green-800 text-xs">
-                  Active
+                  {t("page_subscription_status_active")}
                 </Badge>
               )}
             </p>
             {remaining && (
               <div className="text-xs text-muted-foreground space-y-1">
-                <p>Remaining this period:</p>
+                <p>{t("page_subscription_remaining_period")}</p>
                 <ul className="list-disc list-inside">
-                  <li>{remaining.property_listing} property listings</li>
-                  <li>{remaining.enquiry_listing} enquiry listings</li>
-                  <li>{remaining.submit_property_enquiry} submissions</li>
+                  <li>{remaining.property_listing} {t("page_subscription_feature_property_listing").toLowerCase()}</li>
+                  <li>{remaining.enquiry_listing} {t("page_subscription_feature_enquiry_listing").toLowerCase()}</li>
+                  <li>{remaining.submit_property_enquiry} {t("page_subscription_submissions").toLowerCase()}</li>
                 </ul>
               </div>
             )}
             {tier !== "ELITE" && (
-              <p className="text-xs text-primary">Click to upgrade</p>
+              <p className="text-xs text-primary">{t("page_subscription_click_upgrade")}</p>
             )}
           </div>
         </TooltipContent>
@@ -112,10 +114,17 @@ export const SubscriptionBadgeCompact = () => {
         ) : (
           <>
             {tierIcons[tier]}
-            <span className="capitalize">{tier.toLowerCase()}</span>
+            {/* Note: SubscriptionBadgeCompact might need its own t() call if it's a separate component instance, 
+                assuming it can use the same hook call if refactored, but here I'll just add the hook to the component */}
+            <CompactLabel tier={tier} />
           </>
         )}
       </Badge>
     </Link>
   );
+};
+
+const CompactLabel = ({ tier }: { tier: TIER }) => {
+  const { t } = useTranslation();
+  return <span className="capitalize">{t(`page_subscription_tier_${tier.toLowerCase()}_name`)}</span>;
 };

@@ -5,6 +5,7 @@ import Script from "next/script";
 import { useApp } from "@/context/AppContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -145,8 +146,9 @@ const CurrentSubscriptionCard = ({
   tier?: TIER;
   isLoading: boolean;
 }) => {
+  const { t } = useTranslation();
   const currentTier = subscription?.tier || tier || "STARTER";
-  const tierInfo = TIER_INFO[currentTier];
+
 
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString("en-IN", {
@@ -197,8 +199,8 @@ const CurrentSubscriptionCard = ({
               {tierIcons[currentTier]}
             </div>
             <div>
-              <CardTitle className="text-xl">{tierInfo.name} Plan</CardTitle>
-              <CardDescription>{tierInfo.description}</CardDescription>
+              <CardTitle className="text-xl">{t(`page_subscription_tier_${currentTier.toLowerCase()}_name`)} {t("page_subscription_plan")}</CardTitle>
+              <CardDescription>{t(`page_subscription_tier_${currentTier.toLowerCase()}_desc`)}</CardDescription>
             </div>
           </div>
           {subscription && getStatusBadge(subscription.status)}
@@ -211,12 +213,12 @@ const CurrentSubscriptionCard = ({
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               <span>
-                Started: {formatDate(subscription.currentPeriodStart)}
+                {t("page_subscription_started")}: {formatDate(subscription.currentPeriodStart)}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              <span>Renews: {formatDate(subscription.currentPeriodEnd)}</span>
+              <span>{t("page_subscription_renews")}: {formatDate(subscription.currentPeriodEnd)}</span>
             </div>
           </div>
         )}
@@ -227,25 +229,25 @@ const CurrentSubscriptionCard = ({
             <p className="text-2xl font-bold">
               {PRICING[currentTier].PROPERTY_LISTING}
             </p>
-            <p className="text-xs text-muted-foreground">Property Listings</p>
+            <p className="text-xs text-muted-foreground">{t("page_subscription_feature_property_listing")}</p>
           </div>
           <div className="text-center p-3 bg-muted/50 rounded-lg">
             <FileText className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
             <p className="text-2xl font-bold">
               {PRICING[currentTier].ENQUIRY_LISTING}
             </p>
-            <p className="text-xs text-muted-foreground">Enquiry Listings</p>
+            <p className="text-xs text-muted-foreground">{t("page_subscription_feature_enquiry_listing")}</p>
           </div>
           <div className="text-center p-3 bg-muted/50 rounded-lg">
             <Send className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
             <p className="text-2xl font-bold">
               {PRICING[currentTier].SUBMIT_PROPERTY_ENQUIRY}
             </p>
-            <p className="text-xs text-muted-foreground">Submissions</p>
+            <p className="text-xs text-muted-foreground">{t("page_subscription_feature_property_submission")}</p>
           </div>
         </div>
       </CardContent>
-    </Card>
+    </Card >
   );
 };
 
@@ -513,6 +515,8 @@ const SubscriptionPage = () => {
   const [selectedDuration, setSelectedDuration] =
     useState<SubscriptionDuration>("3_MONTHS");
 
+  const { t } = useTranslation();
+
   const currentTier = subscription?.tier || tier || "STARTER";
 
   const handleUpgrade = async () => {
@@ -549,10 +553,10 @@ const SubscriptionPage = () => {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <Crown className="h-8 w-8 text-primary" />
-            Subscription
+            {t("page_subscription_title")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage your subscription and usage
+            {t("page_subscription_subtitle")}
           </p>
         </div>
 
@@ -560,11 +564,11 @@ const SubscriptionPage = () => {
           <TabsList>
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
-              Overview
+              {t("page_subscription_tab_overview")}
             </TabsTrigger>
             <TabsTrigger value="plans" className="flex items-center gap-2">
               <Rocket className="h-4 w-4" />
-              Plans
+              {t("page_subscription_tab_plans")}
             </TabsTrigger>
           </TabsList>
 
@@ -588,7 +592,7 @@ const SubscriptionPage = () => {
             {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
+                <CardTitle className="text-lg">{t("page_subscription_quick_actions")}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-4">
                 {currentTier !== "ELITE" && (
@@ -601,7 +605,7 @@ const SubscriptionPage = () => {
                     }}
                   >
                     <Rocket className="mr-2 h-4 w-4" />
-                    Upgrade Plan
+                    {t("page_subscription_upgrade_plan")}
                   </Button>
                 )}
                 {currentTier !== "STARTER" &&
@@ -610,23 +614,20 @@ const SubscriptionPage = () => {
                       <AlertDialogTrigger asChild>
                         <Button variant="outline" className="text-red-500">
                           <X className="mr-2 h-4 w-4" />
-                          Cancel Subscription
+                          {t("page_subscription_cancel_sub_btn")}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>
-                            Cancel Subscription?
+                            {t("page_subscription_cancel_title")}
                           </AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to cancel your subscription?
-                            You will be moved to the Starter plan and lose
-                            access to premium features. Your current usage will
-                            be retained.
+                            {t("page_subscription_cancel_desc")}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+                          <AlertDialogCancel>{t("page_subscription_keep_sub")}</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={handleCancelSubscription}
                             className="bg-red-500 hover:bg-red-600"
@@ -635,10 +636,10 @@ const SubscriptionPage = () => {
                             {cancelPending ? (
                               <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Cancelling...
+                                {t("page_subscription_cancelling")}
                               </>
                             ) : (
-                              "Yes, Cancel"
+                              t("page_subscription_yes_cancel")
                             )}
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -656,11 +657,10 @@ const SubscriptionPage = () => {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Select Duration
+                  {t("page_subscription_select_duration")}
                 </CardTitle>
                 <CardDescription>
-                  Choose your billing cycle. Longer durations offer better
-                  savings.
+                  {t("page_subscription_duration_desc")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -679,10 +679,10 @@ const SubscriptionPage = () => {
                         className="flex-1 min-w-[120px]"
                       >
                         <div className="flex flex-col items-center">
-                          <span>{savingsInfo.label}</span>
+                          <span>{t(`label_${duration.toLowerCase()}`)}</span>
                           {savingsInfo.savingsPercent && (
                             <span className="text-xs opacity-75">
-                              Save {savingsInfo.savingsPercent}%
+                              {t("page_subscription_save_percent", { percent: savingsInfo.savingsPercent })}
                             </span>
                           )}
                         </div>
@@ -714,7 +714,7 @@ const SubscriptionPage = () => {
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="space-y-1">
                       <p className="font-semibold text-lg">
-                        Upgrade to {TIER_INFO[selectedTier].name}
+                        {t("page_subscription_upgrade_to", { plan: t(`page_subscription_tier_${selectedTier.toLowerCase()}_name`) })}
                       </p>
                       <p className="text-muted-foreground">
                         ₹
@@ -722,7 +722,7 @@ const SubscriptionPage = () => {
                           selectedTier,
                           selectedDuration
                         )?.amount.toLocaleString()}{" "}
-                        for {SUBSCRIPTION_DURATION_LABELS[selectedDuration]}
+                        for {t(`label_${selectedDuration?.toLowerCase()}`)}
                       </p>
                     </div>
                     <Button
@@ -734,12 +734,12 @@ const SubscriptionPage = () => {
                       {createPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
+                          {t("page_subscription_processing")}
                         </>
                       ) : (
                         <>
                           <Rocket className="mr-2 h-4 w-4" />
-                          Upgrade Now
+                          {t("page_subscription_upgrade_now")}
                         </>
                       )}
                     </Button>
@@ -748,8 +748,7 @@ const SubscriptionPage = () => {
                 <CardFooter className="text-xs text-muted-foreground border-t pt-4">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4" />
-                    Secure payment powered by Razorpay. Your payment information
-                    is encrypted and secure.
+                    {t("page_subscription_secure_payment")}
                   </div>
                 </CardFooter>
               </Card>
@@ -758,22 +757,22 @@ const SubscriptionPage = () => {
             {/* Feature Comparison */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Feature Comparison</CardTitle>
+                <CardTitle className="text-lg">{t("page_subscription_feature_comparison")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left py-3 px-4">Feature</th>
-                        <th className="text-center py-3 px-4">Starter</th>
-                        <th className="text-center py-3 px-4">Essential</th>
-                        <th className="text-center py-3 px-4">Elite</th>
+                        <th className="text-left py-3 px-4">{t("page_subscription_feature_col")}</th>
+                        <th className="text-center py-3 px-4">{t("page_subscription_tier_starter_name")}</th>
+                        <th className="text-center py-3 px-4">{t("page_subscription_tier_essential_name")}</th>
+                        <th className="text-center py-3 px-4">{t("page_subscription_tier_elite_name")}</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className="border-b">
-                        <td className="py-3 px-4">Property Listings</td>
+                        <td className="py-3 px-4">{t("page_subscription_feature_property_listing")}</td>
                         <td className="text-center py-3 px-4">
                           {PRICING.STARTER.PROPERTY_LISTING}
                         </td>
@@ -785,7 +784,7 @@ const SubscriptionPage = () => {
                         </td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-3 px-4">Enquiry Listings</td>
+                        <td className="py-3 px-4">{t("page_subscription_feature_enquiry_listing")}</td>
                         <td className="text-center py-3 px-4">
                           {PRICING.STARTER.ENQUIRY_LISTING}
                         </td>
@@ -797,7 +796,7 @@ const SubscriptionPage = () => {
                         </td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-3 px-4">Property Submissions</td>
+                        <td className="py-3 px-4">{t("page_subscription_feature_property_submission")}</td>
                         <td className="text-center py-3 px-4">
                           {PRICING.STARTER.SUBMIT_PROPERTY_ENQUIRY}
                         </td>
