@@ -179,19 +179,8 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
         onFlag={() => setIsFlagDialogOpen(true)}
       />
 
-      <div className="container mx-auto px-4 max-w-7xl">
-        {/* Top Section: Actions Bar */}
-        <PropertyActionsBar
-          onExportPdf={handleExportPdf}
-          isExportingPdf={isExportingPdf}
-          onShare={() => {
-            toast.success("Link copied to clipboard!");
-            navigator.clipboard.writeText(window.location.href);
-          }}
-          onBookmark={() => toast.success("Property saved to bookmarks!")}
-        />
-
-        <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 mt-2">
+      <div className="container mx-auto px-4 max-w-7xl pt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
           {/* Left Column (Main Content) - 70% width roughly (7/10 cols) */}
           <div className="lg:col-span-7 space-y-8">
             {/* Visuals */}
@@ -225,10 +214,18 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
           </div>
 
           {/* Right Column (Sticky Sidebar) - 30% width roughly (3/10 cols) */}
-          <div className="lg:col-span-3">
-            <div>
-              <PropertySidebar property={property} />
-            </div>
+          <div className="lg:col-span-3 space-y-4">
+            {/* Actions Bar at top of right column */}
+            <PropertyActionsBar
+              onExportPdf={handleExportPdf}
+              isExportingPdf={isExportingPdf}
+              onShare={() => {
+                toast.success("Link copied to clipboard!");
+                navigator.clipboard.writeText(window.location.href);
+              }}
+              onBookmark={() => toast.success("Property saved to bookmarks!")}
+            />
+            <PropertySidebar property={property} />
           </div>
         </div>
       </div>

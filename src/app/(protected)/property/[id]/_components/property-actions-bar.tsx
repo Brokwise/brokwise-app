@@ -16,14 +16,14 @@ export const PropertyActionsBar = ({
     onBookmark,
 }: PropertyActionsBarProps) => {
     return (
-        <div className="flex items-center justify-end gap-2 py-4">
+        <div className="flex items-center justify-end flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={onShare} className="gap-2">
                 <Share2 className="h-4 w-4" />
-                Share
+                <span className="hidden sm:inline">Share</span>
             </Button>
             <Button variant="outline" size="sm" onClick={onBookmark} className="gap-2">
                 <Bookmark className="h-4 w-4" />
-                Save
+                <span className="hidden sm:inline">Save</span>
             </Button>
             <Button variant="default" size="sm" onClick={onExportPdf} disabled={isExportingPdf} className="gap-2">
                 {isExportingPdf ? (
@@ -31,7 +31,7 @@ export const PropertyActionsBar = ({
                 ) : (
                     <Download className="h-4 w-4" />
                 )}
-                Download Brochure
+                <span className="hidden sm:inline">Download</span>
             </Button>
         </div>
     );
