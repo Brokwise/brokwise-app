@@ -487,7 +487,7 @@ const CreateEnquiryPage = () => {
       setGeneratingDescription(true);
       const response = await fetch("/api/ai", {
         method: "POST",
-        body: JSON.stringify({ data: form.getValues() }),
+        body: JSON.stringify({ data: form.getValues(), type: "enquiry" }),
       });
       const data = await response.json();
       setValue("description", data.description, { shouldValidate: true });

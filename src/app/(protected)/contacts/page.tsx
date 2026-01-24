@@ -7,7 +7,7 @@ import {
   useSearchContacts,
   useDeleteContact,
 } from "@/hooks/useContacts";
-import { Contact, ContactSource } from "@/models/types/contact";
+import { Contact, ContactSource, ContactType } from "@/models/types/contact";
 import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
 
@@ -35,6 +35,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Empty,
   EmptyHeader,
   EmptyMedia,
@@ -60,6 +67,8 @@ import {
   UserCircle,
   MapPin,
   Clock,
+  Inbox,
+  Send,
 } from "lucide-react";
 
 import { formatDistanceToNow } from "date-fns";
@@ -70,6 +79,7 @@ type FilterTab = "all" | "ENQUIRY_SUBMISSION" | "PROPERTY_INQUIRY";
 const ContactsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sourceFilter, setSourceFilter] = useState<FilterTab>("all");
+  const [contactTypeFilter, setContactTypeFilter] = useState<ContactType | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
@@ -80,6 +90,10 @@ const ContactsPage = () => {
   const apiSource: ContactSource | undefined =
     sourceFilter === "all" ? undefined : sourceFilter;
 
+  // Determine the contact type filter for API call
+  const apiContactType: ContactType | undefined =
+    contactTypeFilter === "all" ? undefined : contactTypeFilter;
+
   // Fetch contacts
   const {
     contacts,
@@ -87,7 +101,7 @@ const ContactsPage = () => {
     isLoading: isContactsLoading,
     error: contactsError,
   } = useGetContacts(
-    { source: apiSource, page: currentPage, limit: 20 },
+    { source: apiSource, contactType: apiContactType, page: currentPage, limit: 20 },
     { enabled: !debouncedSearch }
   );
 
@@ -152,6 +166,23 @@ const ContactsPage = () => {
     };
     return config[source];
   };
+  const getContactTypeBadge = (type: ContactType) => {
+    const config = {
+      SENT: {
+        label: "Sent",
+        className:
+          "bg-green-500/15 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800",
+        icon: FileText,
+      },
+      RECEIVED: {
+        label: "Received",
+        className:
+          "bg-blue-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
+        icon: Home,
+      },
+    };
+    return config[type];
+  };
 
   const isLoading = isContactsLoading;
 
@@ -203,29 +234,48 @@ const ContactsPage = () => {
 
       {/* Filters and Search */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <Tabs
-          value={sourceFilter}
-          onValueChange={handleTabChange}
-          className="w-full sm:w-auto"
-        >
-          <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
-            <TabsTrigger value="all" className="text-xs sm:text-sm">
-              All
-            </TabsTrigger>
-            <TabsTrigger
-              value="ENQUIRY_SUBMISSION"
-              className="text-xs sm:text-sm"
-            >
-              Enquiries
-            </TabsTrigger>
-            <TabsTrigger
-              value="PROPERTY_INQUIRY"
-              className="text-xs sm:text-sm"
-            >
-              Properties
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full sm:w-auto">
+          <Tabs
+            value={sourceFilter}
+            onValueChange={handleTabChange}
+            className="w-full sm:w-auto h-full"
+          >
+            <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex h-full">
+              <TabsTrigger value="all" className="text-xs sm:text-sm">
+                All
+              </TabsTrigger>
+              <TabsTrigger
+                value="ENQUIRY_SUBMISSION"
+                className="text-xs sm:text-sm"
+              >
+                Enquiries
+              </TabsTrigger>
+              <TabsTrigger
+                value="PROPERTY_INQUIRY"
+                className="text-xs sm:text-sm"
+              >
+                Properties
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <Select
+            value={contactTypeFilter}
+            onValueChange={(value) => {
+              setContactTypeFilter(value as ContactType | "all");
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="SENT">Sent (Shared)</SelectItem>
+              <SelectItem value="RECEIVED">Received</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -298,6 +348,7 @@ const ContactsPage = () => {
                 contact={contact}
                 onDelete={handleDeleteClick}
                 getSourceBadge={getSourceBadge}
+                getContactTypeBadge={getContactTypeBadge}
               />
             ))}
           </div>
@@ -423,14 +474,21 @@ interface ContactCardProps {
     className: string;
     icon: React.ElementType;
   };
+  getContactTypeBadge: (type: ContactType) => {
+    label: string;
+    className: string;
+    icon: React.ElementType;
+  };
 }
 
 const ContactCard = ({
   contact,
   onDelete,
   getSourceBadge,
+  getContactTypeBadge
 }: ContactCardProps) => {
   const sourceBadge = getSourceBadge(contact.source);
+  const typeBadge = contact.contactType && getContactTypeBadge(contact.contactType)
   const SourceIcon = sourceBadge.icon;
 
   // Extract contact info from nested object
@@ -466,6 +524,16 @@ const ContactCard = ({
                   <SourceIcon className="mr-1 h-3 w-3" />
                   {sourceBadge.label}
                 </Badge>
+                {contact.contactType && <Badge
+                  variant="outline"
+                  className={cn(
+                    "border px-2 py-0.5 text-xs font-medium shrink-0",
+                    typeBadge?.className
+                  )}
+                >
+                  {contact.contactType === "RECEIVED" ? <Inbox className="mr-1 h-3 w-3" /> : <Send className="mr-1 h-3 w-3"></Send>}
+                  {contact.contactType == "SENT" ? "SHARED" : contact.contactType}
+                </Badge>}
               </div>
 
               {/* Contact Info Row */}

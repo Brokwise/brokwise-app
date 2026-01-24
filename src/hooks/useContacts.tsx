@@ -24,6 +24,7 @@ export const useGetContacts = (
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters.source) params.append("source", filters.source);
+      if (filters.contactType) params.append("contactType", filters.contactType);
       if (filters.page) params.append("page", filters.page.toString());
       if (filters.limit) params.append("limit", filters.limit.toString());
 

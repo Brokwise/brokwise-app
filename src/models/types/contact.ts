@@ -1,6 +1,7 @@
 // === CONTACT TYPES ===
 
 export type ContactSource = "ENQUIRY_SUBMISSION" | "PROPERTY_INQUIRY";
+export type ContactType = "SENT" | "RECEIVED";
 
 // Nested contact info from the API
 export interface ContactInfo {
@@ -35,7 +36,7 @@ export interface Contact {
 
   // Connection context
   connectionContext?: ConnectionContext;
-
+  contactType?: ContactType
   // Timestamps
   connectedAt?: string;
   createdAt: string;
@@ -63,6 +64,7 @@ export interface ContactStats {
 // Filters for getting contacts
 export interface ContactFilters {
   source?: ContactSource;
+  contactType?: ContactType;
   page?: number;
   limit?: number;
 }
