@@ -191,41 +191,14 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
 
       <div className="container mx-auto px-4 max-w-7xl pt-4">
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
-          {/* Left Column (Main Content) - 70% width roughly (7/10 cols) */}
-          <div className="lg:col-span-7 space-y-8">
-            {/* Visuals */}
+          {/* Image Carousel - Shows FIRST on mobile (order-1), part of left column on desktop */}
+          <div className="order-1 lg:order-1 lg:col-span-7">
             <MediaCarousel images={allImages} property={property} />
-
-            {/* Property Facts Grid */}
-            <PropertyFacts property={property} />
-
-            {/* Description */}
-            <PropertyDescription description={property.description} />
-
-            {/* Localities (if needed inline) */}
-            {property.localities && property.localities.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Nearby Localities</h3>
-                <div className="flex flex-wrap gap-2">
-                  {property.localities.map((locality, index) => (
-                    <div key={index} className="px-3 py-1 bg-muted/50 rounded-full text-sm flex items-center gap-1.5 border border-border/50">
-                      <MapPin className="h-3 w-3 text-muted-foreground" />
-                      {locality}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-
-            {/* Documents */}
-            <DocumentsList property={property} />
-
           </div>
 
-          {/* Right Column (Sticky Sidebar) - 30% width roughly (3/10 cols) */}
-          <div className="lg:col-span-3 space-y-4">
-            {/* Actions Bar at top of right column */}
+          {/* Sidebar - Shows SECOND on mobile (order-2), right side on desktop (order-2) */}
+          <div className="order-2 lg:order-2 lg:col-span-3 lg:row-span-2 space-y-4">
+            {/* Actions Bar at top of sidebar */}
             <PropertyActionsBar
               onExportPdf={handleExportPdf}
               isExportingPdf={isExportingPdf}
@@ -304,6 +277,33 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
               propertyTitle={`Property #${property.propertyId || "N/A"}`}
             />
             <PropertySidebar property={property} />
+          </div>
+
+          {/* Main Content (after image) - Shows THIRD on mobile (order-3), continues left column on desktop */}
+          <div className="order-3 lg:order-3 lg:col-span-7 space-y-8">
+            {/* Property Facts Grid */}
+            <PropertyFacts property={property} />
+
+            {/* Description */}
+            <PropertyDescription description={property.description} />
+
+            {/* Localities (if needed inline) */}
+            {property.localities && property.localities.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">Nearby Localities</h3>
+                <div className="flex flex-wrap gap-2">
+                  {property.localities.map((locality, index) => (
+                    <div key={index} className="px-3 py-1 bg-muted/50 rounded-full text-sm flex items-center gap-1.5 border border-border/50">
+                      <MapPin className="h-3 w-3 text-muted-foreground" />
+                      {locality}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Documents */}
+            <DocumentsList property={property} />
           </div>
         </div>
       </div>
