@@ -30,11 +30,13 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                     <div className="flex flex-col gap-2">
                         <div>
                             <span className="text-sm text-muted-foreground block mb-1">Asking Price</span>
-                            <div className="flex items-baseline gap-2">
+                            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                                 <span className="text-3xl font-bold text-primary">{formatCurrency(property.totalPrice)}</span>
-                                <span className="text-sm font-medium text-muted-foreground">
-                                    ({formatCurrency(property.rate)} / {property.sizeUnit?.toLowerCase().replace("_", " ")})
-                                </span>
+                                {property.rate && property.sizeUnit && (
+                                    <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                                        ({formatCurrency(property.rate)} / {property.sizeUnit.toLowerCase().replace("_", " ")})
+                                    </span>
+                                )}
                             </div>
                         </div>
 

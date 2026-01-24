@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
+import { createRoot } from "react-dom/client";
 import { useGetProperty } from "@/hooks/useProperty";
 import { useToggleBookmark } from "@/hooks/useBookmarks";
 import { useApp } from "@/context/AppContext";
@@ -27,7 +28,7 @@ import { DocumentsList } from "./_components/documents-list";
 import { PropertySidebar } from "./_components/property-sidebar";
 
 import { PropertyPdfLayout } from "@/components/property-pdf/property-pdf-layout";
-import { exportElementAsPdf, makeSafeFilePart } from "@/utils/pdf";
+import { exportElementAsPdf, makeSafeFilePart, imagesToBase64 } from "@/utils/pdf";
 import {
   Dialog,
   DialogContent,
@@ -48,12 +49,10 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { userData, brokerData, setBrokerData, companyData, setCompanyData } = useApp();
   const { toggleBookmarkAsync, isPending: isBookmarkPending } = useToggleBookmark();
   const [isExportingPdf, setIsExportingPdf] = useState(false);
-  const [exportedOnLabel, setExportedOnLabel] = useState<string>("");
   const [isFlagDialogOpen, setIsFlagDialogOpen] = useState(false);
   const [flagReason, setFlagReason] = useState("");
   const [flagNotes, setFlagNotes] = useState("");
   const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
-  const pdfRef = useRef<HTMLDivElement | null>(null);
 
   // Check bookmark status from the correct user data (same pattern as PropertyCard)
   const isCompany = userData?.userType === "company";
@@ -77,26 +76,69 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
 
   const handleExportPdf = useCallback(async () => {
     if (!property) return;
-    if (!pdfRef.current) return;
+
+    let host: HTMLDivElement | null = null;
+    let root: ReturnType<typeof createRoot> | null = null;
 
     try {
       setIsExportingPdf(true);
-      setExportedOnLabel(format(new Date(), "PPP p"));
 
-      // Ensure latest layout is painted before capture.
-      await new Promise((r) => setTimeout(r, 75));
+      const exportedOnLabel = format(new Date(), "PPP p");
+
+      // Collect all image URLs for pre-fetching
+      const allImageUrls = [
+        ...(property.featuredMedia ? [property.featuredMedia] : []),
+        ...(property.images ?? []),
+      ].filter((m) => !!m && !m.toLowerCase().endsWith(".mp4"));
+
+      // Pre-fetch and convert images to base64
+      const imageMap = await imagesToBase64(allImageUrls);
+
+      host = document.createElement("div");
+      host.style.position = "fixed";
+      host.style.left = "-10000px";
+      host.style.top = "0";
+      host.style.zIndex = "2147483647";
+      document.body.appendChild(host);
+
+      root = createRoot(host);
+      root.render(
+        <div className="w-[794px] bg-white text-black">
+          <PropertyPdfLayout
+            property={property}
+            exportedOnLabel={exportedOnLabel}
+            imageMap={imageMap}
+          />
+        </div>
+      );
+
+      // Ensure layout is painted before capture.
+      await new Promise((r) => setTimeout(r, 300));
+
+      const element = host.querySelector(
+        "[data-property-pdf]"
+      ) as HTMLElement | null;
+      if (!element) {
+        throw new Error("PDF layout failed to render");
+      }
 
       const safeId = makeSafeFilePart(
         property.propertyId || property._id || "property"
       );
       await exportElementAsPdf({
-        element: pdfRef.current,
+        element,
         fileName: `Brokwise_Property_${safeId}.pdf`,
       });
     } catch (e) {
       console.error(e);
       toast.error("Failed to export PDF. Please try again.");
     } finally {
+      try {
+        root?.unmount();
+      } catch {
+        // no-op
+      }
+      host?.remove();
       setIsExportingPdf(false);
     }
   }, [property]);
@@ -368,16 +410,6 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-
-      {/* Hidden PDF layout */}
-      <div className="fixed left-[-10000px] top-0 w-[794px] bg-white text-black">
-        <PropertyPdfLayout
-          ref={pdfRef}
-          property={property}
-          exportedOnLabel={exportedOnLabel}
-        />
-      </div>
     </main>
   );
 };
