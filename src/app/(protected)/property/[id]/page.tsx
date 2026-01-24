@@ -186,8 +186,6 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
       {/* Sticky Header */}
       <PropertyHeader
         property={property}
-        onExportPdf={handleExportPdf}
-        isExportingPdf={isExportingPdf}
         onFlag={() => setIsFlagDialogOpen(true)}
       />
 

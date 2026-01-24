@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MoreVertical, Download, ShieldX, Loader2 } from "lucide-react";
+import { ArrowLeft, MoreVertical, ShieldX } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -12,15 +12,11 @@ import { Property } from "@/types/property";
 
 interface PropertyHeaderProps {
     property: Property;
-    onExportPdf: () => void;
-    isExportingPdf: boolean;
     onFlag: () => void;
 }
 
 export const PropertyHeader = ({
     property,
-    onExportPdf,
-    isExportingPdf,
     onFlag,
 }: PropertyHeaderProps) => {
     const router = useRouter();
