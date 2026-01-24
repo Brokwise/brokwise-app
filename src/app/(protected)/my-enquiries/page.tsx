@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { formatEnquiryLocation } from "@/utils/helper";
 import { PROPERTY_TYPES } from "@/constants";
+import { useTranslation } from "react-i18next";
 
 const STORAGE_KEY = "myEnquiriesView";
 
@@ -37,6 +38,7 @@ const MyEnquiriesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [propertyTypeFilter, setPropertyTypeFilter] = useState("all");
+  const { t } = useTranslation();
 
   // Load view preference from local storage (client-side only)
   useEffect(() => {
@@ -111,7 +113,7 @@ const MyEnquiriesPage = () => {
   if (error) {
     return (
       <div className="flex h-full w-full items-center justify-center min-h-[60vh] text-destructive">
-        <p>Error loading your enquiries. Please try again later.</p>
+        <p>{t("page_my_enquiries_error")}</p>
       </div>
     );
   }
@@ -123,10 +125,10 @@ const MyEnquiriesPage = () => {
         <div className="flex  items-center justify-between gap-3 sm:gap-4">
           <div className="flex flex-col space-y-1.5 sm:space-y-2 ">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              My Enquiries
+              {t("page_my_enquiries_title")}
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Manage the enquiries you have posted.
+              {t("page_my_enquiries_subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -137,7 +139,7 @@ const MyEnquiriesPage = () => {
               onClick={() => router.push("/enquiries/create")}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Create Enquiry
+              {t("action_create_enquiry")}
             </Button>
           </div>
         </div>
@@ -148,7 +150,7 @@ const MyEnquiriesPage = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by description, location, category..."
+                placeholder={t("page_my_enquiries_search_placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 h-10 text-sm bg-background"
@@ -164,10 +166,10 @@ const MyEnquiriesPage = () => {
                 >
                   <SelectTrigger className="h-10 text-sm bg-background">
                     <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Property Type" />
+                    <SelectValue placeholder={t("label_select_type")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="all">{t("label_all_types")}</SelectItem>
                     {PROPERTY_TYPES.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
                         {type.label}
@@ -181,13 +183,13 @@ const MyEnquiriesPage = () => {
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="h-10 text-sm bg-background">
                     <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Filter by status" />
+                    <SelectValue placeholder={t("label_status")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                    <SelectItem value="expired">Expired</SelectItem>
+                    <SelectItem value="all">{t("label_all_status")}</SelectItem>
+                    <SelectItem value="active">{t("label_active")}</SelectItem>
+                    <SelectItem value="closed">{t("label_closed")}</SelectItem>
+                    <SelectItem value="expired">{t("label_expired")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -197,7 +199,7 @@ const MyEnquiriesPage = () => {
                   size="sm"
                   className="h-8 w-8 p-0"
                   onClick={() => handleSetView("grid")}
-                  title="Grid View"
+                  title={t("label_grid_view")}
                 >
                   <LayoutGrid className="h-4 w-4" />
                 </Button>
@@ -206,7 +208,7 @@ const MyEnquiriesPage = () => {
                   size="sm"
                   className="h-8 w-8 p-0"
                   onClick={() => handleSetView("list")}
-                  title="List View"
+                  title={t("label_table_view")}
                 >
                   <List className="h-4 w-4" />
                 </Button>
@@ -224,7 +226,7 @@ const MyEnquiriesPage = () => {
               {myEnquiries?.length || 0}
             </div>
             <div className="text-xs sm:text-sm text-muted-foreground text-center">
-              Total Enquiries
+              {t("page_my_enquiries_total")}
             </div>
           </CardContent>
         </Card>
@@ -234,7 +236,7 @@ const MyEnquiriesPage = () => {
               {myEnquiries?.filter((e) => e.status === "active").length || 0}
             </div>
             <div className="text-xs sm:text-sm text-muted-foreground text-center">
-              Active
+              {t("page_my_enquiries_active")}
             </div>
           </CardContent>
         </Card>
@@ -247,7 +249,7 @@ const MyEnquiriesPage = () => {
               ) || 0}
             </div>
             <div className="text-xs sm:text-sm text-muted-foreground text-center">
-              Total Responses
+              {t("page_my_enquiries_responses")}
             </div>
           </CardContent>
         </Card>
@@ -257,11 +259,10 @@ const MyEnquiriesPage = () => {
         <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center border rounded-xl bg-muted/20 border-dashed">
           <Inbox className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4 opacity-50" />
           <h3 className="text-lg font-medium font-instrument-serif">
-            No enquiries yet
+            {t("page_my_enquiries_empty_title")}
           </h3>
           <p className="text-sm sm:text-base text-muted-foreground max-w-sm mx-auto mt-2">
-            You haven&apos;t created any enquiries yet. Start by creating one to
-            find properties.
+            {t("page_my_enquiries_empty_desc")}
           </p>
           <Button
             variant="outline"
@@ -269,7 +270,7 @@ const MyEnquiriesPage = () => {
             className="mt-4 h-9 sm:h-10"
             onClick={() => router.push("/enquiries/create")}
           >
-            Create your first enquiry
+            {t("page_my_enquiries_empty_button")}
           </Button>
         </div>
       ) : (
@@ -279,7 +280,7 @@ const MyEnquiriesPage = () => {
               <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center border rounded-xl bg-muted/20 border-dashed">
                 <Inbox className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4 opacity-50" />
                 <h3 className="text-lg font-medium">
-                  No enquiries match your filters
+                  {t("page_my_enquiries_no_match")}
                 </h3>
                 <Button
                   variant="link"
@@ -290,7 +291,7 @@ const MyEnquiriesPage = () => {
                     setPropertyTypeFilter("all");
                   }}
                 >
-                  Clear Filters
+                  {t("action_clear_filters")}
                 </Button>
               </div>
             ) : (
