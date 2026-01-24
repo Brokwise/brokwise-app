@@ -20,6 +20,7 @@ import {
   type LucideIcon,
   HomeIcon,
   NewspaperIcon,
+  Crown,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -150,6 +151,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: t("nav_projects"),
       url: "/projects",
       icon: LandPlotIcon,
+    },
+    {
+      title: t("nav_subscription"),
+      url: "/subscription",
+      icon: Crown,
     },
   ];
 
