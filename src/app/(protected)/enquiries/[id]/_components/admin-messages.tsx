@@ -14,8 +14,10 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 export const AdminMessages = ({ id }: { id: string }) => {
+  const { t } = useTranslation();
   const {
     adminMessages,
     isPending: isPendingAdminMessages,
@@ -47,7 +49,7 @@ export const AdminMessages = ({ id }: { id: string }) => {
     return (
       <Card className="border-destructive/50">
         <CardContent className="pt-6 text-destructive text-sm">
-          Error loading messages: {errorAdminMessages.message}
+          {t("page_enquiry_detail_error_loading_messages")} {errorAdminMessages.message}
         </CardContent>
       </Card>
     );
@@ -58,7 +60,7 @@ export const AdminMessages = ({ id }: { id: string }) => {
       <CardHeader className="border-b bg-muted/5 py-3">
         <CardTitle className="text-base flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" />
-          Admin Support
+          {t("page_enquiry_detail_admin_support")}
         </CardTitle>
       </CardHeader>
 
@@ -120,7 +122,7 @@ export const AdminMessages = ({ id }: { id: string }) => {
                 })
               ) : (
                 <div className="text-center text-muted-foreground text-sm py-8">
-                  No messages yet. Start a conversation with admin.
+                  {t("page_enquiry_detail_no_messages_admin")}
                 </div>
               )}
               <div ref={scrollRef} />
@@ -138,7 +140,7 @@ export const AdminMessages = ({ id }: { id: string }) => {
           }}
         >
           <Input
-            placeholder="Type your message..."
+            placeholder={t("page_enquiry_detail_type_message")}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className="flex-1"

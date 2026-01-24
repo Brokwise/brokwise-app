@@ -14,6 +14,7 @@ import { EnquirySubmission } from "@/models/types/enquiry";
 import { Property } from "@/types/property";
 import { ShareContactDialog } from "./share-contact-dialog";
 import moment from "moment";
+import { useTranslation } from "react-i18next";
 const isPopulatedProperty = (value: unknown): value is Property => {
   return (
     value !== null &&
@@ -85,6 +86,7 @@ export const ReceivedProperties = ({
     isMyEnquiry
   );
   const { markSubmissionViewed } = useMarkSubmissionViewed();
+  const { t } = useTranslation();
 
   if (!isMyEnquiry) return null;
   if (isPending) {
@@ -98,7 +100,7 @@ export const ReceivedProperties = ({
   if (error) {
     return (
       <div className="text-sm text-destructive py-2">
-        Error loading received properties. {error.message}
+        {t("page_enquiry_detail_error_loading")} {error.message}
       </div>
     );
   }
@@ -106,7 +108,7 @@ export const ReceivedProperties = ({
   if (!receivedProperties || receivedProperties.length === 0) {
     return (
       <div className="text-sm text-muted-foreground py-4 text-center border border-dashed rounded-lg">
-        No properties have been proposed yet.
+        {t("page_enquiry_detail_no_properties_proposed")}
       </div>
     );
   }
@@ -115,7 +117,7 @@ export const ReceivedProperties = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold">Received Proposals</h3>
+        <h3 className="text-base font-semibold">{t("page_enquiry_detail_received_proposals")}</h3>
         <Badge variant="secondary" className="rounded-full">
           {receivedProperties.length}
         </Badge>
@@ -134,20 +136,20 @@ export const ReceivedProperties = ({
               <CardHeader className="p-3 bg-muted/30 pb-2">
                 <div className="flex justify-between items-start gap-2">
                   <CardTitle className="text-sm font-medium line-clamp-1 leading-tight">
-                    {property?.propertyTitle || "View Property Details"}
+                    {property?.propertyTitle || t("page_enquiry_detail_view_property_details")}
                   </CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="p-3 pt-2 space-y-2">
                 <div>
                   <span className="text-xs">
-                    Received - {moment(submission.receivedAt).fromNow()}
+                    {t("page_enquiry_detail_received")} {moment(submission.receivedAt).fromNow()}
                   </span>
                 </div>
                 <div className="flex items-center text-xs text-muted-foreground">
                   <MapPin className="h-3 w-3 mr-1" />
                   <span className="truncate">
-                    {property?.address?.city || "Click to view location"}
+                    {property?.address?.city || t("page_enquiry_detail_click_view_location")}
                   </span>
                 </div>
 
@@ -181,7 +183,7 @@ export const ReceivedProperties = ({
                     disabled={!propertyIdStr}
                   >
                     <Eye className="h-3 w-3 mr-1.5" />
-                    View
+                    {t("page_enquiry_detail_view")}
                   </Button>
 
                   {submission.contactSharedWithSubmitter ? (
@@ -192,7 +194,7 @@ export const ReceivedProperties = ({
                       disabled
                     >
                       <CheckCheck className="h-3 w-3 mr-1.5" />
-                      Shared
+                      {t("page_enquiry_detail_shared")}
                     </Button>
                   ) : (
                     <Button
@@ -204,7 +206,7 @@ export const ReceivedProperties = ({
                       }}
                     >
                       <PhoneCall className="h-3 w-3 mr-1.5" />
-                      Share Contact
+                      {t("page_enquiry_detail_share_contact")}
                     </Button>
                   )}
                 </div>
