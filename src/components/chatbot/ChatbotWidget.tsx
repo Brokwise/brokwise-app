@@ -64,7 +64,7 @@ export function ChatbotWidget() {
             className={cn(
               "fixed z-50",
               // Position: bottom-right, above bottom nav on mobile
-              isMobile ? "bottom-28 right-4" : "bottom-6 right-6"
+              isMobile ? "bottom-24 right-4" : "bottom-6 right-6"
             )}
           >
             <Button
