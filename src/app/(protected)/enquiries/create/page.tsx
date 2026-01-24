@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, Wand2Icon, Info } from "lucide-react";
+import { Loader2, Wand2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -34,7 +34,6 @@ import {
 } from "@/components/ui/address-autocomplete";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -597,9 +596,10 @@ const CreateEnquiryPage = () => {
           form.reset();
           router.replace("/enquiries/create/success");
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
           toast.error(
-            error.response?.data?.message || "Failed to create enquiry"
+            error?.response?.data?.message || "Failed to create enquiry"
           );
         },
       });
@@ -613,6 +613,7 @@ const CreateEnquiryPage = () => {
             queryKey: ["wallet-balance"],
           });
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
           toast.error(
             error.response?.data?.message || "Failed to create enquiry"

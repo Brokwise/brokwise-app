@@ -105,7 +105,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                             <Alert className="bg-blue-50/50 border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/50 py-3">
                                 <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                 <AlertDescription className="text-xs text-blue-700 dark:text-blue-300 ml-2">
-                                    100% refund of credits if property doesn't respond within 48 hours
+                                    100% refund of credits if property doesn&apos;t respond within 48 hours
                                 </AlertDescription>
                             </Alert>
 

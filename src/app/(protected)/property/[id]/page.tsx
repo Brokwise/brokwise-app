@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { useGetProperty } from "@/hooks/useProperty";
 import { useToggleBookmark } from "@/hooks/useBookmarks";
@@ -43,14 +43,12 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   const { toggleBookmarkAsync, isPending: isBookmarkPending } = useToggleBookmark();
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isFlagDialogOpen, setIsFlagDialogOpen] = useState(false);
-  const [flagReason, setFlagReason] = useState("");
-  const [flagNotes, setFlagNotes] = useState("");
-  const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
+
   const { t } = useTranslation();
-  const pdfRef = useRef()
+
 
   // Check bookmark status from the correct user data (same pattern as PropertyCard)
-  const [exportedOnLabel, setExportedOnLabel] = useState<string>("");
+  const [exportedOnLabel,] = useState<string>("");
   const isCompany = userData?.userType === "company";
   const isBookmarked = property
     ? isCompany
