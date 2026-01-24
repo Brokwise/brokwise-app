@@ -599,8 +599,8 @@ export const MarketPlace = () => {
                 {isLoading ? (
                   <div
                     className={`grid gap-6 ${view === "split"
-                        ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
-                        : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                      ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
+                      : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                       }`}
                   >
                     {[...Array(6)].map((_, i) => (
@@ -621,8 +621,8 @@ export const MarketPlace = () => {
                       initial="hidden"
                       animate="show"
                       className={`grid gap-6 ${view === "split"
-                          ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
-                          : "xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4"
+                        ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
+                        : "xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4"
                         }`}
                     >
                       {filteredProperties.length > 0 ? (
@@ -639,8 +639,8 @@ export const MarketPlace = () => {
                                 propertyRefs.current[property._id] = el;
                               }}
                               className={`rounded-3xl transition-all duration-300 ${selectedPropertyId === property._id
-                                  ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
-                                  : ""
+                                ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
+                                : ""
                                 }`}
                             >
                               <PropertyCard
@@ -765,7 +765,7 @@ export const MarketPlace = () => {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
-          className="fixed bottom-24 md:bottom-8 right-6 z-50"
+          className="fixed bottom-24 md:bottom-8 right-20 md:right-6 z-40"
         >
           <Button
             onClick={scrollToTop}
