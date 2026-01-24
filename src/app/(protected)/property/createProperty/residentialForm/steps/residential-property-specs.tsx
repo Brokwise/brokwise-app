@@ -25,10 +25,10 @@ interface ResidentialProperySpecsProps {
 export const ResidentialProperySpecs: React.FC<
   ResidentialProperySpecsProps
 > = ({ form, enquiry, propertyType }) => {
+  console.log(propertyType)
   const [lastEditedPriceField, setLastEditedPriceField] = useState<
     "rate" | "totalPrice"
   >("rate");
-
   const size = form.watch("size");
   const projectArea = form.watch("projectArea");
   const rate = form.watch("rate");
@@ -171,7 +171,7 @@ export const ResidentialProperySpecs: React.FC<
       </div>
 
       {/* FLAT Specific */}
-      {propertyType === "FLAT" || propertyType == "VILLA" && (
+      {(propertyType === "FLAT" || propertyType == "VILLA") && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField

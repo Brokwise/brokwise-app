@@ -3,6 +3,17 @@ import React from "react";
 import { formatIndianNumber } from "@/utils/helper";
 import { UseFormReturn } from "react-hook-form";
 import { CommercialPropertyFormData } from "@/validators/property";
+import useCredits from "@/hooks/useCredits";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormDescription,
+} from "@/components/ui/form";
+import { CREDITS_PRICE } from "@/config/tier_limits";
+import { Loader2 } from "lucide-react";
 
 type CommercialPropertyType =
   | "SHOWROOM"
@@ -21,6 +32,10 @@ export const CommercialReview: React.FC<CommercialReviewProps> = ({
   form,
   propertyType,
 }) => {
+  const { balance, isLoading: isCreditsLoading } = useCredits();
+  const FEATURED_COST = CREDITS_PRICE.MARK_PROPERTY_AS_FEATURED;
+  const hasSufficientCredits = (balance || 0) >= FEATURED_COST;
+
   return (
     <div className="space-y-6">
       <div className="bg-muted/50 p-6 rounded-lg">
@@ -166,6 +181,45 @@ export const CommercialReview: React.FC<CommercialReviewProps> = ({
               {form.watch("description") || "Not provided"}
             </p>
           </div>
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-border">
+          <h4 className="text-base font-medium mb-4">Promotion</h4>
+          {isCreditsLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Checking credit balance...
+            </div>
+          ) : (
+            <FormField
+              control={form.control}
+              name="isFeatured"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-background">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={!hasSufficientCredits && !field.value}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Mark as Featured Property</FormLabel>
+                    <FormDescription>
+                      Promote this property to get more visibility. Cost:{" "}
+                      {FEATURED_COST} Credits. (Available: {balance} Credits)
+                      {!hasSufficientCredits && !field.value && (
+                        <span className="block text-destructive mt-1">
+                          Insufficient credits. Please purchase more credits to
+                          use this feature.
+                        </span>
+                      )}
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+          )}
         </div>
       </div>
 

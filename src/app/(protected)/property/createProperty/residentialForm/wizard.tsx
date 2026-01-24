@@ -22,6 +22,7 @@ import { ResidentialProperySpecs } from "./steps/residential-property-specs";
 import ResidentialReview from "./steps/residential-review";
 import { ResidentialMedia } from "./steps/residential-media";
 import { ResidentialFeatures } from "./steps/residential-features";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ResidentialWizardProps {
   onBack: () => void;
@@ -47,6 +48,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   isEditingDraft,
 }) => {
   const { t } = useTranslation();
+  const queryClient = useQueryClient()
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const router = useRouter();
@@ -105,6 +107,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         form.reset();
         setCompletedSteps(new Set());
         setCurrentStep(0);
+        queryClient.invalidateQueries({ queryKey: ["wallet-balance"] })
         router.replace("/property/createProperty/success");
       } catch (error) {
         console.error("Error submitting form:", error);

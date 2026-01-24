@@ -28,6 +28,7 @@ import {
   Bookmark,
   MessageCircle,
   Map,
+  Sparkles,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -263,7 +264,16 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         </Link>
 
         {/* Status Badge */}
-        <div className="absolute top-3 left-3 flex gap-2 z-10">
+        <div className="absolute top-3 left-3 flex flex-col gap-2 z-10 items-start">
+          {property.isFeatured && (
+            <Badge className="relative overflow-hidden shadow-[0_0_15px_rgba(245,158,11,0.5)] border-none bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white px-3 py-1.5 font-bold tracking-wide">
+              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] animate-[shimmer_2s_infinite]" />
+              <div className="relative flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 fill-white text-white animate-pulse" />
+                <span className="drop-shadow-md">FEATURED</span>
+              </div>
+            </Badge>
+          )}
           {isSameCity && (
             <Badge className="shadow-sm backdrop-blur-md border-none bg-blue-600/90 text-white">
               <MapPin className="h-3 w-3 mr-1" />
