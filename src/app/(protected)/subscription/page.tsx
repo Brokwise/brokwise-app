@@ -273,6 +273,7 @@ const UsageStatsCard = ({
   periodStart?: Date | string;
   periodEnd?: Date | string;
 }) => {
+  const { t } = useTranslation();
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString("en-IN", {
       day: "numeric",
@@ -301,19 +302,19 @@ const UsageStatsCard = ({
 
   const usageItems = [
     {
-      label: "Property Listings",
+      label: t("page_subscription_feature_property_listing"),
       icon: <Building className="h-4 w-4" />,
       used: usage?.property_listing || 0,
       limit: limits?.property_listing || 0,
     },
     {
-      label: "Enquiry Listings",
+      label: t("page_subscription_feature_enquiry_listing"),
       icon: <FileText className="h-4 w-4" />,
       used: usage?.enquiry_listing || 0,
       limit: limits?.enquiry_listing || 0,
     },
     {
-      label: "Property Submissions",
+      label: t("page_subscription_feature_property_submission"),
       icon: <Send className="h-4 w-4" />,
       used: usage?.submit_property_enquiry || 0,
       limit: limits?.submit_property_enquiry || 0,
@@ -326,7 +327,7 @@ const UsageStatsCard = ({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary" />
-            Usage This Period
+            {t("page_subscription_usage_period")}
           </CardTitle>
           {periodStart && periodEnd && (
             <span className="text-xs text-muted-foreground">
@@ -369,7 +370,7 @@ const UsageStatsCard = ({
               />
               {isAtLimit && (
                 <p className="text-xs text-red-500">
-                  Limit reached. Upgrade to continue.
+                  {t("page_subscription_limit_reached")}
                 </p>
               )}
             </div>
