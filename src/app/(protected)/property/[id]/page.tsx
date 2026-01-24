@@ -161,7 +161,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
     } finally {
       setIsSubmittingFlag(false);
     }
-  }, [flagReason, property]);
+  }, [flagReason, property, t]);
 
   if (isLoading) {
     return (
