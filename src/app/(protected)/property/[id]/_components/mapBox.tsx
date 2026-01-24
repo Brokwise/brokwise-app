@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -6,8 +8,21 @@ import { Loader2, MapPin } from "lucide-react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { formatAddress } from "@/utils/helper";
 import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
 
-export const MapBox = ({ property }: { property: Property }) => {
+interface MapBoxProps {
+  property: Property;
+  variant?: "default" | "minimal";
+  className?: string;
+  height?: string;
+}
+
+export const MapBox = ({
+  property,
+  variant = "default",
+  className,
+  height = "400px"
+}: MapBoxProps) => {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -32,7 +47,17 @@ export const MapBox = ({ property }: { property: Property }) => {
       style: initialStyle,
       center: [lng, lat],
       zoom: 14,
+      attributionControl: false, // Minimal look
+      interactive: variant === "default", // Disable interaction on minimal (sidebar) if desired, but user might want to pan
     });
+
+    // Add interactions back if variant is minimal but we want it
+    if (variant === "minimal") {
+      mapRef.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
+    } else {
+      mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+    }
+
 
     // Create custom marker element
     const el = document.createElement("div");
@@ -59,18 +84,16 @@ export const MapBox = ({ property }: { property: Property }) => {
       )
       .addTo(mapRef.current);
 
-    // Add navigation controls
-    mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
-
     mapRef.current.on("load", () => {
       setMapLoaded(true);
+      mapRef.current?.resize();
     });
 
     // Cleanup
     return () => {
       mapRef.current?.remove();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [property]);
 
   // Update map style when theme changes
@@ -83,6 +106,24 @@ export const MapBox = ({ property }: { property: Property }) => {
     map.setStyle(style);
   }, [isDarkMode]);
 
+  const MapContent = (
+    <div
+      className={cn("relative w-full rounded-lg overflow-hidden border bg-muted", className)}
+      style={{ height }}
+    >
+      <div ref={mapContainerRef} className="w-full h-full" />
+      {!mapLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+    </div>
+  )
+
+  if (variant === "minimal") {
+    return MapContent;
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -92,14 +133,7 @@ export const MapBox = ({ property }: { property: Property }) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="relative w-full h-[400px] rounded-lg overflow-hidden border bg-muted">
-          <div ref={mapContainerRef} className="w-full h-full" />
-          {!mapLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          )}
-        </div>
+        {MapContent}
       </CardContent>
     </Card>
   );
