@@ -97,26 +97,37 @@ export function ChatbotWidget() {
           </SheetContent>
         </Sheet>
       ) : (
-        /* Desktop: Floating Panel */
+        /* Desktop: Floating Panel with Backdrop */
         <AnimatePresence>
           {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className={cn(
-                "fixed z-50 bottom-6 right-6",
-                // Responsive width: 30vw with min/max bounds for readability
-                "w-[30vw] min-w-[360px] max-w-[480px]",
-                // Viewport-based height for full chat experience
-                "h-[90vh] max-h-[90vh]",
-                "rounded-2xl shadow-2xl border overflow-hidden",
-                "bg-background"
-              )}
-            >
-              <ChatContent />
-            </motion.div>
+            <>
+              {/* Backdrop overlay - click to close */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-40 bg-black/20"
+                onClick={handleClose}
+              />
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className={cn(
+                  "fixed z-50 bottom-6 right-6",
+                  // Responsive width: 36vw (~20% wider) with min/max bounds for readability
+                  "w-[40vw] min-w-[450px] max-w-[560px]",
+                  // Viewport-based height for full chat experience
+                  "h-[90vh] max-h-[90vh]",
+                  "rounded-2xl shadow-2xl border overflow-hidden",
+                  "bg-background"
+                )}
+              >
+                <ChatContent />
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
       )}
