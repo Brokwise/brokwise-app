@@ -29,55 +29,55 @@ export function BottomNav() {
 
   const navItems = companyData
     ? [
-        {
-          label: t("nav_dashboard"),
-          href: "/company-dashboard",
-          icon: LayoutDashboard,
-        },
-        {
-          label: t("nav_properties"),
-          href: "/company-properties",
-          icon: Building2,
-        },
-        {
-          isFab: true,
-        },
-        {
-          label: t("nav_enquiries"),
-          href: "/company-enquiries",
-          icon: FileText,
-        },
-        {
-          label: t("nav_profile"),
-          href: "/profile",
-          icon: User,
-        },
-      ]
+      {
+        label: t("nav_dashboard"),
+        href: "/company-dashboard",
+        icon: LayoutDashboard,
+      },
+      {
+        label: t("nav_properties"),
+        href: "/company-properties",
+        icon: Building2,
+      },
+      {
+        isFab: true,
+      },
+      {
+        label: t("nav_enquiries"),
+        href: "/company-enquiries",
+        icon: FileText,
+      },
+      {
+        label: t("nav_profile"),
+        href: "/profile",
+        icon: User,
+      },
+    ]
     : [
-        {
-          label: t("nav_home"),
-          href: "/",
-          icon: Home,
-        },
-        {
-          label: t("nav_my_listings"),
-          href: "/my-listings",
-          icon: Building2,
-        },
-        {
-          isFab: true,
-        },
-        {
-          label: t("nav_my_enquiries"),
-          href: "/my-enquiries",
-          icon: FileText,
-        },
-        {
-          label: t("nav_profile"),
-          href: "/profile",
-          icon: User,
-        },
-      ];
+      {
+        label: t("nav_home"),
+        href: "/",
+        icon: Home,
+      },
+      {
+        label: t("nav_my_listings"),
+        href: "/my-listings",
+        icon: Building2,
+      },
+      {
+        isFab: true,
+      },
+      {
+        label: t("nav_my_enquiries"),
+        href: "/my-enquiries",
+        icon: FileText,
+      },
+      {
+        label: t("nav_profile"),
+        href: "/profile",
+        icon: User,
+      },
+    ];
 
   const FabMenu = () => (
     <AnimatePresence>
@@ -142,7 +142,7 @@ export function BottomNav() {
   return (
     <>
       <FabMenu />
-      <div className="pointer-events-none fixed inset-x-0 bottom-8 z-50 flex justify-center md:hidden">
+      <div className="pointer-events-none fixed inset-x-0 bottom-2 z-50 flex justify-center md:hidden">
         <div className="pointer-events-auto relative flex h-16 w-[90vw] max-w-md items-center justify-between rounded-full border border-white/20 bg-background/60 px-2 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] backdrop-blur-xl">
           {navItems.map((item, index) => {
             if (item.isFab) {
