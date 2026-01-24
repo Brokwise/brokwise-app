@@ -83,7 +83,7 @@ const AccountTypeCard = ({
     type="button"
     onClick={onSelect}
     className={`
-      relative flex flex-col items-center justify-center p-5 rounded-xl border-2 transition-all duration-200 w-full
+      relative flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 w-full
       ${selected
         ? "border-accent bg-primary/5 ring-2 ring-accent ring-offset-2 ring-offset-background"
         : "border-border bg-card hover:border-accent/50"
@@ -96,7 +96,7 @@ const AccountTypeCard = ({
       </div>
     )}
     <div
-      className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${selected
+      className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${selected
         ? "bg-primary/20 text-primary"
         : "bg-muted text-muted-foreground"
         }`}
@@ -104,7 +104,7 @@ const AccountTypeCard = ({
       {icon}
     </div>
     <p
-      className={`font-semibold ${selected ? "text-primary" : "text-foreground"
+      className={`text-sm font-semibold ${selected ? "text-primary" : "text-foreground"
         }`}
     >
       {title}
