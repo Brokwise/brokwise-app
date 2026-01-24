@@ -121,7 +121,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                     <MapBox property={property} variant="minimal" height="350px" className="rounded-none border-none" />
 
                     {/* Address Overlay */}
-                    <div className="absolute bottom-0 inset-x-0 bg-background/90 backdrop-blur p-3 text-xs border-t text-muted-foreground">
+                    <div className="absolute bottom-0 inset-x-0 bg-background/90 backdrop-blur p-3 pl-24 text-xs border-t text-muted-foreground">
                         {formatAddress(property.address)}
                     </div>
                 </CardContent>

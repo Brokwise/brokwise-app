@@ -26,7 +26,7 @@ export const PropertyHeader = ({
     const router = useRouter();
 
     return (
-        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 border-b">
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4">
             <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <Button
@@ -37,24 +37,22 @@ export const PropertyHeader = ({
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-lg font-semibold leading-none">
-                                Property #{property.propertyId || "N/A"}
-                            </h1>
-                            <Badge
-                                variant={
-                                    property.listingStatus === "ACTIVE" ? "default" : "secondary"
-                                }
-                                className={
-                                    property.listingStatus === "ACTIVE"
-                                        ? "bg-green-500 hover:bg-green-600"
-                                        : ""
-                                }
-                            >
-                                {property.listingStatus ? property.listingStatus.replace("_", " ") : "Unknown"}
-                            </Badge>
+                    <div className="flex items-center gap-3">
+                        <div className="px-3 py-1.5 bg-muted/50 rounded-lg border">
+                            <span className="text-sm font-medium text-muted-foreground">#{property.propertyId || "N/A"}</span>
                         </div>
+                        <Badge
+                            variant={
+                                property.listingStatus === "ACTIVE" ? "default" : "secondary"
+                            }
+                            className={
+                                property.listingStatus === "ACTIVE"
+                                    ? "bg-green-500 hover:bg-green-600"
+                                    : ""
+                            }
+                        >
+                            {property.listingStatus ? property.listingStatus.replace("_", " ") : "Unknown"}
+                        </Badge>
                     </div>
                 </div>
 
@@ -66,7 +64,7 @@ export const PropertyHeader = ({
                     )}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="rounded-full">
+                            <Button variant="outline" size="icon" className="rounded-xl h-10 w-10 border-2">
                                 <MoreVertical className="h-5 w-5" />
                                 <span className="sr-only">Open actions</span>
                             </Button>
