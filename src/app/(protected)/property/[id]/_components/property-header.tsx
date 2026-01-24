@@ -72,14 +72,6 @@ export const PropertyHeader = ({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={onExportPdf} disabled={isExportingPdf}>
-                                {isExportingPdf ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    <Download className="mr-2 h-4 w-4" />
-                                )}
-                                Download PDF
-                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={onFlag} className="text-destructive">
                                 <ShieldX className="mr-2 h-4 w-4" />
                                 Report Property
