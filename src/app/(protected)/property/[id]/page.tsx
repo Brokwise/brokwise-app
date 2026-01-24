@@ -191,8 +191,13 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
 
       <div className="container mx-auto px-4 max-w-7xl pt-4">
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
-          {/* Sidebar - Shows FIRST on mobile (order-1), right side on desktop (order-2) */}
-          <div className="order-1 lg:order-2 lg:col-span-3 space-y-4">
+          {/* Image Carousel - Shows FIRST on mobile (order-1), part of left column on desktop */}
+          <div className="order-1 lg:order-1 lg:col-span-7">
+            <MediaCarousel images={allImages} property={property} />
+          </div>
+
+          {/* Sidebar - Shows SECOND on mobile (order-2), right side on desktop (order-2) */}
+          <div className="order-2 lg:order-2 lg:col-span-3 lg:row-span-2 space-y-4">
             {/* Actions Bar at top of sidebar */}
             <PropertyActionsBar
               onExportPdf={handleExportPdf}
@@ -274,11 +279,8 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
             <PropertySidebar property={property} />
           </div>
 
-          {/* Main Content - Shows SECOND on mobile (order-2), left side on desktop (order-1) */}
-          <div className="order-2 lg:order-1 lg:col-span-7 space-y-8">
-            {/* Visuals */}
-            <MediaCarousel images={allImages} property={property} />
-
+          {/* Main Content (after image) - Shows THIRD on mobile (order-3), continues left column on desktop */}
+          <div className="order-3 lg:order-3 lg:col-span-7 space-y-8">
             {/* Property Facts Grid */}
             <PropertyFacts property={property} />
 
