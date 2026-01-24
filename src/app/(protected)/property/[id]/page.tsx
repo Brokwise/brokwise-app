@@ -17,7 +17,7 @@ import { format } from "date-fns";
 
 // Components
 import { PropertyHeader } from "./_components/property-header";
-import { PropertyTopSection } from "./_components/property-top-section";
+import { PropertyActionsBar } from "./_components/property-actions-bar";
 import { MediaCarousel } from "./_components/media-carousel";
 import { PropertyFacts } from "./_components/property-facts";
 import { PropertyDescription } from "./_components/property-description";
@@ -51,16 +51,16 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
   const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
   const pdfRef = useRef<HTMLDivElement | null>(null);
 
-  const offerSectionRef = useRef<HTMLDivElement>(null);
+  // const offerSectionRef = useRef<HTMLDivElement>(null);
   // const calendarSectionRef = useRef<HTMLDivElement>(null);
 
-  const scrollToOffer = () => {
-    offerSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
+  // const scrollToOffer = () => {
+  //   offerSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  // };
 
-  const scrollToCalendar = () => {
-    // Placeholder if we add scheduling later, or just scroll to sidebar where contact buttons might form
-  };
+  // const scrollToCalendar = () => {
+  //   // Placeholder if we add scheduling later, or just scroll to sidebar where contact buttons might form
+  // };
 
 
   const handleExportPdf = useCallback(async () => {
@@ -180,11 +180,15 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
       />
 
       <div className="container mx-auto px-4 max-w-7xl">
-        {/* Top Section: Price & CTAs */}
-        <PropertyTopSection
-          property={property}
-          scrollToOffer={scrollToOffer}
-          scrollToCalendar={scrollToCalendar}
+        {/* Top Section: Actions Bar */}
+        <PropertyActionsBar
+          onExportPdf={handleExportPdf}
+          isExportingPdf={isExportingPdf}
+          onShare={() => {
+            toast.success("Link copied to clipboard!");
+            navigator.clipboard.writeText(window.location.href);
+          }}
+          onBookmark={() => toast.success("Property saved to bookmarks!")}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 mt-2">
@@ -222,7 +226,7 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
 
           {/* Right Column (Sticky Sidebar) - 30% width roughly (3/10 cols) */}
           <div className="lg:col-span-3">
-            <div ref={offerSectionRef}>
+            <div>
               <PropertySidebar property={property} />
             </div>
           </div>

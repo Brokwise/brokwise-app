@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
@@ -16,15 +16,12 @@ export const PropertyDescription = ({ description }: PropertyDescriptionProps) =
 
     const displayDescription = isExpanded ? description : description.slice(0, maxLength);
 
-    // Simple logic to try and simulate bullet points if they exist or just formatting
-    // Ideally, we'd have structured data, but we'll specific CSS for readability.
-
     return (
-        <Card className="border-none shadow-none bg-transparent p-0">
-            <CardHeader className="px-0 pt-0">
+        <Card className="shadow-sm">
+            <CardHeader>
                 <CardTitle className="text-xl">Description</CardTitle>
             </CardHeader>
-            <CardContent className="px-0">
+            <CardContent>
                 <div className={`prose prose-sm max-w-none text-muted-foreground leading-relaxed whitespace-pre-wrap ${!isExpanded && shouldTruncate ? "mask-gradient-bottom" : ""}`}>
                     {displayDescription}
                     {!isExpanded && shouldTruncate && "..."}
