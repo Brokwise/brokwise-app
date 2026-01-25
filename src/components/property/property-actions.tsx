@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useSoftDeleteProperty, useUndoDeleteProperty } from "@/hooks/useProperty";
+import { useUndoDelete } from "@/context/UndoDeleteContext";
 import Image from "next/image";
 import Link from "next/link";
 import { Label } from "@/components/ui/label";
@@ -36,7 +37,7 @@ import { formatAddress, formatPrice } from "@/utils/helper";
 import { PropertyStatusBadge } from "./property-status-badge";
 import { useTranslation } from "react-i18next";
 import { PROPERTY_DELETION_REASONS } from "@/constants";
-import { UndoDeleteOverlay } from "./undo-delete-overlay";
+
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -48,13 +49,11 @@ const formatDate = (dateString: string) => {
 };
 
 export function PropertyActions({ property }: { property: Property }) {
-  const queryClient = useQueryClient();
   const { softDelete, isPending: isDeleting } = useSoftDeleteProperty();
   const { undoDelete } = useUndoDeleteProperty();
+  const { showUndo } = useUndoDelete();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
-  const [showUndoOverlay, setShowUndoOverlay] = useState(false);
-  const [deletedPropertyId, setDeletedPropertyId] = useState<string | null>(null);
   const [selectedReason, setSelectedReason] = useState("");
   const [additionalDetails, setAdditionalDetails] = useState("");
   const { t } = useTranslation();
@@ -87,35 +86,17 @@ export function PropertyActions({ property }: { property: Property }) {
       { propertyId: property._id, reason },
       {
         onSuccess: () => {
-          // Show full-screen undo overlay
-          setDeletedPropertyId(property._id);
-          setShowUndoOverlay(true);
+          // Trigger global undo overlay
+          showUndo({
+            propertyId: property._id,
+            propertyTitle: `${property.propertyCategory} - ${property.propertyType}`,
+            onUndo: async () => {
+              await undoDelete({ propertyId: property._id });
+            }
+          });
         },
       }
     );
-  };
-
-  const handleUndo = () => {
-    if (deletedPropertyId) {
-      undoDelete(
-        { propertyId: deletedPropertyId },
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["my-listings"] });
-            queryClient.invalidateQueries({ queryKey: ["deleted-properties"] });
-          },
-        }
-      );
-    }
-    setShowUndoOverlay(false);
-    setDeletedPropertyId(null);
-  };
-
-  const handleOverlayClose = () => {
-    setShowUndoOverlay(false);
-    setDeletedPropertyId(null);
-    queryClient.invalidateQueries({ queryKey: ["my-listings"] });
-    queryClient.invalidateQueries({ queryKey: ["deleted-properties"] });
   };
 
   return (
@@ -367,14 +348,7 @@ export function PropertyActions({ property }: { property: Property }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Full-screen undo overlay */}
-      <UndoDeleteOverlay
-        isOpen={showUndoOverlay}
-        onUndo={handleUndo}
-        onClose={handleOverlayClose}
-        propertyTitle={`${property.propertyCategory} - ${property.propertyType}`}
-        duration={5}
-      />
+
     </>
   );
 }

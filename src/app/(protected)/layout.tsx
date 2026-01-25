@@ -1,6 +1,7 @@
 import React from "react";
 import { ProtectedPage } from "./_components/protected";
 import { AppProvider } from "@/context/AppContext";
+import { UndoDeleteProvider } from "@/context/UndoDeleteContext";
 import { AppSidebar } from "@/components/app-sidebar";
 import { BottomNav } from "@/components/ui/bottom-nav";
 import { cookies } from "next/headers";
@@ -23,30 +24,32 @@ const layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <AppProvider>
       <ProtectedPage>
-        <SidebarProvider defaultOpen={defaultSidebarOpen}>
-          <AppSidebar />
-          <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 sticky top-0 z-40 w-full">
-              <div className="flex items-center gap-2">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
-              </div>
+        <UndoDeleteProvider>
+          <SidebarProvider defaultOpen={defaultSidebarOpen}>
+            <AppSidebar />
+            <SidebarInset>
+              <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 sticky top-0 z-40 w-full">
+                <div className="flex items-center gap-2">
+                  <SidebarTrigger className="-ml-1" />
+                  <Separator orientation="vertical" className="mr-2 h-4" />
+                </div>
 
-              <div className="flex items-center gap-2">
-                <CreditsBadge />
-                <Notifications />
-                <UserAvatar />
-              </div>
-            </header>
+                <div className="flex items-center gap-2">
+                  <CreditsBadge />
+                  <Notifications />
+                  <UserAvatar />
+                </div>
+              </header>
 
-            <main className="flex-1 min-h-0 px-4 flex flex-col max-w-[1600px] mx-auto w-full p-4 pt-[3px] pb-32 md:pb-[3px] overflow-auto scrollbar-hide">
-              {children}
-            </main>
+              <main className="flex-1 min-h-0 px-4 flex flex-col max-w-[1600px] mx-auto w-full p-4 pt-[3px] pb-32 md:pb-[3px] overflow-auto scrollbar-hide">
+                {children}
+              </main>
 
-            <BottomNav />
-            <ChatbotWidget />
-          </SidebarInset>
-        </SidebarProvider>
+              <BottomNav />
+              <ChatbotWidget />
+            </SidebarInset>
+          </SidebarProvider>
+        </UndoDeleteProvider>
       </ProtectedPage>
     </AppProvider>
   );
