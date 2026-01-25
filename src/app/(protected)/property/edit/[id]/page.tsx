@@ -22,7 +22,7 @@ import { FLAT_AMENITIES, VILLA_AMENITIES } from "@/constants";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { uploadFileToFirebase, generateFilePath, convertImageToWebP } from "@/utils/upload";
+import { uploadFileToFirebase, generateFilePath, convertImageToWebP, processImageFromUrl } from "@/utils/upload";
 import { Switch } from "@/components/ui/switch";
 
 const FACING_OPTIONS: { label: string; value: Facing }[] = [
@@ -140,15 +140,32 @@ export default function EditPropertyPage() {
         e.target.value = "";
     };
 
-    const handleAddImageUrl = () => {
+    const [isProcessingUrl, setIsProcessingUrl] = useState(false);
+
+    const handleAddImageUrl = async () => {
         if (!imageUrlInput) return;
         if (!imageUrlInput.startsWith("http")) {
             toast.error("Please enter a valid URL starting with http");
             return;
         }
-        setNewImages(prev => [...prev, imageUrlInput]);
-        setAllImages(prev => [...prev, imageUrlInput]);
-        setImageUrlInput("");
+
+        try {
+            setIsProcessingUrl(true);
+            toast.info("Processing external image...");
+
+            // Process the URL: fetch, convert if HEIC, optimize to WebP, and upload to our storage
+            const optimizedUrl = await processImageFromUrl(imageUrlInput, "property-images");
+
+            setNewImages(prev => [...prev, optimizedUrl]);
+            setAllImages(prev => [...prev, optimizedUrl]);
+            setImageUrlInput("");
+            toast.success("Image added and optimized");
+        } catch (error) {
+            console.error("Error adding image URL:", error);
+            toast.error("Failed to process image URL");
+        } finally {
+            setIsProcessingUrl(false);
+        }
     };
 
     const handleRemoveNewImage = (url: string) => {
@@ -586,9 +603,19 @@ export default function EditPropertyPage() {
                                     onChange={(e) => setImageUrlInput(e.target.value)}
                                     placeholder="Paste image URL here..."
                                     className="flex-1"
+                                    disabled={isProcessingUrl}
                                 />
-                                <Button type="button" onClick={handleAddImageUrl} variant="secondary">
-                                    Add URL
+                                <Button
+                                    type="button"
+                                    onClick={handleAddImageUrl}
+                                    variant="secondary"
+                                    disabled={isProcessingUrl}
+                                >
+                                    {isProcessingUrl ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        "Add URL"
+                                    )}
                                 </Button>
                             </div>
                         </div>
