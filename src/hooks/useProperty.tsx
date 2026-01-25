@@ -15,6 +15,7 @@ import {
   OfferDataDTO,
   SubmitFinalOfferDTO,
   PropertyOffer,
+  EditPropertyDTO,
 } from "@/types/property";
 import i18n from "@/i18n";
 
@@ -305,4 +306,35 @@ export const useSharePropertyContact = () => {
     },
   });
   return { sharePropertyContact: mutate, isPending, error };
+};
+
+export const useEditProperty = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending, error } = useMutation<
+    Property,
+    AxiosError<{ message: string }>,
+    EditPropertyDTO
+  >({
+    mutationFn: async (data: EditPropertyDTO) => {
+      return (await api.patch("/property/edit", data)).data.data;
+    },
+    onSuccess: (_, variables) => {
+      toast.success(i18n.t("toast_property_updated"));
+      queryClient.invalidateQueries({
+        queryKey: ["property", variables.propertyId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["my-listings"] });
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        i18n.t("toast_error_property_update");
+      toast.error(errorMessage);
+    },
+  });
+  return { editProperty: mutateAsync, isPending, error };
 };

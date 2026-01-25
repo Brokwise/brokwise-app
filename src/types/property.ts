@@ -199,3 +199,17 @@ export interface PaginatedPropertyResponse {
   page: number;
   totalPages: number;
 }
+
+export interface EditPropertyDTO {
+  propertyId: string;
+  rate?: number;
+  totalPrice?: number;
+  frontRoadWidth?: number;
+  sideRoadWidth?: number;
+  roadWidthUnit?: "METER" | "FEET";
+  facing?: Facing;
+  sideFacing?: Facing;
+  amenities?: string[];
+  newImages?: string[];
+  featuredMedia?: string;
+}
