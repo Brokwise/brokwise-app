@@ -143,6 +143,9 @@ export interface EnquirySubmission {
   receivedAt: string;
   createdAt: string;
   updatedAt: string;
+
+  isBoosted?: boolean;
+  bidRank?: number;
 }
 export interface EnquiryMessage {
   _id: string;

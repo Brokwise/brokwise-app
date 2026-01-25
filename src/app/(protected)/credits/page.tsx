@@ -74,6 +74,11 @@ const transactionTypeConfig: Record<
         color: "text-red-500",
         label: "Used",
     },
+    bid_debit: {
+        icon: <Minus className="h-4 w-4" />,
+        color: "text-red-500",
+        label: "Used",
+    },
     refund: {
         icon: <RefreshCcw className="h-4 w-4" />,
         color: "text-orange-500",
@@ -303,10 +308,10 @@ const TransactionHistory = () => {
                                                     <div
                                                         className={cn(
                                                             "flex items-center gap-2",
-                                                            config.color
+                                                            config?.color
                                                         )}
                                                     >
-                                                        {config.icon}
+                                                        {config?.icon}
                                                         <span className="font-medium">{config.label}</span>
                                                     </div>
                                                 </TableCell>

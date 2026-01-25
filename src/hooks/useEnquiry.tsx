@@ -114,19 +114,42 @@ export const useGetEnquiryById = (id: string) => {
 };
 export const useSubmitPropertyToEnquiry = () => {
   const api = useAxios();
+  const queryClient = useQueryClient();
   const { mutate, isPending, error } = useMutation<
     void,
     Error,
-    { enquiryId: string; propertyId: string; privateMessage?: string }
+    {
+      enquiryId: string;
+      propertyId: string;
+      privateMessage?: string;
+      bidCredits?: number;
+    }
   >({
-    mutationFn: async ({ enquiryId, propertyId, privateMessage }) => {
+    mutationFn: async ({ enquiryId, propertyId, privateMessage, bidCredits }) => {
       const payload: Record<string, unknown> = { propertyId };
       const trimmedMessage = privateMessage?.trim();
       if (trimmedMessage) {
         payload.privateMessage = trimmedMessage;
       }
+      if (bidCredits && bidCredits > 0) {
+        payload.bidCredits = bidCredits;
+      }
       return (await api.post(`/broker/enquiry/${enquiryId}/submit`, payload))
         .data.data;
+    },
+    onSuccess: (_data, variables) => {
+      // Invalidate bid-related queries after submission with bid
+      if (variables.bidCredits && variables.bidCredits > 0) {
+        queryClient.invalidateQueries({
+          queryKey: ["bid-leaderboard", variables.enquiryId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["my-bid", variables.enquiryId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["wallet-balance"],
+        });
+      }
     },
   });
   return { submitPropertyToEnquiry: mutate, isPending, error };
@@ -134,15 +157,34 @@ export const useSubmitPropertyToEnquiry = () => {
 
 export const useSubmitFreshProperty = () => {
   const api = useAxios();
+  const queryClient = useQueryClient();
   const { mutate, isPending, error } = useMutation<
     void,
     Error,
-    { enquiryId: string; payload: Record<string, unknown> }
+    { enquiryId: string; payload: Record<string, unknown>; bidCredits?: number }
   >({
-    mutationFn: async ({ enquiryId, payload }) => {
+    mutationFn: async ({ enquiryId, payload, bidCredits }) => {
+      const finalPayload = { ...payload };
+      if (bidCredits && bidCredits > 0) {
+        finalPayload.bidCredits = bidCredits;
+      }
       return (
-        await api.post(`/broker/enquiry/${enquiryId}/submit-fresh`, payload)
+        await api.post(`/broker/enquiry/${enquiryId}/submit-fresh`, finalPayload)
       ).data.data;
+    },
+    onSuccess: (_data, variables) => {
+      // Invalidate bid-related queries after submission with bid
+      if (variables.bidCredits && variables.bidCredits > 0) {
+        queryClient.invalidateQueries({
+          queryKey: ["bid-leaderboard", variables.enquiryId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["my-bid", variables.enquiryId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["wallet-balance"],
+        });
+      }
     },
   });
   return { submitFreshProperty: mutate, isPending, error };

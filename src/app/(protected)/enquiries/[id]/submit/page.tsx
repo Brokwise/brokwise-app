@@ -26,6 +26,7 @@ import { PropertyPreviewModal } from "../_components/PropertyPreviewModal";
 import { formatEnquiryLocation } from "@/utils/helper";
 import { FilteredProperties } from "./filteredProperties";
 import { Property } from "@/types/property";
+import { BidBoost } from "./_components/BidBoost";
 
 type View = "select" | "create" | "message";
 
@@ -55,6 +56,7 @@ export default function SubmitEnquiryPage() {
     null
   );
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [bidCredits, setBidCredits] = useState<number | null>(null);
 
   const { submitPropertyToEnquiry, isPending: isSubmittingExisting } =
     useSubmitPropertyToEnquiry();
@@ -90,11 +92,13 @@ export default function SubmitEnquiryPage() {
         enquiryId: enquiry._id,
         propertyId: selectedPropertyId as string,
         privateMessage: trimmedMessage || undefined,
+        bidCredits: bidCredits ?? undefined,
       },
       {
         onSuccess: () => {
           setMessage("");
           setSelectedPropertyId(null);
+          setBidCredits(null);
           toast.success("Property submitted successfully");
           router.push(`/enquiries/${id}`);
         },
@@ -120,11 +124,13 @@ export default function SubmitEnquiryPage() {
           ...freshPropertyData,
           privateMessage: trimmedMessage || undefined,
         },
+        bidCredits: bidCredits ?? undefined,
       },
       {
         onSuccess: () => {
           setMessage("");
           setFreshPropertyData(null);
+          setBidCredits(null);
           toast.success("New property created and submitted successfully");
           router.push(`/enquiries/${id}`);
         },
@@ -187,7 +193,7 @@ export default function SubmitEnquiryPage() {
   };
 
   return (
-    <div className="container mx-auto p-4 md:p-6 lg:max-w-5xl space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -276,6 +282,13 @@ export default function SubmitEnquiryPage() {
               </p>
             </div>
 
+            {/* Boost proposal with bidding */}
+            <BidBoost
+              enquiryId={enquiry._id}
+              disabled={isSubmittingFresh}
+              onBidChange={setBidCredits}
+            />
+
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button
                 variant="outline"
@@ -323,6 +336,8 @@ export default function SubmitEnquiryPage() {
                     setMessage={setMessage}
                     isSubmittingExisting={isSubmittingExisting}
                     handleExistingSubmit={handleExistingSubmit}
+                    enquiryId={enquiry._id}
+                    onBidChange={setBidCredits}
                   />
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-center p-12 min-h-[400px]">

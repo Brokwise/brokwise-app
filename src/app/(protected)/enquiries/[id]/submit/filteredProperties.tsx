@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Dispatch, SetStateAction } from "react";
 import { Property } from "@/types/property";
+import { BidBoost } from "./_components/BidBoost";
 
 interface FilteredPropertiesProps {
   isPropertiesLoading: boolean;
@@ -18,6 +19,8 @@ interface FilteredPropertiesProps {
   setMessage: Dispatch<SetStateAction<string>>;
   isSubmittingExisting: boolean;
   handleExistingSubmit: () => void;
+  enquiryId: string;
+  onBidChange?: (bidCredits: number | null) => void;
 }
 
 export const FilteredProperties = ({
@@ -31,6 +34,8 @@ export const FilteredProperties = ({
   setMessage,
   isSubmittingExisting,
   handleExistingSubmit,
+  enquiryId,
+  onBidChange,
 }: FilteredPropertiesProps) => {
   return (
     <div className="flex flex-col md:flex-row h-full min-h-[500px]">
@@ -173,6 +178,13 @@ export const FilteredProperties = ({
               {message.length}/1000
             </p>
           </div>
+
+          {/* Boost proposal with bidding */}
+          <BidBoost
+            enquiryId={enquiryId}
+            disabled={isSubmittingExisting}
+            onBidChange={onBidChange}
+          />
         </div>
         <div className="pt-6 border-t mt-4">
           <Button

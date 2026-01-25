@@ -88,6 +88,18 @@ export const ReceivedProperties = ({
   const { markSubmissionViewed } = useMarkSubmissionViewed();
   const { t } = useTranslation();
 
+  const sortedProperties = React.useMemo(() => {
+    if (!receivedProperties) return [];
+    return [...receivedProperties].sort((a, b) => {
+      if (a.isBoosted && b.isBoosted) {
+        return (a.bidRank || Infinity) - (b.bidRank || Infinity);
+      }
+      if (a.isBoosted) return -1;
+      if (b.isBoosted) return 1;
+      return 0;
+    });
+  }, [receivedProperties]);
+
   if (!isMyEnquiry) return null;
   if (isPending) {
     return (
@@ -124,7 +136,7 @@ export const ReceivedProperties = ({
       </div>
 
       <div className="space-y-3">
-        {receivedProperties.map((submission) => {
+        {sortedProperties.map((submission) => {
           const propertyIdStr = getPropertyId(submission);
           const property = getPopulatedProperty(submission);
 
@@ -134,10 +146,25 @@ export const ReceivedProperties = ({
               className="overflow-hidden transition-all hover:shadow-md"
             >
               <CardHeader className="p-3 bg-muted/30 pb-2">
-                <div className="flex justify-between items-start gap-2">
-                  <CardTitle className="text-sm font-medium line-clamp-1 leading-tight">
-                    {property?.propertyTitle || t("page_enquiry_detail_view_property_details")}
-                  </CardTitle>
+                <div className="flex flex-col gap-2">
+                  {submission.isBoosted && (
+                    <div className="flex items-center gap-2">
+                      <Badge className="h-5 px-1.5 text-[10px] bg-yellow-500 hover:bg-yellow-600 border-yellow-600 text-white">
+                        Boosted
+                      </Badge>
+                      {submission.bidRank && (
+                        <span className="text-xs font-medium text-muted-foreground">
+                          Rank #{submission.bidRank}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex justify-between items-start gap-2">
+                    <CardTitle className="text-sm font-medium line-clamp-1 leading-tight">
+                      {property?.propertyTitle ||
+                        t("page_enquiry_detail_view_property_details")}
+                    </CardTitle>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="p-3 pt-2 space-y-2">

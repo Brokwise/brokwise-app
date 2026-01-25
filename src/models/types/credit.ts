@@ -12,6 +12,7 @@ export type CreditTransactionType =
   | "signup_bonus"
   | "purchase"
   | "debit"
+  | "bid_debit"
   | "refund"
   | "admin_adjustment";
 
