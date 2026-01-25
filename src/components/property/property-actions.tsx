@@ -90,9 +90,6 @@ export function PropertyActions({ property }: { property: Property }) {
           showUndo({
             propertyId: property._id,
             propertyTitle: `${property.propertyCategory} - ${property.propertyType}`,
-            onUndo: async () => {
-              await undoDelete({ propertyId: property._id });
-            }
           });
         },
       }

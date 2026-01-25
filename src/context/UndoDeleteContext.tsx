@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 import { UndoDeleteOverlay } from "@/components/property/undo-delete-overlay";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUndoDeleteProperty } from "@/hooks/useProperty";
+import { Property } from "@/types/property";
 
 interface UndoDeleteContextType {
     showUndo: (options: {
@@ -47,10 +48,28 @@ export const UndoDeleteProvider = ({ children }: { children: React.ReactNode }) 
     }, [queryClient]);
 
     const handleUndo = useCallback(async () => {
+        // Optimistic update
+        if (propertyId) {
+            queryClient.setQueryData<Property[]>(["my-listings"], (old) => {
+                if (!old) return old;
+                return old.map(p => {
+                    if (p._id === propertyId) {
+                        // Optimistically set to ACTIVE
+                        return { ...p, listingStatus: "ACTIVE", deletingStatus: null, deletionReason: undefined };
+                    }
+                    return p;
+                });
+            });
+            queryClient.setQueryData<Property>(["property", propertyId], (old) => {
+                if (!old) return old;
+                return { ...old, listingStatus: "ACTIVE", deletingStatus: null, deletionReason: undefined };
+            });
+        }
+
         if (customUndo) {
             await customUndo();
         } else if (propertyId) {
-            // Default undo behavior if no custom handler provided
+            // Default undo behavior
             undoDelete(
                 { propertyId },
                 {
@@ -59,6 +78,11 @@ export const UndoDeleteProvider = ({ children }: { children: React.ReactNode }) 
                         queryClient.invalidateQueries({ queryKey: ["properties"] });
                         queryClient.invalidateQueries({ queryKey: ["deleted-properties"] });
                     },
+                    onError: () => {
+                        // Revert on error
+                        queryClient.invalidateQueries({ queryKey: ["my-listings"] });
+                        queryClient.invalidateQueries({ queryKey: ["properties"] });
+                    }
                 }
             );
         }
