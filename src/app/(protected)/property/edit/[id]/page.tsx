@@ -25,27 +25,25 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { uploadFileToFirebase, generateFilePath, convertImageToWebP, processImageFromUrl } from "@/utils/upload";
 import { Switch } from "@/components/ui/switch";
 
-const FACING_OPTIONS: { label: string; value: Facing }[] = [
-    { label: "North", value: "NORTH" },
-    { label: "South", value: "SOUTH" },
-    { label: "East", value: "EAST" },
-    { label: "West", value: "WEST" },
-    { label: "North East", value: "NORTH_EAST" },
-    { label: "North West", value: "NORTH_WEST" },
-    { label: "South East", value: "SOUTH_EAST" },
-    { label: "South West", value: "SOUTH_WEST" },
-];
-
-const ROAD_WIDTH_UNITS = [
-    { label: "Meter", value: "METER" },
-    { label: "Feet", value: "FEET" },
-];
-
-// Property types that have amenities (built properties)
 const BUILT_PROPERTY_TYPES = ["FLAT", "VILLA", "HOTEL", "HOSTEL", "RESORT", "SHOWROOM", "SHOP", "OFFICE_SPACE", "WAREHOUSE", "OTHER_SPACE"];
 
 export default function EditPropertyPage() {
     const { t } = useTranslation();
+    const facingOptions: { label: string; value: Facing }[] = [
+        { label: t("label_north"), value: "NORTH" },
+        { label: t("label_south"), value: "SOUTH" },
+        { label: t("label_east"), value: "EAST" },
+        { label: t("label_west"), value: "WEST" },
+        { label: t("label_north_east"), value: "NORTH_EAST" },
+        { label: t("label_north_west"), value: "NORTH_WEST" },
+        { label: t("label_south_east"), value: "SOUTH_EAST" },
+        { label: t("label_south_west"), value: "SOUTH_WEST" },
+    ];
+
+    const roadWidthUnits = [
+        { label: t("label_meter"), value: "METER" },
+        { label: t("label_feet"), value: "FEET" },
+    ];
     const params = useParams();
     const router = useRouter();
     const propertyId = params.id as string;
@@ -121,7 +119,7 @@ export default function EditPropertyPage() {
             }
         });
 
-        toast.loading("Uploading images...");
+        toast.loading(t("toast_uploading_images"));
 
         const uploadedUrls = await Promise.all(uploadPromises);
         const validUrls = uploadedUrls.filter((url): url is string => url !== null);
@@ -130,10 +128,10 @@ export default function EditPropertyPage() {
             setNewImages(prev => [...prev, ...validUrls]);
             setAllImages(prev => [...prev, ...validUrls]);
             toast.dismiss();
-            toast.success(`${validUrls.length} image(s) uploaded successfully!`);
+            toast.success(t("toast_images_upload_success", { count: validUrls.length }));
         } else {
             toast.dismiss();
-            toast.error("Failed to upload images. Please try again.");
+            toast.error(t("toast_images_upload_error"));
         }
 
         // Reset file input
@@ -151,7 +149,7 @@ export default function EditPropertyPage() {
 
         try {
             setIsProcessingUrl(true);
-            toast.info("Processing external image...");
+            toast.info(t("toast_processing_image"));
 
             // Process the URL: fetch, convert if HEIC, optimize to WebP, and upload to our storage
             const optimizedUrl = await processImageFromUrl(imageUrlInput, "property-images");
@@ -159,10 +157,10 @@ export default function EditPropertyPage() {
             setNewImages(prev => [...prev, optimizedUrl]);
             setAllImages(prev => [...prev, optimizedUrl]);
             setImageUrlInput("");
-            toast.success("Image added and optimized");
+            toast.success(t("toast_image_added"));
         } catch (error) {
             console.error("Error adding image URL:", error);
-            toast.error("Failed to process image URL");
+            toast.error(t("toast_image_url_error"));
         } finally {
             setIsProcessingUrl(false);
         }
@@ -186,7 +184,7 @@ export default function EditPropertyPage() {
 
         if (Object.keys(errors).length > 0) {
             setValidationErrors(errors);
-            toast.error("Please fill in all required fields");
+            toast.error(t("toast_fill_required"));
             return;
         }
 
@@ -374,12 +372,12 @@ export default function EditPropertyPage() {
                 {/* Road Size Section */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">{t("edit_property_road_section") || "Road Size"}</CardTitle>
-                        <CardDescription>{t("edit_property_road_desc") || "Update the road width details."}</CardDescription>
+                        <CardTitle className="text-lg">{t("edit_property_road_section")}</CardTitle>
+                        <CardDescription>{t("edit_property_road_desc")}</CardDescription>
                     </CardHeader>
                     <CardContent className={`grid grid-cols-1 ${property?.plotType === "CORNER" ? "md:grid-cols-3" : "md:grid-cols-2"} gap-4`}>
                         <div className="space-y-2">
-                            <Label htmlFor="frontRoadWidth">{t("label_front_road_width") || "Front Road Width"}</Label>
+                            <Label htmlFor="frontRoadWidth">{t("label_front_road_width")}</Label>
                             <Input
                                 id="frontRoadWidth"
                                 type="number"
@@ -391,7 +389,7 @@ export default function EditPropertyPage() {
                         </div>
                         {property?.plotType === "CORNER" && (
                             <div className="space-y-2">
-                                <Label htmlFor="sideRoadWidth">{t("label_side_road_width") || "Side Road Width"}</Label>
+                                <Label htmlFor="sideRoadWidth">{t("label_side_road_width")}</Label>
                                 <Input
                                     id="sideRoadWidth"
                                     type="number"
@@ -403,16 +401,16 @@ export default function EditPropertyPage() {
                             </div>
                         )}
                         <div className="space-y-2">
-                            <Label htmlFor="roadWidthUnit">{t("label_road_width_unit") || "Unit"}</Label>
+                            <Label htmlFor="roadWidthUnit">{t("label_road_width_unit")}</Label>
                             <Select
                                 value={roadWidthUnit}
                                 onValueChange={(val) => setRoadWidthUnit(val as "METER" | "FEET")}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder={t("select_unit") || "Select unit"} />
+                                    <SelectValue placeholder={t("select_unit")} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {ROAD_WIDTH_UNITS.map((unit) => (
+                                    {roadWidthUnits.map((unit) => (
                                         <SelectItem key={unit.value} value={unit.value}>
                                             {unit.label}
                                         </SelectItem>
@@ -426,21 +424,21 @@ export default function EditPropertyPage() {
                 {/* Directions Section */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">{t("edit_property_directions_section") || "Directions"}</CardTitle>
-                        <CardDescription>{t("edit_property_directions_desc") || "Update the facing direction of your property."}</CardDescription>
+                        <CardTitle className="text-lg">{t("edit_property_directions_section")}</CardTitle>
+                        <CardDescription>{t("edit_property_directions_desc")}</CardDescription>
                     </CardHeader>
                     <CardContent className={`grid grid-cols-1 ${property?.plotType === "CORNER" ? "md:grid-cols-2" : ""} gap-4`}>
                         <div className="space-y-2">
-                            <Label htmlFor="facing">{t("label_facing") || "Front Facing"}</Label>
+                            <Label htmlFor="facing">{t("label_facing")}</Label>
                             <Select
                                 value={facing}
                                 onValueChange={(val) => setFacing(val as Facing)}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder={t("select_facing") || "Select direction"} />
+                                    <SelectValue placeholder={t("select_facing")} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {FACING_OPTIONS.map((option) => (
+                                    {facingOptions.map((option) => (
                                         <SelectItem key={option.value} value={option.value}>
                                             {option.label}
                                         </SelectItem>
@@ -450,16 +448,16 @@ export default function EditPropertyPage() {
                         </div>
                         {property?.plotType === "CORNER" && (
                             <div className="space-y-2">
-                                <Label htmlFor="sideFacing">{t("label_side_facing") || "Side Facing"}</Label>
+                                <Label htmlFor="sideFacing">{t("label_side_facing")}</Label>
                                 <Select
                                     value={sideFacing}
                                     onValueChange={(val) => setSideFacing(val as Facing)}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder={t("select_side_facing") || "Select direction"} />
+                                        <SelectValue placeholder={t("select_side_facing")} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {FACING_OPTIONS.map((option) => (
+                                        {facingOptions.map((option) => (
                                             <SelectItem key={option.value} value={option.value}>
                                                 {option.label}
                                             </SelectItem>
@@ -475,8 +473,8 @@ export default function EditPropertyPage() {
                 {property && BUILT_PROPERTY_TYPES.includes(property.propertyType) && (
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-lg">{t("edit_property_amenities_section") || "Amenities"}</CardTitle>
-                            <CardDescription>{t("edit_property_amenities_desc") || "Select the amenities available in your property."}</CardDescription>
+                            <CardTitle className="text-lg">{t("edit_property_amenities_section")}</CardTitle>
+                            <CardDescription>{t("edit_property_amenities_desc")}</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -495,7 +493,7 @@ export default function EditPropertyPage() {
                                             className="text-sm font-normal cursor-pointer flex items-center gap-1.5"
                                         >
                                             <amenity.icon className="w-3.5 h-3.5 text-muted-foreground" />
-                                            {amenity.label}
+                                            {t(`amenity_${amenity.label.toLowerCase().replace(/ /g, "_").replace(/&/g, "").replace(/[()]/g, "").replace(/_+/g, "_").replace(/_$/, "")}`)}
                                         </Label>
                                     </div>
                                 ))}
@@ -529,7 +527,7 @@ export default function EditPropertyPage() {
                                     >
                                         <Image
                                             src={image}
-                                            alt={`Property image ${index + 1}`}
+                                            alt={t("alt_property_image", { number: index + 1 })}
                                             fill
                                             className="object-cover"
                                         />
@@ -577,7 +575,7 @@ export default function EditPropertyPage() {
                                         >
                                             <Image
                                                 src={image}
-                                                alt={`New image ${index + 1}`}
+                                                alt={t("alt_new_image", { number: index + 1 })}
                                                 fill
                                                 className="object-cover"
                                             />
