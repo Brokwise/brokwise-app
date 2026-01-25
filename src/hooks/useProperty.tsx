@@ -1,6 +1,6 @@
 import {
-  useMutation,
   useQuery,
+  useMutation,
   useQueryClient,
   keepPreviousData,
 } from "@tanstack/react-query";
@@ -135,6 +135,97 @@ export const useUpdatePropertyStatus = () => {
 
 import { useApp } from "@/context/AppContext";
 
+/**
+ * Soft delete property - immediate deletion, no admin approval needed
+ * Returns the deleted property
+ */
+export const useSoftDeleteProperty = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+
+  const { mutate, mutateAsync, isPending, error } = useMutation<
+    Property,
+    AxiosError<{ message: string }>,
+    { propertyId: string; reason: string }
+  >({
+    mutationFn: async ({ propertyId, reason }) => {
+      return (
+        await api.delete(`/property/soft-delete`, {
+          data: { propertyId, reason },
+        })
+      ).data.data;
+    },
+    onSuccess: () => {
+      toast.success(i18n.t("toast_property_deleted"));
+      queryClient.invalidateQueries({ queryKey: ["my-properties"] });
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        i18n.t("toast_error_property_delete");
+      toast.error(errorMessage);
+    },
+  });
+  return { softDelete: mutate, softDeleteAsync: mutateAsync, isPending, error };
+};
+
+/**
+ * Undo soft delete - restore property to ACTIVE status
+ */
+export const useUndoDeleteProperty = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+
+  const { mutate, mutateAsync, isPending, error } = useMutation<
+    Property,
+    AxiosError<{ message: string }>,
+    { propertyId: string }
+  >({
+    mutationFn: async ({ propertyId }) => {
+      return (
+        await api.post(`/property/undo-delete`, { propertyId })
+      ).data.data;
+    },
+    onSuccess: () => {
+      toast.success(i18n.t("toast_property_restored") || "Property restored");
+      queryClient.invalidateQueries({ queryKey: ["my-properties"] });
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        i18n.t("toast_error_property_restore") ||
+        "Failed to restore property";
+      toast.error(errorMessage);
+    },
+  });
+  return { undoDelete: mutate, undoDeleteAsync: mutateAsync, isPending, error };
+};
+
+/**
+ * Get deleted properties for the current broker
+ */
+export const useGetDeletedProperties = (options?: { enabled?: boolean }) => {
+  const api = useAxios();
+  const {
+    data: deletedProperties,
+    isLoading,
+    error,
+  } = useQuery<Property[]>({
+    queryKey: ["deleted-properties"],
+    queryFn: async () => {
+      return (await api.get("/property/broker/deleted")).data.data;
+    },
+    enabled: options?.enabled ?? true,
+  });
+  return { deletedProperties, isLoading, error };
+};
+
+/**
+ * @deprecated Use useSoftDeleteProperty instead
+ * Legacy hook - kept for backwards compatibility
+ */
 export const useRequestDeleteProperty = () => {
   const api = useAxios();
   const queryClient = useQueryClient();

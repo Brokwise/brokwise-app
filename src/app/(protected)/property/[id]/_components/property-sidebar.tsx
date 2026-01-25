@@ -92,7 +92,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                         </div>
                     )}
                     {
-                        !isOwner &&
+                        !isOwner && property.listingStatus !== "DELETED" &&
                         <div className="bg-muted/30 rounded-lg p-4 space-y-4 border border-border">
                             <div className="flex items-center justify-between">
                                 <span className="font-semibold text-sm">Contact Owner</span>
@@ -126,11 +126,11 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                         </div>
                     }
 
-                    {isOwner && property.listingStatus !== "ENQUIRY_ONLY" && (
+                    {isOwner && property.listingStatus !== "ENQUIRY_ONLY" && property.listingStatus !== "DELETED" && (
                         <PropertyOffers property={property} />
                     )}
 
-                    {!property.deletingStatus && property.listingStatus !== "ENQUIRY_ONLY" && (
+                    {!property.deletingStatus && property.listingStatus !== "ENQUIRY_ONLY" && property.listingStatus !== "DELETED" && (
                         <div className="space-y-3">
                             <MakeOffer property={property} />
                             <Button
