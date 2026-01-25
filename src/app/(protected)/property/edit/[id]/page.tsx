@@ -584,11 +584,11 @@ export default function EditPropertyPage() {
                                 <Input
                                     value={imageUrlInput}
                                     onChange={(e) => setImageUrlInput(e.target.value)}
-                                    placeholder={t("placeholder_image_url") || "Enter image URL..."}
+                                    placeholder="Paste image URL here..."
                                     className="flex-1"
                                 />
                                 <Button type="button" onClick={handleAddImageUrl} variant="secondary">
-                                    {t("action_add_url") || "Add URL"}
+                                    Add URL
                                 </Button>
                             </div>
                         </div>
