@@ -9,7 +9,7 @@ import {
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
+import { uploadFileToFirebase, generateFilePath, convertImageToWebP } from "@/utils/upload";
 import { Loader2, Upload, X, FileText } from "lucide-react";
 
 interface AgriculturalLegalDocsProps {
@@ -31,8 +31,9 @@ export const AgriculturalLegalDocs: React.FC<AgriculturalLegalDocsProps> = ({
     setUploading((prev) => ({ ...prev, [fieldName]: true }));
 
     try {
-      const path = generateFilePath(file.name, `property-${fieldName}`);
-      const url = await uploadFileToFirebase(file, path);
+      const optimizedFile = await convertImageToWebP(file);
+      const path = generateFilePath(optimizedFile.name, `property-${fieldName}`);
+      const url = await uploadFileToFirebase(optimizedFile, path);
       form.setValue(fieldName, url, { shouldValidate: true });
       toast.success("Document uploaded successfully");
     } catch (error) {

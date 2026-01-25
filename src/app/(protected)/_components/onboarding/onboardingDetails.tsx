@@ -41,7 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
+import { uploadFileToFirebase, generateFilePath, convertImageToWebP } from "@/utils/upload";
 import {
   Command,
   CommandEmpty,
@@ -243,8 +243,9 @@ export const OnboardingDetails = ({
 
     try {
       setImageUploading(true);
-      const path = generateFilePath(file.name, `users/${user?.uid}/profile`);
-      const url = await uploadFileToFirebase(file, path);
+      const optimizedFile = await convertImageToWebP(file);
+      const path = generateFilePath(optimizedFile.name, `users/${user?.uid}/profile`);
+      const url = await uploadFileToFirebase(optimizedFile, path);
       form.setValue("profilePhoto", url, {
         shouldValidate: true,
         shouldDirty: true,

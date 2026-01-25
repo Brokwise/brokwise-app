@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Paperclip, Loader2, Smile, FileIcon } from "lucide-react";
 import { useState, KeyboardEvent, useRef, ChangeEvent } from "react";
-import { uploadFileToFirebase, generateFilePath } from "@/utils/upload";
+import { uploadFileToFirebase, generateFilePath, convertImageToWebP } from "@/utils/upload";
 import { toast } from "sonner";
 import EmojiPicker from "emoji-picker-react";
 import {
@@ -98,8 +98,14 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
 
     try {
       setIsUploading(true);
-      const path = generateFilePath(pendingFile.file.name, "chat_uploads");
-      const url = await uploadFileToFirebase(pendingFile.file, path);
+
+      let fileToUpload = pendingFile.file;
+      if (pendingFile.isImage) {
+        fileToUpload = await convertImageToWebP(pendingFile.file);
+      }
+
+      const path = generateFilePath(fileToUpload.name, "chat_uploads");
+      const url = await uploadFileToFirebase(fileToUpload, path);
 
       const type = pendingFile.isImage ? "image" : "file";
 

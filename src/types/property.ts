@@ -191,6 +191,7 @@ export interface Property {
   listedByType: "Broker" | "Company"
   submittedForEnquiryId?: Enquiry;
   offers?: PropertyOffer[];
+  editCount?: number;
 }
 
 export interface PaginatedPropertyResponse {
@@ -198,4 +199,19 @@ export interface PaginatedPropertyResponse {
   total: number;
   page: number;
   totalPages: number;
+}
+
+export interface EditPropertyDTO {
+  propertyId: string;
+  rate?: number;
+  totalPrice?: number;
+  isPriceNegotiable?: boolean;
+  frontRoadWidth?: number;
+  sideRoadWidth?: number;
+  roadWidthUnit?: "METER" | "FEET";
+  facing?: Facing;
+  sideFacing?: Facing;
+  amenities?: string[];
+  newImages?: string[];
+  featuredMedia?: string;
 }
