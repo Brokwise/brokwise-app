@@ -11,6 +11,8 @@ interface DocumentsListProps {
 export const DocumentsList = ({ property }: DocumentsListProps) => {
     const { t } = useTranslation();
 
+    if (property.listingStatus === "DELETED") return null;
+
     const documents = [
         ...(property.floorPlans?.map((url, i) => ({
             name: `${t("property_floor_plan")} ${i + 1}`,
