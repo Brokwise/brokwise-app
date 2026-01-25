@@ -93,6 +93,11 @@ export function PropertyStatusBadge({
       label: "Delisted",
       className: "bg-red-100 text-red-800 hover:bg-red-200",
     },
+    DELETED: {
+      variant: "destructive",
+      label: "Deleted",
+      className: "bg-red-600 text-white hover:bg-red-700",
+    },
   };
 
   const config = variants[status] || { variant: "outline", label: status };

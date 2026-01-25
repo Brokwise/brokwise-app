@@ -70,26 +70,28 @@ export const PropertyHeader = ({
                             {t("label_pending_removal")}
                         </Badge>
                     )}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon" className="rounded-xl h-10 w-10 border-2">
-                                <MoreVertical className="h-5 w-5" />
-                                <span className="sr-only">{t("action_open_actions")}</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {isOwner && (property.editCount || 0) < 3 && (
-                                <DropdownMenuItem onClick={() => router.push(`/property/edit/${property._id}`)}>
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    {t("action_edit") || "Edit Property"}
+                    {property.listingStatus !== "DELETED" && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="icon" className="rounded-xl h-10 w-10 border-2">
+                                    <MoreVertical className="h-5 w-5" />
+                                    <span className="sr-only">{t("action_open_actions")}</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {isOwner && (property.editCount || 0) < 3 && (
+                                    <DropdownMenuItem onClick={() => router.push(`/property/edit/${property._id}`)}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        {t("action_edit") || "Edit Property"}
+                                    </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem onClick={onFlag} className="text-destructive">
+                                    <ShieldX className="mr-2 h-4 w-4" />
+                                    {t("property_report_property")}
                                 </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem onClick={onFlag} className="text-destructive">
-                                <ShieldX className="mr-2 h-4 w-4" />
-                                {t("property_report_property")}
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
                 </div>
             </div>
         </div>

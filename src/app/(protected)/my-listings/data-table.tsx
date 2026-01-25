@@ -241,6 +241,7 @@ export function DataTable<TData, TValue>({
                   <SelectItem value="DRAFT">{t("label_draft")}</SelectItem>
 
                   <SelectItem value="DELISTED">{t("label_delisted")}</SelectItem>
+                  <SelectItem value="DELETED">{t("label_deleted") || "Deleted"}</SelectItem>
                 </SelectContent>
               </Select>
 

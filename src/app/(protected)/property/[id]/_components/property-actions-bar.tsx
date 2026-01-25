@@ -20,6 +20,7 @@ interface PropertyActionsBarProps {
     onToggleBookmark: () => void;
     shareUrl: string;
     propertyTitle?: string;
+    isDeleted?: boolean;
 }
 
 export const PropertyActionsBar = ({
@@ -30,6 +31,7 @@ export const PropertyActionsBar = ({
     onToggleBookmark,
     shareUrl,
     propertyTitle = "Property",
+    isDeleted = false,
 }: PropertyActionsBarProps) => {
     const { t } = useTranslation();
 
@@ -60,6 +62,8 @@ export const PropertyActionsBar = ({
             handleCopyLink();
         }
     };
+
+    if (isDeleted) return null;
 
     return (
         <div className="flex items-center justify-end gap-2">

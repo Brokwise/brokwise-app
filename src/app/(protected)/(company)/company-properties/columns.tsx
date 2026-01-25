@@ -92,6 +92,11 @@ const getStatusBadge = (status: ListingStatus) => {
       label: "Deleted By Company",
       className: "bg-red-100 text-red-800 hover:bg-red-200",
     },
+    DELETED: {
+      variant: "destructive",
+      label: "Deleted",
+      className: "bg-red-600 text-white hover:bg-red-700",
+    },
   };
   const config = variants[status] || { variant: "outline", label: status };
 
@@ -292,9 +297,9 @@ function ActionCell({ property }: { property: Property }) {
       selectedReason === "OTHER"
         ? additionalDetails
         : t(
-            PROPERTY_DELETION_REASONS.find((r) => r.value === selectedReason)
-              ?.labelKey || ""
-          );
+          PROPERTY_DELETION_REASONS.find((r) => r.value === selectedReason)
+            ?.labelKey || ""
+        );
 
     softDeleteProperty(
       { propertyId: property._id, reason },
@@ -472,7 +477,7 @@ function ActionCell({ property }: { property: Property }) {
                   onChange={(e) => setAdditionalDetails(e.target.value)}
                   className={
                     additionalDetails.length > 0 &&
-                    additionalDetails.length < 10
+                      additionalDetails.length < 10
                       ? "border-red-500"
                       : ""
                   }

@@ -130,7 +130,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                         <PropertyOffers property={property} />
                     )}
 
-                    {!property.deletingStatus && property.listingStatus !== "ENQUIRY_ONLY" && (
+                    {!property.deletingStatus && property.listingStatus !== "ENQUIRY_ONLY" && property.listingStatus !== "DELETED" && (
                         <div className="space-y-3">
                             <MakeOffer property={property} />
                             <Button

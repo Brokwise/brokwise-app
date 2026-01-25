@@ -58,7 +58,8 @@ export type ListingStatus =
   | "EXPIRED"
   | "DELISTED"
   | "ENQUIRY_ONLY"
-  | "DELETED_BY_COMPANY";
+  | "DELETED_BY_COMPANY"
+  | "DELETED";
 
 export type PossessionStatus = "READY_TO_MOVE" | "UNDER_CONSTRUCTION";
 
@@ -192,6 +193,12 @@ export interface Property {
   submittedForEnquiryId?: Enquiry;
   offers?: PropertyOffer[];
   editCount?: number;
+
+  // Soft deletion metadata
+  deletedAt?: string;
+  deletedBy?: string;
+  deletedByType?: "Broker" | "Admin";
+  deletionReason?: string;
 }
 
 export interface PaginatedPropertyResponse {

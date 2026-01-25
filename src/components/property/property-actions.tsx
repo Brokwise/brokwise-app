@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { Property } from "@/types/property";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { useRequestDeleteProperty } from "@/hooks/useProperty";
+import { useSoftDeleteProperty, useUndoDeleteProperty } from "@/hooks/useProperty";
 import Image from "next/image";
 import Link from "next/link";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,7 @@ import { formatAddress, formatPrice } from "@/utils/helper";
 import { PropertyStatusBadge } from "./property-status-badge";
 import { useTranslation } from "react-i18next";
 import { PROPERTY_DELETION_REASONS } from "@/constants";
+import { UndoDeleteOverlay } from "./undo-delete-overlay";
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -46,12 +48,18 @@ const formatDate = (dateString: string) => {
 };
 
 export function PropertyActions({ property }: { property: Property }) {
-  const { requestDelete, isPending: isDeleting } = useRequestDeleteProperty();
+  const queryClient = useQueryClient();
+  const { softDelete, isPending: isDeleting } = useSoftDeleteProperty();
+  const { undoDelete } = useUndoDeleteProperty();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showUndoOverlay, setShowUndoOverlay] = useState(false);
+  const [deletedPropertyId, setDeletedPropertyId] = useState<string | null>(null);
   const [selectedReason, setSelectedReason] = useState("");
   const [additionalDetails, setAdditionalDetails] = useState("");
   const { t } = useTranslation();
+
+  const isDeleted = property.listingStatus === "DELETED";
 
   // Validation: reason required, if "OTHER" then details min 10 chars
   const isDeleteValid =
@@ -65,20 +73,49 @@ export function PropertyActions({ property }: { property: Property }) {
       selectedReason === "OTHER"
         ? additionalDetails
         : t(
-            PROPERTY_DELETION_REASONS.find((r) => r.value === selectedReason)
-              ?.labelKey || ""
-          );
+          PROPERTY_DELETION_REASONS.find((r) => r.value === selectedReason)
+            ?.labelKey || ""
+        );
 
-    requestDelete(
+    // Close dialog immediately
+    setShowDeleteDialog(false);
+    setSelectedReason("");
+    setAdditionalDetails("");
+
+    // Perform the soft delete immediately
+    softDelete(
       { propertyId: property._id, reason },
       {
         onSuccess: () => {
-          setShowDeleteDialog(false);
-          setSelectedReason("");
-          setAdditionalDetails("");
+          // Show full-screen undo overlay
+          setDeletedPropertyId(property._id);
+          setShowUndoOverlay(true);
         },
       }
     );
+  };
+
+  const handleUndo = () => {
+    if (deletedPropertyId) {
+      undoDelete(
+        { propertyId: deletedPropertyId },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["my-listings"] });
+            queryClient.invalidateQueries({ queryKey: ["deleted-properties"] });
+          },
+        }
+      );
+    }
+    setShowUndoOverlay(false);
+    setDeletedPropertyId(null);
+  };
+
+  const handleOverlayClose = () => {
+    setShowUndoOverlay(false);
+    setDeletedPropertyId(null);
+    queryClient.invalidateQueries({ queryKey: ["my-listings"] });
+    queryClient.invalidateQueries({ queryKey: ["deleted-properties"] });
   };
 
   return (
@@ -86,7 +123,14 @@ export function PropertyActions({ property }: { property: Property }) {
       <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Property Details</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              Property Details
+              {isDeleted && (
+                <Badge variant="destructive" className="ml-2 uppercase text-[10px] py-0 h-5">
+                  Deleted
+                </Badge>
+              )}
+            </DialogTitle>
             <DialogDescription>ID: {property.propertyId}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -255,7 +299,7 @@ export function PropertyActions({ property }: { property: Property }) {
                   onChange={(e) => setAdditionalDetails(e.target.value)}
                   className={
                     additionalDetails.length > 0 &&
-                    additionalDetails.length < 10
+                      additionalDetails.length < 10
                       ? "border-red-500"
                       : ""
                   }
@@ -300,24 +344,37 @@ export function PropertyActions({ property }: { property: Property }) {
             <Eye className="mr-2 h-4 w-4" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href={`/property/edit/${property._id}`}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setShowDeleteDialog(true)}
-            className="text-red-600 focus:text-red-600"
-            disabled={property.deletingStatus === "pending"}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            {property.deletingStatus === "pending"
-              ? "Deletion Pending"
-              : "Delete"}
-          </DropdownMenuItem>
+          {!isDeleted && (
+            <>
+              <DropdownMenuItem asChild>
+                <Link href={`/property/edit/${property._id}`}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setShowDeleteDialog(true)}
+                className="text-red-600 focus:text-red-600"
+                disabled={property.deletingStatus === "pending"}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {property.deletingStatus === "pending"
+                  ? "Deletion Pending"
+                  : "Delete"}
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* Full-screen undo overlay */}
+      <UndoDeleteOverlay
+        isOpen={showUndoOverlay}
+        onUndo={handleUndo}
+        onClose={handleOverlayClose}
+        propertyTitle={`${property.propertyCategory} - ${property.propertyType}`}
+        duration={5}
+      />
     </>
   );
 }
