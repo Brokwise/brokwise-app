@@ -189,10 +189,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "sans-serif"],
-        inter: ["var(--font-inter)", "sans-serif"],
-        "host-grotesk": ["var(--font-host-grotesk)", "sans-serif"],
-        "instrument-serif": ["var(--font-instrument-serif)", "serif"],
+        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
