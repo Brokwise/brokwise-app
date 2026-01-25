@@ -41,6 +41,9 @@ const ROAD_WIDTH_UNITS = [
     { label: "Feet", value: "FEET" },
 ];
 
+// Property types that have amenities (built properties)
+const BUILT_PROPERTY_TYPES = ["FLAT", "VILLA", "HOTEL", "HOSTEL", "RESORT", "SHOWROOM", "SHOP", "OFFICE_SPACE", "WAREHOUSE", "OTHER_SPACE"];
+
 export default function EditPropertyPage() {
     const { t } = useTranslation();
     const params = useParams();
@@ -406,18 +409,18 @@ export default function EditPropertyPage() {
                 {/* Directions Section */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">{t("edit_property_directions_section")}</CardTitle>
-                        <CardDescription>{t("edit_property_directions_desc")}</CardDescription>
+                        <CardTitle className="text-lg">{t("edit_property_directions_section") || "Directions"}</CardTitle>
+                        <CardDescription>{t("edit_property_directions_desc") || "Update the facing direction of your property."}</CardDescription>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <CardContent className={`grid grid-cols-1 ${property?.plotType === "CORNER" ? "md:grid-cols-2" : ""} gap-4`}>
                         <div className="space-y-2">
-                            <Label htmlFor="facing">{t("label_facing")}</Label>
+                            <Label htmlFor="facing">{t("label_facing") || "Front Facing"}</Label>
                             <Select
                                 value={facing}
                                 onValueChange={(val) => setFacing(val as Facing)}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder={t("select_facing")} />
+                                    <SelectValue placeholder={t("select_facing") || "Select direction"} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {FACING_OPTIONS.map((option) => (
@@ -428,57 +431,61 @@ export default function EditPropertyPage() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="sideFacing">{t("label_side_facing")}</Label>
-                            <Select
-                                value={sideFacing}
-                                onValueChange={(val) => setSideFacing(val as Facing)}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder={t("select_side_facing")} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {FACING_OPTIONS.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                        {property?.plotType === "CORNER" && (
+                            <div className="space-y-2">
+                                <Label htmlFor="sideFacing">{t("label_side_facing") || "Side Facing"}</Label>
+                                <Select
+                                    value={sideFacing}
+                                    onValueChange={(val) => setSideFacing(val as Facing)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder={t("select_side_facing") || "Select direction"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {FACING_OPTIONS.map((option) => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
-                {/* Amenities Section */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">{t("edit_property_amenities_section")}</CardTitle>
-                        <CardDescription>{t("edit_property_amenities_desc")}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                            {getAmenities().map((amenity) => (
-                                <div
-                                    key={amenity.label}
-                                    className="flex items-center space-x-2"
-                                >
-                                    <Checkbox
-                                        id={amenity.label}
-                                        checked={selectedAmenities.includes(amenity.label)}
-                                        onCheckedChange={() => handleAmenityToggle(amenity.label)}
-                                    />
-                                    <Label
-                                        htmlFor={amenity.label}
-                                        className="text-sm font-normal cursor-pointer flex items-center gap-1.5"
+                {/* Amenities Section - Only for built property types */}
+                {property && BUILT_PROPERTY_TYPES.includes(property.propertyType) && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg">{t("edit_property_amenities_section") || "Amenities"}</CardTitle>
+                            <CardDescription>{t("edit_property_amenities_desc") || "Select the amenities available in your property."}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                {getAmenities().map((amenity) => (
+                                    <div
+                                        key={amenity.label}
+                                        className="flex items-center space-x-2"
                                     >
-                                        <amenity.icon className="w-3.5 h-3.5 text-muted-foreground" />
-                                        {amenity.label}
-                                    </Label>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                                        <Checkbox
+                                            id={amenity.label}
+                                            checked={selectedAmenities.includes(amenity.label)}
+                                            onCheckedChange={() => handleAmenityToggle(amenity.label)}
+                                        />
+                                        <Label
+                                            htmlFor={amenity.label}
+                                            className="text-sm font-normal cursor-pointer flex items-center gap-1.5"
+                                        >
+                                            <amenity.icon className="w-3.5 h-3.5 text-muted-foreground" />
+                                            {amenity.label}
+                                        </Label>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Photos Section */}
                 <Card>
