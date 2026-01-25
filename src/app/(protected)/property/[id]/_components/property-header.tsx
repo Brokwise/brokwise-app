@@ -10,6 +10,8 @@ import {
 import { useRouter } from "next/navigation";
 import { Property } from "@/types/property";
 import { useTranslation } from "react-i18next";
+import { useApp } from "@/context/AppContext";
+import { Edit } from "lucide-react";
 
 interface PropertyHeaderProps {
     property: Property;
@@ -22,6 +24,9 @@ export const PropertyHeader = ({
 }: PropertyHeaderProps) => {
     const router = useRouter();
     const { t } = useTranslation();
+    const { brokerData } = useApp();
+
+    const isOwner = property.listedBy?._id === brokerData?._id;
 
     return (
         <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4">
@@ -68,6 +73,12 @@ export const PropertyHeader = ({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                            {isOwner && (
+                                <DropdownMenuItem onClick={() => router.push(`/property/edit/${property._id}`)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    {t("action_edit") || "Edit Property"}
+                                </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem onClick={onFlag} className="text-destructive">
                                 <ShieldX className="mr-2 h-4 w-4" />
                                 {t("property_report_property")}

@@ -51,6 +51,7 @@ export default function EditPropertyPage() {
     // Form state
     const [rate, setRate] = useState<number>(0);
     const [totalPrice, setTotalPrice] = useState<number>(0);
+    const [isPriceNegotiable, setIsPriceNegotiable] = useState<boolean>(false);
     const [frontRoadWidth, setFrontRoadWidth] = useState<number | undefined>();
     const [sideRoadWidth, setSideRoadWidth] = useState<number | undefined>();
     const [roadWidthUnit, setRoadWidthUnit] = useState<"METER" | "FEET" | undefined>();
@@ -58,7 +59,8 @@ export default function EditPropertyPage() {
     const [sideFacing, setSideFacing] = useState<Facing | undefined>();
     const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
     const [featuredMedia, setFeaturedMedia] = useState<string>("");
-    const [newImages] = useState<string[]>([]);
+    const [newImages, setNewImages] = useState<string[]>([]);
+    const [imageUrlInput, setImageUrlInput] = useState<string>("");
     const [allImages, setAllImages] = useState<string[]>([]);
 
     // Initialize form with property data
@@ -66,6 +68,7 @@ export default function EditPropertyPage() {
         if (property) {
             setRate(property.rate || 0);
             setTotalPrice(property.totalPrice || 0);
+            setIsPriceNegotiable(property.isPriceNegotiable || false);
             setFrontRoadWidth(property.frontRoadWidth);
             setSideRoadWidth(property.sideRoadWidth);
             setRoadWidthUnit(property.roadWidthUnit);
@@ -100,8 +103,24 @@ export default function EditPropertyPage() {
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
-        // For now, we'll show a toast - in production this would upload to Firebase Storage
-        toast.info(t("toast_upload_images_info") || "Image upload coming soon. Please use image URLs for now.");
+        toast.info(t("toast_upload_images_info") || "Image upload coming soon. Please enter image URLs manually for now.");
+    };
+
+    const handleAddImageUrl = () => {
+        if (!imageUrlInput) return;
+        if (!imageUrlInput.startsWith("http")) {
+            toast.error("Please enter a valid URL starting with http");
+            return;
+        }
+        setNewImages(prev => [...prev, imageUrlInput]);
+        setAllImages(prev => [...prev, imageUrlInput]);
+        setImageUrlInput("");
+    };
+
+    const handleRemoveNewImage = (url: string) => {
+        setNewImages(prev => prev.filter(img => img !== url));
+        setAllImages(prev => prev.filter(img => img !== url));
+        if (featuredMedia === url) setFeaturedMedia(allImages[0] || "");
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -113,6 +132,7 @@ export default function EditPropertyPage() {
             propertyId,
             rate,
             totalPrice,
+            isPriceNegotiable,
             frontRoadWidth,
             sideRoadWidth,
             roadWidthUnit,
@@ -158,7 +178,7 @@ export default function EditPropertyPage() {
     }
 
     // Check if property can be edited
-    const canEdit = ["ACTIVE", "PENDING_APPROVAL"].includes(property.listingStatus);
+    const canEdit = ["ACTIVE", "PENDING_APPROVAL", "REJECTED"].includes(property.listingStatus);
     if (!canEdit) {
         return (
             <div className="space-y-4">
@@ -231,6 +251,16 @@ export default function EditPropertyPage() {
                                 onChange={(e) => setTotalPrice(Number(e.target.value))}
                                 min={0}
                             />
+                        </div>
+                        <div className="flex items-center space-x-2 pt-8">
+                            <Checkbox
+                                id="isPriceNegotiable"
+                                checked={isPriceNegotiable}
+                                onCheckedChange={(val) => setIsPriceNegotiable(!!val)}
+                            />
+                            <Label htmlFor="isPriceNegotiable" className="text-sm font-normal cursor-pointer">
+                                {t("label_price_negotiable") || "Price Negotiable"}
+                            </Label>
                         </div>
                     </CardContent>
                 </Card>
@@ -431,7 +461,7 @@ export default function EditPropertyPage() {
                                     {newImages.map((image, index) => (
                                         <div
                                             key={`new-${index}`}
-                                            className="relative aspect-square rounded-lg overflow-hidden border border-green-500"
+                                            className="relative aspect-square rounded-lg overflow-hidden border border-green-500 group"
                                         >
                                             <Image
                                                 src={image}
@@ -442,10 +472,30 @@ export default function EditPropertyPage() {
                                             <div className="absolute top-1 right-1 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded">
                                                 {t("label_new")}
                                             </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveNewImage(image)}
+                                                className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <AlertTriangle className="w-5 h-5 text-white" />
+                                            </button>
                                         </div>
                                     ))}
                                 </div>
                             )}
+
+                            {/* Manual URL Input */}
+                            <div className="mt-4 flex gap-2">
+                                <Input
+                                    value={imageUrlInput}
+                                    onChange={(e) => setImageUrlInput(e.target.value)}
+                                    placeholder={t("placeholder_image_url") || "Enter image URL..."}
+                                    className="flex-1"
+                                />
+                                <Button type="button" onClick={handleAddImageUrl} variant="secondary">
+                                    {t("action_add_url") || "Add URL"}
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

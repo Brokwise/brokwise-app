@@ -204,6 +204,7 @@ export interface EditPropertyDTO {
   propertyId: string;
   rate?: number;
   totalPrice?: number;
+  isPriceNegotiable?: boolean;
   frontRoadWidth?: number;
   sideRoadWidth?: number;
   roadWidthUnit?: "METER" | "FEET";
