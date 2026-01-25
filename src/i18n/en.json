@@ -961,5 +961,19 @@
   "error_title": "Error",
   "error_property_not_found": "Property not found or you don't have permission to access it.",
   "error_property_cannot_edit": "Only active or pending approval properties can be edited.",
-  "property_id_not_available": "Property ID not available"
+  "property_id_not_available": "Property ID not available",
+  "edit_property_edit_count": "Edit {{current}} of {{total}}",
+  "edit_property_edits_remaining": "You have {{count}} edit(s) remaining. Changes are saved immediately.",
+  "edit_property_limit_reached_title": "Edit Limit Reached",
+  "edit_property_limit_reached_desc": "You have reached the maximum number of edits for this property. Contact support for further changes.",
+  "edit_property_cannot_edit_title": "Cannot Edit",
+  "edit_property_cannot_edit_desc": "This property cannot be edited at this time. Only active, pending approval, or rejected properties can be edited.",
+  "label_price_negotiable": "Price Negotiable?",
+  "label_price_negotiable_desc": "Allow buyers to negotiate on the price",
+  "action_add_url": "Add URL",
+  "placeholder_paste_image_url": "Paste image URL here...",
+  "toast_processing_image": "Processing external image...",
+  "toast_image_added": "Image added and optimized",
+  "toast_image_url_error": "Failed to process image URL",
+  "toast_invalid_url": "Please enter a valid URL starting with http"
 }

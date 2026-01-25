@@ -275,9 +275,9 @@ export default function EditPropertyPage() {
                 </Button>
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>{t("edit_limit_reached_title") || "Edit Limit Reached"}</AlertTitle>
+                    <AlertTitle>{t("edit_property_limit_reached_title")}</AlertTitle>
                     <AlertDescription>
-                        {t("edit_limit_reached_desc") || `You have used all ${MAX_EDITS} edits for this property. No more edits are allowed.`}
+                        {t("edit_property_limit_reached_desc")}
                     </AlertDescription>
                 </Alert>
             </div>
@@ -306,10 +306,10 @@ export default function EditPropertyPage() {
             <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-900">
                 <AlertTriangle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <AlertTitle className="text-blue-800 dark:text-blue-200">
-                    Edit {currentEditCount + 1} of {MAX_EDITS}
+                    {t("edit_property_edit_count", { current: currentEditCount + 1, total: MAX_EDITS })}
                 </AlertTitle>
                 <AlertDescription className="text-blue-700 dark:text-blue-300">
-                    You have {editsRemaining} edit(s) remaining. Changes are saved immediately.
+                    {t("edit_property_edits_remaining", { count: editsRemaining })}
                 </AlertDescription>
             </Alert>
 
@@ -322,7 +322,7 @@ export default function EditPropertyPage() {
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="rate">Rate per Unit (₹) <span className="text-destructive">*</span></Label>
+                            <Label htmlFor="rate">{t("label_rate_per_unit")} <span className="text-destructive">*</span></Label>
                             <Input
                                 id="rate"
                                 type="number"
@@ -334,10 +334,10 @@ export default function EditPropertyPage() {
                                 min={0}
                                 className={validationErrors.rate ? "border-destructive focus-visible:ring-destructive" : ""}
                             />
-                            {validationErrors.rate && <p className="text-xs text-destructive">Rate is required</p>}
+                            {validationErrors.rate && <p className="text-xs text-destructive">{t("validation_rate_required")}</p>}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="totalPrice">Total Price (₹) <span className="text-destructive">*</span></Label>
+                            <Label htmlFor="totalPrice">{t("label_total_price")} <span className="text-destructive">*</span></Label>
                             <Input
                                 id="totalPrice"
                                 type="number"
@@ -349,16 +349,16 @@ export default function EditPropertyPage() {
                                 min={0}
                                 className={validationErrors.totalPrice ? "border-destructive focus-visible:ring-destructive" : ""}
                             />
-                            {validationErrors.totalPrice && <p className="text-xs text-destructive">Total price is required</p>}
+                            {validationErrors.totalPrice && <p className="text-xs text-destructive">{t("validation_total_positive")}</p>}
                         </div>
                         <div className="md:col-span-2 pt-4">
                             <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
                                 <div className="space-y-0.5">
                                     <Label htmlFor="isPriceNegotiable" className="text-sm font-medium cursor-pointer">
-                                        Price Negotiable
+                                        {t("label_price_negotiable")}
                                     </Label>
                                     <p className="text-xs text-muted-foreground">
-                                        Allow buyers to negotiate on the price
+                                        {t("label_price_negotiable_desc")}
                                     </p>
                                 </div>
                                 <Switch
@@ -601,7 +601,7 @@ export default function EditPropertyPage() {
                                 <Input
                                     value={imageUrlInput}
                                     onChange={(e) => setImageUrlInput(e.target.value)}
-                                    placeholder="Paste image URL here..."
+                                    placeholder={t("placeholder_paste_image_url")}
                                     className="flex-1"
                                     disabled={isProcessingUrl}
                                 />
@@ -614,7 +614,7 @@ export default function EditPropertyPage() {
                                     {isProcessingUrl ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />
                                     ) : (
-                                        "Add URL"
+                                        t("action_add_url")
                                     )}
                                 </Button>
                             </div>
