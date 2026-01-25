@@ -23,6 +23,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { uploadFileToFirebase, generateFilePath, convertImageToWebP } from "@/utils/upload";
+import { Switch } from "@/components/ui/switch";
 
 const FACING_OPTIONS: { label: string; value: Facing }[] = [
     { label: "North", value: "NORTH" },
@@ -63,6 +64,7 @@ export default function EditPropertyPage() {
     const [newImages, setNewImages] = useState<string[]>([]);
     const [imageUrlInput, setImageUrlInput] = useState<string>("");
     const [allImages, setAllImages] = useState<string[]>([]);
+    const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
 
     // Initialize form with property data
     useEffect(() => {
@@ -116,7 +118,7 @@ export default function EditPropertyPage() {
             }
         });
 
-        toast.loading(t("toast_uploading_images") || "Uploading images...");
+        toast.loading("Uploading images...");
 
         const uploadedUrls = await Promise.all(uploadPromises);
         const validUrls = uploadedUrls.filter((url): url is string => url !== null);
@@ -125,10 +127,10 @@ export default function EditPropertyPage() {
             setNewImages(prev => [...prev, ...validUrls]);
             setAllImages(prev => [...prev, ...validUrls]);
             toast.dismiss();
-            toast.success(t("toast_images_uploaded") || `${validUrls.length} image(s) uploaded successfully!`);
+            toast.success(`${validUrls.length} image(s) uploaded successfully!`);
         } else {
             toast.dismiss();
-            toast.error(t("toast_upload_failed") || "Failed to upload images. Please try again.");
+            toast.error("Failed to upload images. Please try again.");
         }
 
         // Reset file input
@@ -157,6 +159,19 @@ export default function EditPropertyPage() {
 
         if (!propertyId) return;
 
+        // Validate required fields
+        const errors: Record<string, boolean> = {};
+        if (rate <= 0) errors.rate = true;
+        if (totalPrice <= 0) errors.totalPrice = true;
+
+        if (Object.keys(errors).length > 0) {
+            setValidationErrors(errors);
+            toast.error("Please fill in all required fields");
+            return;
+        }
+
+        setValidationErrors({});
+
         const payload: EditPropertyDTO = {
             propertyId,
             rate,
@@ -165,8 +180,8 @@ export default function EditPropertyPage() {
             frontRoadWidth,
             sideRoadWidth,
             roadWidthUnit,
-            facing,
-            sideFacing,
+            facing: facing || undefined,
+            sideFacing: sideFacing || undefined,
             amenities: selectedAmenities,
             featuredMedia,
             newImages: newImages.length > 0 ? newImages : undefined,
@@ -268,11 +283,13 @@ export default function EditPropertyPage() {
             </div>
 
             {/* Edit Count Info */}
-            <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>{t("edit_count_title") || `Edit ${currentEditCount + 1} of ${MAX_EDITS}`}</AlertTitle>
-                <AlertDescription>
-                    {t("edit_count_desc") || `You have ${editsRemaining} edit(s) remaining for this property. Changes are saved immediately without admin approval.`}
+            <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-900">
+                <AlertTriangle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <AlertTitle className="text-blue-800 dark:text-blue-200">
+                    Edit {currentEditCount + 1} of {MAX_EDITS}
+                </AlertTitle>
+                <AlertDescription className="text-blue-700 dark:text-blue-300">
+                    You have {editsRemaining} edit(s) remaining. Changes are saved immediately.
                 </AlertDescription>
             </Alert>
 
@@ -285,34 +302,51 @@ export default function EditPropertyPage() {
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="rate">{t("label_rate_per_unit")}</Label>
+                            <Label htmlFor="rate">Rate per Unit (₹) <span className="text-destructive">*</span></Label>
                             <Input
                                 id="rate"
                                 type="number"
                                 value={rate}
-                                onChange={(e) => setRate(Number(e.target.value))}
+                                onChange={(e) => {
+                                    setRate(Number(e.target.value));
+                                    setValidationErrors(prev => ({ ...prev, rate: false }));
+                                }}
                                 min={0}
+                                className={validationErrors.rate ? "border-destructive focus-visible:ring-destructive" : ""}
                             />
+                            {validationErrors.rate && <p className="text-xs text-destructive">Rate is required</p>}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="totalPrice">{t("label_total_price")}</Label>
+                            <Label htmlFor="totalPrice">Total Price (₹) <span className="text-destructive">*</span></Label>
                             <Input
                                 id="totalPrice"
                                 type="number"
                                 value={totalPrice}
-                                onChange={(e) => setTotalPrice(Number(e.target.value))}
+                                onChange={(e) => {
+                                    setTotalPrice(Number(e.target.value));
+                                    setValidationErrors(prev => ({ ...prev, totalPrice: false }));
+                                }}
                                 min={0}
+                                className={validationErrors.totalPrice ? "border-destructive focus-visible:ring-destructive" : ""}
                             />
+                            {validationErrors.totalPrice && <p className="text-xs text-destructive">Total price is required</p>}
                         </div>
-                        <div className="flex items-center space-x-2 pt-8">
-                            <Checkbox
-                                id="isPriceNegotiable"
-                                checked={isPriceNegotiable}
-                                onCheckedChange={(val) => setIsPriceNegotiable(!!val)}
-                            />
-                            <Label htmlFor="isPriceNegotiable" className="text-sm font-normal cursor-pointer">
-                                {t("label_price_negotiable") || "Price Negotiable"}
-                            </Label>
+                        <div className="md:col-span-2 pt-4">
+                            <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
+                                <div className="space-y-0.5">
+                                    <Label htmlFor="isPriceNegotiable" className="text-sm font-medium cursor-pointer">
+                                        Price Negotiable
+                                    </Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        Allow buyers to negotiate on the price
+                                    </p>
+                                </div>
+                                <Switch
+                                    id="isPriceNegotiable"
+                                    checked={isPriceNegotiable}
+                                    onCheckedChange={setIsPriceNegotiable}
+                                />
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -320,12 +354,12 @@ export default function EditPropertyPage() {
                 {/* Road Size Section */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">{t("edit_property_road_section")}</CardTitle>
-                        <CardDescription>{t("edit_property_road_desc")}</CardDescription>
+                        <CardTitle className="text-lg">{t("edit_property_road_section") || "Road Size"}</CardTitle>
+                        <CardDescription>{t("edit_property_road_desc") || "Update the road width details."}</CardDescription>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <CardContent className={`grid grid-cols-1 ${property?.plotType === "CORNER" ? "md:grid-cols-3" : "md:grid-cols-2"} gap-4`}>
                         <div className="space-y-2">
-                            <Label htmlFor="frontRoadWidth">{t("label_front_road_width")}</Label>
+                            <Label htmlFor="frontRoadWidth">{t("label_front_road_width") || "Front Road Width"}</Label>
                             <Input
                                 id="frontRoadWidth"
                                 type="number"
@@ -335,25 +369,27 @@ export default function EditPropertyPage() {
                                 max={300}
                             />
                         </div>
+                        {property?.plotType === "CORNER" && (
+                            <div className="space-y-2">
+                                <Label htmlFor="sideRoadWidth">{t("label_side_road_width") || "Side Road Width"}</Label>
+                                <Input
+                                    id="sideRoadWidth"
+                                    type="number"
+                                    value={sideRoadWidth || ""}
+                                    onChange={(e) => setSideRoadWidth(e.target.value ? Number(e.target.value) : undefined)}
+                                    min={0}
+                                    max={300}
+                                />
+                            </div>
+                        )}
                         <div className="space-y-2">
-                            <Label htmlFor="sideRoadWidth">{t("label_side_road_width")}</Label>
-                            <Input
-                                id="sideRoadWidth"
-                                type="number"
-                                value={sideRoadWidth || ""}
-                                onChange={(e) => setSideRoadWidth(e.target.value ? Number(e.target.value) : undefined)}
-                                min={0}
-                                max={300}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="roadWidthUnit">{t("label_road_width_unit")}</Label>
+                            <Label htmlFor="roadWidthUnit">{t("label_road_width_unit") || "Unit"}</Label>
                             <Select
                                 value={roadWidthUnit}
                                 onValueChange={(val) => setRoadWidthUnit(val as "METER" | "FEET")}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder={t("select_unit")} />
+                                    <SelectValue placeholder={t("select_unit") || "Select unit"} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {ROAD_WIDTH_UNITS.map((unit) => (
