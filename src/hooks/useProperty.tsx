@@ -1,6 +1,7 @@
 import {
-  useMutation,
   useQuery,
+  useMutation,
+  useInfiniteQuery,
   useQueryClient,
   keepPreviousData,
 } from "@tanstack/react-query";
@@ -141,6 +142,7 @@ import { useApp } from "@/context/AppContext";
  */
 export const useSoftDeleteProperty = () => {
   const api = useAxios();
+  const queryClient = useQueryClient();
 
   const { mutate, mutateAsync, isPending, error } = useMutation<
     Property,
@@ -156,6 +158,7 @@ export const useSoftDeleteProperty = () => {
     },
     onSuccess: () => {
       toast.success(i18n.t("toast_property_deleted"));
+      queryClient.invalidateQueries({ queryKey: ["my-properties"] });
     },
     onError: (error) => {
       const errorMessage =
@@ -173,6 +176,7 @@ export const useSoftDeleteProperty = () => {
  */
 export const useUndoDeleteProperty = () => {
   const api = useAxios();
+  const queryClient = useQueryClient();
 
   const { mutate, mutateAsync, isPending, error } = useMutation<
     Property,
@@ -186,11 +190,13 @@ export const useUndoDeleteProperty = () => {
     },
     onSuccess: () => {
       toast.success(i18n.t("toast_property_restored") || "Property restored");
+      queryClient.invalidateQueries({ queryKey: ["my-properties"] });
     },
     onError: (error) => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
+        i18n.t("toast_error_property_restore") ||
         "Failed to restore property";
       toast.error(errorMessage);
     },
