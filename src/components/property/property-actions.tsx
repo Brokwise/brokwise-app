@@ -87,7 +87,7 @@ export function PropertyActions({ property }: { property: Property }) {
           // Trigger global undo overlay
           showUndo({
             propertyId: property._id,
-            propertyTitle: `${property.propertyCategory} - ${property.propertyType}`,
+            propertyTitle: `${t(`category_${property.propertyCategory.toLowerCase()}`)} - ${t(`type_${property.propertyType.toLowerCase()}`)}`,
           });
         },
       }
