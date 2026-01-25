@@ -22,6 +22,7 @@ import { FLAT_AMENITIES, VILLA_AMENITIES } from "@/constants";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { uploadFileToFirebase, generateFilePath, convertImageToWebP } from "@/utils/upload";
 
 const FACING_OPTIONS: { label: string; value: Facing }[] = [
     { label: "North", value: "NORTH" },
@@ -103,7 +104,35 @@ export default function EditPropertyPage() {
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
-        toast.info(t("toast_upload_images_info") || "Image upload coming soon. Please enter image URLs manually for now.");
+        const uploadPromises = Array.from(files).map(async (file) => {
+            try {
+                const webpFile = await convertImageToWebP(file);
+                const path = generateFilePath(webpFile.name, "property-images");
+                const url = await uploadFileToFirebase(webpFile, path);
+                return url;
+            } catch (error) {
+                console.error("Error uploading file:", error);
+                return null;
+            }
+        });
+
+        toast.loading(t("toast_uploading_images") || "Uploading images...");
+
+        const uploadedUrls = await Promise.all(uploadPromises);
+        const validUrls = uploadedUrls.filter((url): url is string => url !== null);
+
+        if (validUrls.length > 0) {
+            setNewImages(prev => [...prev, ...validUrls]);
+            setAllImages(prev => [...prev, ...validUrls]);
+            toast.dismiss();
+            toast.success(t("toast_images_uploaded") || `${validUrls.length} image(s) uploaded successfully!`);
+        } else {
+            toast.dismiss();
+            toast.error(t("toast_upload_failed") || "Failed to upload images. Please try again.");
+        }
+
+        // Reset file input
+        e.target.value = "";
     };
 
     const handleAddImageUrl = () => {
