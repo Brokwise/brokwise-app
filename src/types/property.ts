@@ -191,6 +191,7 @@ export interface Property {
   listedByType: "Broker" | "Company"
   submittedForEnquiryId?: Enquiry;
   offers?: PropertyOffer[];
+  editCount?: number;
 }
 
 export interface PaginatedPropertyResponse {

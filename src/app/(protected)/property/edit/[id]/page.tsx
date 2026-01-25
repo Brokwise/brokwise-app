@@ -179,6 +179,11 @@ export default function EditPropertyPage() {
 
     // Check if property can be edited
     const canEdit = ["ACTIVE", "PENDING_APPROVAL", "REJECTED"].includes(property.listingStatus);
+    const MAX_EDITS = 3;
+    const currentEditCount = property.editCount || 0;
+    const editsRemaining = MAX_EDITS - currentEditCount;
+    const hasReachedLimit = editsRemaining <= 0;
+
     if (!canEdit) {
         return (
             <div className="space-y-4">
@@ -191,6 +196,24 @@ export default function EditPropertyPage() {
                     <AlertTitle>{t("error_title")}</AlertTitle>
                     <AlertDescription>
                         {t("error_property_cannot_edit")}
+                    </AlertDescription>
+                </Alert>
+            </div>
+        );
+    }
+
+    if (hasReachedLimit) {
+        return (
+            <div className="space-y-4">
+                <Button variant="ghost" onClick={() => router.back()} className="gap-2">
+                    <ArrowLeft className="w-4 h-4" />
+                    {t("action_back")}
+                </Button>
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>{t("edit_limit_reached_title") || "Edit Limit Reached"}</AlertTitle>
+                    <AlertDescription>
+                        {t("edit_limit_reached_desc") || `You have used all ${MAX_EDITS} edits for this property. No more edits are allowed.`}
                     </AlertDescription>
                 </Alert>
             </div>
@@ -215,12 +238,12 @@ export default function EditPropertyPage() {
                 </div>
             </div>
 
-            {/* Warning Alert */}
+            {/* Edit Count Info */}
             <Alert>
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>{t("edit_property_warning_title")}</AlertTitle>
+                <AlertTitle>{t("edit_count_title") || `Edit ${currentEditCount + 1} of ${MAX_EDITS}`}</AlertTitle>
                 <AlertDescription>
-                    {t("edit_property_warning_desc")}
+                    {t("edit_count_desc") || `You have ${editsRemaining} edit(s) remaining for this property. Changes are saved immediately without admin approval.`}
                 </AlertDescription>
             </Alert>
 

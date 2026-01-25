@@ -56,6 +56,11 @@ export const PropertyHeader = ({
                         >
                             {property.listingStatus ? property.listingStatus.replace("_", " ") : "Unknown"}
                         </Badge>
+                        {isOwner && (
+                            <Badge variant="outline" className="text-xs">
+                                Edits: {property.editCount || 0}/3
+                            </Badge>
+                        )}
                     </div>
                 </div>
 
@@ -73,7 +78,7 @@ export const PropertyHeader = ({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            {isOwner && (
+                            {isOwner && (property.editCount || 0) < 3 && (
                                 <DropdownMenuItem onClick={() => router.push(`/property/edit/${property._id}`)}>
                                     <Edit className="mr-2 h-4 w-4" />
                                     {t("action_edit") || "Edit Property"}
