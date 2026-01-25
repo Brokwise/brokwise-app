@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import { Property } from "@/types/property";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { useSoftDeleteProperty, useUndoDeleteProperty } from "@/hooks/useProperty";
+import { useSoftDeleteProperty } from "@/hooks/useProperty";
 import { useUndoDelete } from "@/context/UndoDeleteContext";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,7 +49,6 @@ const formatDate = (dateString: string) => {
 
 export function PropertyActions({ property }: { property: Property }) {
   const { softDelete, isPending: isDeleting } = useSoftDeleteProperty();
-  const { undoDelete } = useUndoDeleteProperty();
   const { showUndo } = useUndoDelete();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);

@@ -141,7 +141,6 @@ import { useApp } from "@/context/AppContext";
  */
 export const useSoftDeleteProperty = () => {
   const api = useAxios();
-  const queryClient = useQueryClient();
 
   const { mutate, mutateAsync, isPending, error } = useMutation<
     Property,
@@ -174,7 +173,6 @@ export const useSoftDeleteProperty = () => {
  */
 export const useUndoDeleteProperty = () => {
   const api = useAxios();
-  const queryClient = useQueryClient();
 
   const { mutate, mutateAsync, isPending, error } = useMutation<
     Property,
