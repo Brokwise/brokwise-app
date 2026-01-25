@@ -68,10 +68,11 @@ export const PropertyPdfLayout = React.forwardRef<
             <div className="text-sm text-neutral-600">Property Details</div>
           </div>
           <div className="text-right text-sm text-neutral-700">
-            <div>
+            {/* Hiding Property ID as per user request */}
+            {/* <div>
               <span className="font-semibold">Property ID:</span>{" "}
               {property.propertyId || property._id}
-            </div>
+            </div> */}
             <div>
               <span className="font-semibold">Exported on:</span>{" "}
               {exportedOnLabel}
@@ -231,23 +232,44 @@ export const PropertyPdfLayout = React.forwardRef<
           property.khasraPlanUrl) && (
             <div className="rounded-md border p-4">
               <div className="text-sm font-semibold mb-2">Documents</div>
-              <div className="text-sm space-y-1">
+              <div className="text-sm space-y-2">
                 {property.floorPlans?.map((plan, idx) => (
-                  <div key={idx}>
-                    <span className="font-semibold">Floor Plan {idx + 1}:</span>{" "}
-                    {plan}
+                  <div key={idx} className="flex items-center gap-2">
+                    <span className="font-semibold whitespace-nowrap">Floor Plan {idx + 1}:</span>
+                    <a
+                      href={plan}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline truncate hover:text-blue-800"
+                    >
+                      View Floor Plan
+                    </a>
                   </div>
                 ))}
                 {property.jamabandiUrl && (
-                  <div>
-                    <span className="font-semibold">Jamabandi:</span>{" "}
-                    {property.jamabandiUrl}
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold whitespace-nowrap">Jamabandi:</span>
+                    <a
+                      href={property.jamabandiUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline truncate hover:text-blue-800"
+                    >
+                      View Jamabandi
+                    </a>
                   </div>
                 )}
                 {property.khasraPlanUrl && (
-                  <div>
-                    <span className="font-semibold">Khasra Plan:</span>{" "}
-                    {property.khasraPlanUrl}
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold whitespace-nowrap">Khasra Plan:</span>
+                    <a
+                      href={property.khasraPlanUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline truncate hover:text-blue-800"
+                    >
+                      View Khasra Plan
+                    </a>
                   </div>
                 )}
               </div>

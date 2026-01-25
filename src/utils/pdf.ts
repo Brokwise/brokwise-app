@@ -127,6 +127,20 @@ export async function exportElementAsPdf(opts: {
     import("jspdf"),
   ]);
 
+  // Capture links before rasterization
+  const links = Array.from(element.querySelectorAll("a")).map((a) => {
+    const rect = a.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+    return {
+      href: a.href,
+      // Coordinates relative to the captured element
+      x: rect.left - elementRect.left,
+      y: rect.top - elementRect.top,
+      width: rect.width,
+      height: rect.height,
+    };
+  });
+
   const canvas = await html2canvas(element, {
     scale: 2,
     useCORS: true,
@@ -140,18 +154,63 @@ export async function exportElementAsPdf(opts: {
 
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = pdf.internal.pageSize.getHeight();
-  const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+  // Calculate scale factor between canvas pixels and PDF units
+  const scale = pdfWidth / canvas.width;
+  const imgHeight = canvas.height * scale;
 
   let heightLeft = imgHeight;
   let position = 0;
+  let pageOffset = 0; // Tracks the Y offset of the current page in the original element's coordinate space
+
+  // Function to add links for the current page
+  const addLinksForPage = (offsetYr: number) => {
+    links.forEach((link) => {
+      // Calculate link position in PDF units
+      const linkX = link.x * scale;
+      const linkY = link.y * scale - offsetYr;
+      const linkW = link.width * scale;
+      const linkH = link.height * scale;
+
+      // Check if link is visible on this page
+      if (linkY >= 0 && linkY + linkH <= pdfHeight) {
+        pdf.link(linkX, linkY, linkW, linkH, { url: link.href });
+      }
+    });
+  };
 
   pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
+  addLinksForPage(0); // Add links for the first page
   heightLeft -= pdfHeight;
 
   while (heightLeft > 0) {
     position = position - pdfHeight;
+    pageOffset += pdfHeight; // Move the offset down by one page height
     pdf.addPage();
     pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
+
+    // Add links for subsequent pages
+    // The offset in PDF units is basically the cumulative height of previous pages
+    // Since we are shifting the image up (position is negative), we need to calculate 
+    // the relative Y of the link on this new page.
+
+    // Actually, simpler logic:
+    // The captured image is one giant long image.
+    // 'position' becomes -297, -594, etc. (for A4 height ~297mm)
+    // The Y coordinate on the PDF page = (link.y * scale) + position
+
+    links.forEach((link) => {
+      const linkY_on_canvas_scaled = link.y * scale;
+      const linkY_on_page = linkY_on_canvas_scaled + position; // position is negative
+      const linkW = link.width * scale;
+      const linkH = link.height * scale;
+      const linkX = link.x * scale;
+
+      if (linkY_on_page >= 0 && linkY_on_page + linkH <= pdfHeight) {
+        pdf.link(linkX, linkY_on_page, linkW, linkH, { url: link.href });
+      }
+    });
+
     heightLeft -= pdfHeight;
   }
 
