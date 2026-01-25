@@ -68,11 +68,6 @@ export const PropertyPdfLayout = React.forwardRef<
             <div className="text-sm text-neutral-600">Property Details</div>
           </div>
           <div className="text-right text-sm text-neutral-700">
-            {/* Hiding Property ID as per user request */}
-            {/* <div>
-              <span className="font-semibold">Property ID:</span>{" "}
-              {property.propertyId || property._id}
-            </div> */}
             <div>
               <span className="font-semibold">Exported on:</span>{" "}
               {exportedOnLabel}

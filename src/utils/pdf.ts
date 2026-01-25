@@ -155,9 +155,14 @@ export async function exportElementAsPdf(opts: {
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = pdf.internal.pageSize.getHeight();
 
-  // Calculate scale factor between canvas pixels and PDF units
-  const scale = pdfWidth / canvas.width;
-  const imgHeight = canvas.height * scale;
+  // Calculate scale factor between CSS pixels and PDF units (mm)
+  // We use element.offsetWidth because link coordinates are in CSS pixels
+  const elementWidth = element.offsetWidth;
+  const cssScale = pdfWidth / elementWidth;
+
+  // Aspect ratio scale for the captured image
+  const imgScale = pdfWidth / canvas.width;
+  const imgHeight = canvas.height * imgScale;
 
   let heightLeft = imgHeight;
   let position = 0;
@@ -167,13 +172,14 @@ export async function exportElementAsPdf(opts: {
   const addLinksForPage = (offsetYr: number) => {
     links.forEach((link) => {
       // Calculate link position in PDF units
-      const linkX = link.x * scale;
-      const linkY = link.y * scale - offsetYr;
-      const linkW = link.width * scale;
-      const linkH = link.height * scale;
+      const linkX = link.x * cssScale;
+      const linkY = link.y * cssScale - offsetYr;
+      const linkW = link.width * cssScale;
+      const linkH = link.height * cssScale;
 
       // Check if link is visible on this page
       if (linkY >= 0 && linkY + linkH <= pdfHeight) {
+        console.log(`[PDF] Adding link at ${linkX},${linkY} on first page`);
         pdf.link(linkX, linkY, linkW, linkH, { url: link.href });
       }
     });
@@ -200,13 +206,14 @@ export async function exportElementAsPdf(opts: {
     // The Y coordinate on the PDF page = (link.y * scale) + position
 
     links.forEach((link) => {
-      const linkY_on_canvas_scaled = link.y * scale;
+      const linkY_on_canvas_scaled = link.y * cssScale;
       const linkY_on_page = linkY_on_canvas_scaled + position; // position is negative
-      const linkW = link.width * scale;
-      const linkH = link.height * scale;
-      const linkX = link.x * scale;
+      const linkW = link.width * cssScale;
+      const linkH = link.height * cssScale;
+      const linkX = link.x * cssScale;
 
       if (linkY_on_page >= 0 && linkY_on_page + linkH <= pdfHeight) {
+        console.log(`[PDF] Adding link at ${linkX},${linkY_on_page} on page`);
         pdf.link(linkX, linkY_on_page, linkW, linkH, { url: link.href });
       }
     });
