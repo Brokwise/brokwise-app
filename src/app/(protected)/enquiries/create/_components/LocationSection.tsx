@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useFormContext } from "react-hook-form";
 import {
     FormControl,
@@ -18,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin } from "lucide-react";
 
 const LocationSection = ({ isPending }: { isPending: boolean }) => {
+    const { t } = useTranslation();
     const { control, watch, setValue } = useFormContext<CreateEnquiryFormValues>();
     const locationMode = watch("locationMode");
     const address = watch("address");
@@ -43,7 +45,7 @@ const LocationSection = ({ isPending }: { isPending: boolean }) => {
             <CardHeader className="px-0 md:px-6">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-primary" />
-                    Location Preference
+                    {t("form_location")}
                 </CardTitle>
             </CardHeader>
             <CardContent className="px-0 md:px-6">
@@ -53,7 +55,7 @@ const LocationSection = ({ isPending }: { isPending: boolean }) => {
                         name="addressPlaceId"
                         render={({ field }) => (
                             <FormItem className="relative">
-                                <FormLabel>Search Area or City <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>{t("form_search_area_city")} <span className="text-destructive">*</span></FormLabel>
                                 <FormControl>
                                     <AddressAutocomplete
                                         valueLabel={address}

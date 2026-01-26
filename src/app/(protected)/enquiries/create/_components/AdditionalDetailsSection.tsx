@@ -15,8 +15,10 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { CreateEnquiryFormValues } from "@/models/schemas/enquirySchema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 
 const AdditionalDetailsSection = () => {
+    const { t } = useTranslation();
     const { control, setValue, getValues } = useFormContext<CreateEnquiryFormValues>();
     const [generating, setGenerating] = useState(false);
 
@@ -52,7 +54,7 @@ const AdditionalDetailsSection = () => {
             <CardHeader className="px-0 md:px-6">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                     <FileText className="w-5 h-5 text-primary" />
-                    Additional Details
+                    {t("form_additional_details")}
                 </CardTitle>
             </CardHeader>
             <CardContent className="px-0 md:px-6 space-y-6">
@@ -62,7 +64,7 @@ const AdditionalDetailsSection = () => {
                     render={({ field }) => (
                         <FormItem>
                             <div className="flex items-center justify-between">
-                                <FormLabel>Description <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>{t("form_description")} <span className="text-destructive">*</span></FormLabel>
                                 <Button
                                     type="button"
                                     variant="outline"

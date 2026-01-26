@@ -15,6 +15,7 @@ import { formatIndianNumber, formatPriceShort } from "@/utils/helper";
 import { BUDGET_MIN, BUDGET_MAX, CreateEnquiryFormValues } from "@/models/schemas/enquirySchema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wallet } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // Discrete steps for slider
 const BUDGET_OPTIONS: number[] = [
@@ -45,6 +46,7 @@ const findNearestBudgetIndex = (value: number) => {
 };
 
 const BudgetSection = () => {
+    const { t } = useTranslation();
     const { control, watch, setValue } = useFormContext<CreateEnquiryFormValues>();
     const minBudget = watch("budget.min");
     const maxBudget = watch("budget.max");
@@ -67,7 +69,7 @@ const BudgetSection = () => {
             <CardHeader className="px-0 md:px-6">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                     <Wallet className="w-5 h-5 text-primary" />
-                    Budget Range
+                    {t("label_budget_range")}
                 </CardTitle>
             </CardHeader>
             <CardContent className="px-0 md:px-6 space-y-8">
@@ -96,7 +98,7 @@ const BudgetSection = () => {
                         name="budget.min"
                         render={({ field }) => (
                             <FormItem className="flex-1 w-full">
-                                <FormLabel>Min Budget</FormLabel>
+                                <FormLabel>{t("form_min_budget")}</FormLabel>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">₹</span>
                                     <FormControl>
@@ -123,7 +125,7 @@ const BudgetSection = () => {
                         name="budget.max"
                         render={({ field }) => (
                             <FormItem className="flex-1 w-full">
-                                <FormLabel>Max Budget</FormLabel>
+                                <FormLabel>{t("form_max_budget")}</FormLabel>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">₹</span>
                                     <FormControl>

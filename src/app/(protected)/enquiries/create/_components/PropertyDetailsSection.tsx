@@ -71,7 +71,7 @@ const PropertyDetailsSection = () => {
             <CardHeader className="px-0 md:px-6">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                     <Icon className="w-5 h-5 text-primary" />
-                    Property Details
+                    {t("form_property_details")}
                 </CardTitle>
             </CardHeader>
             <CardContent className="px-0 md:px-6">
@@ -82,11 +82,11 @@ const PropertyDetailsSection = () => {
                         name="enquiryCategory"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Category <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>{t("form_category")} <span className="text-destructive">*</span></FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
                                         <SelectTrigger className="h-11">
-                                            <SelectValue placeholder="Select Category" />
+                                            <SelectValue placeholder={t("form_select_category")} />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -108,11 +108,11 @@ const PropertyDetailsSection = () => {
                         name="enquiryType"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Property Type <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>{t("form_property_type")} <span className="text-destructive">*</span></FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value} disabled={!category}>
                                     <FormControl>
                                         <SelectTrigger className="h-11">
-                                            <SelectValue placeholder="Select Type" />
+                                            <SelectValue placeholder={t("form_select_type")} />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
