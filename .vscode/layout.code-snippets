@@ -1,0 +1,39 @@
+{
+    "Brokwise Page Shell": {
+        "prefix": "bk-page",
+        "body": [
+            "import { PageShell, PageHeader, PageGrid } from \"@/components/ui/layout\";",
+            "",
+            "export default function ${1:PageName}() {",
+            "  return (",
+            "    <PageShell>",
+            "      <PageHeader",
+            "        title=\"${2:Page Title}\"",
+            "        description=\"${3:Page Description}\"",
+            "      />",
+            "      <PageGrid>",
+            "        ${0}",
+            "      </PageGrid>",
+            "    </PageShell>",
+            "  );",
+            "}"
+        ],
+        "description": "Scaffold a new dashboard page with standard layout"
+    },
+    "Brokwise Section": {
+        "prefix": "bk-section",
+        "body": [
+            "<Section title=\"${1:Section Title}\">",
+            "  ${0}",
+            "</Section>"
+        ],
+        "description": "Create a standardized content section"
+    },
+    "Brokwise Typography": {
+        "prefix": "bk-text",
+        "body": [
+            "<Typography variant=\"${1|p,h1,h2,h3,h4,large,small,muted,lead|}\">${2:Text}</Typography>"
+        ],
+        "description": "Insert Typography component"
+    }
+}
