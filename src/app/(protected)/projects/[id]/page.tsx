@@ -18,7 +18,6 @@ import {
   MapPin,
   Calendar,
   FileText,
-  ArrowLeft,
   Loader2,
   Building2,
   Layers,
@@ -38,6 +37,7 @@ import { ProjectMap } from "./_components/ProjectMap";
 import { ProjectSitePlan } from "./_components/ProjectSitePlan";
 import { useApp } from "@/context/AppContext";
 import { CountdownTimer } from "@/components/ui/countdown-timer";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 const ProjectPage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
@@ -125,32 +125,15 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
   const allImages = project.images || [];
 
   return (
-    <main className="container mx-auto py-8 space-y-8 relative mb-20">
-      {/* Header & Hero Actions */}
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-9 w-9"
-              onClick={() => router.back()}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-3">
-                {project.name}
-                <Badge variant="outline" className="font-normal text-xs">
-                  ID: {project.projectId || "N/A"}
-                </Badge>
-              </h1>
-              <div className="flex items-center text-muted-foreground mt-1">
-                <MapPin className="h-4 w-4 mr-1.5" />
-                {formatAddress(project.address)}
-              </div>
-            </div>
-          </div>
+    <PageShell className="mb-20">
+      <PageHeader
+        title={project.name}
+        description={formatAddress(project.address)}
+      >
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="font-normal text-xs">
+            ID: {project.projectId || "N/A"}
+          </Badge>
           <Button
             size="lg"
             className="w-full sm:w-auto font-semibold shadow-md"
@@ -160,41 +143,41 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
             Book Plots
           </Button>
         </div>
+      </PageHeader>
 
-        {/* Image Gallery */}
-        <div className="rounded-xl overflow-hidden bg-muted h-[250px] sm:h-[350px] md:h-[450px] relative border shadow-sm group">
-          {allImages.length > 0 ? (
-            <Carousel className="w-full h-full">
-              <CarouselContent className="h-full">
-                {allImages.map((image, index) => (
-                  <CarouselItem key={index} className="h-full">
-                    <div className="relative w-full h-full flex items-center justify-center bg-black/5">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={image}
-                        alt={`Project ${index + 1}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = "/images/placeholder.webp";
-                        }}
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              {allImages.length > 1 && (
-                <>
-                  <CarouselPrevious className="left-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <CarouselNext className="right-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </>
-              )}
-            </Carousel>
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-              No images available
-            </div>
-          )}
-        </div>
+      {/* Image Gallery */}
+      <div className="rounded-xl overflow-hidden bg-muted h-[250px] sm:h-[350px] md:h-[450px] relative border shadow-sm group">
+        {allImages.length > 0 ? (
+          <Carousel className="w-full h-full">
+            <CarouselContent className="h-full">
+              {allImages.map((image, index) => (
+                <CarouselItem key={index} className="h-full">
+                  <div className="relative w-full h-full flex items-center justify-center bg-black/5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={image}
+                      alt={`Project ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "/images/placeholder.webp";
+                      }}
+                    />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            {allImages.length > 1 && (
+              <>
+                <CarouselPrevious className="left-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <CarouselNext className="right-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </>
+            )}
+          </Carousel>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+            No images available
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -527,12 +510,11 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
                       key={plot._id}
                       className={`
                         relative group p-4 border rounded-xl flex flex-col items-center gap-2 transition-all duration-200
-                        ${
-                          isAvailable
-                            ? selected
-                              ? "bg-primary/5 border-primary shadow-md ring-1 ring-primary"
-                              : "bg-card hover:border-primary hover:shadow-lg cursor-pointer"
-                            : "bg-muted/50 opacity-70 grayscale-[0.5]"
+                        ${isAvailable
+                          ? selected
+                            ? "bg-primary/5 border-primary shadow-md ring-1 ring-primary"
+                            : "bg-card hover:border-primary hover:shadow-lg cursor-pointer"
+                          : "bg-muted/50 opacity-70 grayscale-[0.5]"
                         }
                       `}
                       onClick={() => {
@@ -553,9 +535,8 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
 
                       <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-1 group-hover:scale-110 transition-transform duration-200">
                         <MapPin
-                          className={`h-6 w-6 ${
-                            selected ? "text-primary" : "text-muted-foreground"
-                          }`}
+                          className={`h-6 w-6 ${selected ? "text-primary" : "text-muted-foreground"
+                            }`}
                         />
                       </div>
 
@@ -572,15 +553,14 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
 
                       <Badge
                         variant={isAvailable ? "outline" : "secondary"}
-                        className={`mt-2 text-[10px] px-2 py-0.5 h-5 uppercase tracking-wider ${
-                          isAvailable
-                            ? "border-green-500 text-green-600 bg-green-50"
-                            : plot.status === "booked"
+                        className={`mt-2 text-[10px] px-2 py-0.5 h-5 uppercase tracking-wider ${isAvailable
+                          ? "border-green-500 text-green-600 bg-green-50"
+                          : plot.status === "booked"
                             ? "bg-blue-100 text-blue-700"
                             : plot.status === "on_hold"
-                            ? "bg-orange-100 text-orange-700"
-                            : "bg-gray-100 text-gray-700"
-                        }`}
+                              ? "bg-orange-100 text-orange-700"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
                       >
                         {plot.status.replace("_", " ")}
                       </Badge>
@@ -617,75 +597,81 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
       </section>
 
       {/* Floating Selection Bar */}
-      {selectedPlots.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg px-4 animate-in slide-in-from-bottom-10 fade-in duration-300">
-          <div className="bg-foreground text-background rounded-full shadow-2xl p-4 pl-6 flex items-center justify-between border border-border/10">
-            <div className="flex flex-col">
-              <span className="font-bold flex items-center gap-2">
-                <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
-                  {selectedPlots.length}
+      {
+        selectedPlots.length > 0 && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg px-4 animate-in slide-in-from-bottom-10 fade-in duration-300">
+            <div className="bg-foreground text-background rounded-full shadow-2xl p-4 pl-6 flex items-center justify-between border border-border/10">
+              <div className="flex flex-col">
+                <span className="font-bold flex items-center gap-2">
+                  <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                    {selectedPlots.length}
+                  </span>
+                  Selected
                 </span>
-                Selected
-              </span>
-              <span className="text-xs text-muted-foreground/80">
-                Total:{" "}
-                {formatCurrency(
-                  selectedPlots.reduce(
-                    (sum) => sum + project.adminBookingTokenAmount,
-                    0
-                  )
-                )}
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-10 w-10 rounded-full hover:bg-background/20 text-background hover:text-background"
-                onClick={() => setSelectedPlots([])}
-                title="Clear selection"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-              <div className="h-8 w-px bg-background/20" />
-              <Button
-                size="sm"
-                className="rounded-full px-6 font-semibold shadow-lg hover:scale-105 transition-transform"
-                onClick={() => {
-                  setBookingMode("book");
-                  setIsBookingOpen(true);
-                }}
-              >
-                Book Now
-              </Button>
-              {brokerData && (
+                <span className="text-xs text-muted-foreground/80">
+                  Total:{" "}
+                  {formatCurrency(
+                    selectedPlots.reduce(
+                      (sum) => sum + (project?.adminBookingTokenAmount || 0),
+                      0
+                    )
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-10 w-10 rounded-full hover:bg-background/20 text-background hover:text-background"
+                  onClick={() => setSelectedPlots([])}
+                  title="Clear selection"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+                <div className="h-8 w-px bg-background/20" />
                 <Button
                   size="sm"
-                  variant="secondary"
-                  className="rounded-full px-6 text-foreground font-semibold hover:scale-105 transition-transform"
+                  className="rounded-full px-6 font-semibold shadow-lg hover:scale-105 transition-transform"
                   onClick={() => {
-                    setBookingMode("hold");
+                    setBookingMode("book");
                     setIsBookingOpen(true);
                   }}
                 >
-                  Hold
+                  Book Now
                 </Button>
-              )}
+                {brokerData && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="rounded-full px-6 text-foreground font-semibold hover:scale-105 transition-transform"
+                    onClick={() => {
+                      setBookingMode("hold");
+                      setIsBookingOpen(true);
+                    }}
+                  >
+                    Hold
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      <BookingDialog
-        open={isBookingOpen}
-        onOpenChange={setIsBookingOpen}
-        plots={selectedPlots}
-        projectId={id}
-        onSuccess={() => setSelectedPlots([])}
-        mode={bookingMode}
-        project={project}
-      />
-    </main>
+      {
+        project && (
+          <BookingDialog
+            open={isBookingOpen}
+            onOpenChange={setIsBookingOpen}
+            plots={selectedPlots}
+            projectId={id}
+            onSuccess={() => setSelectedPlots([])}
+            mode={bookingMode}
+            project={project}
+          />
+        )
+      }
+    </PageShell>
   );
 };
 

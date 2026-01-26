@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2, Wand2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 import {
   Form,
@@ -724,16 +725,11 @@ const CreateEnquiryPage = () => {
   );
 
   return (
-    <div className="container mx-auto p-4 md:p-8 max-w-4xl space-y-6">
-      {/* Header */}
-      <div className="space-y-2 md:space-y-4 text-left border-b border-border/40 pb-3 md:pb-8">
-        <h1 className="text-2xl md:text-4xl text-primary tracking-tight">
-          {t("page_create_enquiry_title")}
-        </h1>
-        <p className="text-muted-foreground font-inter text-md md:text-lg">
-          {t("page_create_enquiry_subtitle")}
-        </p>
-      </div>
+    <PageShell>
+      <PageHeader
+        title={t("page_create_enquiry_title")}
+        description={t("page_create_enquiry_subtitle")}
+      />
 
       <Form {...form}>
         <form
@@ -1640,7 +1636,7 @@ const CreateEnquiryPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageShell>
   );
 };
 

@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 import { format, formatDistanceToNow } from "date-fns";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 // Category options for filtering
 const CATEGORIES = [
@@ -298,17 +299,11 @@ const NewsPage = () => {
   };
 
   return (
-    <div className="space-y-8 pb-8">
-      {/* Page Header */}
-      <div className="space-y-1">
-        <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
-          Real Estate News
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Stay updated with the latest real estate news, market trends, and
-          property insights.
-        </p>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="Real Estate News"
+        description="Stay updated with the latest real estate news, market trends, and property insights."
+      />
 
       {/* Search and Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -395,11 +390,10 @@ const NewsPage = () => {
             {debouncedSearch
               ? `Search results for "${debouncedSearch}"`
               : selectedCategory !== "all"
-              ? `${
-                  CATEGORIES.find((c) => c.id === selectedCategory)?.label ||
-                  "News"
+                ? `${CATEGORIES.find((c) => c.id === selectedCategory)?.label ||
+                "News"
                 }`
-              : "Latest News"}
+                : "Latest News"}
           </h2>
           {pagination.total > 0 && (
             <p className="text-sm text-muted-foreground">
@@ -499,7 +493,7 @@ const NewsPage = () => {
           <EmptyState search={debouncedSearch} />
         )}
       </section>
-    </div>
+    </PageShell>
   );
 };
 

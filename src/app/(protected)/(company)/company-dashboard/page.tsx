@@ -29,6 +29,7 @@ import {
   RefreshCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -173,160 +174,147 @@ export default function CompanyDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent pb-8">
-      <div className="space-y-6 max-w-[1600px] mx-auto">
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-1"
+    <PageShell>
+      <PageHeader
+        title="Dashboard"
+        description="Welcome back, here's what's happening today."
+      >
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="gap-2 hidden sm:flex"
+            onClick={handleExport}
           >
-            <h1 className="text-3xl font-bold tracking-tight text-foreground text-4xl">
-              Dashboard
-            </h1>
-            <p className="text-muted-foreground text-sm font-medium">
-              Welcome back, here&apos;s what&apos;s happening today.
-            </p>
-          </motion.div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="gap-2 hidden sm:flex"
-              onClick={handleExport}
-            >
-              <Download className="h-4 w-4" />
-              Export Report
-            </Button>
-            <Button
-              variant="default"
-              size="icon"
-              className="h-9 w-9"
-              onClick={handleRefresh}
-              disabled={isFetching > 0}
-            >
-              <RefreshCcw
-                className={`h-4 w-4 ${isFetching > 0 ? "animate-spin" : ""}`}
-              />
-            </Button>
-          </div>
+            <Download className="h-4 w-4" />
+            Export Report
+          </Button>
+          <Button
+            variant="default"
+            size="icon"
+            className="h-9 w-9"
+            onClick={handleRefresh}
+            disabled={isFetching > 0}
+          >
+            <RefreshCcw
+              className={`h-4 w-4 ${isFetching > 0 ? "animate-spin" : ""}`}
+            />
+          </Button>
         </div>
+      </PageHeader>
 
-        {/* Bento Grid Layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-6 gap-6">
-          {/* Hero Card: Active Pipeline (Span 4) */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="xl:col-span-4"
-          >
-            <div className="relative overflow-hidden rounded-2xl bg-primary text-primary-foreground p-8 h-full flex flex-col justify-between shadow-lg ring-1 ring-white/10 group">
-              <div className="absolute top-0 right-0 p-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-white/10 transition-colors" />
+      {/* Bento Grid Layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-6 gap-6">
+        {/* Hero Card: Active Pipeline (Span 4) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="xl:col-span-4"
+        >
+          <div className="relative overflow-hidden rounded-2xl bg-primary text-primary-foreground p-8 h-full flex flex-col justify-between shadow-lg ring-1 ring-white/10 group">
+            <div className="absolute top-0 right-0 p-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-white/10 transition-colors" />
 
-              <div className="relative z-10">
-                <h2 className="text-lg font-medium text-primary-foreground/80">Active Pipeline</h2>
-                <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-5xl font-bold tracking-tighter">
-                    {formatCurrency(
-                      (dashboardStats?.properties.active || 0) * 15000000 // Placeholder avg value or real calc needed
-                      // Use 'Total Value' if available or just count
-                    )}
-                  </span>
-                  {/* Fallback to simple stats if value not available */}
-                  <span className="text-sm font-medium text-primary-foreground/60">Estimated Value</span>
+            <div className="relative z-10">
+              <h2 className="text-lg font-medium text-primary-foreground/80">Active Pipeline</h2>
+              <div className="mt-4 flex items-baseline gap-2">
+                <span className="text-5xl font-bold tracking-tighter">
+                  {formatCurrency(
+                    (dashboardStats?.properties.active || 0) * 15000000 // Placeholder avg value or real calc needed
+                    // Use 'Total Value' if available or just count
+                  )}
+                </span>
+                {/* Fallback to simple stats if value not available */}
+                <span className="text-sm font-medium text-primary-foreground/60">Estimated Value</span>
+              </div>
+              <div className="mt-6 flex gap-8">
+                <div>
+                  <p className="text-3xl font-bold">{dashboardStats?.overview.activeProperties || 0}</p>
+                  <p className="text-xs text-primary-foreground/60 uppercase tracking-wider mt-1">Active Properties</p>
                 </div>
-                <div className="mt-6 flex gap-8">
-                  <div>
-                    <p className="text-3xl font-bold">{dashboardStats?.overview.activeProperties || 0}</p>
-                    <p className="text-xs text-primary-foreground/60 uppercase tracking-wider mt-1">Active Properties</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold">{dashboardStats?.overview.activeEnquiries || 0}</p>
-                    <p className="text-xs text-primary-foreground/60 uppercase tracking-wider mt-1">Active Leads</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold">{dashboardStats?.overview.activeBrokers || 0}</p>
-                    <p className="text-xs text-primary-foreground/60 uppercase tracking-wider mt-1">Active Brokers</p>
-                  </div>
+                <div>
+                  <p className="text-3xl font-bold">{dashboardStats?.overview.activeEnquiries || 0}</p>
+                  <p className="text-xs text-primary-foreground/60 uppercase tracking-wider mt-1">Active Leads</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">{dashboardStats?.overview.activeBrokers || 0}</p>
+                  <p className="text-xs text-primary-foreground/60 uppercase tracking-wider mt-1">Active Brokers</p>
                 </div>
               </div>
             </div>
-          </motion.div>
-
-          {/* Quick Actions (Span 2) */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="xl:col-span-2 grid grid-cols-2 gap-4 h-full"
-          >
-            <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => router.push('/property/createProperty')}>
-              <Building2 className="h-6 w-6" />
-              Add Property
-            </Button>
-            <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => router.push('/company-brokers')}>
-              <Users className="h-6 w-6" />
-              Manage Brokers
-            </Button>
-            <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => router.push('/company-enquiries')}>
-              <MessageSquare className="h-6 w-6" />
-              View Enquiries
-            </Button>
-            <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={handleExport}>
-              <Download className="h-6 w-6" />
-              Export Report
-            </Button>
-          </motion.div>
-
-          {/* Main Content Area (Span 4) - Tabs for Charts */}
-          <div className="xl:col-span-4 space-y-6">
-            {/* Secondary Stats Row */}
-            <DashboardStatsCards data={dashboardStats} isLoading={isLoadingStats} />
-
-            {/* Charts Tabs */}
-            <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-              <Tabs defaultValue="overview" className="w-full">
-                <div className="px-6 pt-6 flex items-center justify-between">
-                  <h3 className="font-semibold text-lg">Analytics</h3>
-                  <TabsList>
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="distribution">Distribution</TabsTrigger>
-                  </TabsList>
-                </div>
-
-                <div className="p-6 pt-4">
-                  <TabsContent value="overview" className="mt-0 space-y-4">
-                    <TrendsCharts
-                      propertyTrends={propertyTrends}
-                      enquiryTrends={enquiryTrends}
-                      isLoadingProperty={isLoadingPropertyTrends}
-                      isLoadingEnquiry={isLoadingEnquiryTrends}
-                      timeFrame={trendsTimeFrame}
-                      onTimeFrameChange={setTrendsTimeFrame}
-                    />
-                  </TabsContent>
-                  <TabsContent value="distribution" className="mt-0 space-y-4">
-                    <PropertyDistributionCharts
-                      data={propertyDistribution}
-                      isLoading={isLoadingDistribution}
-                    />
-                  </TabsContent>
-                </div>
-              </Tabs>
-            </Card>
           </div>
+        </motion.div>
 
-          {/* Sidebar Feed (Span 2) */}
-          <div className="xl:col-span-2">
-            <RecentActivityFeed
-              data={recentActivity}
-              isLoading={isLoadingRecentActivity}
-            />
-          </div>
+        {/* Quick Actions (Span 2) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="xl:col-span-2 grid grid-cols-2 gap-4 h-full"
+        >
+          <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => router.push('/property/createProperty')}>
+            <Building2 className="h-6 w-6" />
+            Add Property
+          </Button>
+          <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => router.push('/company-brokers')}>
+            <Users className="h-6 w-6" />
+            Manage Brokers
+          </Button>
+          <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => router.push('/company-enquiries')}>
+            <MessageSquare className="h-6 w-6" />
+            View Enquiries
+          </Button>
+          <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={handleExport}>
+            <Download className="h-6 w-6" />
+            Export Report
+          </Button>
+        </motion.div>
+
+        {/* Main Content Area (Span 4) - Tabs for Charts */}
+        <div className="xl:col-span-4 space-y-6">
+          {/* Secondary Stats Row */}
+          <DashboardStatsCards data={dashboardStats} isLoading={isLoadingStats} />
+
+          {/* Charts Tabs */}
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
+            <Tabs defaultValue="overview" className="w-full">
+              <div className="px-6 pt-6 flex items-center justify-between">
+                <h3 className="font-semibold text-lg">Analytics</h3>
+                <TabsList>
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="distribution">Distribution</TabsTrigger>
+                </TabsList>
+              </div>
+
+              <div className="p-6 pt-4">
+                <TabsContent value="overview" className="mt-0 space-y-4">
+                  <TrendsCharts
+                    propertyTrends={propertyTrends}
+                    enquiryTrends={enquiryTrends}
+                    isLoadingProperty={isLoadingPropertyTrends}
+                    isLoadingEnquiry={isLoadingEnquiryTrends}
+                    timeFrame={trendsTimeFrame}
+                    onTimeFrameChange={setTrendsTimeFrame}
+                  />
+                </TabsContent>
+                <TabsContent value="distribution" className="mt-0 space-y-4">
+                  <PropertyDistributionCharts
+                    data={propertyDistribution}
+                    isLoading={isLoadingDistribution}
+                  />
+                </TabsContent>
+              </div>
+            </Tabs>
+          </Card>
+        </div>
+
+        {/* Sidebar Feed (Span 2) */}
+        <div className="xl:col-span-2">
+          <RecentActivityFeed
+            data={recentActivity}
+            isLoading={isLoadingRecentActivity}
+          />
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
 

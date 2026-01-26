@@ -79,7 +79,7 @@ export default function SubmitEnquiryPage() {
         </Button>
       </div>
     );
-}
+  }
   const handleExistingSubmit = async () => {
     if (!selectedPropertyId) return;
 
@@ -132,7 +132,7 @@ export default function SubmitEnquiryPage() {
           const axiosError = error as AxiosError<{ message: string }>;
           toast.error(
             axiosError.response?.data?.message ||
-              "Failed to create and submit property"
+            "Failed to create and submit property"
           );
         },
       }
@@ -150,9 +150,9 @@ export default function SubmitEnquiryPage() {
     (property) =>
       property.listingStatus.toLowerCase() === "active" &&
       property.propertyCategory.toLowerCase() ===
-        enquiry.enquiryCategory.toLowerCase() &&
+      enquiry.enquiryCategory.toLowerCase() &&
       property.propertyType.toLowerCase() ===
-        enquiry.enquiryType.toLowerCase() &&
+      enquiry.enquiryType.toLowerCase() &&
       !property.deletingStatus
   );
 
@@ -205,7 +205,7 @@ export default function SubmitEnquiryPage() {
           {view === "message" ? "Back to Selection" : "Back to Enquiry"}
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">Submit Proposal</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Submit Proposal</h1>
           <p className="text-sm text-muted-foreground">
             For{" "}
             <span className="font-medium text-foreground">

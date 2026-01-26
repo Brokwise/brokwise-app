@@ -1,13 +1,14 @@
 import React from "react";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 const JaipurDlcRatesPage = () => {
   return (
-    <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-      <h1 className="text-2xl font-bold mb-4">Jaipur DLC Rates</h1>
-      <p className="text-muted-foreground">
-        This feature is coming soon. Please check back later.
-      </p>
-    </div>
+    <PageShell>
+      <PageHeader
+        title="Jaipur DLC Rates"
+        description="This feature is coming soon. Please check back later."
+      />
+    </PageShell>
   );
 };
 

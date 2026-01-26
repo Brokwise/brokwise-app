@@ -9,11 +9,11 @@ import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import {
   Loader2,
-  ArrowLeft,
-  FileText,
   ChevronRight,
   Inbox,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,7 @@ const itemVariants = {
 const DraftPropertyPage = () => {
   const { companyData } = useApp();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { myListings, isLoading: isBrokerLoading } = useGetMyListings({
     enabled: !companyData,
@@ -67,38 +68,20 @@ const DraftPropertyPage = () => {
   };
 
   return (
-    <main className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          onClick={() => router.push("/property/createProperty")}
-          className="group pl-0 hover:pl-2 transition-all hover:bg-transparent hover:text-accent"
-        >
-          <ArrowLeft className="w-5 h-5 mr-1 group-hover:-translate-x-1 transition-transform" />
-          Back
-        </Button>
-      </div>
-
-      <div className="space-y-1">
-        <div className="flex items-center gap-3">
-          <FileText className="w-6 h-6 text-muted-foreground" />
-          <h1 className="text-3xl md:text-4xl text-foreground tracking-tight">
-            Property Drafts
-          </h1>
-          {drafts.length > 0 && (
-            <Badge
-              variant="secondary"
-              className="rounded-full text-sm px-3 py-0.5"
-            >
-              {drafts.length}
-            </Badge>
-          )}
-        </div>
-        <p className="text-muted-foreground text-sm md:text-base font-light max-w-2xl pl-9">
-          Continue working on your incomplete property listings.
-        </p>
-      </div>
+    <PageShell>
+      <PageHeader
+        title={t("page_property_drafts_title")}
+        description={t("page_property_drafts_subtitle")}
+      >
+        {drafts.length > 0 && (
+          <Badge
+            variant="secondary"
+            className="rounded-full text-sm px-3 py-0.5"
+          >
+            {drafts.length}
+          </Badge>
+        )}
+      </PageHeader>
 
       {/* Content */}
       {isLoading ? (
@@ -141,8 +124,8 @@ const DraftPropertyPage = () => {
           {drafts.map((draft) => {
             const lastEdited = draft.updatedAt
               ? formatDistanceToNow(new Date(draft.updatedAt), {
-                  addSuffix: true,
-                })
+                addSuffix: true,
+              })
               : "recently";
 
             return (
@@ -208,7 +191,7 @@ const DraftPropertyPage = () => {
           })}
         </motion.div>
       )}
-    </main>
+    </PageShell>
   );
 };
 

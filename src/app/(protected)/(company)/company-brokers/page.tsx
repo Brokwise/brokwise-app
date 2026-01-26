@@ -11,6 +11,7 @@ import { Broker } from "@/stores/authStore";
 import { toast } from "sonner";
 import { logError } from "@/utils/errors";
 import { Loader } from "@/components/ui/loader";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 const BrokersPage = () => {
   const [brokers, setBrokers] = useState<Broker[]>([]);
@@ -57,16 +58,13 @@ const BrokersPage = () => {
   };
 
   return (
-    <div className="mx-auto py-10 px-4 w-full">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Brokers</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your company&apos;s brokers
-          </p>
-        </div>
+    <PageShell>
+      <PageHeader
+        title="Brokers"
+        description="Manage your company's brokers"
+      >
         <AddBrokerDialog onSuccess={fetchBrokers} />
-      </div>
+      </PageHeader>
 
       {loading ? (
         <div className="flex justify-center py-20">
@@ -79,7 +77,7 @@ const BrokersPage = () => {
           loadingRemove={removingId}
         />
       )}
-    </div>
+    </PageShell>
   );
 };
 

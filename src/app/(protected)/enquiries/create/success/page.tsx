@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useApp } from "@/context/AppContext";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 export default function EnquiryCreatedSuccess() {
   const { companyData } = useApp();
@@ -13,7 +14,7 @@ export default function EnquiryCreatedSuccess() {
   const enquiriesLabel = companyData ? "View Company Enquiries" : "View My Enquiries";
 
   return (
-    <main className="container mx-auto p-6 flex items-center justify-center min-h-[85vh]">
+    <PageShell className="flex items-center justify-center min-h-[70vh]">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -47,15 +48,11 @@ export default function EnquiryCreatedSuccess() {
             </div>
 
             {/* Success Message */}
-            <div className="space-y-3">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                Enquiry Submitted!
-              </h1>
-              <p className="text-muted-foreground leading-relaxed text-base">
-                Your enquiry has been created successfully. You can track it from your
-                enquiries page.
-              </p>
-            </div>
+            <PageHeader
+              title="Enquiry Submitted!"
+              description="Your enquiry has been created successfully. You can track it from your enquiries page."
+              className="text-center"
+            />
 
             {/* Action Buttons */}
             <div className="space-y-3 pt-2">
@@ -79,7 +76,7 @@ export default function EnquiryCreatedSuccess() {
           </CardContent>
         </Card>
       </motion.div>
-    </main>
+    </PageShell>
   );
 }
 

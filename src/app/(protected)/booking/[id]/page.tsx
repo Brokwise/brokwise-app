@@ -13,7 +13,6 @@ import {
   User,
   Phone,
   Mail,
-  ArrowLeft,
   Download,
   Clock,
   Ruler,
@@ -25,6 +24,7 @@ import {
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Booking } from "@/models/types/booking";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 const BookingPage = () => {
   const { id } = useParams();
@@ -81,42 +81,12 @@ const BookingPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-6 max-w-7xl">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 -ml-2"
-              onClick={() => router.back()}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Booking Details
-            </h1>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground ml-8">
-            <span>Order ID: {orderId}</span>
-            <span className="hidden md:inline">•</span>
-            <span className="text-sm">
-              {format(new Date(bookingDate), "PPP p")}
-            </span>
-            {bookingDetails.holdExpiresAt && (
-              <>
-                <span className="hidden md:inline">•</span>
-                <span className="text-sm text-orange-500 flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  Hold expires:{" "}
-                  {format(new Date(bookingDetails.holdExpiresAt), "PPP p")}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 ml-8 md:ml-0">
+    <PageShell>
+      <PageHeader
+        title="Booking Details"
+        description={`${orderId} • ${format(new Date(bookingDate), "PPP p")}`}
+      >
+        <div className="flex items-center gap-2">
           <Badge className={getStatusColor(bookingStatus)}>
             {bookingStatus.toUpperCase().replace("_", " ")}
           </Badge>
@@ -133,7 +103,14 @@ const BookingPage = () => {
             </Button>
           )}
         </div>
-      </div>
+      </PageHeader>
+
+      {bookingDetails.holdExpiresAt && (
+        <div className="bg-orange-500/10 text-orange-500 px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+          <Clock className="h-4 w-4" />
+          Hold expires on {format(new Date(bookingDetails.holdExpiresAt), "PPP p")}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Main Details */}
@@ -417,7 +394,7 @@ const BookingPage = () => {
           )}
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 };
 

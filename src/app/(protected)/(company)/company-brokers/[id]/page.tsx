@@ -119,7 +119,7 @@ const SingleBrokerPage = () => {
             <div className="space-y-4 flex-1">
               <div>
                 <div className="flex flex-wrap items-center gap-3 mb-1">
-                  <h1 className="text-2xl font-bold">
+                  <h1 className="text-3xl font-bold tracking-tight text-foreground">
                     {brokerData.firstName} {brokerData.lastName}
                   </h1>
                   <Badge
