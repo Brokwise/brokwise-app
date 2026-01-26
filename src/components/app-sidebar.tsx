@@ -231,7 +231,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="scrollbar-hide">
         <SidebarGroup>
           <SidebarGroupLabel>{t("nav_menu")}</SidebarGroupLabel>
           <SidebarGroupContent>
