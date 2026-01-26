@@ -112,7 +112,7 @@ const MyEnquiriesPage = () => {
   }
 
   return (
-    <PageShell>
+    <PageShell className="pt-4 md:pt-6 scrollbar-hide">
       <PageHeader
         title={t("page_my_enquiries_title")}
         description={t("page_my_enquiries_subtitle")}

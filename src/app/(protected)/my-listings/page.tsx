@@ -122,11 +122,11 @@ export default function MyListings() {
   }
 
   return (
-    <PageShell>
+    <PageShell className="pt-4 md:pt-6 scrollbar-hide">
       <PageHeader
         title="My Listings"
         description="Manage your property listings and their status."
-        className="sm:items-start"
+        className="w-full"
       >
         <Button asChild size="sm" className="h-9 sm:h-10">
           <Link href="/property/createProperty">
