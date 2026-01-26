@@ -150,179 +150,152 @@ export function DataTable<TData, TValue>({
   const pageCount = table.getPageCount();
 
   return (
-    <div className="space-y-5 sm:space-y-6">
-      {/* Header Section */}
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
-              {t("page_my_properties_title")}
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              {t("page_my_properties_subtitle")}
-            </p>
+    <div className="space-y-4 sm:space-y-5">
+      {/* Filters & Actions Section */}
+      <div className="flex flex-col xl:flex-row gap-3 sm:gap-4 items-start xl:items-center justify-between">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1 w-full">
+          <div className="relative flex-1 w-full sm:max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t("search_properties_placeholder")}
+              value={globalFilter ?? ""}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              className="pl-10 h-10 text-sm"
+            />
           </div>
-          <Button asChild size="sm" className="h-9 sm:h-10">
-            <Link href="/property/createProperty">
-              <Plus className="h-4 w-4 mr-2" />
-              {t("page_add_property")}
-            </Link>
-          </Button>
-        </div>
-      </div>
 
-      {/* Filters Section */}
-      <div className="flex flex-col gap-3 sm:gap-4">
-        <div className="flex flex-col xl:flex-row gap-3 sm:gap-4 justify-between">
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1">
-            <div className="relative flex-1 w-full sm:max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t("search_properties_placeholder")}
-                value={globalFilter ?? ""}
-                onChange={(e) => setGlobalFilter(e.target.value)}
-                className="pl-10 h-10 text-sm"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <Select
-                value={propertyTypeFilter}
-                onValueChange={handlePropertyTypeFilter}
-              >
-                <SelectTrigger className="w-full sm:w-[160px] h-10 text-sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("label_all_types")}</SelectItem>
-                  {PROPERTY_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={statusFilter} onValueChange={handleStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[160px] h-10 text-sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("label_all_status")}</SelectItem>
-                  <SelectItem value="ACTIVE">{t("label_active")}</SelectItem>
-                  <SelectItem value="ENQUIRY_ONLY">{t("label_enquiry_only")}</SelectItem>
-                  <SelectItem value="PENDING_APPROVAL">
-                    {t("label_pending_approval")}
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              value={propertyTypeFilter}
+              onValueChange={handlePropertyTypeFilter}
+            >
+              <SelectTrigger className="w-[140px] sm:w-[150px] h-10 text-sm">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("label_all_types")}</SelectItem>
+                {PROPERTY_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
                   </SelectItem>
-                  <SelectItem value="REJECTED">{t("label_rejected")}</SelectItem>
-                  <SelectItem value="DRAFT">{t("label_draft")}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-                  <SelectItem value="DELISTED">{t("label_delisted")}</SelectItem>
-                  <SelectItem value="DELETED">{t("label_deleted") || "Deleted"}</SelectItem>
-                </SelectContent>
-              </Select>
+            <Select value={statusFilter} onValueChange={handleStatusFilter}>
+              <SelectTrigger className="w-[140px] sm:w-[150px] h-10 text-sm">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("label_all_status")}</SelectItem>
+                <SelectItem value="ACTIVE">{t("label_active")}</SelectItem>
+                <SelectItem value="ENQUIRY_ONLY">{t("label_enquiry_only")}</SelectItem>
+                <SelectItem value="PENDING_APPROVAL">
+                  {t("label_pending_approval")}
+                </SelectItem>
+                <SelectItem value="REJECTED">{t("label_rejected")}</SelectItem>
+                <SelectItem value="DRAFT">{t("label_draft")}</SelectItem>
+                <SelectItem value="DELISTED">{t("label_delisted")}</SelectItem>
+                <SelectItem value="DELETED">{t("label_deleted") || "Deleted"}</SelectItem>
+              </SelectContent>
+            </Select>
 
-              {viewMode === "table" && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-10 w-full sm:w-[160px] rounded-[8px] px-3 text-xs"
-                    >
-                      <Columns3 className="mr-2 h-4 w-4" />
-                      {t("label_columns")}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[200px]">
-                    {table
-                      .getAllColumns()
-                      .filter((column) => column.getCanHide())
-                      .map((column) => (
-                        <DropdownMenuCheckboxItem
-                          key={column.id}
-                          className="capitalize"
-                          checked={column.getIsVisible()}
-                          onCheckedChange={(value) =>
-                            column.toggleVisibility(!!value)
-                          }
-                        >
-                          {column.id}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-              <div className="flex items-center gap-2">
-                <div className="bg-muted p-1 rounded-lg flex items-center">
+            {viewMode === "table" && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
                   <Button
-                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    variant="outline"
                     size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setViewMode("grid")}
+                    className="h-10 w-[120px] rounded-[8px] px-3 text-xs"
                   >
-                    <LayoutGrid className="h-4 w-4" />
-                    <span className="sr-only">{t("label_grid_view")}</span>
+                    <Columns3 className="mr-2 h-4 w-4" />
+                    {t("label_columns")}
                   </Button>
-                  <Button
-                    variant={viewMode === "table" ? "default" : "ghost"}
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setViewMode("table")}
-                  >
-                    <List className="h-4 w-4" />
-                    <span className="sr-only">{t("label_table_view")}</span>
-                  </Button>
-                </div>
-              </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                  {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            <div className="bg-muted p-0.5 rounded-lg flex items-center h-10">
+              <Button
+                variant={viewMode === "grid" ? "default" : "ghost"}
+                size="sm"
+                className="h-9 w-9 p-0"
+                onClick={() => setViewMode("grid")}
+              >
+                <LayoutGrid className="h-4 w-4" />
+                <span className="sr-only">{t("label_grid_view")}</span>
+              </Button>
+              <Button
+                variant={viewMode === "table" ? "default" : "ghost"}
+                size="sm"
+                className="h-9 w-9 p-0"
+                onClick={() => setViewMode("table")}
+              >
+                <List className="h-4 w-4" />
+                <span className="sr-only">{t("label_table_view")}</span>
+              </Button>
             </div>
           </div>
-
-
-        </div>
-
-        {/* Results count */}
-        <div className="flex  flex-row  items-center justify-between gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-          <p>
-            {t("label_showing")}{" "}
-            <span className="font-medium text-foreground">
-              {filteredRowCount}
-            </span>{" "}
-            {t("label_of")} {totalCount} {t("label_properties")}
-          </p>
-          {viewMode === "grid" && (
-            <div className="flex items-center gap-2">
-              <span>{t("label_per_page")}:</span>
-              <Select
-                value={`${table.getState().pagination.pageSize}`}
-                onValueChange={(value) => table.setPageSize(Number(value))}
-              >
-                <SelectTrigger className="h-8 w-[70px] text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent side="top">
-                  {[12, 24, 36, 48].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                      {pageSize}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Loading State */}
+      {/* Results count */}
+      <div className="flex flex-row items-center justify-between gap-3 text-xs text-muted-foreground border-b border-border/40 pb-3">
+        <p>
+          {t("label_showing")}{" "}
+          <span className="font-semibold text-foreground">
+            {filteredRowCount}
+          </span>{" "}
+          {t("label_of")} {totalCount} {t("label_properties")}
+        </p>
+        {viewMode === "grid" && (
+          <div className="flex items-center gap-2">
+            <span>{t("label_per_page")}:</span>
+            <Select
+              value={`${table.getState().pagination.pageSize}`}
+              onValueChange={(value) => table.setPageSize(Number(value))}
+            >
+              <SelectTrigger className="h-7 w-[65px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[12, 24, 36, 48].map((pageSize) => (
+                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+
+      {/* States */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       )}
 
-      {/* Error State */}
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -332,11 +305,11 @@ export function DataTable<TData, TValue>({
         </Alert>
       )}
 
-      {/* Content */}
+      {/* Content Section */}
       {!isLoading && !error && (
         <>
           {viewMode === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 pt-2">
               {table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => {
                   const property = row.original as Property;
@@ -350,17 +323,19 @@ export function DataTable<TData, TValue>({
                   );
                 })
               ) : (
-                <EmptyListingsState />
+                <div className="col-span-full">
+                  <EmptyListingsState />
+                </div>
               )}
             </div>
           ) : (
-            <div className="rounded-md border overflow-x-auto text-sm">
+            <div className="rounded-xl border border-border/60 overflow-hidden text-sm bg-card shadow-sm">
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id} className="bg-muted/50">
+                    <TableRow key={headerGroup.id} className="bg-muted/30">
                       {headerGroup.headers.map((header) => (
-                        <TableHead key={header.id}>
+                        <TableHead key={header.id} className="h-11 font-semibold">
                           {header.isPlaceholder
                             ? null
                             : flexRender(
@@ -378,10 +353,10 @@ export function DataTable<TData, TValue>({
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && "selected"}
-                        className="hover:bg-muted/50"
+                        className="hover:bg-muted/20 transition-colors"
                       >
                         {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
+                          <TableCell key={cell.id} className="py-3">
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext()
@@ -394,7 +369,7 @@ export function DataTable<TData, TValue>({
                     <TableRow>
                       <TableCell
                         colSpan={columns.length}
-                        className="h-24 text-center text-muted-foreground"
+                        className="h-32 text-center text-muted-foreground"
                       >
                         {t("empty_no_matching_properties")}
                       </TableCell>
@@ -407,14 +382,15 @@ export function DataTable<TData, TValue>({
 
           {/* Pagination */}
           {pageCount > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
-              <p className="text-sm text-muted-foreground">
-                {t("label_page")} {currentPage} {t("label_of")} {pageCount}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/40">
+              <p className="text-xs text-muted-foreground">
+                {t("label_page")} <span className="font-medium text-foreground">{currentPage}</span> {t("label_of")} <span className="font-medium text-foreground">{pageCount}</span>
               </p>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-1.5">
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
+                  className="h-8 w-8"
                   onClick={() => table.setPageIndex(0)}
                   disabled={!table.getCanPreviousPage()}
                 >
@@ -422,7 +398,8 @@ export function DataTable<TData, TValue>({
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
+                  className="h-8 w-8"
                   onClick={() => table.previousPage()}
                   disabled={!table.getCanPreviousPage()}
                 >
@@ -430,7 +407,8 @@ export function DataTable<TData, TValue>({
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
+                  className="h-8 w-8"
                   onClick={() => table.nextPage()}
                   disabled={!table.getCanNextPage()}
                 >
@@ -438,7 +416,8 @@ export function DataTable<TData, TValue>({
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
+                  className="h-8 w-8"
                   onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                   disabled={!table.getCanNextPage()}
                 >
