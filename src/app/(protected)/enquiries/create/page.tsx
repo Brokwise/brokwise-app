@@ -54,7 +54,8 @@ const CreateEnquiryPage = () => {
     resolver: zodResolver(createEnquirySchema) as any,
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    mode: "onBlur", // Changed to onBlur for less noisy validation
+    mode: "onSubmit", // Only validate on submit
+    reValidateMode: "onChange", // Re-validate on change after first submit
     defaultValues: {
       locationMode: "search",
       isCompany: false,
@@ -160,7 +161,10 @@ const CreateEnquiryPage = () => {
       />
 
       <FormProvider {...form}>
-        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6 md:space-y-8 pb-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6 md:space-y-8 pb-32 relative"
+        >
 
           <LocationSection isPending={isPending} />
 
@@ -170,8 +174,8 @@ const CreateEnquiryPage = () => {
 
           <AdditionalDetailsSection />
 
-          {/* Sticky Footer Action */}
-          <div className="sticky bottom-6 z-40 px-4 pb-0 flex justify-center pointer-events-none mt-8">
+          {/* Fixed Footer Action */}
+          <div className="fixed bottom-20 md:bottom-8 inset-x-0 md:left-[var(--sidebar-width)] z-40 px-4 flex justify-center pointer-events-none transition-[left] duration-200 ease-linear">
             {/* Floating Island Container - Smaller & Compact */}
             <div className="inline-flex items-center bg-background/90 backdrop-blur-xl backdrop-saturate-150 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-full p-1.5 gap-2 pointer-events-auto ring-1 ring-black/5 dark:ring-white/10">
               <Button

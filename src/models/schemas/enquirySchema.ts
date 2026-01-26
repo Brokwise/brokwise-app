@@ -105,9 +105,10 @@ export const createEnquirySchema = z
         "AGRICULTURAL",
         "RESORT",
         "FARM_HOUSE",
-      ] as [string, ...string[]]
+      ] as [string, ...string[]],
+      { message: "Please select a category" }
     ),
-    enquiryType: z.string().min(1, "Property Type is required"), // Narrowed down in UI based on Category
+    enquiryType: z.string({ message: "Please select a property type" }).min(1, "Please select a property type"),
     budget: budgetRangeSchema,
     description: z
       .string()
