@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -51,6 +51,7 @@ const CreateEnquiryPage = () => {
     useState<CreateEnquiryFormValues | null>(null);
 
   const form = useForm<CreateEnquiryFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createEnquirySchema) as any,
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -91,6 +92,7 @@ const CreateEnquiryPage = () => {
     ];
 
     fieldsToReset.forEach(field => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore - straightforward reset
       setValue(field, undefined, { shouldValidate: false });
     });
@@ -124,7 +126,8 @@ const CreateEnquiryPage = () => {
       queryClient.invalidateQueries({ queryKey: ["wallet-balance"] });
     };
 
-    const onError = (error: any) => {
+    const onError = (error: unknown) => {
+      // @ts-expect-error - axios error shape
       toast.error(error?.response?.data?.message || "Failed to create enquiry");
     };
 
@@ -148,7 +151,7 @@ const CreateEnquiryPage = () => {
     }
   };
 
-  const onInvalid = (errors: any) => {
+  const onInvalid = (errors: FieldErrors<CreateEnquiryFormValues>) => {
     console.log("Form Errors:", errors);
     toast.error("Please fill in all required fields and correct errors.");
   };
@@ -163,7 +166,8 @@ const CreateEnquiryPage = () => {
       <FormProvider {...form}>
         <form
           id="create-enquiry-form"
-          onSubmit={handleSubmit(onSubmit, onInvalid)}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onSubmit={handleSubmit(onSubmit, onInvalid) as any}
           className="space-y-6 md:space-y-8"
         >
 
@@ -206,14 +210,13 @@ const CreateEnquiryPage = () => {
       <AlertDialog open={showUrgentConfirmation} onOpenChange={setShowUrgentConfirmation}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Mark as Urgent?</AlertDialogTitle>
+            <AlertDialogTitle>{t("dialog_mark_as_urgent_title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will deduct {CREDITS_PRICE.MARK_ENQUIRY_AS_URGENT} credits from your wallet.
-              Urgent enquiries get higher visibility.
+              {t("dialog_mark_as_urgent_description", { credits: CREDITS_PRICE.MARK_ENQUIRY_AS_URGENT })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("action_cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (pendingSubmissionData) {
@@ -221,7 +224,7 @@ const CreateEnquiryPage = () => {
                 }
               }}
             >
-              Confirm & Deduct
+              {t("action_confirm_deduct")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

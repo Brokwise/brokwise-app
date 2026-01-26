@@ -16,13 +16,12 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { NumberInput } from "@/components/ui/number-input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { CreateEnquiryFormValues, CATEGORY_TYPE_MAP } from "@/models/schemas/enquirySchema";
 import { PropertyCategory } from "@/models/types/property";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Home, Hotel, Factory, Tractor, Palmtree } from "lucide-react";
+import { Building2, Home, Factory, Tractor, Palmtree } from "lucide-react";
 
 const FACING_OPTIONS = [
     "NORTH", "SOUTH", "EAST", "WEST",
@@ -92,7 +91,7 @@ const PropertyDetailsSection = () => {
                                     <SelectContent>
                                         {Object.keys(CATEGORY_TYPE_MAP).map((cat) => (
                                             <SelectItem key={cat} value={cat}>
-                                                {cat.replace(/_/g, " ")}
+                                                {t("category_" + cat.toLowerCase())}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -116,9 +115,9 @@ const PropertyDetailsSection = () => {
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {availableTypes.map((t) => (
-                                            <SelectItem key={t} value={t}>
-                                                {t.replace(/_/g, " ")}
+                                        {availableTypes.map((typeKey) => (
+                                            <SelectItem key={typeKey} value={typeKey}>
+                                                {t("type_" + typeKey.toLowerCase())}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -136,7 +135,7 @@ const PropertyDetailsSection = () => {
                                 name="bhk"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Bedrooms (BHK) <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>{t("form_bhk")} <span className="text-destructive">*</span></FormLabel>
                                         <FormControl>
                                             <NumberInput {...field} className="h-11" placeholder="e.g. 3" min={1} max={20} />
                                         </FormControl>
@@ -149,7 +148,7 @@ const PropertyDetailsSection = () => {
                                 name="washrooms"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Washrooms</FormLabel>
+                                        <FormLabel>{t("form_washrooms")}</FormLabel>
                                         <FormControl>
                                             <NumberInput {...field} className="h-11" placeholder="e.g. 2" min={1} max={20} />
                                         </FormControl>
@@ -162,7 +161,7 @@ const PropertyDetailsSection = () => {
                                 name="preferredFloor"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Preferred Floor</FormLabel>
+                                        <FormLabel>{t("form_preferred_floor")}</FormLabel>
                                         <FormControl>
                                             <Input {...field} className="h-11" placeholder="e.g. Ground, 1-5, Top" />
                                         </FormControl>
@@ -175,7 +174,7 @@ const PropertyDetailsSection = () => {
                                 name="society"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Society / Project Name</FormLabel>
+                                        <FormLabel>{t("form_preferred_society")}</FormLabel>
                                         <FormControl>
                                             <Input {...field} className="h-11" placeholder="e.g. Green Meadows" />
                                         </FormControl>
@@ -192,7 +191,7 @@ const PropertyDetailsSection = () => {
                             name="rooms"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Number of Rooms <span className="text-destructive">*</span></FormLabel>
+                                    <FormLabel>{t("form_rooms")} <span className="text-destructive">*</span></FormLabel>
                                     <FormControl>
                                         <NumberInput {...field} className="h-11" placeholder="Total rooms" min={1} />
                                     </FormControl>
@@ -208,7 +207,7 @@ const PropertyDetailsSection = () => {
                             name="beds"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Number of Beds <span className="text-destructive">*</span></FormLabel>
+                                    <FormLabel>{t("form_beds")} <span className="text-destructive">*</span></FormLabel>
                                     <FormControl>
                                         <NumberInput {...field} className="h-11" placeholder="Total beds" min={1} />
                                     </FormControl>
@@ -225,7 +224,7 @@ const PropertyDetailsSection = () => {
                                 name="purpose"
                                 render={({ field }) => (
                                     <FormItem className="col-span-1 md:col-span-2">
-                                        <FormLabel>Purpose <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>{t("form_purpose")} <span className="text-destructive">*</span></FormLabel>
                                         <FormControl>
                                             <Input {...field} className="h-11" placeholder="Describe intended use (min 5 chars)" />
                                         </FormControl>
@@ -238,10 +237,10 @@ const PropertyDetailsSection = () => {
                                 name="areaType"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Area Type</FormLabel>
+                                        <FormLabel>{t("form_area_type")}</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl>
-                                                <SelectTrigger className="h-11"><SelectValue placeholder="Select Area Type" /></SelectTrigger>
+                                                <SelectTrigger className="h-11"><SelectValue placeholder={t("form_select_area_type")} /></SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
                                                 {AREA_TYPE_OPTIONS.map(opt => (
@@ -260,7 +259,7 @@ const PropertyDetailsSection = () => {
                         <div className="col-span-1 md:col-span-2 bg-muted/30 p-4 rounded-xl space-y-4">
                             <div className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
                                 <span className="h-4 w-1 bg-primary rounded-full" />
-                                Size Requirement <span className="text-destructive">*</span>
+                                {t("form_size_requirement")} <span className="text-destructive">*</span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <FormField
@@ -268,7 +267,7 @@ const PropertyDetailsSection = () => {
                                     name="size.min"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs uppercase tracking-wide text-muted-foreground">Min Size</FormLabel>
+                                            <FormLabel className="text-xs uppercase tracking-wide text-muted-foreground">{t("form_min_size")}</FormLabel>
                                             <FormControl>
                                                 <NumberInput {...field} className="h-11 bg-background" placeholder="Min" />
                                             </FormControl>
@@ -281,7 +280,7 @@ const PropertyDetailsSection = () => {
                                     name="size.max"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs uppercase tracking-wide text-muted-foreground">Max Size</FormLabel>
+                                            <FormLabel className="text-xs uppercase tracking-wide text-muted-foreground">{t("form_max_size")}</FormLabel>
                                             <FormControl>
                                                 <NumberInput {...field} className="h-11 bg-background" placeholder="Max" />
                                             </FormControl>
@@ -294,10 +293,10 @@ const PropertyDetailsSection = () => {
                                     name="size.unit"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs uppercase tracking-wide text-muted-foreground">Unit</FormLabel>
+                                            <FormLabel className="text-xs uppercase tracking-wide text-muted-foreground">{t("form_unit")}</FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
-                                                    <SelectTrigger className="h-11 bg-background"><SelectValue placeholder="Unit" /></SelectTrigger>
+                                                    <SelectTrigger className="h-11 bg-background"><SelectValue placeholder={t("form_unit")} /></SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
                                                     {SIZE_UNIT_OPTIONS.map(u => (
@@ -317,7 +316,7 @@ const PropertyDetailsSection = () => {
                         <div className="col-span-1 md:col-span-2 bg-muted/30 p-4 rounded-xl space-y-4">
                             <div className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
                                 <span className="h-4 w-1 bg-primary rounded-full" />
-                                Plot Details
+                                {t("form_plot_details")}
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <FormField
@@ -325,10 +324,10 @@ const PropertyDetailsSection = () => {
                                     name="facing"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs uppercase tracking-wide text-muted-foreground">Facing</FormLabel>
+                                            <FormLabel className="text-xs uppercase tracking-wide text-muted-foreground">{t("form_facing")}</FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
-                                                    <SelectTrigger className="h-11 bg-background"><SelectValue placeholder="Select" /></SelectTrigger>
+                                                    <SelectTrigger className="h-11 bg-background"><SelectValue placeholder={t("form_select_facing")} /></SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
                                                     {FACING_OPTIONS.map(opt => (
@@ -345,14 +344,14 @@ const PropertyDetailsSection = () => {
                                     name="plotType"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs uppercase tracking-wide text-muted-foreground">Plot Type</FormLabel>
+                                            <FormLabel className="text-xs uppercase tracking-wide text-muted-foreground">{t("form_plot_type")}</FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
-                                                    <SelectTrigger className="h-11 bg-background"><SelectValue placeholder="Select" /></SelectTrigger>
+                                                    <SelectTrigger className="h-11 bg-background"><SelectValue placeholder={t("form_select_plot_type")} /></SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="ROAD">Road Facing</SelectItem>
-                                                    <SelectItem value="CORNER">Corner Plot</SelectItem>
+                                                    <SelectItem value="ROAD">{t("label_road")}</SelectItem>
+                                                    <SelectItem value="CORNER">{t("label_corner")}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
@@ -364,7 +363,7 @@ const PropertyDetailsSection = () => {
                                     name="frontRoadWidth"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs uppercase tracking-wide text-muted-foreground">Road Width (ft)</FormLabel>
+                                            <FormLabel className="text-xs uppercase tracking-wide text-muted-foreground">{t("form_front_road_width")}</FormLabel>
                                             <FormControl>
                                                 <NumberInput {...field} className="h-11 bg-background" placeholder="e.g. 30" min={1} max={500} />
                                             </FormControl>

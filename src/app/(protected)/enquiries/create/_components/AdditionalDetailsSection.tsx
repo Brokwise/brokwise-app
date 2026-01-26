@@ -27,7 +27,7 @@ const AdditionalDetailsSection = () => {
             setGenerating(true);
             const formValues = getValues();
             if (!formValues.enquiryType || !formValues.address) {
-                toast.error("Please select Property Type and Location first.");
+                toast.error(t("toast_error_select_property_location"));
                 return;
             }
 
@@ -40,10 +40,10 @@ const AdditionalDetailsSection = () => {
 
             const data = await response.json();
             setValue("description", data.description, { shouldValidate: true, shouldDirty: true });
-            toast.success("Description generated successfully!");
+            toast.success(t("toast_description_generated"));
         } catch (error) {
             console.error(error);
-            toast.error("Failed to generate description");
+            toast.error(t("toast_error_description_generate"));
         } finally {
             setGenerating(false);
         }
@@ -74,13 +74,13 @@ const AdditionalDetailsSection = () => {
                                     className="h-8 text-xs gap-1.5 border-primary/20 hover:bg-primary/5 text-primary"
                                 >
                                     {generating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                                    AI Auto-Generate
+                                    {t("form_generate_description")}
                                 </Button>
                             </div>
                             <FormControl>
                                 <Textarea
                                     {...field}
-                                    placeholder="Describe your requirement in detail..."
+                                    placeholder={t("form_description_placeholder")}
                                     className="min-h-[120px] resize-y text-base p-4"
                                 />
                             </FormControl>
@@ -100,9 +100,9 @@ const AdditionalDetailsSection = () => {
                                         <Zap className="w-5 h-5 text-primary" />
                                     </div>
                                     <div className="space-y-0.5">
-                                        <FormLabel className="text-base font-semibold">Mark as Urgent</FormLabel>
+                                        <FormLabel className="text-base font-semibold">{t("form_mark_as_urgent")}</FormLabel>
                                         <div className="text-sm text-muted-foreground">
-                                            Get faster responses from brokers. Costs extra credits.
+                                            {t("form_urgent_description")}
                                         </div>
                                     </div>
                                 </div>

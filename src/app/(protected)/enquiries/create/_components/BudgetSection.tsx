@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useFormContext } from "react-hook-form";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -9,9 +9,8 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { Section } from "@/components/ui/layout";
 import { NumberInput } from "@/components/ui/number-input";
-import { formatIndianNumber, formatPriceShort } from "@/utils/helper";
+import { formatPriceShort } from "@/utils/helper";
 import { BUDGET_MIN, BUDGET_MAX, CreateEnquiryFormValues } from "@/models/schemas/enquirySchema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wallet } from "lucide-react";
