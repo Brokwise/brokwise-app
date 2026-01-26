@@ -38,14 +38,25 @@ import {
   ChevronsRight,
   Loader2,
   AlertCircle,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   isLoading?: boolean;
   error?: Error | null;
+  renderGridItem?: (data: TData) => React.ReactNode;
+  defaultView?: "grid" | "list";
 }
 
 export function DataTable<TData, TValue>({
@@ -53,10 +64,13 @@ export function DataTable<TData, TValue>({
   data,
   isLoading = false,
   error = null,
+  renderGridItem,
+  defaultView = "grid",
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [viewMode, setViewMode] = useState<"grid" | "list">(defaultView);
 
   const table = useReactTable({
     data,
@@ -72,81 +86,139 @@ export function DataTable<TData, TValue>({
     },
     initialState: {
       pagination: {
-        pageSize: 10,
+        pageSize: 12,
       },
     },
   });
 
-  return (
-    <Card className="border-none shadow-none bg-background">
-      <CardContent className="p-0">
-        <div className="flex flex-col gap-4 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4 justify-end">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto h-10">
-                  <Columns3 className="mr-2 h-4 w-4" />
-                  {t("label_columns")}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px]">
-                {table
-                  .getAllColumns()
-                  .filter((column) => column.getCanHide())
-                  .map((column) => (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+  const filteredRowCount = table.getFilteredRowModel().rows.length;
+  const currentPage = table.getState().pagination.pageIndex + 1;
+  const pageCount = table.getPageCount();
 
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <div>
-              {t("label_showing")}{" "}
-              <span className="font-semibold text-foreground">
-                {table.getFilteredRowModel().rows.length}
-              </span>{" "}
-              {t("label_of")} {data.length} {t("label_properties")}
-            </div>
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <div>
+            {t("label_showing")}{" "}
+            <span className="font-semibold text-foreground">
+              {filteredRowCount}
+            </span>{" "}
+            {t("label_of")} {data.length} {t("label_properties")}
           </div>
         </div>
 
-        {isLoading && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <span className="whitespace-nowrap">{t("page_my_enquiries_rows_per_page") || "Rows per page"}:</span>
+            <Select
+              value={`${table.getState().pagination.pageSize}`}
+              onValueChange={(value: string) => table.setPageSize(Number(value))}
+            >
+              <SelectTrigger className="h-9 w-[70px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[12, 24, 36, 48].map((pageSize) => (
+                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
 
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {t("toast_error_property_list") || "Error loading properties"}
-            </AlertDescription>
-          </Alert>
-        )}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            {viewMode === "list" && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex-1 sm:flex-none h-9">
+                    <Columns3 className="mr-2 h-4 w-4" />
+                    {t("label_columns")}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                  {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value: boolean) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
-        {!isLoading && !error && (
-          <>
+            <div className="flex items-center bg-muted/50 p-1 rounded-md border">
+              <Button
+                variant={viewMode === "grid" ? "secondary" : "ghost"}
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={() => setViewMode("grid")}
+                title={t("label_grid_view")}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "secondary" : "ghost"}
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={() => setViewMode("list")}
+                title={t("label_table_view")}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {t("toast_error_property_list") || "Error loading properties"}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {!isLoading && !error && (
+        <>
+          {viewMode === "grid" && renderGridItem ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              {table.getRowModel().rows.map((row) => (
+                <div key={row.id}>
+                  {renderGridItem(row.original)}
+                </div>
+              ))}
+              {table.getRowModel().rows.length === 0 && (
+                <div className="col-span-full py-20 text-center text-muted-foreground border border-dashed rounded-xl">
+                  {t("page_my_enquiries_no_match")}
+                </div>
+              )}
+            </div>
+          ) : (
             <div className="rounded-xl border border-border/60 overflow-hidden text-sm bg-card shadow-sm">
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id} className="bg-muted/30">
                       {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          className="h-11 font-semibold"
-                        >
+                        <TableHead key={header.id} className="h-11 font-semibold">
                           {header.isPlaceholder
                             ? null
                             : flexRender(
@@ -189,11 +261,13 @@ export function DataTable<TData, TValue>({
                 </TableBody>
               </Table>
             </div>
+          )}
 
-            <div className="flex items-center justify-between mt-4">
+          {/* Pagination */}
+          {pageCount > 1 && (
+            <div className="flex items-center justify-between mt-4 py-2">
               <div className="text-sm text-muted-foreground">
-                {t("label_page")} {table.getState().pagination.pageIndex + 1}{" "}
-                {t("label_of")} {table.getPageCount()}
+                {t("label_page")} {currentPage} {t("label_of")} {pageCount}
               </div>
               <div className="flex items-center space-x-2">
                 <Button
@@ -230,9 +304,9 @@ export function DataTable<TData, TValue>({
                 </Button>
               </div>
             </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </>
+      )}
+    </div>
   );
 }

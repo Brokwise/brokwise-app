@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useGetMyListings } from "@/hooks/useProperty";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
@@ -9,12 +9,9 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
   Plus,
-  LayoutGrid,
-  List,
   Search,
   Filter,
   Loader2,
-  Inbox,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PropertyCard } from "@/app/(protected)/_components/propertyCard";
@@ -30,37 +27,13 @@ import { PROPERTY_TYPES } from "@/constants";
 import { formatAddress } from "@/utils/helper";
 import { PropertyActions } from "@/components/property/property-actions";
 
-const STORAGE_KEY = "myListingsView";
-
 export default function MyListings() {
   const { myListings, isLoading, error } = useGetMyListings();
   const { t } = useTranslation();
 
-  const [view, setView] = useState<"grid" | "list" | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [propertyTypeFilter, setPropertyTypeFilter] = useState("all");
-
-  // Load view preference from local storage
-  useEffect(() => {
-    try {
-      const savedView = localStorage.getItem(STORAGE_KEY);
-      setView(savedView === "list" ? "list" : "grid");
-    } catch {
-      setView("grid");
-    }
-  }, []);
-
-  const handleSetView = (newView: "grid" | "list") => {
-    setView(newView);
-    try {
-      localStorage.setItem(STORAGE_KEY, newView);
-    } catch {
-      // ignore
-    }
-  };
-
-  const effectiveView = view ?? "grid";
 
   const filteredListings = useMemo(() => {
     if (!myListings) return [];
@@ -134,7 +107,7 @@ export default function MyListings() {
         </Button>
       </PageHeader>
 
-      <div className="space-y-5 sm:space-y-6">
+      <div className="space-y-6">
         {/* Filters Section */}
         {myListings && myListings.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-1 sm:mt-2">
@@ -186,92 +159,21 @@ export default function MyListings() {
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="flex items-center bg-muted/50 p-1 rounded-md border">
-                <Button
-                  variant={effectiveView === "grid" ? "secondary" : "ghost"}
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => handleSetView("grid")}
-                  title={t("label_grid_view")}
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={effectiveView === "list" ? "secondary" : "ghost"}
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => handleSetView("list")}
-                  title={t("label_table_view")}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
           </div>
         )}
 
-        {!myListings || myListings.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center border rounded-xl bg-muted/20 border-dashed">
-            <Inbox className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4 opacity-50" />
-            <h3 className="text-lg font-medium">
-              {t("page_my_listings_empty_title") || "No properties found"}
-            </h3>
-            <p className="text-sm sm:text-base text-muted-foreground max-w-sm mx-auto mt-2">
-              {t("page_my_listings_empty_desc") || "Start by adding your first property listing."}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-4 h-9 sm:h-10"
-              asChild
-            >
-              <Link href="/property/createProperty">
-                {t("page_add_property")}
-              </Link>
-            </Button>
-          </div>
-        ) : (
-          <>
-            {effectiveView === "grid" ? (
-              filteredListings.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center border rounded-xl bg-muted/20 border-dashed">
-                  <Inbox className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium">
-                    {t("page_my_enquiries_no_match")}
-                  </h3>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setStatusFilter("all");
-                      setPropertyTypeFilter("all");
-                    }}
-                  >
-                    {t("action_clear_filters")}
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                  {filteredListings.map((property) => (
-                    <PropertyCard
-                      key={property._id}
-                      property={property}
-                      showMapButton={false}
-                      actionSlot={<PropertyActions property={property} />}
-                    />
-                  ))}
-                </div>
-              )
-            ) : (
-              <DataTable
-                columns={columns}
-                data={filteredListings}
-              />
-            )}
-          </>
-        )}
+        <DataTable
+          columns={columns}
+          data={filteredListings}
+          renderGridItem={(property) => (
+            <PropertyCard
+              property={property}
+              showMapButton={false}
+              actionSlot={<PropertyActions property={property} />}
+            />
+          )}
+        />
       </div>
     </PageShell>
   );
