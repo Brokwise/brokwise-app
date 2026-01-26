@@ -53,13 +53,13 @@ import {
   Plus,
   LayoutGrid,
   List,
-  Building2,
 } from "lucide-react";
 import { formatAddress } from "@/utils/helper";
 import { PROPERTY_TYPES } from "@/constants";
 import { PropertyCard } from "../_components/propertyCard";
 import { PropertyActions } from "@/components/property/property-actions";
 import { Property } from "@/types/property";
+import { EmptyListingsState } from "../_components/empty-state";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -68,28 +68,7 @@ interface DataTableProps<TData, TValue> {
   error?: Error | null;
 }
 
-function EmptyState() {
-  const { t } = useTranslation();
-  return (
-    <div className="col-span-full flex flex-col items-center justify-center py-24 px-4 text-center">
-      <div className="h-16 w-16 rounded-full bg-muted/30 flex items-center justify-center mb-6">
-        <Building2 className="h-7 w-7 text-muted-foreground/60" />
-      </div>
-      <h3 className="text-2xl text-foreground mb-2">
-        {t("empty_no_listings")}
-      </h3>
-      <p className="text-muted-foreground max-w-sm font-light">
-        {t("empty_no_listings_desc")}
-      </p>
-      <Button asChild className="mt-6">
-        <Link href="/property/createProperty">
-          <Plus className="h-4 w-4 mr-2" />
-          {t("action_add_first_property")}
-        </Link>
-      </Button>
-    </div>
-  );
-}
+
 
 export function DataTable<TData, TValue>({
   columns,
@@ -371,7 +350,7 @@ export function DataTable<TData, TValue>({
                   );
                 })
               ) : (
-                <EmptyState />
+                <EmptyListingsState />
               )}
             </div>
           ) : (
