@@ -13,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import Link from "next/link";
+
 import { useTranslation } from "react-i18next";
 
 import {
@@ -50,7 +50,6 @@ import {
   ChevronsRight,
   Loader2,
   AlertCircle,
-  Plus,
   LayoutGrid,
   List,
 } from "lucide-react";
