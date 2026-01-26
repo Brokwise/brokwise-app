@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { getCityFromAddress } from "@/utils/helper";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 const EnquiryPage = () => {
   const { marketPlaceEnquiries, isPending, error } =
@@ -114,33 +115,24 @@ const EnquiryPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 md:p-8 max-w-7xl space-y-8 animate-in fade-in duration-500">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Marketplace
-          </h1>
-          <p className="text-muted-foreground text-sm max-w-2xl">
-            Discover and respond to verified property enquiries from our
-            extensive network of brokers and clients.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={() => router.push("/my-enquiries")}
-            className="hidden sm:flex"
-          >
-            <MessageSquareText className="mr-2 h-4 w-4" />
-            My Enquiries
-          </Button>
-          <Button onClick={() => router.push("/enquiries/create")}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Enquiry
-          </Button>
-        </div>
-      </div>
+    <PageShell className="max-w-7xl">
+      <PageHeader
+        title="Marketplace"
+        description="Discover and respond to verified property enquiries from our extensive network of brokers and clients."
+      >
+        <Button
+          variant="outline"
+          onClick={() => router.push("/my-enquiries")}
+          className="hidden sm:flex"
+        >
+          <MessageSquareText className="mr-2 h-4 w-4" />
+          My Enquiries
+        </Button>
+        <Button onClick={() => router.push("/enquiries/create")}>
+          <Plus className="mr-2 h-4 w-4" />
+          Create Enquiry
+        </Button>
+      </PageHeader>
 
       <div className="space-y-6">
         <EnquiryFilters
@@ -195,7 +187,7 @@ const EnquiryPage = () => {
           </div>
         )}
       </div>
-    </div>
+    </PageShell>
   );
 };
 

@@ -222,7 +222,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <Building2 className="size-4" />
           </div>
           <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
-            <span className="font-semibold text-lg font-instrument-serif text-sidebar-foreground">
+            <span className="font-semibold text-lg text-sidebar-foreground">
               Brokwise
             </span>
             <span className="text-xs text-muted-foreground">

@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/select";
 import useAxios from "@/hooks/useAxios";
 import { useTranslation } from "react-i18next";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 const ProfilePage = () => {
   const { t } = useTranslation();
@@ -224,10 +225,8 @@ const ProfilePage = () => {
 
   if (companyData) {
     return (
-      <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{t("page_profile_company_title")}</h1>
-        </div>
+      <PageShell className="max-w-4xl">
+        <PageHeader title={t("page_profile_company_title")} />
 
         <Card>
           <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -298,7 +297,7 @@ const ProfilePage = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
@@ -312,11 +311,10 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{t("page_profile_title")}</h1>
+    <PageShell className="max-w-4xl">
+      <PageHeader title={t("page_profile_title")}>
         <Button onClick={() => setIsEditing(true)}>{t("page_profile_edit")}</Button>
-      </div>
+      </PageHeader>
 
       <Card>
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -672,7 +670,7 @@ const ProfilePage = () => {
           </CardContent>
         </Card>
       )}
-    </div>
+    </PageShell>
   );
 };
 

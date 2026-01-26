@@ -27,6 +27,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 import {
     Wallet,
     CreditCard,
@@ -433,7 +434,7 @@ const CreditsPage = () => {
 
     if (brokerDataLoading) {
         return (
-            <div className="container max-w-5xl mx-auto py-8 px-4 space-y-8">
+            <PageShell className="max-w-5xl">
                 <Skeleton className="h-10 w-48" />
                 <Skeleton className="h-40 w-full" />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -441,24 +442,20 @@ const CreditsPage = () => {
                         <Skeleton key={i} className="h-48 w-full" />
                     ))}
                 </div>
-            </div>
+            </PageShell>
         );
     }
 
     return (
         <>
             <Script src="https://checkout.razorpay.com/v1/checkout.js" />
-            <div className="container max-w-5xl mx-auto py-8 px-4 space-y-8">
-                {/* Header */}
-                <div>
-                    <h1 className="text-3xl font-bold flex items-center gap-3">
-                        <Coins className="h-8 w-8 text-primary" />
-                        Credits
-                    </h1>
-                    <p className="text-muted-foreground mt-1">
-                        Purchase and manage your platform credits
-                    </p>
-                </div>
+            <PageShell className="max-w-5xl">
+                <PageHeader
+                    title="Credits"
+                    description="Purchase and manage your platform credits"
+                >
+                    <Coins className="h-8 w-8 text-primary" />
+                </PageHeader>
 
                 <Tabs defaultValue="purchase" className="space-y-6">
                     <TabsList>
@@ -593,7 +590,7 @@ const CreditsPage = () => {
                         <TransactionHistory />
                     </TabsContent>
                 </Tabs>
-            </div>
+            </PageShell>
         </>
     );
 };

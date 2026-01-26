@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { propertyCategories } from "@/constants";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 import { useTranslation } from "react-i18next";
 
 const containerVariants = {
@@ -176,129 +177,125 @@ const CreateProperty = () => {
   };
 
   return (
-    <main className="">
+    <PageShell>
       {!selectedCategory ? (
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          className="space-y-6"
-        >
-          {/* Header Section */}
-          <div className="space-y-1">
-            <h1 className="text-3xl md:text-4xl font-instrument-serif text-foreground tracking-tight">
-              {t("page_create_property_title")}
-            </h1>
-            <p className="text-muted-foreground text-sm md:text-base font-light max-w-2xl">
-              {t("page_create_property_subtitle")}
-            </p>
-          </div>
-
-          {/* Drafts Summary Banner */}
-          {draftsCount > 0 && (
-            <motion.div
-              variants={itemVariants}
-              className="group bg-gradient-to-r from-yellow-500/5 via-amber-500/5 to-orange-500/5 border border-yellow-500/20 rounded-xl p-4 cursor-pointer hover:border-yellow-500/40 transition-all duration-200 hover:shadow-sm"
-              onClick={() => router.push("/property/drafts")}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  router.push("/property/drafts");
-                }
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-yellow-600" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium text-foreground">
-                        {draftsCount === 1
-                          ? t("page_create_property_incomplete", { count: draftsCount })
-                          : t("page_create_property_incomplete_plural", { count: draftsCount })}
-                      </h3>
-                      <Badge
-                        variant="secondary"
-                        className="text-[10px] px-1.5 py-0 h-5 bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
-                      >
-                        {t("label_draft")}
-                      </Badge>
+        <>
+          <PageHeader
+            title={t("page_create_property_title")}
+            description={t("page_create_property_subtitle")}
+          />
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="space-y-6"
+          >
+            {/* Drafts Summary Banner */}
+            {draftsCount > 0 && (
+              <motion.div
+                variants={itemVariants}
+                className="group bg-gradient-to-r from-yellow-500/5 via-amber-500/5 to-orange-500/5 border border-yellow-500/20 rounded-xl p-4 cursor-pointer hover:border-yellow-500/40 transition-all duration-200 hover:shadow-sm"
+                onClick={() => router.push("/property/drafts")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    router.push("/property/drafts");
+                  }
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-yellow-600" />
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("page_create_property_continue_desc")}
-                    </p>
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                          {draftsCount === 1
+                            ? t("page_create_property_incomplete", { count: draftsCount })
+                            : t("page_create_property_incomplete_plural", { count: draftsCount })}
+                        </h1>
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px] px-1.5 py-0 h-5 bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
+                        >
+                          {t("label_draft")}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {t("page_create_property_continue_desc")}
+                      </p>
+                    </div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-yellow-700 hover:text-yellow-800 hover:bg-yellow-500/10 group-hover:bg-yellow-500/10"
+                  >
+                    {t("page_create_property_view_drafts")}
+                    <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-yellow-700 hover:text-yellow-800 hover:bg-yellow-500/10 group-hover:bg-yellow-500/10"
-                >
-                  {t("page_create_property_view_drafts")}
-                  <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-                </Button>
+              </motion.div>
+            )}
+
+            {/* Categories Grid */}
+            <section className="space-y-3 pt-2">
+              <div className="flex items-center gap-2 text-accent">
+                <Sparkles className="w-4 h-4" />
+                <h1 className="text-2xl font-bold tracking-tight">
+                  {t("label_property_categories")}
+                </h1>
               </div>
-            </motion.div>
-          )}
 
-          {/* Categories Grid */}
-          <section className="space-y-3 pt-2">
-            <div className="flex items-center gap-2 text-accent">
-              <Sparkles className="w-4 h-4" />
-              <h2 className="text-lg font-instrument-serif font-medium tracking-tight">
-                {t("label_property_categories")}
-              </h2>
-            </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {propertyCategories.map((category) => (
+                  <MovingBorderCard
+                    key={category.key}
+                    duration={3000}
+                    borderRadius="0.75rem"
+                    rx="12px"
+                    ry="12px"
+                    as={motion.div}
+                    variants={itemVariants}
+                    onClick={() => handleCategorySelect(category.key)}
+                    containerClassName="h-40 w-full overflow-hidden bg-transparent p-[2px]"
+                    className="bg-transparent border-none p-0 items-start justify-start"
+                    borderClassName="h-24 w-24 opacity-100 bg-[radial-gradient(#3b82f6_30%,#06b6d4_50%,transparent_70%)]"
+                  >
+                    <div className="relative w-full h-full group cursor-pointer overflow-hidden rounded-xl">
+                      {/* Background Image */}
+                      <div
+                        className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                        style={{ backgroundImage: `url(${category.image})` }}
+                      />
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {propertyCategories.map((category) => (
-                <MovingBorderCard
-                  key={category.key}
-                  duration={3000}
-                  borderRadius="0.75rem"
-                  rx="12px"
-                  ry="12px"
-                  as={motion.div}
-                  variants={itemVariants}
-                  onClick={() => handleCategorySelect(category.key)}
-                  containerClassName="h-40 w-full overflow-hidden bg-transparent p-[2px]"
-                  className="bg-transparent border-none p-0 items-start justify-start"
-                  borderClassName="h-24 w-24 opacity-100 bg-[radial-gradient(#3b82f6_30%,#06b6d4_50%,transparent_70%)]"
-                >
-                  <div className="relative w-full h-full group cursor-pointer overflow-hidden rounded-xl">
-                    {/* Background Image */}
-                    <div
-                      className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                      style={{ backgroundImage: `url(${category.image})` }}
-                    />
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300" />
 
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300" />
-
-                    {/* Content */}
-                    <div className="absolute inset-0 p-3 flex flex-col justify-end">
-                      <div className="transform transition-transform duration-300 translate-y-1 group-hover:translate-y-0">
-                        <h3 className="text-base font-instrument-serif text-white leading-tight text-3xl">
-                          {t(getCategoryTranslationKey(category.key))}
-                        </h3>
-                        <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
-                          <span className="text-white/80 text-[11px] line-clamp-1">
-                            {t(getCategoryDescTranslationKey(category.key))}
-                          </span>
-                          <ChevronRight className="w-3.5 h-3.5 text-accent" />
+                      {/* Content */}
+                      <div className="absolute inset-0 p-3 flex flex-col justify-end">
+                        <div className="transform transition-transform duration-300 translate-y-1 group-hover:translate-y-0">
+                          <h1 className="text-xl md:text-3xl font-bold tracking-tight text-white leading-tight">
+                            {t(getCategoryTranslationKey(category.key))}
+                          </h1>
+                          <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
+                            <span className="text-white/80 text-[11px] line-clamp-1">
+                              {t(getCategoryDescTranslationKey(category.key))}
+                            </span>
+                            <ChevronRight className="w-3.5 h-3.5 text-accent" />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </MovingBorderCard>
-              ))}
-            </div>
-          </section>
-        </motion.div>
+                  </MovingBorderCard>
+                ))}
+              </div>
+            </section>
+          </motion.div>
+        </>
       ) : (
         <motion.div
           initial={{ opacity: 0, x: 20 }}
@@ -318,7 +315,7 @@ const CreateProperty = () => {
               </Button>
             </div>
             <div className="text-right">
-              <h1 className="text-2xl font-instrument-serif text-foreground">
+              <h1 className="text-2xl text-foreground font-bold">
                 {t("page_create_property_create")}{" "}
                 {selectedCategory && t(getCategoryTranslationKey(selectedCategory))}
               </h1>
@@ -330,7 +327,7 @@ const CreateProperty = () => {
           {renderCategoryForm()}
         </motion.div>
       )}
-    </main>
+    </PageShell>
   );
 };
 

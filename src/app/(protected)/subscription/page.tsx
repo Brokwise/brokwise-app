@@ -58,6 +58,7 @@ import {
   getRazorpayPlan,
 } from "@/config/tier_limits";
 import { cn } from "@/lib/utils";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 declare global {
   interface Window {
@@ -536,30 +537,26 @@ const SubscriptionPage = () => {
 
   if (brokerDataLoading) {
     return (
-      <div className="container max-w-6xl mx-auto py-8 px-4 space-y-8">
+      <PageShell className="max-w-6xl">
         <Skeleton className="h-10 w-48" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Skeleton className="h-64 w-full" />
           <Skeleton className="h-64 w-full" />
         </div>
-      </div>
+      </PageShell>
     );
   }
 
   return (
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
-      <div className="container max-w-6xl mx-auto py-8 px-4 space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Crown className="h-8 w-8 text-primary" />
-            {t("page_subscription_title")}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {t("page_subscription_subtitle")}
-          </p>
-        </div>
+      <PageShell className="max-w-6xl">
+        <PageHeader
+          title={t("page_subscription_title")}
+          description={t("page_subscription_subtitle")}
+        >
+          <Crown className="h-8 w-8 text-primary" />
+        </PageHeader>
 
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
@@ -845,7 +842,7 @@ const SubscriptionPage = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageShell>
     </>
   );
 };

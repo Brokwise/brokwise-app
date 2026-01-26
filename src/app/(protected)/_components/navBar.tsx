@@ -43,7 +43,7 @@ const NavBar = () => {
         className="w-full h-[4rem] flex justify-between items-center px-4xl"
       >
         <div>
-          <h1 className="font-instrument-serif text-2xl">Brokwise</h1>
+          <h1 className="text-2xl">Brokwise</h1>
         </div>
         <div className="flex items-center gap-2">
           {navLinks.map((link) => (
@@ -75,7 +75,7 @@ const NavBar = () => {
       className="w-full h-[4rem]  flex justify-between items-center px-4xl"
     >
       <div>
-        <h1 className="font-instrument-serif">Brokwise</h1>
+        <h1 className="">Brokwise</h1>
       </div>
       <div className="flex items-center gap-4">
         <Tabs
@@ -85,12 +85,12 @@ const NavBar = () => {
             pathname === "/"
               ? "/"
               : pathname.includes("/enquiries")
-              ? "/enquiries"
-              : pathname.includes("/property/createProperty")
-              ? "listProperty"
-              : pathname.includes("/message")
-              ? "message"
-              : "none"
+                ? "/enquiries"
+                : pathname.includes("/property/createProperty")
+                  ? "listProperty"
+                  : pathname.includes("/message")
+                    ? "message"
+                    : "none"
           }
         >
           <TabsList className="bg-transparent">

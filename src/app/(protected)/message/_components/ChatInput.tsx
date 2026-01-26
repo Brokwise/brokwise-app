@@ -144,7 +144,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
       <Dialog open={!!pendingFile} onOpenChange={(open) => !open && handleCancelUpload()}>
         <DialogContent className="max-w-md rounded-2xl border-border/40 bg-background p-0 shadow-2xl">
           <DialogHeader className="border-b border-border/30 px-6 py-4">
-            <DialogTitle className="font-instrument-serif text-xl font-medium">
+            <DialogTitle className="text-xl font-medium">
               {pendingFile?.isImage ? t("page_messages_send_image") : t("page_messages_send_file")}
             </DialogTitle>
           </DialogHeader>

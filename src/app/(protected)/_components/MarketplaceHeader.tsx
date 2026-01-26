@@ -190,7 +190,7 @@ export const MarketplaceHeader = ({
       <div className="flex items-center justify-between gap-2 sm:gap-4">
         {/* Left: Title + Segmented Control */}
         <div className="flex items-center gap-2 sm:gap-4 md:gap-6 min-w-0 flex-1">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-instrument-serif text-foreground tracking-tight shrink-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl text-foreground tracking-tight shrink-0">
             Marketplace
           </h1>
 

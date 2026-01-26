@@ -166,7 +166,6 @@ export async function exportElementAsPdf(opts: {
 
   let heightLeft = imgHeight;
   let position = 0;
-  let pageOffset = 0; // Tracks the Y offset of the current page in the original element's coordinate space
 
   // Function to add links for the current page
   const addLinksForPage = (offsetYr: number) => {
@@ -191,7 +190,6 @@ export async function exportElementAsPdf(opts: {
 
   while (heightLeft > 0) {
     position = position - pdfHeight;
-    pageOffset += pdfHeight; // Move the offset down by one page height
     pdf.addPage();
     pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
 

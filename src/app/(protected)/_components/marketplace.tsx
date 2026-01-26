@@ -522,7 +522,7 @@ export const MarketPlace = () => {
   };
 
   return (
-    <div className="-m-4 -mt-[3px] -mb-24 md:-mb-[3px] flex flex-col h-[calc(100vh-4rem)] overflow-hidden relative">
+    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden relative w-full">
       <MarketplaceHeader
         viewMode={viewMode}
         setViewMode={setViewMode}

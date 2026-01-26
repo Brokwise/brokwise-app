@@ -54,7 +54,7 @@ export const ConversationList = ({
             <div className="flex flex-1 flex-col overflow-hidden">
               <div className="flex items-center justify-between">
                 <span className={cn(
-                  "truncate font-instrument-serif text-base",
+                  "truncate text-base",
                   isSelected ? "font-semibold text-primary" : "font-medium text-foreground"
                 )}>
                   {partnerName}

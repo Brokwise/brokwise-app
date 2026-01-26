@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2, Wand2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 import {
   Form,
@@ -649,7 +650,7 @@ const CreateEnquiryPage = () => {
   const renderSizeFields = () => (
     <div className="space-y-6">
       <div className="border-b border-border/40 pb-2 mb-6">
-        <h3 className="text-xl font-instrument-serif text-foreground/90">
+        <h3 className="text-xl text-foreground/90">
           {t("form_size_requirement")}
         </h3>
       </div>
@@ -724,16 +725,11 @@ const CreateEnquiryPage = () => {
   );
 
   return (
-    <div className="container mx-auto p-4 md:p-8 max-w-4xl space-y-6">
-      {/* Header */}
-      <div className="space-y-2 md:space-y-4 text-left border-b border-border/40 pb-3 md:pb-8">
-        <h1 className="text-2xl md:text-4xl font-instrument-serif text-primary tracking-tight">
-          {t("page_create_enquiry_title")}
-        </h1>
-        <p className="text-muted-foreground font-inter text-md md:text-lg">
-          {t("page_create_enquiry_subtitle")}
-        </p>
-      </div>
+    <PageShell>
+      <PageHeader
+        title={t("page_create_enquiry_title")}
+        description={t("page_create_enquiry_subtitle")}
+      />
 
       <Form {...form}>
         <form
@@ -747,7 +743,7 @@ const CreateEnquiryPage = () => {
           {/* --- Location Section --- */}
           <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-2 mb-6">
-              <h3 className="text-xl font-instrument-serif text-foreground/90">
+              <h3 className="text-xl text-foreground/90">
                 {t("form_location")}
               </h3>
             </div>
@@ -897,7 +893,7 @@ const CreateEnquiryPage = () => {
           {/* --- Category & Type Section --- */}
           <div className="space-y-6">
             <div className="border-b border-border/40 pb-2 mb-6">
-              <h3 className="text-xl font-instrument-serif text-foreground/90">
+              <h3 className="text-xl text-foreground/90">
                 {t("form_property_details")}
               </h3>
             </div>
@@ -968,7 +964,7 @@ const CreateEnquiryPage = () => {
           {/* --- Budget Section --- */}
           <div className="space-y-6">
             <div className="border-b border-border/40 pb-2 mb-6">
-              <h3 className="text-xl font-instrument-serif text-foreground/90">
+              <h3 className="text-xl text-foreground/90">
                 {t("form_budget")}
               </h3>
             </div>
@@ -988,7 +984,7 @@ const CreateEnquiryPage = () => {
                       <span className="text-sm text-muted-foreground uppercase tracking-widest text-[10px] font-semibold mb-1">
                         {t("form_min_budget")}
                       </span>
-                      <div className="text-2xl md:text-3xl font-instrument-serif text-primary">
+                      <div className="text-2xl md:text-3xl text-primary">
                         {formatBudgetLabel(currentMin ?? BUDGET_MIN)}
                       </div>
                     </div>
@@ -997,7 +993,7 @@ const CreateEnquiryPage = () => {
                       <span className="text-sm text-muted-foreground uppercase tracking-widest text-[10px] font-semibold mb-1">
                         {t("form_max_budget")}
                       </span>
-                      <div className="text-2xl md:text-3xl font-instrument-serif text-primary">
+                      <div className="text-2xl md:text-3xl text-primary">
                         {formatBudgetLabel(currentMax ?? BUDGET_MAX)}
                       </div>
                     </div>
@@ -1183,7 +1179,7 @@ const CreateEnquiryPage = () => {
           {selectedType === "FLAT" && (
             <div className="space-y-6">
               <div className="border-b border-border/40 pb-2 mb-6">
-                <h3 className="text-xl font-instrument-serif text-foreground/90">
+                <h3 className="text-xl text-foreground/90">
                   {t("form_configuration")}
                 </h3>
               </div>
@@ -1289,7 +1285,7 @@ const CreateEnquiryPage = () => {
             selectedType === "AGRICULTURAL_LAND") && (
               <div className="space-y-6">
                 <div className="border-b border-border/40 pb-2 mb-6">
-                  <h3 className="text-xl font-instrument-serif text-foreground/90">
+                  <h3 className="text-xl text-foreground/90">
                     {t("form_plot_details")}
                   </h3>
                 </div>
@@ -1392,7 +1388,7 @@ const CreateEnquiryPage = () => {
           {(selectedType === "HOTEL" || selectedType === "HOSTEL") && (
             <div className="space-y-6">
               <div className="border-b border-border/40 pb-2 mb-6">
-                <h3 className="text-xl font-instrument-serif text-foreground/90">
+                <h3 className="text-xl text-foreground/90">
                   {t("form_capacity")}
                 </h3>
               </div>
@@ -1461,7 +1457,7 @@ const CreateEnquiryPage = () => {
           {selectedCategory === "INDUSTRIAL" && (
             <div className="space-y-6">
               <div className="border-b border-border/40 pb-2 mb-6">
-                <h3 className="text-xl font-instrument-serif text-foreground/90">
+                <h3 className="text-xl text-foreground/90">
                   {t("form_industrial_use")}
                 </h3>
               </div>
@@ -1521,7 +1517,7 @@ const CreateEnquiryPage = () => {
           {/* --- Description --- */}
           <div className="space-y-6">
             <div className="border-b border-border/40 pb-2 mb-6">
-              <h3 className="text-xl font-instrument-serif text-foreground/90">
+              <h3 className="text-xl text-foreground/90">
                 {t("form_additional_details")}
               </h3>
             </div>
@@ -1640,7 +1636,7 @@ const CreateEnquiryPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageShell>
   );
 };
 

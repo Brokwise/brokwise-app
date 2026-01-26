@@ -52,7 +52,7 @@ const ProjectsPage = () => {
       <div className="shrink-0 sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40 pb-4 pt-2 space-y-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 md:gap-6 min-w-0">
-            <h1 className="text-2xl md:text-3xl font-instrument-serif text-foreground tracking-tight shrink-0">
+            <h1 className="text-2xl md:text-3xl text-foreground tracking-tight shrink-0">
               Projects
             </h1>
 

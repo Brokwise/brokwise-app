@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { uploadFileToFirebase, generateFilePath, convertImageToWebP, processImageFromUrl } from "@/utils/upload";
 import { Switch } from "@/components/ui/switch";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 const BUILT_PROPERTY_TYPES = ["FLAT", "VILLA", "HOTEL", "HOSTEL", "RESORT", "SHOWROOM", "SHOP", "OFFICE_SPACE", "WAREHOUSE", "OTHER_SPACE"];
 
@@ -283,22 +284,11 @@ export default function EditPropertyPage() {
     }
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto pb-10">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Button variant="ghost" onClick={() => router.back()} className="gap-2">
-                        <ArrowLeft className="w-4 h-4" />
-                        {t("action_back")}
-                    </Button>
-                    <div>
-                        <h1 className="text-2xl font-instrument-serif">{t("page_edit_property_title")}</h1>
-                        <p className="text-sm text-muted-foreground">
-                            {property.propertyId || t("property_id_not_available")}
-                        </p>
-                    </div>
-                </div>
-            </div>
+        <PageShell>
+            <PageHeader
+                title={t("page_edit_property_title")}
+                description={property.propertyId || t("property_id_not_available")}
+            />
 
             {/* Edit Count Info */}
             <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-900">
@@ -637,6 +627,6 @@ export default function EditPropertyPage() {
                     </Button>
                 </div>
             </form>
-        </div>
+        </PageShell>
     );
 }

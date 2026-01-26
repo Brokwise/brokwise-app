@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 const UNIT_FACTORS: Record<string, number> = {
   "Square Meter": 1,
@@ -77,95 +78,91 @@ export default function LandConvertorPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-full bg-background p-4">
-      <div className="w-full max-w-lg p-6 rounded-3xl bg-card border border-border shadow-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-normal mb-2">Land Area Converter</h1>
-          <p className="text-muted-foreground text-sm">
-            Convert between Indian and global land area units instantly.
-          </p>
+    <PageShell className="max-w-lg">
+      <PageHeader
+        title="Land Area Converter"
+        description="Convert between Indian and global land area units instantly."
+      />
+
+      <div className="space-y-6">
+        {/* Region Selection */}
+        <div className="space-y-2">
+          <Select value={region} onValueChange={setRegion}>
+            <SelectTrigger className="w-full h-12 bg-background border-input rounded-xl">
+              <SelectValue placeholder="Select Region" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Rajasthan">Rajasthan</SelectItem>
+              <SelectItem value="General">General (Standard)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="space-y-6">
-          {/* Region Selection */}
+        <div className="grid grid-cols-[1fr,auto,1fr] gap-2 items-end">
           <div className="space-y-2">
-            <Select value={region} onValueChange={setRegion}>
+            <label className="text-sm font-medium text-muted-foreground ml-1">
+              From
+            </label>
+            <Select value={fromUnit} onValueChange={setFromUnit}>
               <SelectTrigger className="w-full h-12 bg-background border-input rounded-xl">
-                <SelectValue placeholder="Select Region" />
+                <SelectValue placeholder="Unit" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Rajasthan">Rajasthan</SelectItem>
-                <SelectItem value="General">General (Standard)</SelectItem>
+              <SelectContent className="h-60">
+                {UNITS.map((u) => (
+                  <SelectItem key={u} value={u}>
+                    {u}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="grid grid-cols-[1fr,auto,1fr] gap-2 items-end">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground ml-1">
-                From
-              </label>
-              <Select value={fromUnit} onValueChange={setFromUnit}>
-                <SelectTrigger className="w-full h-12 bg-background border-input rounded-xl">
-                  <SelectValue placeholder="Unit" />
-                </SelectTrigger>
-                <SelectContent className="h-60">
-                  {UNITS.map((u) => (
-                    <SelectItem key={u} value={u}>
-                      {u}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="pb-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-full h-10 w-10 bg-primary/20 border-primary/20 text-primary-foreground hover:bg-primary/30"
-                onClick={handleSwap}
-              >
-                <ArrowRightLeft className="h-4 w-4 text-primary" />
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground ml-1">
-                To
-              </label>
-              <Select value={toUnit} onValueChange={setToUnit}>
-                <SelectTrigger className="w-full h-12 bg-background border-input rounded-xl">
-                  <SelectValue placeholder="Unit" />
-                </SelectTrigger>
-                <SelectContent className="h-60">
-                  {UNITS.map((u) => (
-                    <SelectItem key={u} value={u}>
-                      {u}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="pb-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full h-10 w-10 bg-primary/20 border-primary/20 text-primary-foreground hover:bg-primary/30"
+              onClick={handleSwap}
+            >
+              <ArrowRightLeft className="h-4 w-4 text-primary" />
+            </Button>
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground ml-1">
-              Value
+              To
             </label>
-            <Input
-              type="number"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              className="h-12 bg-background border-input rounded-xl"
-            />
-          </div>
-
-          <div className="mt-8 p-4 rounded-xl bg-primary/20 border border-primary/20 text-center">
-            <p className="text-lg font-semibold text-primary">{result}</p>
+            <Select value={toUnit} onValueChange={setToUnit}>
+              <SelectTrigger className="w-full h-12 bg-background border-input rounded-xl">
+                <SelectValue placeholder="Unit" />
+              </SelectTrigger>
+              <SelectContent className="h-60">
+                {UNITS.map((u) => (
+                  <SelectItem key={u} value={u}>
+                    {u}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-muted-foreground ml-1">
+            Value
+          </label>
+          <Input
+            type="number"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            className="h-12 bg-background border-input rounded-xl"
+          />
+        </div>
+
+        <div className="mt-8 p-4 rounded-xl bg-primary/20 border border-primary/20 text-center">
+          <p className="text-lg font-semibold text-primary">{result}</p>
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

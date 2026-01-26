@@ -30,7 +30,7 @@ export const PropertyDetails = ({
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border/50 sticky top-0 bg-background/95 backdrop-blur-md z-10">
         <div>
-          <h2 className="text-xl font-instrument-serif text-foreground">Property Details</h2>
+          <h2 className="text-xl text-foreground">Property Details</h2>
           <p className="text-[10px] text-muted-foreground/70 font-mono tracking-wider mt-0.5">
             {property.propertyId}
           </p>
@@ -76,7 +76,7 @@ export const PropertyDetails = ({
                 <p className="text-[10px] font-semibold text-accent uppercase tracking-widest">
                   {property.propertyCategory}
                 </p>
-                <h3 className="text-xl font-instrument-serif text-foreground leading-tight">
+                <h3 className="text-xl text-foreground leading-tight">
                   {property.bhk ? `${property.bhk} BHK ` : ""}{property.propertyType.replace(/_/g, " ")}
                 </h3>
                 <div className="flex items-center text-muted-foreground text-sm">
@@ -85,7 +85,7 @@ export const PropertyDetails = ({
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-2xl font-instrument-serif text-accent">
+                <p className="text-2xl text-accent">
                   {formatCurrency(property.totalPrice)}
                 </p>
                 <p className="text-xs text-muted-foreground font-medium">

@@ -1,3 +1,30 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "rules": {
+    "react/forbid-dom-props": [
+      "warn",
+      {
+        "forbid": [
+          {
+            "propName": "style",
+            "message": "Use Tailwind classes instead of inline styles."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "Literal[value=/font-instrument-serif/]",
+        "message": "font-instrument-serif is deprecated. Use the Typography component instead."
+      },
+      {
+        "selector": "Literal[value=/font-host-grotesk/]",
+        "message": "font-host-grotesk is deprecated. Use the Typography component instead."
+      }
+    ]
+  }
 }
