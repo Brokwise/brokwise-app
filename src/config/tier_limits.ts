@@ -148,9 +148,16 @@ export const DURATION_SAVINGS: Record<SubscriptionDuration, { label: string; sav
     },
 };
 
-export const CREDITS_PRICE = {
+// Default credit prices (fallback values when API is unavailable)
+// These should match the API response from GET /credits/prices
+export const DEFAULT_CREDIT_PRICES = {
     REQUEST_CONTACT: 10,
     MARK_PROPERTY_AS_FEATURED: 10,
     MARK_ENQUIRY_AS_URGENT: 10,
-    LIST_PROPERTY: 10
+    PROPERTY_LISTING: 10,
+    ENQUIRY_LISTING: 10,
+    SUBMIT_PROPERTY_ENQUIRY: 10
 }
+
+// @deprecated Use useGetCreditPrices hook instead to get dynamic prices from API
+export const CREDITS_PRICE = DEFAULT_CREDIT_PRICES;

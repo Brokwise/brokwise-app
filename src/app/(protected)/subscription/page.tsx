@@ -52,7 +52,6 @@ import {
   SUBSCRIPTION_DURATION_LABELS,
 } from "@/models/types/subscription";
 import {
-  PRICING,
   TIER_INFO,
   DURATION_SAVINGS,
   getRazorpayPlan,
@@ -136,6 +135,7 @@ const CurrentSubscriptionCard = ({
   subscription,
   tier,
   isLoading,
+  limits,
 }: {
   subscription?: {
     tier: TIER;
@@ -146,6 +146,11 @@ const CurrentSubscriptionCard = ({
   };
   tier?: TIER;
   isLoading: boolean;
+  limits?: {
+    PROPERTY_LISTING: number;
+    ENQUIRY_LISTING: number;
+    SUBMIT_PROPERTY_ENQUIRY: number;
+  };
 }) => {
   const { t } = useTranslation();
   const currentTier = subscription?.tier || tier || "STARTER";
@@ -228,21 +233,21 @@ const CurrentSubscriptionCard = ({
           <div className="text-center p-3 bg-muted/50 rounded-lg">
             <Building className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
             <p className="text-2xl font-bold">
-              {PRICING[currentTier].PROPERTY_LISTING}
+              {limits?.PROPERTY_LISTING ?? "-"}
             </p>
             <p className="text-xs text-muted-foreground">{t("page_subscription_feature_property_listing")}</p>
           </div>
           <div className="text-center p-3 bg-muted/50 rounded-lg">
             <FileText className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
             <p className="text-2xl font-bold">
-              {PRICING[currentTier].ENQUIRY_LISTING}
+              {limits?.ENQUIRY_LISTING ?? "-"}
             </p>
             <p className="text-xs text-muted-foreground">{t("page_subscription_feature_enquiry_listing")}</p>
           </div>
           <div className="text-center p-3 bg-muted/50 rounded-lg">
             <Send className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
             <p className="text-2xl font-bold">
-              {PRICING[currentTier].SUBMIT_PROPERTY_ENQUIRY}
+              {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
             </p>
             <p className="text-xs text-muted-foreground">{t("page_subscription_feature_property_submission")}</p>
           </div>
@@ -504,6 +509,7 @@ const SubscriptionPage = () => {
     usage,
     usageLimits,
     tier,
+    limits,
     periodStart,
     periodEnd,
     isLoading,
@@ -577,6 +583,7 @@ const SubscriptionPage = () => {
                 subscription={subscription}
                 tier={tier}
                 isLoading={isLoading}
+                limits={limits}
               />
               <UsageStatsCard
                 usage={usage}
@@ -772,37 +779,37 @@ const SubscriptionPage = () => {
                       <tr className="border-b">
                         <td className="py-3 px-4">{t("page_subscription_feature_property_listing")}</td>
                         <td className="text-center py-3 px-4">
-                          {PRICING.STARTER.PROPERTY_LISTING}
+                          {limits?.PROPERTY_LISTING ?? "-"}
                         </td>
                         <td className="text-center py-3 px-4">
-                          {PRICING.ESSENTIAL.PROPERTY_LISTING}
+                          {limits?.PROPERTY_LISTING ?? "-"}
                         </td>
                         <td className="text-center py-3 px-4">
-                          {PRICING.ELITE.PROPERTY_LISTING}
+                          {limits?.PROPERTY_LISTING ?? "-"}
                         </td>
                       </tr>
                       <tr className="border-b">
                         <td className="py-3 px-4">{t("page_subscription_feature_enquiry_listing")}</td>
                         <td className="text-center py-3 px-4">
-                          {PRICING.STARTER.ENQUIRY_LISTING}
+                          {limits?.ENQUIRY_LISTING ?? "-"}
                         </td>
                         <td className="text-center py-3 px-4">
-                          {PRICING.ESSENTIAL.ENQUIRY_LISTING}
+                          {limits?.ENQUIRY_LISTING ?? "-"}
                         </td>
                         <td className="text-center py-3 px-4">
-                          {PRICING.ELITE.ENQUIRY_LISTING}
+                          {limits?.ENQUIRY_LISTING ?? "-"}
                         </td>
                       </tr>
                       <tr className="border-b">
                         <td className="py-3 px-4">{t("page_subscription_feature_property_submission")}</td>
                         <td className="text-center py-3 px-4">
-                          {PRICING.STARTER.SUBMIT_PROPERTY_ENQUIRY}
+                          {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
                         </td>
                         <td className="text-center py-3 px-4">
-                          {PRICING.ESSENTIAL.SUBMIT_PROPERTY_ENQUIRY}
+                          {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
                         </td>
                         <td className="text-center py-3 px-4">
-                          {PRICING.ELITE.SUBMIT_PROPERTY_ENQUIRY}
+                          {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
                         </td>
                       </tr>
                       <tr className="border-b">

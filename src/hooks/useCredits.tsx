@@ -8,11 +8,44 @@ import {
     CreditPack,
     CreditTransactionType,
     WalletBalanceResponse,
-
     CreatePurchaseOrderResponse,
     TransactionHistoryResponse,
     CheckCreditBalanceResponse,
+    CreditPrices,
+    CreditPricesResponse,
 } from "@/models/types/credit";
+import { DEFAULT_CREDIT_PRICES } from "@/config/tier_limits";
+
+/**
+ * Hook to get credit prices for all actions (public endpoint, no auth required)
+ */
+export const useGetCreditPrices = () => {
+    const { data, isLoading, error } = useQuery<CreditPricesResponse>({
+        queryKey: ["credit-prices"],
+        queryFn: async () => {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/credits/prices`
+            );
+            if (!response.ok) {
+                throw new Error("Failed to fetch credit prices");
+            }
+            const result = await response.json();
+            return result.data;
+        },
+        staleTime: 1000 * 60 * 60 * 24, // Cache for 24 hours
+        gcTime: 1000 * 60 * 60 * 24, // Keep in cache for 24 hours
+    });
+
+    // Return prices with fallback to default values
+    const prices: CreditPrices = data?.prices ?? DEFAULT_CREDIT_PRICES;
+
+    return {
+        prices,
+        actions: data?.actions,
+        isLoading,
+        error,
+    };
+};
 
 /**
  * Hook to get available credit packs

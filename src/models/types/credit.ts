@@ -85,3 +85,34 @@ export interface CheckCreditBalanceResponse {
   hasEnough: boolean;
   requiredAmount: number;
 }
+
+// Credit Action Types
+export type CreditActionType =
+  | "REQUEST_CONTACT"
+  | "MARK_PROPERTY_AS_FEATURED"
+  | "MARK_ENQUIRY_AS_URGENT"
+  | "PROPERTY_LISTING"
+  | "ENQUIRY_LISTING"
+  | "SUBMIT_PROPERTY_ENQUIRY";
+
+// Credit Prices interface
+export interface CreditPrices {
+  REQUEST_CONTACT: number;
+  MARK_PROPERTY_AS_FEATURED: number;
+  MARK_ENQUIRY_AS_URGENT: number;
+  PROPERTY_LISTING: number;
+  ENQUIRY_LISTING: number;
+  SUBMIT_PROPERTY_ENQUIRY: number;
+}
+
+// Credit Action Info
+export interface CreditActionInfo {
+  price: number;
+  description: string;
+}
+
+// Credit Prices API Response
+export interface CreditPricesResponse {
+  prices: CreditPrices;
+  actions: Record<CreditActionType, CreditActionInfo>;
+}

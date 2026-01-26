@@ -123,10 +123,11 @@ export const useSubmitPropertyToEnquiry = () => {
       propertyId: string;
       privateMessage?: string;
       bidCredits?: number;
+      shouldUseCredits?: boolean;
     }
   >({
-    mutationFn: async ({ enquiryId, propertyId, privateMessage, bidCredits }) => {
-      const payload: Record<string, unknown> = { propertyId };
+    mutationFn: async ({ enquiryId, propertyId, privateMessage, bidCredits, shouldUseCredits }) => {
+      const payload: Record<string, unknown> = { propertyId, shouldUseCredits };
       const trimmedMessage = privateMessage?.trim();
       if (trimmedMessage) {
         payload.privateMessage = trimmedMessage;

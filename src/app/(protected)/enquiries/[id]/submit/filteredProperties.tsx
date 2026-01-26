@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { Dispatch, SetStateAction } from "react";
 import { Property } from "@/types/property";
 import { BidBoost } from "./_components/BidBoost";
+import { SubmitPropertyUseCredits } from "@/components/ui/submit-property-use-credits";
+import { useGetRemainingQuota } from "@/hooks/useSubscription";
 
 interface FilteredPropertiesProps {
   isPropertiesLoading: boolean;
@@ -21,6 +23,8 @@ interface FilteredPropertiesProps {
   handleExistingSubmit: () => void;
   enquiryId: string;
   onBidChange?: (bidCredits: number | null) => void;
+  shouldUseCredits: boolean;
+  setShouldUseCredits: Dispatch<SetStateAction<boolean>>;
 }
 
 export const FilteredProperties = ({
@@ -36,7 +40,10 @@ export const FilteredProperties = ({
   handleExistingSubmit,
   enquiryId,
   onBidChange,
+  shouldUseCredits,
+  setShouldUseCredits,
 }: FilteredPropertiesProps) => {
+  const { remaining, isLoading: isQuotaLoading } = useGetRemainingQuota();
   return (
     <div className="flex flex-col md:flex-row h-full min-h-[500px]">
       {/* Property List - Left Side */}
@@ -186,7 +193,13 @@ export const FilteredProperties = ({
             onBidChange={onBidChange}
           />
         </div>
-        <div className="pt-6 border-t mt-4">
+        <div className="pt-6 border-t mt-4 flex flex-col gap-4">
+          <div className="self-end">
+            <SubmitPropertyUseCredits
+              shouldUseCredits={shouldUseCredits}
+              setShouldUseCredits={setShouldUseCredits}
+            />
+          </div>
           <Button
             type="button"
             className={cn(
@@ -197,7 +210,7 @@ export const FilteredProperties = ({
             )}
             size="lg"
             onClick={handleExistingSubmit}
-            disabled={isSubmittingExisting}
+            disabled={isSubmittingExisting || isQuotaLoading || (remaining?.submit_property_enquiry === 0 && !shouldUseCredits)}
           >
             {isSubmittingExisting && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { AlertCircle, Coins, Loader2 } from "lucide-react"
 
-export const PropertyCreateUseCredits = ({
+export const EnquiryCreateUseCredits = ({
     shouldUseCredits,
     setShouldUseCredits
 }: {
@@ -24,11 +24,11 @@ export const PropertyCreateUseCredits = ({
         return null
     }
 
-    if (remaining.property_listing > 0) {
+    if (remaining.enquiry_listing > 0) {
         return null
     }
 
-    const listingCost = prices.PROPERTY_LISTING
+    const listingCost = prices.ENQUIRY_LISTING
     const hasEnoughCredits = balance >= listingCost
 
     return (

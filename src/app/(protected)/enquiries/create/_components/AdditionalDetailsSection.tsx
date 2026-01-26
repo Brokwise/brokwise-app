@@ -16,11 +16,13 @@ import { toast } from "sonner";
 import { CreateEnquiryFormValues } from "@/models/schemas/enquirySchema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "react-i18next";
+import { useGetCreditPrices } from "@/hooks/useCredits";
 
 const AdditionalDetailsSection = () => {
     const { t } = useTranslation();
     const { control, setValue, getValues } = useFormContext<CreateEnquiryFormValues>();
     const [generating, setGenerating] = useState(false);
+    const { prices } = useGetCreditPrices();
 
     const handleGenerateDescription = async () => {
         try {
@@ -103,6 +105,7 @@ const AdditionalDetailsSection = () => {
                                         <FormLabel className="text-base font-semibold">{t("form_mark_as_urgent")}</FormLabel>
                                         <div className="text-sm text-muted-foreground">
                                             {t("form_urgent_description")}
+                                            {prices.MARK_ENQUIRY_AS_URGENT + " credits required"}
                                         </div>
                                     </div>
                                 </div>

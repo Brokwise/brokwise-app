@@ -26,7 +26,7 @@ import { PropertyPreviewModal } from "../_components/PropertyPreviewModal";
 import { formatEnquiryLocation } from "@/utils/helper";
 import { FilteredProperties } from "./filteredProperties";
 import { Property } from "@/types/property";
-import { BidBoost } from "./_components/BidBoost";
+
 
 type View = "select" | "create" | "message";
 
@@ -57,6 +57,7 @@ export default function SubmitEnquiryPage() {
   );
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [bidCredits, setBidCredits] = useState<number | null>(null);
+  const [shouldUseCredits, setShouldUseCredits] = useState(false);
 
   const { submitPropertyToEnquiry, isPending: isSubmittingExisting } =
     useSubmitPropertyToEnquiry();
@@ -93,12 +94,14 @@ export default function SubmitEnquiryPage() {
         propertyId: selectedPropertyId as string,
         privateMessage: trimmedMessage || undefined,
         bidCredits: bidCredits ?? undefined,
+        shouldUseCredits,
       },
       {
         onSuccess: () => {
           setMessage("");
           setSelectedPropertyId(null);
           setBidCredits(null);
+          setShouldUseCredits(false);
           toast.success("Property submitted successfully");
           router.push(`/enquiries/${id}`);
         },
@@ -334,6 +337,8 @@ export default function SubmitEnquiryPage() {
                     handleExistingSubmit={handleExistingSubmit}
                     enquiryId={enquiry._id}
                     onBidChange={setBidCredits}
+                    shouldUseCredits={shouldUseCredits}
+                    setShouldUseCredits={setShouldUseCredits}
                   />
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-center p-12 min-h-[400px]">

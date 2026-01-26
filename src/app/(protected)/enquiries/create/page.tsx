@@ -24,9 +24,10 @@ import { useCreateEnquiry } from "@/hooks/useEnquiry";
 import { useCreateCompanyEnquiry } from "@/hooks/useCompany";
 import { CreateEnquiryDTO } from "@/models/types/enquiry";
 import { useApp } from "@/context/AppContext";
-import { useCredits } from "@/hooks/useCredits";
-import { CREDITS_PRICE } from "@/config/tier_limits";
+import { useCredits, useGetCreditPrices } from "@/hooks/useCredits";
+import { useGetRemainingQuota } from "@/hooks/useSubscription";
 import { useQueryClient } from "@tanstack/react-query";
+import { EnquiryCreateUseCredits } from "@/components/ui/enquiry-create-use-credits";
 
 import { createEnquirySchema, CreateEnquiryFormValues, BUDGET_MIN, BUDGET_MAX } from "@/models/schemas/enquirySchema";
 import LocationSection from "./_components/LocationSection";
@@ -43,10 +44,13 @@ const CreateEnquiryPage = () => {
   const { createEnquiry: createCompanyEnquiry, isPending: isCompanyPending } =
     useCreateCompanyEnquiry();
   const { balance } = useCredits();
+  const { prices } = useGetCreditPrices();
+  const { remaining, isLoading: isQuotaLoading } = useGetRemainingQuota();
   const queryClient = useQueryClient();
 
   const isPending = companyData ? isCompanyPending : isBrokerPending;
   const [showUrgentConfirmation, setShowUrgentConfirmation] = useState(false);
+  const [shouldUseCredits, setShouldUseCredits] = useState(false);
   const [pendingSubmissionData, setPendingSubmissionData] =
     useState<CreateEnquiryFormValues | null>(null);
 
@@ -104,6 +108,7 @@ const CreateEnquiryPage = () => {
     // Transform to DTO
     const payload: Record<string, unknown> = {
       ...data,
+      shouldUseCredits,
     };
     // Remove internal flags
     delete payload.addressPlaceId;
@@ -140,7 +145,7 @@ const CreateEnquiryPage = () => {
 
   const onSubmit = (data: CreateEnquiryFormValues) => {
     if (data.urgent) {
-      if (balance < CREDITS_PRICE.MARK_ENQUIRY_AS_URGENT) {
+      if (balance < prices.MARK_ENQUIRY_AS_URGENT) {
         toast.error("Insufficient credits to mark as Urgent");
         return;
       }
@@ -166,9 +171,8 @@ const CreateEnquiryPage = () => {
       <FormProvider {...form}>
         <form
           id="create-enquiry-form"
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          onSubmit={handleSubmit(onSubmit, onInvalid) as any}
-          className="space-y-6 md:space-y-8"
+          onSubmit={handleSubmit(onSubmit, onInvalid)}
+          className="space-y-6 md:space-y-8 pb-32 px-6"
         >
 
           <LocationSection isPending={isPending} />
@@ -180,7 +184,11 @@ const CreateEnquiryPage = () => {
           <AdditionalDetailsSection />
 
           {/* Form Actions */}
-          <div className="flex justify-center pt-4">
+          <div className="flex flex-col items-center gap-4 pt-4">
+            <EnquiryCreateUseCredits
+              shouldUseCredits={shouldUseCredits}
+              setShouldUseCredits={setShouldUseCredits}
+            />
             <div className="inline-flex items-center bg-background/95 backdrop-blur-xl backdrop-saturate-150 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-full p-1.5 gap-2 ring-1 ring-black/5 dark:ring-white/10">
               <Button
                 type="button"
@@ -195,7 +203,7 @@ const CreateEnquiryPage = () => {
               <Button
                 type="submit"
                 className="rounded-full px-6 h-9 text-sm font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 bg-primary"
-                disabled={isPending}
+                disabled={isPending || isQuotaLoading || (remaining?.enquiry_listing === 0 && !shouldUseCredits)}
               >
                 {isPending && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
                 {isPending ? t("submitting") : t("action_submit_enquiry")}
@@ -212,7 +220,7 @@ const CreateEnquiryPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>{t("dialog_mark_as_urgent_title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("dialog_mark_as_urgent_description", { credits: CREDITS_PRICE.MARK_ENQUIRY_AS_URGENT })}
+              {t("dialog_mark_as_urgent_description", { credits: prices.MARK_ENQUIRY_AS_URGENT })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

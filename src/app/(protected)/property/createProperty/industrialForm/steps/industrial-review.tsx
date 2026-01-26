@@ -1,6 +1,6 @@
 import { formatIndianNumber } from "@/utils/helper";
 import React from "react";
-import useCredits from "@/hooks/useCredits";
+import useCredits, { useGetCreditPrices } from "@/hooks/useCredits";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   FormControl,
@@ -9,7 +9,6 @@ import {
   FormLabel,
   FormDescription,
 } from "@/components/ui/form";
-import { CREDITS_PRICE } from "@/config/tier_limits";
 import { Loader2 } from "lucide-react";
 
 interface IndustrialReviewProps {
@@ -23,7 +22,8 @@ const IndustrialReview: React.FC<IndustrialReviewProps> = ({
   propertyType,
 }) => {
   const { balance, isLoading: isCreditsLoading } = useCredits();
-  const FEATURED_COST = CREDITS_PRICE.MARK_PROPERTY_AS_FEATURED;
+  const { prices } = useGetCreditPrices();
+  const FEATURED_COST = prices.MARK_PROPERTY_AS_FEATURED;
   const hasSufficientCredits = (balance || 0) >= FEATURED_COST;
 
   return (

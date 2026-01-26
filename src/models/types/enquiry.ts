@@ -219,4 +219,5 @@ export interface CreateEnquiryDTO {
   purpose?: string;
   areaType?: AreaType;
   urgent?: boolean;
+  shouldUseCredits?: boolean;
 }
