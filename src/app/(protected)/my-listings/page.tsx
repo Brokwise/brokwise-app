@@ -122,7 +122,7 @@ export default function MyListings() {
   }
 
   return (
-    <PageShell className="pt-4 md:pt-6 scrollbar-hide">
+    <PageShell className="pt-2 md:pt-4 scrollbar-hide">
       <PageHeader
         title="My Listings"
         description="Manage your property listings and their status."
