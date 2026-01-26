@@ -1,40 +1,15 @@
+
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, Wand2Icon } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PageShell, PageHeader } from "@/components/ui/layout";
-
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { NumberInput } from "@/components/ui/number-input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  AddressAutocomplete,
-  type AddressSuggestion,
-} from "@/components/ui/address-autocomplete";
-import { Slider } from "@/components/ui/slider";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,412 +22,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useCreateEnquiry } from "@/hooks/useEnquiry";
 import { useCreateCompanyEnquiry } from "@/hooks/useCompany";
-import { PropertyCategory, PropertyType } from "@/models/types/property";
 import { CreateEnquiryDTO } from "@/models/types/enquiry";
-import {
-  parseIntegerOrUndefined,
-  parseIntegerWithMax,
-  sanitizeIntegerInput,
-  formatIndianNumber,
-} from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
 import { useCredits } from "@/hooks/useCredits";
 import { CREDITS_PRICE } from "@/config/tier_limits";
 import { useQueryClient } from "@tanstack/react-query";
 
-const BUDGET_MIN = 500000; // ₹5 lakh
-const BUDGET_MAX = 10000000000; // ₹1000 crore
+import { createEnquirySchema, CreateEnquiryFormValues, BUDGET_MIN, BUDGET_MAX } from "@/models/schemas/enquirySchema";
+import LocationSection from "./_components/LocationSection";
+import PropertyDetailsSection from "./_components/PropertyDetailsSection";
+import BudgetSection from "./_components/BudgetSection";
+import AdditionalDetailsSection from "./_components/AdditionalDetailsSection";
 
-// Discrete steps so the slider is usable across a huge range.
-const BUDGET_OPTIONS: number[] = [
-  // Lakhs
-  500000, 1000000, 1500000, 2000000, 2500000, 3000000, 4000000, 5000000,
-  6000000, 7500000, 9000000,
-  // Crores
-  10000000, 12500000, 15000000, 17500000, 20000000, 25000000, 30000000,
-  40000000, 50000000, 60000000, 75000000, 100000000, 125000000, 150000000,
-  200000000, 250000000, 300000000, 400000000, 500000000, 600000000, 750000000,
-  1000000000, 1250000000, 1500000000, 2000000000, 2500000000, 3000000000,
-  4000000000, 5000000000, 6000000000, 7500000000, 10000000000,
-];
-
-const formatBudgetLabel = (amount: number) => {
-  if (amount >= 10000000) {
-    const cr = amount / 10000000;
-    const crText = Number.isInteger(cr)
-      ? String(cr)
-      : cr < 10
-        ? cr.toFixed(2)
-        : cr.toFixed(1);
-    return `₹${crText}Cr`;
-  }
-  const l = amount / 100000;
-  const lText = Number.isInteger(l) ? String(l) : l.toFixed(1);
-  return `₹${lText}L`;
-};
-
-const clampText = (value: string, maxLen: number) =>
-  value.length > maxLen ? value.slice(0, maxLen) : value;
-
-const deriveCityAndLocalities = (
-  item: AddressSuggestion
-): {
-  city: string;
-  localities: string[];
-} => {
-  const ctx = item.context ?? [];
-  const pickCtx = (prefixes: string[]) =>
-    ctx.find((c) => prefixes.some((p) => c.id.startsWith(p)))?.text?.trim() ??
-    "";
-
-  const parts = item.place_name
-    .split(",")
-    .map((p) => p.trim())
-    .filter(Boolean);
-
-  const cityFromCtx = pickCtx(["place"]);
-  const localityFromCtx = pickCtx(["locality", "neighborhood"]);
-
-  // Address format usually ends with: "... , City, State, Country"
-  const fallbackCity =
-    (parts.length >= 3 ? parts[parts.length - 3] : "") ||
-    parts[1] ||
-    parts[0] ||
-    "";
-  const fallbackLocality =
-    (parts.length >= 4 ? parts[parts.length - 4] : "") || "";
-
-  const cityRaw = cityFromCtx || fallbackCity;
-  const localityRaw = localityFromCtx || fallbackLocality || cityRaw;
-
-  const city = clampText(cityRaw || "Unknown", 50);
-  const localities = [clampText(localityRaw || city, 100)];
-
-  return { city, localities };
-};
-
-const findNearestBudgetIndex = (value: number) => {
-  const exact = BUDGET_OPTIONS.indexOf(value);
-  if (exact !== -1) return exact;
-  let bestIdx = 0;
-  let bestDiff = Infinity;
-  for (let i = 0; i < BUDGET_OPTIONS.length; i++) {
-    const diff = Math.abs(BUDGET_OPTIONS[i] - value);
-    if (diff < bestDiff) {
-      bestDiff = diff;
-      bestIdx = i;
-    }
-  }
-  return bestIdx;
-};
-
-// --- Constants ---
-
-const CATEGORY_TYPE_MAP: Record<PropertyCategory, PropertyType[]> = {
-  RESIDENTIAL: ["FLAT", "VILLA", "LAND"],
-  COMMERCIAL: [
-    "SHOWROOM",
-    "HOTEL",
-    "HOSTEL",
-    "SHOP",
-    "OFFICE_SPACE",
-    "OTHER_SPACE",
-  ],
-  INDUSTRIAL: ["INDUSTRIAL_PARK", "INDUSTRIAL_LAND", "WAREHOUSE"],
-  AGRICULTURAL: ["AGRICULTURAL_LAND"],
-  RESORT: ["RESORT"],
-  FARM_HOUSE: ["FARM_HOUSE", "INDIVIDUAL"],
-};
-
-const budgetRangeSchema = z
-  .object({
-    min: z
-      .number({
-        error: "Please enter a valid minimum budget.",
-      })
-      .min(500000, "Minimum budget must be at least ₹5 lakh.")
-      .max(BUDGET_MAX, "Budget cannot exceed ₹1000 crore."),
-    max: z
-      .number({
-        error: "Please enter a valid maximum budget.",
-      })
-      .min(500000, "Maximum budget must be at least ₹5 lakh.")
-      .max(BUDGET_MAX, "Budget cannot exceed ₹1000 crore."),
-  })
-  .refine((data) => data.max >= data.min, {
-    message: "Max budget must be greater than or equal to min budget.",
-    path: ["max"],
-  });
-
-const sizeRangeSchema = z
-  .object({
-    min: z.number().min(1, "Minimum size must be at least 1"),
-    max: z.number().min(1, "Maximum size must be at least 1"),
-    unit: z.enum([
-      "SQ_FT",
-      "SQ_METER",
-      "SQ_YARDS",
-      "ACRES",
-      "HECTARE",
-      "BIGHA",
-    ] as [string, ...string[]]),
-  })
-  .refine((data) => data.max >= data.min, {
-    message: "Max size must be greater than or equal to min size",
-    path: ["max"],
-  });
-
-// react-hook-form can materialize nested objects for registered fields even when "empty".
-// Treat an empty size object as undefined so the form doesn't become invalid unexpectedly.
-const optionalSizeRangeSchema = z.preprocess((val) => {
-  if (!val || typeof val !== "object") return undefined;
-  const v = val as Record<string, unknown>;
-  const min = v.min as unknown;
-  const max = v.max as unknown;
-  const unit = v.unit as unknown;
-
-  const isEmpty =
-    (min === undefined || min === null || min === 0 || min === "") &&
-    (max === undefined || max === null || max === 0 || max === "") &&
-    (unit === undefined || unit === null || unit === "");
-
-  return isEmpty ? undefined : val;
-}, sizeRangeSchema.optional());
-
-const rentalIncomeRangeSchema = z
-  .object({
-    min: z.number().min(0),
-    max: z.number().min(0),
-  })
-  .refine((data) => data.max >= data.min, {
-    message: "Max income must be greater than or equal to min income",
-    path: ["max"],
-  });
-
-const createEnquirySchema = z
-  .object({
-    // Internal flags (not sent to API)
-    locationMode: z.enum(["search", "manual"]),
-    isCompany: z.boolean(),
-
-    address: z.string().min(3, "Address is required"),
-    addressPlaceId: z.string().optional(),
-
-    // Company endpoint requires these; brokers can submit without them.
-    city: z.string().max(50, "City is too long").optional(),
-    localities: z.array(z.string().min(2).max(100)).max(10).optional(),
-    enquiryCategory: z.enum(
-      [
-        "RESIDENTIAL",
-        "COMMERCIAL",
-        "INDUSTRIAL",
-        "AGRICULTURAL",
-        "RESORT",
-        "FARM_HOUSE",
-      ] as [string, ...string[]],
-      { error: "Please select a valid category" }
-    ),
-    enquiryType: z.string().min(1, "Property Type is required"), // Narrowed down in UI based on Category
-    budget: budgetRangeSchema,
-    description: z
-      .string()
-      .min(10, "Description must be at least 10 characters")
-      .max(2000, "Description cannot exceed 2000 characters"),
-
-    // Optional Fields
-    size: optionalSizeRangeSchema,
-    plotType: z.enum(["ROAD", "CORNER"] as [string, ...string[]]).optional(),
-    facing: z
-      .enum([
-        "NORTH",
-        "SOUTH",
-        "EAST",
-        "WEST",
-        "NORTH_EAST",
-        "NORTH_WEST",
-        "SOUTH_EAST",
-        "SOUTH_WEST",
-      ] as [string, ...string[]])
-      .optional(),
-    frontRoadWidth: z.coerce
-      .number({
-        error: "Please enter a valid road width.",
-      })
-      .min(1, "Road width must be at least 1 ft.")
-      .max(500, "Road width cannot exceed 500 ft.")
-      .optional(),
-
-    // Residential - Flat
-    bhk: z.coerce
-      .number({
-        error: "Please enter a valid number of bedrooms.",
-      })
-      .int("Bedrooms must be a whole number.")
-      .min(1, "Number of bedrooms must be at least 1.")
-      .max(20, "Bedrooms cannot exceed 20.")
-      .optional(),
-    washrooms: z.coerce
-      .number({
-        error: "Please enter a valid number of washrooms.",
-      })
-      .int("Washrooms must be a whole number.")
-      .min(1, "Number of washrooms must be at least 1.")
-      .max(20, "Washrooms cannot exceed 20.")
-      .optional(),
-    preferredFloor: z.string().max(20).optional(),
-    society: z.string().max(100).optional(),
-
-    // Commercial - Hotel/Hostel
-    rooms: z.coerce
-      .number({
-        error: "Please enter a valid number of rooms.",
-      })
-      .int("Rooms must be a whole number.")
-      .min(1, "Number of rooms must be at least 1.")
-      .max(1000, "Rooms cannot exceed 1000.")
-      .optional(),
-    beds: z.coerce
-      .number({
-        error: "Please enter a valid number of beds.",
-      })
-      .int("Beds must be a whole number.")
-      .min(1, "Number of beds must be at least 1.")
-      .max(5000, "Beds cannot exceed 5000.")
-      .optional(),
-    rentalIncome: rentalIncomeRangeSchema.optional(),
-
-    // Industrial
-    purpose: z.string().max(200).optional(),
-    areaType: z
-      .enum(["NEAR_RING_ROAD", "RIICO_AREA", "SEZ"] as [string, ...string[]])
-      .optional(),
-    urgent: z.boolean().optional(),
-  })
-  .superRefine((data, ctx) => {
-    // Location requirements
-    if (data.locationMode === "search") {
-      if (!data.addressPlaceId || !data.addressPlaceId.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["addressPlaceId"],
-          message: "Please select an address from suggestions",
-        });
-      }
-    }
-
-    if (data.isCompany) {
-      if (!data.city || data.city.trim().length < 2) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["city"],
-          message: "City is required",
-        });
-      }
-
-      const locs = Array.isArray(data.localities)
-        ? data.localities.map((l) => l.trim()).filter((l) => l.length >= 2)
-        : [];
-
-      if (locs.length < 1) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["localities"],
-          message: "At least one locality is required",
-        });
-      }
-    }
-
-    // Category ↔ Type compatibility
-    const category = data.enquiryCategory as PropertyCategory | undefined;
-    const type = data.enquiryType as PropertyType | string | undefined;
-
-    if (category && type) {
-      const validTypes = CATEGORY_TYPE_MAP[category] || [];
-      if (!validTypes.includes(type as PropertyType)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["enquiryType"],
-          message: "Enquiry type does not match the selected category",
-        });
-      }
-    }
-
-    // Backend parity: required fields per type/category
-    if (category === "RESIDENTIAL" && type === "FLAT") {
-      if (
-        typeof data.bhk !== "number" ||
-        Number.isNaN(data.bhk) ||
-        data.bhk < 1
-      ) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["bhk"],
-          message: "BHK is required for Flat enquiries",
-        });
-      }
-    }
-
-    if (category === "COMMERCIAL" && type === "HOTEL") {
-      if (
-        typeof data.rooms !== "number" ||
-        Number.isNaN(data.rooms) ||
-        data.rooms < 1
-      ) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["rooms"],
-          message: "Number of rooms is required for Hotel enquiries",
-        });
-      }
-    }
-
-    if (category === "COMMERCIAL" && type === "HOSTEL") {
-      if (
-        typeof data.beds !== "number" ||
-        Number.isNaN(data.beds) ||
-        data.beds < 1
-      ) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["beds"],
-          message: "Number of beds is required for Hostel enquiries",
-        });
-      }
-    }
-
-    const typesRequiringSize = new Set<string>([
-      "LAND",
-      "VILLA",
-      "WAREHOUSE",
-      "INDUSTRIAL_LAND",
-      "AGRICULTURAL_LAND",
-      "SHOWROOM",
-      "SHOP",
-      "OFFICE_SPACE",
-    ]);
-
-    if (type && typesRequiringSize.has(String(type)) && !data.size) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["size"],
-        message: "Size range is required for this enquiry type",
-      });
-    }
-
-    const locs = Array.isArray(data.localities)
-      ? data.localities.map((l) => l.trim()).filter((l) => l.length >= 2)
-      : [];
-
-    if (locs.length < 1) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["localities"],
-        message: "At least one locality is required",
-      });
-    }
-  });
-
-type CreateEnquiryFormValues = z.infer<typeof createEnquirySchema>;
 
 const CreateEnquiryPage = () => {
   const { t } = useTranslation();
@@ -465,15 +46,15 @@ const CreateEnquiryPage = () => {
   const queryClient = useQueryClient();
 
   const isPending = companyData ? isCompanyPending : isBrokerPending;
-  const [generatingDescription, setGeneratingDescription] = useState(false);
   const [showUrgentConfirmation, setShowUrgentConfirmation] = useState(false);
   const [pendingSubmissionData, setPendingSubmissionData] =
     useState<CreateEnquiryFormValues | null>(null);
 
   const form = useForm<CreateEnquiryFormValues>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createEnquirySchema) as any,
-    mode: "onChange",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    mode: "onBlur", // Changed to onBlur for less noisy validation
     defaultValues: {
       locationMode: "search",
       isCompany: false,
@@ -487,140 +68,69 @@ const CreateEnquiryPage = () => {
     },
   });
 
-  const { watch, setValue, control, trigger, register } = form;
-  const { errors } = form.formState;
-  const locationMode = watch("locationMode");
+  const { reset, setValue, watch, handleSubmit } = form;
   const selectedCategory = watch("enquiryCategory");
-  const selectedType = watch("enquiryType");
-  const budgetMin = watch("budget.min");
-  const budgetMax = watch("budget.max");
 
-  const [budgetMinText, setBudgetMinText] = useState(
-    formatIndianNumber(BUDGET_MIN)
-  );
-  const [budgetMaxText, setBudgetMaxText] = useState(
-    formatIndianNumber(BUDGET_MAX)
-  );
-  const [isBudgetMinFocused, setIsBudgetMinFocused] = useState(false);
-  const [isBudgetMaxFocused, setIsBudgetMaxFocused] = useState(false);
-
-  const handleGenerateDescription = async () => {
-    try {
-      setGeneratingDescription(true);
-      const response = await fetch("/api/ai", {
-        method: "POST",
-        body: JSON.stringify({ data: form.getValues(), type: "enquiry" }),
-      });
-      const data = await response.json();
-      setValue("description", data.description, { shouldValidate: true });
-      toast.success("Description generated successfully");
-    } catch (error) {
-      console.error("Error generating description:", error);
-      toast.error("Error generating description");
-    } finally {
-      setGeneratingDescription(false);
-    }
-  };
-
+  // Sync isCompany
   useEffect(() => {
-    if (!isBudgetMinFocused) {
-      setBudgetMinText(formatIndianNumber(budgetMin ?? BUDGET_MIN));
-    }
-  }, [budgetMin, isBudgetMinFocused]);
-
-  useEffect(() => {
-    if (!isBudgetMaxFocused) {
-      setBudgetMaxText(formatIndianNumber(budgetMax ?? BUDGET_MAX));
-    }
-  }, [budgetMax, isBudgetMaxFocused]);
-
-  useEffect(() => {
-    // Only reset fields when category actually changes (not on initial mount)
-    if (!selectedCategory) return;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("enquiryType", "" as any, {
-      shouldValidate: false,
-      shouldDirty: true,
-    });
-
-    // Clear type-specific fields when category changes to avoid stale values failing backend rules.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("size", undefined as any, { shouldValidate: false });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("plotType", undefined as any, { shouldValidate: false });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("facing", undefined as any, { shouldValidate: false });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("frontRoadWidth", undefined as any, { shouldValidate: false });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("bhk", undefined as any, { shouldValidate: false });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("washrooms", undefined as any, { shouldValidate: false });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("preferredFloor", undefined as any, { shouldValidate: false });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("society", undefined as any, { shouldValidate: false });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("rooms", undefined as any, { shouldValidate: false });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("beds", undefined as any, { shouldValidate: false });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("rentalIncome", undefined as any, { shouldValidate: false });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("purpose", undefined as any, { shouldValidate: false });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue("areaType", undefined as any, { shouldValidate: false });
-  }, [selectedCategory, setValue]);
-
-  useEffect(() => {
-    setValue("isCompany", !!companyData, { shouldValidate: true });
+    setValue("isCompany", !!companyData);
   }, [companyData, setValue]);
 
-  const handleSubmission = (data: CreateEnquiryFormValues) => {
 
+  // Reset type-specific fields when category changes
+  useEffect(() => {
+    if (!selectedCategory) return;
+
+    // We clear these to avoid sending incompatible data to backend
+    const fieldsToReset: (keyof CreateEnquiryFormValues)[] = [
+      "enquiryType", "size", "plotType", "facing",
+      "frontRoadWidth", "bhk", "washrooms", "preferredFloor",
+      "society", "rooms", "beds", "rentalIncome", "purpose", "areaType",
+      "isCorner", "roadFacingSides", "roadWidths"
+    ];
+
+    fieldsToReset.forEach(field => {
+      // @ts-ignore - straightforward reset
+      setValue(field, undefined, { shouldValidate: false });
+    });
+
+  }, [selectedCategory, setValue]);
+
+
+  const handleSubmission = (data: CreateEnquiryFormValues) => {
+    // Transform to DTO
     const payload: Record<string, unknown> = {
-      ...(data as unknown as Record<string, unknown>),
+      ...data,
     };
+    // Remove internal flags
     delete payload.addressPlaceId;
     delete payload.locationMode;
     delete payload.isCompany;
+    delete payload.isCorner; // internal UI flag, though we send specific corner fields
+
+    // If NOT corner, ensure we don't send corner specific trash data if it lingered
+    if (!data.isCorner) {
+      delete payload.roadFacingSides;
+      delete payload.roadWidths;
+    }
+
     const finalPayload = payload as unknown as CreateEnquiryDTO;
 
+    const onSuccess = () => {
+      toast.success("Enquiry created successfully!");
+      reset();
+      router.replace("/enquiries/create/success");
+      queryClient.invalidateQueries({ queryKey: ["wallet-balance"] });
+    };
+
+    const onError = (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to create enquiry");
+    };
+
     if (companyData) {
-      createCompanyEnquiry(finalPayload, {
-        onSuccess: () => {
-          toast.success("Enquiry created successfully!");
-          form.reset();
-          router.replace("/enquiries/create/success");
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onError: (error: any) => {
-          toast.error(
-            error?.response?.data?.message || "Failed to create enquiry"
-          );
-        },
-      });
+      createCompanyEnquiry(finalPayload, { onSuccess, onError });
     } else {
-      createEnquiry(finalPayload, {
-        onSuccess: () => {
-          toast.success("Enquiry created successfully!");
-          form.reset();
-          router.replace("/enquiries/create/success");
-          queryClient.invalidateQueries({
-            queryKey: ["wallet-balance"],
-          });
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onError: (error: any) => {
-          toast.error(
-            error.response?.data?.message || "Failed to create enquiry"
-          );
-        },
-      });
+      createEnquiry(finalPayload, { onSuccess, onError });
     }
   };
 
@@ -637,92 +147,10 @@ const CreateEnquiryPage = () => {
     }
   };
 
-  const onInvalid = () => {
-    toast.error("Please fill in all required fields.");
+  const onInvalid = (errors: any) => {
+    console.log("Form Errors:", errors);
+    toast.error("Please fill in all required fields and correct errors.");
   };
-
-  const availableTypes = selectedCategory
-    ? CATEGORY_TYPE_MAP[selectedCategory as PropertyCategory] || []
-    : [];
-
-  // --- Render Helpers ---
-
-  const renderSizeFields = () => (
-    <div className="space-y-6">
-      <div className="border-b border-border/40 pb-2 mb-6">
-        <h3 className="text-xl text-foreground/90">
-          {t("form_size_requirement")}
-        </h3>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <FormField
-          control={control}
-          name="size.min"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-muted-foreground">{t("form_min_size")}</FormLabel>
-              <FormControl>
-                <NumberInput
-                  {...field}
-                  onChange={field.onChange}
-                  className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="size.max"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-muted-foreground">{t("form_max_size")}</FormLabel>
-              <FormControl>
-                <NumberInput
-                  {...field}
-                  onChange={field.onChange}
-                  className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="size.unit"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-muted-foreground">{t("form_unit")}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
-                    <SelectValue placeholder="Unit" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {[
-                    "SQ_FT",
-                    "SQ_METER",
-                    "SQ_YARDS",
-                    "ACRES",
-                    "HECTARE",
-                    "BIGHA",
-                  ].map((u) => (
-                    <SelectItem key={u} value={u}>
-                      {u}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-    </div>
-  );
 
   return (
     <PageShell>
@@ -731,907 +159,63 @@ const CreateEnquiryPage = () => {
         description={t("page_create_enquiry_subtitle")}
       />
 
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit, onInvalid)}
-          className="space-y-6"
-        >
-          {/* Internal form flags for conditional validation */}
-          <input type="hidden" {...register("locationMode")} />
-          <input type="hidden" {...register("isCompany")} />
+      <FormProvider {...form}>
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6 md:space-y-8 pb-32">
 
-          {/* --- Location Section --- */}
-          <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-2 mb-6">
-              <h3 className="text-xl text-foreground/90">
-                {t("form_location")}
-              </h3>
-            </div>
+          <LocationSection isPending={isPending} />
 
-            {locationMode === "search" ? (
-              <FormField
-                control={control}
-                name="addressPlaceId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-muted-foreground">
-                      Search Area or City{" "}
-                      <span className="text-destructive">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <AddressAutocomplete
-                        valueLabel={watch("address")}
-                        valueId={field.value ?? ""}
-                        disabled={isPending}
-                        className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all shadow-sm font-inter"
-                        onSearchError={(msg) => {
-                          toast.error(msg);
-                          setValue("locationMode", "manual", {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                          setValue("addressPlaceId", "", {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                        }}
-                        onSelect={(item) => {
-                          const derived = deriveCityAndLocalities(item);
-                          setValue("address", item.place_name, {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                          setValue("city", derived.city, {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                          setValue("localities", derived.localities, {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                          field.onChange(item.id);
-                        }}
-                        onClear={() => {
-                          setValue("address", "", {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                          setValue("city", "", {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                          setValue("localities", [], {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                          field.onChange("");
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : (
-              <FormField
-                control={control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-muted-foreground">
-                      Full Address <span className="text-destructive">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter full address, landmarks, city..."
-                        className="min-h-[120px] rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter resize-none"
-                        disabled={isPending}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+          <PropertyDetailsSection />
 
-            {companyData && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <FormField
-                  control={control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-muted-foreground">
-                        City <span className="text-destructive">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g. Jaipur"
-                          disabled={isPending}
-                          {...field}
-                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <BudgetSection />
 
-                <FormField
-                  control={control}
-                  name="localities"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-muted-foreground">
-                        Localities <span className="text-destructive">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Comma-separated (max 10)"
-                          disabled={isPending}
-                          value={(field.value || []).join(", ")}
-                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                          onChange={(e) => {
-                            const next = e.target.value
-                              .split(",")
-                              .map((p) => p.trim())
-                              .filter(Boolean)
-                              .slice(0, 10);
-                            field.onChange(next);
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-          </div>
+          <AdditionalDetailsSection />
 
-          {/* --- Category & Type Section --- */}
-          <div className="space-y-6">
-            <div className="border-b border-border/40 pb-2 mb-6">
-              <h3 className="text-xl text-foreground/90">
-                {t("form_property_details")}
-              </h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={control}
-                name="enquiryCategory"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-muted-foreground">
-                      Category <span className="text-destructive">*</span>
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
-                          <SelectValue placeholder="Select Category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.keys(CATEGORY_TYPE_MAP).map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={control}
-                name="enquiryType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-muted-foreground">
-                      Property Type <span className="text-destructive">*</span>
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      disabled={!selectedCategory}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
-                          <SelectValue placeholder="Select Type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {/* Sticky Footer Action */}
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-md border-t border-border/60 z-50 flex justify-center md:justify-end md:px-12">
+            <div className="w-full md:w-auto max-w-4xl flex gap-4">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => router.back()}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full md:w-48 shadow-lg shadow-primary/20"
+                disabled={isPending}
+              >
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isPending ? "Creating..." : "Create Enquiry"}
+              </Button>
             </div>
           </div>
 
-          {/* --- Budget Section --- */}
-          <div className="space-y-6">
-            <div className="border-b border-border/40 pb-2 mb-6">
-              <h3 className="text-xl text-foreground/90">
-                {t("form_budget")}
-              </h3>
-            </div>
-            {(() => {
-              const currentMin = budgetMin;
-              const currentMax = budgetMax;
-              const minIdx = findNearestBudgetIndex(currentMin);
-              const maxIdx = findNearestBudgetIndex(currentMax);
-              const safeMinIdx = Math.min(minIdx, maxIdx);
-              const safeMaxIdx = Math.max(minIdx, maxIdx);
-
-              return (
-                <div className="space-y-12 pt-4">
-                  {/* Visual Budget Display */}
-                  <div className="flex items-center justify-between px-2">
-                    <div className="flex flex-col items-center">
-                      <span className="text-sm text-muted-foreground uppercase tracking-widest text-[10px] font-semibold mb-1">
-                        {t("form_min_budget")}
-                      </span>
-                      <div className="text-2xl md:text-3xl text-primary">
-                        {formatBudgetLabel(currentMin ?? BUDGET_MIN)}
-                      </div>
-                    </div>
-                    <div className="h-px w-full mx-6 bg-border/60 transform translate-y-2"></div>
-                    <div className="flex flex-col items-center">
-                      <span className="text-sm text-muted-foreground uppercase tracking-widest text-[10px] font-semibold mb-1">
-                        {t("form_max_budget")}
-                      </span>
-                      <div className="text-2xl md:text-3xl text-primary">
-                        {formatBudgetLabel(currentMax ?? BUDGET_MAX)}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Slider */}
-                  <div className="px-2">
-                    <Slider
-                      defaultValue={[safeMinIdx, safeMaxIdx]}
-                      value={[safeMinIdx, safeMaxIdx]}
-                      min={0}
-                      max={BUDGET_OPTIONS.length - 1}
-                      step={1}
-                      className="py-4 cursor-pointer"
-                      onValueChange={(vals) => {
-                        const a = vals?.[0] ?? 0;
-                        const b = vals?.[1] ?? 0;
-                        const nextMinIdx = Math.min(a, b);
-                        const nextMaxIdx = Math.max(a, b);
-                        const nextMin = BUDGET_OPTIONS[nextMinIdx];
-                        const nextMax = BUDGET_OPTIONS[nextMaxIdx];
-                        setValue("budget.min", nextMin, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        });
-                        setValue("budget.max", nextMax, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        });
-                      }}
-                      onValueCommit={() =>
-                        void trigger(["budget.min", "budget.max"])
-                      }
-                    />
-                  </div>
-
-                  {/* Manual Inputs for fallback/precision */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-80 hover:opacity-100 transition-opacity">
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground ml-1">
-                        {t("form_exact_min_amount")}
-                      </p>
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="Min (₹5L)"
-                        value={budgetMinText}
-                        className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                        onFocus={() => setIsBudgetMinFocused(true)}
-                        onChange={(e) => {
-                          const raw = sanitizeIntegerInput(e.target.value);
-                          setBudgetMinText(raw);
-                          if (raw === "") return;
-                          // Allow typing freely; clamp/fix on blur.
-                          const nextMin = Math.min(Number(raw), BUDGET_MAX);
-                          setValue("budget.min", nextMin, {
-                            shouldDirty: true,
-                            shouldValidate: false,
-                          });
-                        }}
-                        onBlur={() => {
-                          setIsBudgetMinFocused(false);
-                          const raw = sanitizeIntegerInput(budgetMinText);
-                          const nextMin =
-                            raw === ""
-                              ? budgetMin ?? BUDGET_MIN
-                              : Math.min(Number(raw), BUDGET_MAX);
-
-                          const minVal = nextMin;
-                          const maxVal = budgetMax ?? BUDGET_MAX;
-                          const clampedMin = Math.max(
-                            BUDGET_MIN,
-                            Math.min(minVal ?? BUDGET_MIN, BUDGET_MAX)
-                          );
-                          const clampedMax = Math.max(
-                            clampedMin,
-                            Math.min(maxVal ?? clampedMin, BUDGET_MAX)
-                          );
-                          setValue("budget.min", clampedMin, {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          });
-                          setValue("budget.max", clampedMax, {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          });
-                          setBudgetMinText(formatIndianNumber(clampedMin));
-                          setBudgetMaxText(formatIndianNumber(clampedMax));
-                          void trigger(["budget.min", "budget.max"]);
-                        }}
-                      />
-                      {errors.budget?.min?.message && (
-                        <p className="text-xs text-destructive ml-1">
-                          {String(errors.budget.min.message)}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground ml-1">
-                        {t("form_exact_max_amount")}
-                      </p>
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="Max (₹1000Cr)"
-                        value={budgetMaxText}
-                        className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                        onFocus={() => setIsBudgetMaxFocused(true)}
-                        onChange={(e) => {
-                          const raw = sanitizeIntegerInput(e.target.value);
-                          setBudgetMaxText(raw);
-                          if (raw === "") return;
-                          // Allow typing freely; clamp/fix on blur.
-                          const nextMax = Math.min(Number(raw), BUDGET_MAX);
-                          setValue("budget.max", nextMax, {
-                            shouldDirty: true,
-                            shouldValidate: false,
-                          });
-                        }}
-                        onBlur={() => {
-                          setIsBudgetMaxFocused(false);
-                          const raw = sanitizeIntegerInput(budgetMaxText);
-                          const nextMax =
-                            raw === ""
-                              ? budgetMax ?? BUDGET_MAX
-                              : Math.min(Number(raw), BUDGET_MAX);
-
-                          const minVal = budgetMin ?? BUDGET_MIN;
-                          const maxVal = nextMax;
-                          const clampedMin = Math.max(
-                            BUDGET_MIN,
-                            Math.min(minVal ?? BUDGET_MIN, BUDGET_MAX)
-                          );
-                          const clampedMax = Math.max(
-                            clampedMin,
-                            Math.min(maxVal ?? clampedMin, BUDGET_MAX)
-                          );
-                          setValue("budget.min", clampedMin, {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          });
-                          setValue("budget.max", clampedMax, {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          });
-                          setBudgetMinText(formatIndianNumber(clampedMin));
-                          setBudgetMaxText(formatIndianNumber(clampedMax));
-                          void trigger(["budget.min", "budget.max"]);
-                        }}
-                      />
-                      {errors.budget?.max?.message && (
-                        <p className="text-xs text-destructive ml-1">
-                          {String(errors.budget.max.message)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-
-          {/* --- Conditional Fields --- */}
-
-          {/* Size */}
-          {([
-            "LAND",
-            "VILLA",
-            "WAREHOUSE",
-            "INDUSTRIAL_LAND",
-            "AGRICULTURAL_LAND",
-            "SHOWROOM",
-            "OFFICE_SPACE",
-            "OTHER_SPACE",
-            "SHOP",
-          ].includes(selectedType) ||
-            selectedCategory === "COMMERCIAL" ||
-            selectedCategory === "INDUSTRIAL") &&
-            renderSizeFields()}
-
-          {/* Flat Specifics */}
-          {selectedType === "FLAT" && (
-            <div className="space-y-6">
-              <div className="border-b border-border/40 pb-2 mb-6">
-                <h3 className="text-xl text-foreground/90">
-                  {t("form_configuration")}
-                </h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={control}
-                  name="bhk"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-muted-foreground">
-                        BHK
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          placeholder="1-20"
-                          {...field}
-                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                          value={field.value ?? ""}
-                          onChange={(e) =>
-                            field.onChange(
-                              parseIntegerWithMax(e.target.value, 20)
-                            )
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="washrooms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-muted-foreground">
-                        Washrooms
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          placeholder="1-20"
-                          {...field}
-                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                          value={field.value ?? ""}
-                          onChange={(e) =>
-                            field.onChange(
-                              parseIntegerWithMax(e.target.value, 20)
-                            )
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="society"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-muted-foreground">
-                        Preferred Society
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="preferredFloor"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-muted-foreground">
-                        Preferred Floor
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Land / Villa Specifics */}
-          {(selectedType === "LAND" ||
-            selectedType === "VILLA" ||
-            selectedType === "INDUSTRIAL_LAND" ||
-            selectedType === "AGRICULTURAL_LAND") && (
-              <div className="space-y-6">
-                <div className="border-b border-border/40 pb-2 mb-6">
-                  <h3 className="text-xl text-foreground/90">
-                    {t("form_plot_details")}
-                  </h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={control}
-                    name="plotType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-muted-foreground">
-                          Plot Type
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
-                              <SelectValue placeholder="Select Plot Type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="ROAD">Road</SelectItem>
-                            <SelectItem value="CORNER">Corner</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name="facing"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-muted-foreground">
-                          Facing
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
-                              <SelectValue placeholder="Select Facing" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {[
-                              "NORTH",
-                              "SOUTH",
-                              "EAST",
-                              "WEST",
-                              "NORTH_EAST",
-                              "NORTH_WEST",
-                              "SOUTH_EAST",
-                              "SOUTH_WEST",
-                            ].map((f) => (
-                              <SelectItem key={f} value={f}>
-                                {f.replace("_", " ")}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={control}
-                    name="frontRoadWidth"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-muted-foreground">
-                          Front Road Width (ft)
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            {...field}
-                            className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                            value={field.value ?? ""}
-                            onChange={(e) =>
-                              field.onChange(
-                                parseIntegerOrUndefined(e.target.value)
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            )}
-
-          {/* Commercial (Hotel/Hostel) */}
-          {(selectedType === "HOTEL" || selectedType === "HOSTEL") && (
-            <div className="space-y-6">
-              <div className="border-b border-border/40 pb-2 mb-6">
-                <h3 className="text-xl text-foreground/90">
-                  {t("form_capacity")}
-                </h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={control}
-                  name="rooms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-muted-foreground">
-                        Rooms
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          placeholder="1-1000"
-                          {...field}
-                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                          value={field.value ?? ""}
-                          onChange={(e) =>
-                            field.onChange(
-                              parseIntegerWithMax(e.target.value, 1000)
-                            )
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {selectedType === "HOSTEL" && (
-                  <FormField
-                    control={control}
-                    name="beds"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-muted-foreground">
-                          Beds
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="1-5000"
-                            {...field}
-                            className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                            value={field.value ?? ""}
-                            onChange={(e) =>
-                              field.onChange(
-                                parseIntegerWithMax(e.target.value, 5000)
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Industrial */}
-          {selectedCategory === "INDUSTRIAL" && (
-            <div className="space-y-6">
-              <div className="border-b border-border/40 pb-2 mb-6">
-                <h3 className="text-xl text-foreground/90">
-                  {t("form_industrial_use")}
-                </h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={control}
-                  name="purpose"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-muted-foreground">
-                        Purpose
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="e.g. Manufacturing, Warehousing"
-                          className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="areaType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-muted-foreground">
-                        Area Type
-                      </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-11 md:h-12 rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter">
-                            <SelectValue placeholder="Select Area Type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="NEAR_RING_ROAD">
-                            Near Ring Road
-                          </SelectItem>
-                          <SelectItem value="RIICO_AREA">RIICO Area</SelectItem>
-                          <SelectItem value="SEZ">SEZ</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* --- Description --- */}
-          <div className="space-y-6">
-            <div className="border-b border-border/40 pb-2 mb-6">
-              <h3 className="text-xl text-foreground/90">
-                {t("form_additional_details")}
-              </h3>
-            </div>
-            <FormField
-              control={control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-muted-foreground">
-                    Description <span className="text-destructive">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Textarea
-                        placeholder="Describe your requirements in detail..."
-                        className="min-h-[150px] rounded-xl bg-background border-border/60 focus:border-primary/30 focus:ring-primary/20 transition-all font-inter resize-y"
-                        {...field}
-                      />
-                      <div className="w-full flex justify-end py-1">
-                        <Button
-                          disabled={generatingDescription}
-                          onClick={() => handleGenerateDescription()}
-                          className="h-8 text-sm"
-                          type="button"
-                          variant={"outline"}
-                        >
-                          {generatingDescription ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              {t("form_generate_description")} <Wand2Icon />
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* --- Urgent Flag --- */}
-          <div className="space-y-4 rounded-lg border border-border p-4">
-            <FormField
-              control={control}
-              name="urgent"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Mark as Urgent</FormLabel>
-                    <p className="text-sm text-muted-foreground">
-                      Get faster responses by marking this enquiry as urgent.
-                      Cost: {CREDITS_PRICE.MARK_ENQUIRY_AS_URGENT} Credits.
-                    </p>
-                  </div>
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isPending}
-            >
-              {isPending && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-              {t("action_create_enquiry")}
-            </Button>
-          </div>
         </form>
-      </Form>
+      </FormProvider>
 
-      <AlertDialog
-        open={showUrgentConfirmation}
-        onOpenChange={setShowUrgentConfirmation}
-      >
+      {/* Confirmation Dialog for Urgent */}
+      <AlertDialog open={showUrgentConfirmation} onOpenChange={setShowUrgentConfirmation}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Urgent Enquiry</AlertDialogTitle>
+            <AlertDialogTitle>Mark as Urgent?</AlertDialogTitle>
             <AlertDialogDescription>
-              Marking this enquiry as urgent will deduct{" "}
-              <span className="font-semibold text-foreground">
-                {CREDITS_PRICE.MARK_ENQUIRY_AS_URGENT} credits
-              </span>{" "}
-              from your wallet. Are you sure you want to proceed?
+              This will deduct {CREDITS_PRICE.MARK_ENQUIRY_AS_URGENT} credits from your wallet.
+              Urgent enquiries get higher visibility.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                setPendingSubmissionData(null);
-                setShowUrgentConfirmation(false);
-              }}
-            >
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (pendingSubmissionData) {
                   handleSubmission(pendingSubmissionData);
-                  setShowUrgentConfirmation(false);
                 }
               }}
             >
-              Confirm & Pay
+              Confirm & Deduct
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
