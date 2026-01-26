@@ -15,6 +15,7 @@ import { UserAvatar } from "./_components/userAvatar";
 import { CreditsBadge } from "./_components/creditsBadge";
 import { Separator } from "@/components/ui/separator";
 import { ChatbotWidget } from "@/components/chatbot";
+import ScrollToTop from "@/components/ui/scroll-to-top";
 
 const layout = ({ children }: { children: React.ReactNode }) => {
   const sidebarCookie = cookies().get("sidebar_state")?.value;
@@ -47,6 +48,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
 
               <BottomNav />
               <ChatbotWidget />
+              <ScrollToTop />
             </SidebarInset>
           </SidebarProvider>
         </UndoDeleteProvider>
