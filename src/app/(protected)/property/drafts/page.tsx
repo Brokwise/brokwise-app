@@ -83,7 +83,7 @@ const DraftPropertyPage = () => {
       <div className="space-y-1">
         <div className="flex items-center gap-3">
           <FileText className="w-6 h-6 text-muted-foreground" />
-          <h1 className="text-3xl md:text-4xl font-instrument-serif text-foreground tracking-tight">
+          <h1 className="text-3xl md:text-4xl text-foreground tracking-tight">
             Property Drafts
           </h1>
           {drafts.length > 0 && (

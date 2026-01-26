@@ -77,7 +77,7 @@ const WelcomeScreen = () => {
       {/* Content */}
       <div className="relative z-10 w-full max-w-md px-6 flex flex-col items-center text-center space-y-6">
         <div className="space-y-2 mb-4">
-          <h1 className="text-5xl font-instrument-serif text-white tracking-tight">
+          <h1 className="text-5xl text-white tracking-tight">
             Brokwise
           </h1>
           <p className="text-white/80 text-lg font-light">

@@ -371,7 +371,7 @@ export default function AuthPage({
   // --- Render ---
 
   return (
-    <div className="flex h-dvh w-full font-host-grotesk overflow-hidden bg-background">
+    <div className="flex h-dvh w-full overflow-hidden bg-background">
       {/* Left Side - Image & Value Prop (Fixed) */}
       <div
         className={`hidden lg:flex lg:w-1/2 h-full relative overflow-hidden transition-colors duration-500 ${activeTheme === "light" ? "bg-slate-100" : "bg-black"
@@ -421,7 +421,7 @@ export default function AuthPage({
                 transition={{ duration: 0.3 }}
               >
                 <h2
-                  className={`text-3xl font-instrument-serif leading-snug mb-6 transition-colors duration-500 ${activeTheme === "light" ? "text-slate-900" : "text-white"
+                  className={`text-3xl leading-snug mb-6 transition-colors duration-500 ${activeTheme === "light" ? "text-slate-900" : "text-white"
                     }`}
                 >
                   &ldquo;{activeContent.quote}&rdquo;
@@ -518,7 +518,7 @@ export default function AuthPage({
           {/* Fixed header area (prevents the Brokwise title from jumping when mode changes) */}
           <div className="w-full max-w-md shrink-0 pt-7 lg:pt-10">
             <div className="text-center space-y-3">
-              <h1 className="text-5xl lg:text-6xl font-instrument-serif text-foreground tracking-tight">
+              <h1 className="text-5xl lg:text-6xl text-foreground tracking-tight">
                 Brokwise
               </h1>
               <p className="text-muted-foreground text-base">

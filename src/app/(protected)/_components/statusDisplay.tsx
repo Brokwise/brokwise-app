@@ -183,7 +183,7 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
             >
               {statusConfig.title}
             </Badge>
-            <CardTitle className="text-3xl font-instrument-serif font-normal mt-4 ">
+            <CardTitle className="text-3xl font-normal mt-4 ">
               {isCompany
                 ? company.name
                 : `${broker.firstName} ${broker.lastName}`}

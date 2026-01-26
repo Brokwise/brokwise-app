@@ -186,7 +186,7 @@ const CreateProperty = () => {
         >
           {/* Header Section */}
           <div className="space-y-1">
-            <h1 className="text-3xl md:text-4xl font-instrument-serif text-foreground tracking-tight">
+            <h1 className="text-3xl md:text-4xl text-foreground tracking-tight">
               {t("page_create_property_title")}
             </h1>
             <p className="text-muted-foreground text-sm md:text-base font-light max-w-2xl">
@@ -249,7 +249,7 @@ const CreateProperty = () => {
           <section className="space-y-3 pt-2">
             <div className="flex items-center gap-2 text-accent">
               <Sparkles className="w-4 h-4" />
-              <h2 className="text-lg font-instrument-serif font-medium tracking-tight">
+              <h2 className="text-lg font-medium tracking-tight">
                 {t("label_property_categories")}
               </h2>
             </div>
@@ -282,7 +282,7 @@ const CreateProperty = () => {
                     {/* Content */}
                     <div className="absolute inset-0 p-3 flex flex-col justify-end">
                       <div className="transform transition-transform duration-300 translate-y-1 group-hover:translate-y-0">
-                        <h3 className="text-base font-instrument-serif text-white leading-tight text-3xl">
+                        <h3 className="text-base text-white leading-tight text-3xl">
                           {t(getCategoryTranslationKey(category.key))}
                         </h3>
                         <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
@@ -318,7 +318,7 @@ const CreateProperty = () => {
               </Button>
             </div>
             <div className="text-right">
-              <h1 className="text-2xl font-instrument-serif text-foreground">
+              <h1 className="text-2xl text-foreground">
                 {t("page_create_property_create")}{" "}
                 {selectedCategory && t(getCategoryTranslationKey(selectedCategory))}
               </h1>

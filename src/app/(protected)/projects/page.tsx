@@ -19,7 +19,7 @@ const ProjectsPage = () => {
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-3xl font-instrument-serif text-foreground tracking-tight">
+            <h1 className="text-3xl text-foreground tracking-tight">
               {t("page_projects_title")}
             </h1>
             <p className="text-muted-foreground">

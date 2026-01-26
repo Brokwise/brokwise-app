@@ -312,7 +312,7 @@ export default function ForgotPasswordPage() {
   const isDisabled = loading || cooldownRemaining > 0 || attemptsRemaining <= 0;
 
   return (
-    <div className="flex h-dvh w-full font-host-grotesk overflow-hidden bg-zinc-950">
+    <div className="flex h-dvh w-full overflow-hidden bg-zinc-950">
       {/* Left Side - Image (Fixed) */}
       <div className="hidden lg:flex lg:w-1/2 h-full relative overflow-hidden bg-black">
         <motion.div
@@ -335,7 +335,7 @@ export default function ForgotPasswordPage() {
         {/* Quote/Testimonial Area */}
         <div className="absolute bottom-0 left-0 p-10 w-full z-10">
           <div className="max-w-lg backdrop-blur-md bg-black/20 border border-white/10 shadow-2xl rounded-2xl p-8">
-            <h2 className="text-3xl font-instrument-serif text-white leading-snug mb-2">
+            <h2 className="text-3xl text-white leading-snug mb-2">
               Brokwise
             </h2>
             <p className="text-zinc-300">
@@ -386,7 +386,7 @@ export default function ForgotPasswordPage() {
             </div>
 
             <div className="text-left space-y-3 mb-8">
-              <h1 className="text-4xl lg:text-5xl font-instrument-serif text-white tracking-tight">
+              <h1 className="text-4xl lg:text-5xl text-white tracking-tight">
                 {pageState === "email_sent"
                   ? t("check_email") || "Check your email"
                   : pageState === "user_not_found"

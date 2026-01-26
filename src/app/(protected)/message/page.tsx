@@ -88,7 +88,7 @@ const MessagePage = () => {
         )}
       >
         <div className="flex h-[80px] shrink-0 items-center justify-between border-b border-border/20 px-6">
-          <h1 className="font-instrument-serif text-3xl font-medium tracking-tight text-foreground">
+          <h1 className="text-3xl font-medium tracking-tight text-foreground">
             {t("page_messages_title")}
           </h1>
           <Button
@@ -122,7 +122,7 @@ const MessagePage = () => {
                   <MessageSquarePlus className="h-8 w-8 text-muted-foreground/50" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="font-instrument-serif text-lg text-foreground">
+                  <h3 className="text-lg text-foreground">
                     {t("page_messages_no_messages")}
                   </h3>
                   <p className="text-sm font-light">
@@ -170,7 +170,7 @@ const MessagePage = () => {
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
-                <span className="font-instrument-serif text-lg font-medium leading-none text-foreground">
+                <span className="text-lg font-medium leading-none text-foreground">
                   {partnerDetails?.name}
                 </span>
                 <span className="text-xs text-muted-foreground">{t("page_messages_active_now")}</span>
@@ -195,7 +195,7 @@ const MessagePage = () => {
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/20">
                   <MessageSquarePlus className="h-8 w-8 text-muted-foreground/40" strokeWidth={1.5} />
                 </div>
-                <h3 className="font-instrument-serif text-2xl font-medium text-foreground">
+                <h3 className="text-2xl font-medium text-foreground">
                   {t("page_messages_select_conversation")}
                 </h3>
                 <p className="text-sm font-light text-muted-foreground">

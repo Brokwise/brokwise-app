@@ -60,7 +60,7 @@ const BrokersPage = () => {
     <div className="mx-auto py-10 px-4 w-full">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold font-instrument-serif">Brokers</h1>
+          <h1 className="text-3xl font-bold">Brokers</h1>
           <p className="text-muted-foreground mt-2">
             Manage your company&apos;s brokers
           </p>

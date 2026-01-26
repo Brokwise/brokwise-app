@@ -69,7 +69,7 @@ export function RecentActivityFeed({
     return (
       <Card className="h-full border-none shadow-none bg-transparent">
         <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-xl font-semibold flex items-center gap-2 font-host-grotesk">
+          <CardTitle className="text-xl font-semibold flex items-center gap-2">
             Recent Activity
           </CardTitle>
           <CardDescription>Latest updates from your team</CardDescription>
@@ -89,7 +89,7 @@ export function RecentActivityFeed({
       className="h-full flex flex-col"
     >
       <div className="mb-4">
-        <h3 className="text-xl font-semibold font-host-grotesk text-foreground">
+        <h3 className="text-xl font-semibold text-foreground">
           Recent Activity
         </h3>
         <p className="text-sm text-muted-foreground">

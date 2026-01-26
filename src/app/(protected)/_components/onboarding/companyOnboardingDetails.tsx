@@ -351,7 +351,7 @@ export const CompanyOnboardingDetails = ({
             {/* Header */}
             <div className="space-y-2">
               <div className="flex justify-between items-baseline">
-                <h1 className="text-3xl md:text-4xl font-instrument-serif text-slate-900 dark:text-slate-50">
+                <h1 className="text-3xl md:text-4xl text-slate-900 dark:text-slate-50">
                   {isEditing ? (
                     "Update your profile"
                   ) : (

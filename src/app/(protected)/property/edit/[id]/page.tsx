@@ -292,7 +292,7 @@ export default function EditPropertyPage() {
                         {t("action_back")}
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-instrument-serif">{t("page_edit_property_title")}</h1>
+                        <h1 className="text-2xl">{t("page_edit_property_title")}</h1>
                         <p className="text-sm text-muted-foreground">
                             {property.propertyId || t("property_id_not_available")}
                         </p>

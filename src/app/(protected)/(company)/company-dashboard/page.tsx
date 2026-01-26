@@ -182,7 +182,7 @@ export default function CompanyDashboard() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-1"
           >
-            <h1 className="text-3xl font-bold tracking-tight text-foreground font-instrument-serif text-4xl">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground text-4xl">
               Dashboard
             </h1>
             <p className="text-muted-foreground text-sm font-medium">

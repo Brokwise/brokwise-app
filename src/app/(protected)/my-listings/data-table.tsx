@@ -75,7 +75,7 @@ function EmptyState() {
       <div className="h-16 w-16 rounded-full bg-muted/30 flex items-center justify-center mb-6">
         <Building2 className="h-7 w-7 text-muted-foreground/60" />
       </div>
-      <h3 className="text-2xl font-instrument-serif text-foreground mb-2">
+      <h3 className="text-2xl text-foreground mb-2">
         {t("empty_no_listings")}
       </h3>
       <p className="text-muted-foreground max-w-sm font-light">

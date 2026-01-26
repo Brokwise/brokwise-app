@@ -258,7 +258,7 @@ const MyEnquiriesPage = () => {
       {!myEnquiries || myEnquiries.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center border rounded-xl bg-muted/20 border-dashed">
           <Inbox className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4 opacity-50" />
-          <h3 className="text-lg font-medium font-instrument-serif">
+          <h3 className="text-lg font-medium">
             {t("page_my_enquiries_empty_title")}
           </h3>
           <p className="text-sm sm:text-base text-muted-foreground max-w-sm mx-auto mt-2">
