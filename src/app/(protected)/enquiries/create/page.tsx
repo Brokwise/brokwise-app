@@ -171,20 +171,24 @@ const CreateEnquiryPage = () => {
           <AdditionalDetailsSection />
 
           {/* Sticky Footer Action */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-md border-t border-border/60 z-50 flex justify-center md:justify-end md:px-12">
-            <div className="w-full md:w-auto max-w-4xl flex gap-4">
+          {/* Sticky Footer Action */}
+          <div className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-4 pt-2 md:px-8 md:pb-8 flex justify-center pointer-events-none">
+            {/* Floating Island Container */}
+            <div className="w-full max-w-2xl bg-background/80 backdrop-blur-xl backdrop-saturate-150 border border-border/50 shadow-2xl rounded-2xl p-2 flex items-center justify-between gap-4 pointer-events-auto ring-1 ring-black/5 dark:ring-white/10">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => router.back()}
                 disabled={isPending}
+                className="text-muted-foreground hover:bg-muted/50 rounded-xl px-6"
               >
                 Cancel
               </Button>
+
               <Button
                 type="submit"
                 size="lg"
-                className="w-full md:w-48 shadow-lg shadow-primary/20"
+                className="rounded-xl px-8 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all active:scale-95"
                 disabled={isPending}
               >
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
