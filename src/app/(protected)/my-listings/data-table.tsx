@@ -56,7 +56,7 @@ interface DataTableProps<TData, TValue> {
   isLoading?: boolean;
   error?: Error | null;
   renderGridItem?: (data: TData) => React.ReactNode;
-  defaultView?: "grid" | "list";
+  viewMode?: "grid" | "list";
 }
 
 export function DataTable<TData, TValue>({
@@ -65,12 +65,11 @@ export function DataTable<TData, TValue>({
   isLoading = false,
   error = null,
   renderGridItem,
-  defaultView = "grid",
+  viewMode = "grid",
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [viewMode, setViewMode] = useState<"grid" | "list">(defaultView);
 
   const table = useReactTable({
     data,
@@ -156,27 +155,6 @@ export function DataTable<TData, TValue>({
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-
-            <div className="flex items-center bg-muted/50 p-1 rounded-md border">
-              <Button
-                variant={viewMode === "grid" ? "secondary" : "ghost"}
-                size="sm"
-                className="h-7 w-7 p-0"
-                onClick={() => setViewMode("grid")}
-                title={t("label_grid_view")}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "secondary" : "ghost"}
-                size="sm"
-                className="h-7 w-7 p-0"
-                onClick={() => setViewMode("list")}
-                title={t("label_table_view")}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </div>
       </div>
