@@ -13,7 +13,7 @@ const PageShell = React.forwardRef<HTMLDivElement, PageShellProps>(
             <Component
                 ref={ref}
                 className={cn(
-                    "flex flex-col flex-1 w-full max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8",
+                    "flex flex-col flex-1 w-full max-w-[1600px] mx-auto px-2 py-0.5 md:px-3 md:py-1 lg:px-4 lg:py-2 space-y-1.5 md:space-y-2",
                     className
                 )}
                 {...props}
