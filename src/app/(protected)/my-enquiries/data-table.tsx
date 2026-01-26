@@ -107,26 +107,28 @@ export function DataTable<TData, TValue>({
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <span className="whitespace-nowrap">
-                            {t("page_my_enquiries_rows_per_page") || "Rows per page"}:
-                        </span>
-                        <Select
-                            value={`${table.getState().pagination.pageSize}`}
-                            onValueChange={(value: string) => table.setPageSize(Number(value))}
-                        >
-                            <SelectTrigger className="h-9 w-[70px]">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent side="top">
-                                {[10, 20, 30, 40, 50].map((pageSize) => (
-                                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                                        {pageSize}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    {viewMode === "list" && (
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <span className="whitespace-nowrap">
+                                {t("page_my_enquiries_rows_per_page") || "Rows per page"}
+                            </span>
+                            <Select
+                                value={`${table.getState().pagination.pageSize}`}
+                                onValueChange={(value: string) => table.setPageSize(Number(value))}
+                            >
+                                <SelectTrigger className="h-9 w-[70px]">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent side="top">
+                                    {[10, 20, 30, 40, 50].map((pageSize) => (
+                                        <SelectItem key={pageSize} value={`${pageSize}`}>
+                                            {pageSize}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
 
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                         {viewMode === "list" && (

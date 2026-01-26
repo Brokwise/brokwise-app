@@ -177,11 +177,11 @@ const MyEnquiriesPage = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center bg-muted/50 p-1 rounded-md border">
+              <div className="flex items-center bg-muted/50 p-1 rounded-md border shadow-sm">
                 <Button
                   variant={effectiveView === "grid" ? "secondary" : "ghost"}
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className={`h-8 w-8 p-0 ${effectiveView === "grid" ? "shadow-sm border border-border/50 bg-background" : ""}`}
                   onClick={() => handleSetView("grid")}
                   title={t("label_grid_view")}
                 >
@@ -190,7 +190,7 @@ const MyEnquiriesPage = () => {
                 <Button
                   variant={effectiveView === "list" ? "secondary" : "ghost"}
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className={`h-8 w-8 p-0 ${effectiveView === "list" ? "shadow-sm border border-border/50 bg-background" : ""}`}
                   onClick={() => handleSetView("list")}
                   title={t("label_table_view")}
                 >
