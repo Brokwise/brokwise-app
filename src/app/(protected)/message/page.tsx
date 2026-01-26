@@ -88,7 +88,7 @@ const MessagePage = () => {
         )}
       >
         <div className="flex h-[80px] shrink-0 items-center justify-between border-b border-border/20 px-6">
-          <h1 className="text-3xl font-medium tracking-tight text-foreground">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             {t("page_messages_title")}
           </h1>
           <Button

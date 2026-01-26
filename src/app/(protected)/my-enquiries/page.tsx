@@ -28,6 +28,7 @@ import {
 import { formatEnquiryLocation } from "@/utils/helper";
 import { PROPERTY_TYPES } from "@/constants";
 import { useTranslation } from "react-i18next";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 const STORAGE_KEY = "myEnquiriesView";
 
@@ -119,31 +120,24 @@ const MyEnquiriesPage = () => {
   }
 
   return (
-    <div className="container mx-auto space-y-5 sm:space-y-6">
-      {/* Header Section */}
-      <div className="flex flex-col gap-3 sm:gap-4">
-        <div className="flex  items-center justify-between gap-3 sm:gap-4">
-          <div className="flex flex-col space-y-1.5 sm:space-y-2 ">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              {t("page_my_enquiries_title")}
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              {t("page_my_enquiries_subtitle")}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-
-            <Button
-              size="sm"
-              className="h-9 sm:h-10"
-              onClick={() => router.push("/enquiries/create")}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {t("action_create_enquiry")}
-            </Button>
-          </div>
+    <PageShell>
+      <PageHeader
+        title={t("page_my_enquiries_title")}
+        description={t("page_my_enquiries_subtitle")}
+      >
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            className="h-9 sm:h-10"
+            onClick={() => router.push("/enquiries/create")}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            {t("action_create_enquiry")}
+          </Button>
         </div>
+      </PageHeader>
 
+      <div className="space-y-5 sm:space-y-6">
         {/* Filters Section - Visible in both views */}
         {myEnquiries && myEnquiries.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-1 sm:mt-2">
@@ -306,7 +300,7 @@ const MyEnquiriesPage = () => {
           )}
         </>
       )}
-    </div>
+    </PageShell>
   );
 };
 

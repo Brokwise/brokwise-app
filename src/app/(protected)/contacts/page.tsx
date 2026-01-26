@@ -74,6 +74,7 @@ import {
 
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { PageShell, PageHeader } from "@/components/ui/layout";
 
 type FilterTab = "all" | "ENQUIRY_SUBMISSION" | "PROPERTY_INQUIRY";
 
@@ -189,18 +190,11 @@ const ContactsPage = () => {
   const isLoading = isContactsLoading;
 
   return (
-    <div className="container mx-auto p-4 md:p-8 max-w-7xl space-y-8 animate-in fade-in duration-500">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            {t("page_contacts_title")}
-          </h1>
-          <p className="text-muted-foreground text-sm max-w-2xl">
-            {t("page_contacts_subtitle")}
-          </p>
-        </div>
-      </div>
+    <PageShell className="max-w-7xl">
+      <PageHeader
+        title={t("page_contacts_title")}
+        description={t("page_contacts_subtitle")}
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -381,7 +375,6 @@ const ContactsPage = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -413,7 +406,7 @@ const ContactsPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageShell>
   );
 };
 
