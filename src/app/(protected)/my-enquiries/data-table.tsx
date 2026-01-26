@@ -39,7 +39,6 @@ import {
     Loader2,
     AlertCircle,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import {
     Select,
     SelectContent,

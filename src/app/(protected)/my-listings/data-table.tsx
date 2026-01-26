@@ -38,10 +38,7 @@ import {
   ChevronsRight,
   Loader2,
   AlertCircle,
-  LayoutGrid,
-  List,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,

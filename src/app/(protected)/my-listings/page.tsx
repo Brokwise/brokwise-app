@@ -15,7 +15,6 @@ import {
   Search,
   Filter,
   Loader2,
-  Inbox,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PropertyCard } from "@/app/(protected)/_components/propertyCard";

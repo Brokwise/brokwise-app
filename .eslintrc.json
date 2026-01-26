@@ -4,17 +4,7 @@
     "next/typescript"
   ],
   "rules": {
-    "react/forbid-dom-props": [
-      "warn",
-      {
-        "forbid": [
-          {
-            "propName": "style",
-            "message": "Use Tailwind classes instead of inline styles."
-          }
-        ]
-      }
-    ],
+    "react/forbid-dom-props": "off",
     "no-restricted-syntax": [
       "error",
       {

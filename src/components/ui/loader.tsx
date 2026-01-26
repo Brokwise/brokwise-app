@@ -4,14 +4,14 @@ type Props = {
   type?: "disc" | "dot";
   className?: string;
 } & (
-  | {
+    | {
       size: SizeInRem;
     }
-  | {
+    | {
       width: SizeInRem | "auto";
       height: SizeInRem | "auto";
     }
-);
+  );
 
 export const Loader: React.FC<Props> = ({
   className,
