@@ -17,7 +17,7 @@ export const PRICING: Record<TIER, TierLimits> = {
         SUBMIT_PROPERTY_ENQUIRY: 25,
     },
     ELITE: {
-        PROPERTY_LISTING: 100,
+        PROPERTY_LISTING: 1,
         ENQUIRY_LISTING: 50,
         SUBMIT_PROPERTY_ENQUIRY: 100,
     },
@@ -151,5 +151,6 @@ export const DURATION_SAVINGS: Record<SubscriptionDuration, { label: string; sav
 export const CREDITS_PRICE = {
     REQUEST_CONTACT: 10,
     MARK_PROPERTY_AS_FEATURED: 10,
-    MARK_ENQUIRY_AS_URGENT: 10
+    MARK_ENQUIRY_AS_URGENT: 10,
+    LIST_PROPERTY: 10
 }

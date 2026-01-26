@@ -5,6 +5,11 @@ export interface CreditPack {
   credits: number;
   priceInr: number;
   description: string;
+  flagText?: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Transaction types

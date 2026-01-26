@@ -21,6 +21,8 @@ import { ResortSpecs } from "./steps/resort-specs";
 import { ResortFeatures } from "./steps/resort-features";
 import { ResortMedia } from "./steps/resort-media";
 import ResortReview from "./steps/resort-review";
+import { useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 
 interface ResortWizardProps {
   onBack: () => void;
@@ -45,6 +47,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
   draftCount,
   isEditingDraft,
 }) => {
+  const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const router = useRouter();
@@ -84,20 +87,23 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
     mode: "onChange",
   });
 
-  const onSubmit = async (data: ResortPropertyFormData) => {
+  const onSubmit = async (data: ResortPropertyFormData, shouldUseCredits: boolean) => {
     if (onSubmitProp) {
       onSubmitProp(data);
     } else {
       try {
         setIsSubmitting(true);
-        await addPropertyAsync(data);
+        await addPropertyAsync({ property: data, shouldUseCredits });
         form.reset();
         setCompletedSteps(new Set());
         setCurrentStep(0);
+        queryClient.invalidateQueries({ queryKey: ["wallet-balance"] });
         router.replace("/property/createProperty/success");
       } catch (error) {
-        console.error("Error submitting form:", error);
-        toast.error("Failed to submit property. Please try again.");
+        const axiosError = error as AxiosError<{ message: string }>;
+        toast.error(
+          axiosError.response?.data?.message || "Failed to create property"
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -230,10 +236,9 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
 
       if (errorMessages.length > 0) {
         toast.error(
-          `Please fix: ${errorMessages.slice(0, 3).join(", ")}${
-            errorMessages.length > 3
-              ? ` (+${errorMessages.length - 3} more)`
-              : ""
+          `Please fix: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3
+            ? ` (+${errorMessages.length - 3} more)`
+            : ""
           }`
         );
       } else {
@@ -255,10 +260,10 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (shouldUseCredits: boolean) => {
     const isValid = await form.trigger();
     if (isValid) {
-      form.handleSubmit(onSubmit)();
+      form.handleSubmit((data) => onSubmit(data, shouldUseCredits))();
     } else {
       const errors = form.formState.errors;
       const errorMessages: string[] = [];
@@ -282,10 +287,9 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
 
       if (errorMessages.length > 0) {
         toast.error(
-          `Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${
-            errorMessages.length > 3
-              ? ` (+${errorMessages.length - 3} more)`
-              : ""
+          `Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3
+            ? ` (+${errorMessages.length - 3} more)`
+            : ""
           }`
         );
       } else {

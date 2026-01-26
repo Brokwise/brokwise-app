@@ -277,7 +277,7 @@ export const BidBoost: React.FC<BidBoostProps> = ({
                 "flex items-center gap-4 py-2 px-3 rounded-md text-sm",
                 entry.isMyBid && "bg-primary/10 border border-primary/20",
                 entry.isSimulated &&
-                  "bg-green-500/10 border border-green-500/30 animate-pulse"
+                "bg-green-500/10 border border-green-500/30 animate-pulse"
               )}
             >
               <span className="w-24 font-medium">

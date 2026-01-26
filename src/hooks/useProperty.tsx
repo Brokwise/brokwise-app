@@ -26,9 +26,9 @@ export const useAddProperty = () => {
     mutateAsync,
     isPending: isLoading,
     error,
-  } = useMutation<unknown, AxiosError<{ message: string }>, PropertyFormData>({
-    mutationFn: async (property: PropertyFormData) => {
-      return (await api.post("/property/create", property)).data.data;
+  } = useMutation<unknown, AxiosError<{ message: string }>, { property: PropertyFormData; shouldUseCredits: boolean }>({
+    mutationFn: async (data) => {
+      return (await api.post("/property/create", { property: data.property, shouldUseCredits: data.shouldUseCredits })).data.data;
     },
     onSuccess: () => {
       toast.success(i18n.t("toast_property_created"));

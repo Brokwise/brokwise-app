@@ -221,4 +221,5 @@ export interface EditPropertyDTO {
   amenities?: string[];
   newImages?: string[];
   featuredMedia?: string;
+  isFeatured?: boolean;
 }

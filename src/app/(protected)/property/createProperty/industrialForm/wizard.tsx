@@ -22,6 +22,8 @@ import { IndustrialLocation } from "./steps/industrial-location";
 import { IndustrialLegalDocs } from "./steps/industrial-legal-docs";
 import { IndustrialMedia } from "./steps/industrial-media";
 import IndustrialReview from "./steps/industrial-review";
+import { useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 
 interface IndustrialWizardProps {
   onBack: () => void;
@@ -47,6 +49,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
   isEditingDraft,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const queryClient = useQueryClient();
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,20 +97,23 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
     }
   }, [watchedPropertyType, form]);
 
-  const onSubmit = async (data: IndustrialPropertyFormData) => {
+  const onSubmit = async (data: IndustrialPropertyFormData, shouldUseCredits: boolean) => {
     if (onSubmitProp) {
       onSubmitProp(data);
     } else {
       try {
         setIsSubmitting(true);
-        await addPropertyAsync(data);
+        await addPropertyAsync({ property: data, shouldUseCredits });
         form.reset();
         setCompletedSteps(new Set());
         setCurrentStep(0);
+        queryClient.invalidateQueries({ queryKey: ["wallet-balance"] });
         router.replace("/property/createProperty/success");
       } catch (error) {
-        console.error("Error submitting form:", error);
-        toast.error("Failed to submit property. Please try again.");
+        const axiosError = error as AxiosError<{ message: string }>;
+        toast.error(
+          axiosError.response?.data?.message || "Failed to create property"
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -240,10 +246,9 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
 
       if (errorMessages.length > 0) {
         toast.error(
-          `Please fix: ${errorMessages.slice(0, 3).join(", ")}${
-            errorMessages.length > 3
-              ? ` (+${errorMessages.length - 3} more)`
-              : ""
+          `Please fix: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3
+            ? ` (+${errorMessages.length - 3} more)`
+            : ""
           }`
         );
       } else {
@@ -265,10 +270,10 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (shouldUseCredits: boolean) => {
     const isValid = await form.trigger();
     if (isValid) {
-      form.handleSubmit(onSubmit)();
+      form.handleSubmit((data) => onSubmit(data, shouldUseCredits))();
     } else {
       const errors = form.formState.errors;
       const errorMessages: string[] = [];
@@ -292,10 +297,9 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
 
       if (errorMessages.length > 0) {
         toast.error(
-          `Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${
-            errorMessages.length > 3
-              ? ` (+${errorMessages.length - 3} more)`
-              : ""
+          `Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3
+            ? ` (+${errorMessages.length - 3} more)`
+            : ""
           }`
         );
       } else {

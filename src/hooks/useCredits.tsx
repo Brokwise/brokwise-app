@@ -28,7 +28,11 @@ export const useGetCreditPacks = () => {
         staleTime: 1000 * 60 * 60, // Cache for 1 hour
     });
 
-    return { creditPacks: data || [], isLoading, error };
+    const sortedActivePacks = (data || [])
+        .filter((pack) => pack.isActive)
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
+    return { creditPacks: sortedActivePacks, isLoading, error };
 };
 
 /**

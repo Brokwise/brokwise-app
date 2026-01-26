@@ -48,9 +48,7 @@ export const useGetPlans = () => {
   };
 };
 
-/**
- * Hook to get current subscription details
- */
+
 export const useGetCurrentSubscription = (options?: { enabled?: boolean }) => {
   const api = useAxios();
   const { data, isLoading, error, refetch } =
@@ -72,9 +70,7 @@ export const useGetCurrentSubscription = (options?: { enabled?: boolean }) => {
   };
 };
 
-/**
- * Hook to get current usage and limits
- */
+
 export const useGetUsage = (options?: { enabled?: boolean }) => {
   const api = useAxios();
   const { data, isLoading, error, refetch } = useQuery<UsageWithLimits>({

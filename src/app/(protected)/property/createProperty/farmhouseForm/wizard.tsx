@@ -21,6 +21,8 @@ import { FarmhousePropertySpecs } from "./steps/farmhouse-property-specs";
 import { FarmhouseFeatures } from "./steps/farmhouse-features";
 import { FarmhouseMedia } from "./steps/farmhouse-media";
 import FarmhouseReview from "./steps/farmhouse-review";
+import { useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 
 interface FarmHouseWizardProps {
   onBack: () => void;
@@ -46,6 +48,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
   isEditingDraft,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const queryClient = useQueryClient();
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -84,20 +87,23 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
     mode: "onChange",
   });
 
-  const onSubmit = async (data: FarmHousePropertyFormData) => {
+  const onSubmit = async (data: FarmHousePropertyFormData, shouldUseCredits: boolean) => {
     if (onSubmitProp) {
       onSubmitProp(data);
     } else {
       try {
         setIsSubmitting(true);
-        await addPropertyAsync(data);
+        await addPropertyAsync({ property: data, shouldUseCredits });
         form.reset();
         setCompletedSteps(new Set());
         setCurrentStep(0);
+        queryClient.invalidateQueries({ queryKey: ["wallet-balance"] });
         router.replace("/property/createProperty/success");
       } catch (error) {
-        console.error("Error submitting form:", error);
-        toast.error("Failed to submit property. Please try again.");
+        const axiosError = error as AxiosError<{ message: string }>;
+        toast.error(
+          axiosError.response?.data?.message || "Failed to create property"
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -236,10 +242,9 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
 
       if (errorMessages.length > 0) {
         toast.error(
-          `Please fix: ${errorMessages.slice(0, 3).join(", ")}${
-            errorMessages.length > 3
-              ? ` (+${errorMessages.length - 3} more)`
-              : ""
+          `Please fix: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3
+            ? ` (+${errorMessages.length - 3} more)`
+            : ""
           }`
         );
       } else {
@@ -261,10 +266,10 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (shouldUseCredits: boolean) => {
     const isValid = await form.trigger();
     if (isValid) {
-      form.handleSubmit(onSubmit)();
+      form.handleSubmit((data) => onSubmit(data, shouldUseCredits))();
     } else {
       // Show feedback when validation fails with specific field errors
       const errors = form.formState.errors;
@@ -289,10 +294,9 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
 
       if (errorMessages.length > 0) {
         toast.error(
-          `Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${
-            errorMessages.length > 3
-              ? ` (+${errorMessages.length - 3} more)`
-              : ""
+          `Missing required fields: ${errorMessages.slice(0, 3).join(", ")}${errorMessages.length > 3
+            ? ` (+${errorMessages.length - 3} more)`
+            : ""
           }`
         );
       } else {

@@ -33,7 +33,6 @@ import {
     CreditCard,
     History,
     Coins,
-    TrendingUp,
     Gift,
     Minus,
     RefreshCcw,
@@ -129,21 +128,11 @@ const CreditPackCard = ({
     pack,
     isSelected,
     onSelect,
-    badgeText,
-    badgeVariant = "default",
 }: {
     pack: CreditPack;
     isSelected: boolean;
     onSelect: () => void;
-    badgeText?: string;
-    badgeVariant?: "default" | "popular" | "value";
 }) => {
-    const badgeStyles = {
-        default: "bg-muted text-muted-foreground",
-        popular: "bg-primary text-primary-foreground",
-        value: "bg-green-500 text-white",
-    };
-
     return (
         <Card
             className={cn(
@@ -155,14 +144,10 @@ const CreditPackCard = ({
             onClick={onSelect}
         >
             {/* Badge */}
-            {badgeText && (
-                <div className={cn(
-                    "absolute top-0 right-0 px-3 py-1.5 text-xs font-semibold rounded-bl-xl flex items-center gap-1.5",
-                    badgeStyles[badgeVariant]
-                )}>
-                    {badgeVariant === "popular" && <Sparkles className="h-3 w-3" />}
-                    {badgeVariant === "value" && <TrendingUp className="h-3 w-3" />}
-                    {badgeText}
+            {pack.flagText && (
+                <div className="absolute top-0 right-0 px-3 py-1.5 text-xs font-semibold rounded-bl-xl flex items-center gap-1.5 bg-primary text-primary-foreground">
+                    <Sparkles className="h-3 w-3" />
+                    {pack.flagText}
                 </div>
             )}
 
@@ -173,8 +158,9 @@ const CreditPackCard = ({
                 </div>
             )}
 
-            <CardHeader className={cn("pb-3", badgeText && "pt-8")}>
+            <CardHeader className={cn("pb-3", pack.flagText && "pt-8")}>
                 <CardTitle className="text-xl font-bold">{pack.name}</CardTitle>
+                <CardDescription>{pack.description}</CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-4">
@@ -492,30 +478,14 @@ const CreditsPage = () => {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {creditPacks.map((pack, index) => {
-                                        // Determine badge based on pack position
-                                        let badgeText: string | undefined;
-                                        let badgeVariant: "default" | "popular" | "value" | undefined;
-
-                                        if (index === 1) {
-                                            badgeText = "Popular";
-                                            badgeVariant = "popular";
-                                        } else if (index === creditPacks.length - 1) {
-                                            badgeText = "Most Credits";
-                                            badgeVariant = "value";
-                                        }
-
-                                        return (
-                                            <CreditPackCard
-                                                key={pack.id}
-                                                pack={pack}
-                                                isSelected={selectedPackId === pack.id}
-                                                onSelect={() => setSelectedPackId(pack.id)}
-                                                badgeText={badgeText}
-                                                badgeVariant={badgeVariant}
-                                            />
-                                        );
-                                    })}
+                                    {creditPacks.map((pack) => (
+                                        <CreditPackCard
+                                            key={pack.id}
+                                            pack={pack}
+                                            isSelected={selectedPackId === pack.id}
+                                            onSelect={() => setSelectedPackId(pack.id)}
+                                        />
+                                    ))}
                                 </div>
                             )}
                         </div>

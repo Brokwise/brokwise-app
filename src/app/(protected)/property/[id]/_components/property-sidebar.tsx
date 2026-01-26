@@ -9,7 +9,20 @@ import { formatCurrency, formatAddress } from "@/utils/helper";
 import { format } from "date-fns";
 import { MakeOffer } from "./makeOffer";
 import { PropertyOffers } from "./propertyOffers";
-import { MapPin, ExternalLink, CalendarClock, Info, Coins } from "lucide-react";
+import { MapPin, ExternalLink, CalendarClock, Info, Coins, Loader2 } from "lucide-react";
+import { useEditProperty } from "@/hooks/useProperty";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapBox } from "./mapBox";
 import { useApp } from "@/context/AppContext";
@@ -17,6 +30,8 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import useCredits from "@/hooks/useCredits";
 import { CREDITS_PRICE } from "@/config/tier_limits";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCheckContactRequestStatus, useCreateContactRequest } from "@/hooks/useContactRequest";
 
 interface PropertySidebarProps {
     property: Property;
@@ -24,11 +39,27 @@ interface PropertySidebarProps {
 
 export const PropertySidebar = ({ property }: PropertySidebarProps) => {
     const { brokerData } = useApp();
-    const { balance } = useCredits()
+    const { balance, isLoading: isCreditsLoading } = useCredits()
     const router = useRouter();
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
+    const { editProperty, isPending: isEditPending } = useEditProperty();
+    const FEATURED_COST = CREDITS_PRICE.MARK_PROPERTY_AS_FEATURED;
+    const hasSufficientCredits = (balance || 0) >= FEATURED_COST;
+    const [showFeatureDialog, setShowFeatureDialog] = useState(false);
+    const [showContactRequestDialog, setShowContactRequestDialog] = useState(false);
+
+    // Contact request hooks
+    const { createContactRequest, isPending: isCreatingContactRequest } = useCreateContactRequest();
+    const {
+        hasExistingRequest,
+        isPending: hasPendingRequest,
+        isAccepted: hasAcceptedRequest,
+        isLoading: isCheckingRequestStatus,
+    } = useCheckContactRequestStatus(property._id);
 
     const isOwner = property.listedBy?._id === brokerData?._id;
+    const canRequestContact = balance >= CREDITS_PRICE["REQUEST_CONTACT"] && !hasExistingRequest;
 
     return (
         <div className="space-y-6 sticky top-24">
@@ -79,6 +110,82 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
 
                     <Separator />
 
+                    {isOwner && (
+                        <div className="space-y-3">
+                            {isCreditsLoading ? (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground p-3">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Checking credit balance...
+                                </div>
+                            ) : property.isFeatured ? <div>
+                                <div className="space-y-1 leading-none flex-1">
+                                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                        Property is featured
+                                    </label>
+
+                                    {!hasSufficientCredits && !property.isFeatured && (
+                                        <p className="text-[10px] text-destructive font-medium mt-1">
+                                            Insufficient credits ({balance})
+                                        </p>
+                                    )}
+                                </div>
+                            </div> : (
+                                <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 bg-muted/20">
+                                    <Checkbox
+                                        checked={property.isFeatured}
+                                        onCheckedChange={(checked) => {
+                                            if (checked && !hasSufficientCredits) return;
+                                            if (checked) {
+                                                setShowFeatureDialog(true);
+                                            }
+                                        }}
+                                        disabled={(!hasSufficientCredits && !property.isFeatured) || isEditPending}
+                                    />
+                                    <div className="space-y-1 leading-none flex-1">
+                                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                            Mark as Featured Property
+                                        </label>
+                                        <p className="text-xs text-muted-foreground">
+                                            {property.isFeatured
+                                                ? "Property is currently featured"
+                                                : `Promote for ${FEATURED_COST} Credits`}
+                                        </p>
+                                        {!hasSufficientCredits && !property.isFeatured && (
+                                            <p className="text-[10px] text-destructive font-medium mt-1">
+                                                Insufficient credits ({balance})
+                                            </p>
+                                        )}
+                                    </div>
+                                    {isEditPending && <Loader2 className="h-3 w-3 animate-spin" />}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <AlertDialog open={showFeatureDialog} onOpenChange={setShowFeatureDialog}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Mark Property as Featured?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This will deduct {FEATURED_COST} credits from your balance. Are you sure you want to proceed?
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => {
+                                    editProperty({
+                                        propertyId: property._id,
+                                        isFeatured: true
+                                    });
+                                    queryClient.invalidateQueries({ queryKey: ["wallet-balance"] })
+                                    setShowFeatureDialog(false);
+                                }}>
+                                    Confirm
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+
                     {isOwner && property.listingStatus === "ENQUIRY_ONLY" && (
                         <div className="p-3 bg-muted rounded-md text-sm">
                             {t("property_submitted_for_enquiry")}: {" "}
@@ -91,40 +198,97 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                             </Button>
                         </div>
                     )}
-                    {
-                        !isOwner && property.listingStatus !== "DELETED" &&
+                    {!isOwner && property.listingStatus !== "DELETED" && (
                         <div className="bg-muted/30 rounded-lg p-4 space-y-4 border border-border">
                             <div className="flex items-center justify-between">
                                 <span className="font-semibold text-sm">Contact Owner</span>
-                                <Badge variant="secondary" className="flex items-center gap-1.5 px-2 py-1">
-                                    <Coins className="h-3.5 w-3.5 text-primary" />
-                                    <span className="font-medium">{CREDITS_PRICE["REQUEST_CONTACT"]} Credits</span>
-                                </Badge>
+                                {!hasExistingRequest && (
+                                    <Badge variant="secondary" className="flex items-center gap-1.5 px-2 py-1">
+                                        <Coins className="h-3.5 w-3.5 text-primary" />
+                                        <span className="font-medium">{CREDITS_PRICE["REQUEST_CONTACT"]} Credits</span>
+                                    </Badge>
+                                )}
                             </div>
 
-                            <Alert className="bg-blue-50/50 border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/50 py-3">
-                                <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                <AlertDescription className="text-xs text-blue-700 dark:text-blue-300 ml-2">
-                                    100% refund of credits if property doesn&apos;t respond within 48 hours
-                                </AlertDescription>
-                            </Alert>
+                            {!hasExistingRequest && (
+                                <Alert className="bg-blue-50/50 border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/50 py-3">
+                                    <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                    <AlertDescription className="text-xs text-blue-700 dark:text-blue-300 ml-2">
+                                        100% refund of credits if property doesn&apos;t respond within 48 hours
+                                    </AlertDescription>
+                                </Alert>
+                            )}
 
                             <div className="space-y-2">
-                                <Button
-                                    className="w-full font-medium"
-                                    size="lg"
-                                    disabled={balance < CREDITS_PRICE["REQUEST_CONTACT"]}
-                                >
-                                    Request Contact Details
-                                </Button>
-                                {balance < CREDITS_PRICE["REQUEST_CONTACT"] && (
-                                    <p className="text-xs text-center text-destructive font-medium">
-                                        Insufficient credits to perform this action
-                                    </p>
+                                {isCheckingRequestStatus ? (
+                                    <Button className="w-full font-medium" size="lg" disabled>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Checking status...
+                                    </Button>
+                                ) : hasAcceptedRequest ? (
+                                    <Alert className="bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900/50">
+                                        <Info className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                        <AlertDescription className="text-sm text-green-700 dark:text-green-300 ml-2">
+                                            Contact details have been shared! Check your contacts.
+                                        </AlertDescription>
+                                    </Alert>
+                                ) : hasPendingRequest ? (
+                                    <Alert className="bg-yellow-50/50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-900/50">
+                                        <Info className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                                        <AlertDescription className="text-sm text-yellow-700 dark:text-yellow-300 ml-2">
+                                            Contact request pending. Waiting for owner response.
+                                        </AlertDescription>
+                                    </Alert>
+                                ) : (
+                                    <>
+                                        <Button
+                                            className="w-full font-medium"
+                                            size="lg"
+                                            disabled={!canRequestContact || isCreatingContactRequest}
+                                            onClick={() => setShowContactRequestDialog(true)}
+                                        >
+                                            {isCreatingContactRequest && (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            )}
+                                            Request Contact Details
+                                        </Button>
+                                        {balance < CREDITS_PRICE["REQUEST_CONTACT"] && (
+                                            <p className="text-xs text-center text-destructive font-medium">
+                                                Insufficient credits to perform this action
+                                            </p>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
-                    }
+                    )}
+
+                    <AlertDialog open={showContactRequestDialog} onOpenChange={setShowContactRequestDialog}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Request Contact Details?</AlertDialogTitle>
+                                <AlertDialogDescription className="space-y-2">
+                                    <p>
+                                        This will deduct <strong>{CREDITS_PRICE["REQUEST_CONTACT"]} credits</strong> from your balance.
+                                    </p>
+                                    <p className="text-muted-foreground">
+                                        If the property owner doesn&apos;t respond within 48 hours, your credits will be automatically refunded.
+                                    </p>
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={() => {
+                                        createContactRequest({ propertyId: property._id });
+                                        setShowContactRequestDialog(false);
+                                    }}
+                                >
+                                    Confirm Request
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
 
                     {isOwner && property.listingStatus !== "ENQUIRY_ONLY" && property.listingStatus !== "DELETED" && (
                         <PropertyOffers property={property} />

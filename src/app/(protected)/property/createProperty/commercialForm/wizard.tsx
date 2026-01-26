@@ -21,6 +21,8 @@ import { CommercialPropertySpecs } from "./steps/commercial-property-specs";
 import { CommercialFeatures } from "./steps/commercial-features";
 import { CommercialMedia } from "./steps/commercial-media";
 import { CommercialReview } from "./steps/commercial-review";
+import { useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 
 type CommercialPropertyType =
   | "SHOWROOM"
@@ -54,6 +56,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   isEditingDraft,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const queryClient = useQueryClient();
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,20 +106,23 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     }
   }, [watchedPropertyType, form]);
 
-  const onSubmit = async (data: CommercialPropertyFormData) => {
+  const onSubmit = async (data: CommercialPropertyFormData, shouldUseCredits: boolean) => {
     if (onSubmitProp) {
       onSubmitProp(data);
     } else {
       try {
         setIsSubmitting(true);
-        await addPropertyAsync(data);
+        await addPropertyAsync({ property: data, shouldUseCredits });
         form.reset();
         setCompletedSteps(new Set());
         setCurrentStep(0);
+        queryClient.invalidateQueries({ queryKey: ["wallet-balance"] });
         router.replace("/property/createProperty/success");
       } catch (error) {
-        console.error("Error submitting form:", error);
-        toast.error("Failed to submit property. Please try again.");
+        const axiosError = error as AxiosError<{ message: string }>;
+        toast.error(
+          axiosError.response?.data?.message || "Failed to create property"
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -301,10 +307,10 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (shouldUseCredits: boolean) => {
     const isValid = await form.trigger();
     if (isValid) {
-      form.handleSubmit(onSubmit)();
+      form.handleSubmit((data) => onSubmit(data, shouldUseCredits))();
     } else {
       const errors = form.formState.errors;
       const errorMessages: string[] = [];

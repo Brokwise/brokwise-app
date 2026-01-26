@@ -1,11 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PropertyCreateUseCredits } from "./property-create-use-credits";
+import { useGetRemainingQuota } from "@/hooks/useSubscription";
 
 export interface WizardStep {
   id: string;
@@ -23,18 +25,15 @@ interface WizardProps {
   onPrevious: () => void;
   onStepClick: (stepIndex: number) => void;
   onCancel: () => void;
-  onSubmit: () => void;
+  onSubmit: (shouldUseCredits: boolean) => void;
   onSaveDraft?: () => void;
   submitLabel?: string;
   isSavingDraft?: boolean;
   isSubmitting?: boolean;
   canProceed?: boolean;
   isLoading?: boolean;
-  /** Current number of drafts the user has */
   draftCount?: number;
-  /** Maximum number of drafts allowed (default: 5) */
   maxDrafts?: number;
-  /** Whether we're editing an existing draft (doesn't count toward limit) */
   isEditingDraft?: boolean;
 }
 
@@ -60,13 +59,13 @@ export const Wizard: React.FC<WizardProps> = ({
   const isLastStep = currentStep === steps.length - 1;
   const isFirstStep = currentStep === 0;
 
-  // Draft limit logic - if editing an existing draft, don't count toward limit
   const isDraftLimitReached = !isEditingDraft && draftCount >= maxDrafts;
   const canSaveDraft = !isDraftLimitReached;
+  const [shouldUseCredits, setShouldUseCredits] = useState(false)
+  const { remaining, isLoading: isQuotaLoading } = useGetRemainingQuota()
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Progress Bar */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>
@@ -77,7 +76,6 @@ export const Wizard: React.FC<WizardProps> = ({
         <Progress value={progress} className="h-2" />
       </div>
 
-      {/* Step Navigation */}
       <div className="flex flex-wrap gap-2 mb-6">
         {steps.map((step, index) => (
           <button
@@ -89,10 +87,10 @@ export const Wizard: React.FC<WizardProps> = ({
               index === currentStep
                 ? "bg-primary text-primary-foreground"
                 : step.isCompleted
-                ? "bg-green-100 text-green-800 hover:bg-green-200"
-                : index < currentStep
-                ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                : "bg-muted text-muted-foreground cursor-not-allowed"
+                  ? "bg-green-100 text-green-800 hover:bg-green-200"
+                  : index < currentStep
+                    ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    : "bg-muted text-muted-foreground cursor-not-allowed"
             )}
           >
             {step.isCompleted ? (
@@ -106,9 +104,7 @@ export const Wizard: React.FC<WizardProps> = ({
         ))}
       </div>
 
-      {/* Current Step Content */}
       <Card className="relative overflow-hidden">
-        {/* <div className="h-96 w-full absolute -top-1/3 right-1/2 translate-x-1/2 bg-primary/50 rounded-full blur-3xl"></div> */}
         <CardHeader className="relative">
           <CardTitle className="flex items-center gap-2">
             <span className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
@@ -127,7 +123,6 @@ export const Wizard: React.FC<WizardProps> = ({
         </CardContent>
       </Card>
 
-      {/* Navigation Buttons */}
       <div className="flex justify-between pt-0 pb-8 md:pb-2 md:pt-4">
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
@@ -168,17 +163,19 @@ export const Wizard: React.FC<WizardProps> = ({
             </Button>
           )}
         </div>
-
+        <div>
+          <PropertyCreateUseCredits shouldUseCredits={shouldUseCredits} setShouldUseCredits={setShouldUseCredits} />
+        </div>
         <div className="flex gap-2">
           {!isLastStep ? (
-            <Button type="button" onClick={onNext} disabled={!canProceed}>
+            <Button type="button" onClick={onNext} disabled={!canProceed || isQuotaLoading || (remaining?.property_listing === 0 && !shouldUseCredits)}>
               Next
             </Button>
           ) : (
             <Button
               type="button"
-              onClick={onSubmit}
-              disabled={isSubmitting || isLoading || !canProceed}
+              onClick={() => { onSubmit(shouldUseCredits) }}
+              disabled={isSubmitting || isLoading || isQuotaLoading || !canProceed || (remaining?.property_listing === 0 && !shouldUseCredits)}
             >
               {isSubmitting || isLoading
                 ? "Processing..."

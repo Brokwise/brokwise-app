@@ -23,6 +23,7 @@ import ResidentialReview from "./steps/residential-review";
 import { ResidentialMedia } from "./steps/residential-media";
 import { ResidentialFeatures } from "./steps/residential-features";
 import { useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 
 interface ResidentialWizardProps {
   onBack: () => void;
@@ -97,21 +98,23 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     }
   }, [watchedPropertyType, form]);
 
-  const onSubmit = async (data: ResidentialPropertyFormData) => {
+  const onSubmit = async (data: ResidentialPropertyFormData, shouldUseCredits: boolean) => {
     if (onSubmitProp) {
       onSubmitProp(data);
     } else {
       try {
         setIsSubmitting(true);
-        await addPropertyAsync(data);
+        await addPropertyAsync({ property: data, shouldUseCredits });
         form.reset();
         setCompletedSteps(new Set());
         setCurrentStep(0);
         queryClient.invalidateQueries({ queryKey: ["wallet-balance"] })
         router.replace("/property/createProperty/success");
       } catch (error) {
-        console.error("Error submitting form:", error);
-        toast.error(t("toast_error_property_submit"));
+        const axiosError = error as AxiosError<{ message: string }>;
+        toast.error(
+          axiosError.response?.data?.message || "Failed to create property"
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -291,10 +294,10 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (shouldUseCredits: boolean) => {
     const isValid = await form.trigger();
     if (isValid) {
-      form.handleSubmit(onSubmit)();
+      form.handleSubmit((data) => { onSubmit(data, shouldUseCredits) })();
     } else {
       const errors = form.formState.errors;
       const errorMessages: string[] = [];

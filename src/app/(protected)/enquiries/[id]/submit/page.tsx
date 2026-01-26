@@ -283,11 +283,7 @@ export default function SubmitEnquiryPage() {
             </div>
 
             {/* Boost proposal with bidding */}
-            <BidBoost
-              enquiryId={enquiry._id}
-              disabled={isSubmittingFresh}
-              onBidChange={setBidCredits}
-            />
+
 
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button
@@ -367,6 +363,7 @@ export default function SubmitEnquiryPage() {
             </TabsContent>
           </Tabs>
         )}
+
       </Card>
       <PropertyPreviewModal
         propertyId={previewPropertyId}

@@ -7,13 +7,20 @@ import {
   useSearchContacts,
   useDeleteContact,
 } from "@/hooks/useContacts";
+import {
+  useGetContactRequests,
+  useRespondToContactRequest,
+  useGetPendingContactRequestsCount,
+} from "@/hooks/useContactRequest";
 import { Contact, ContactSource, ContactType } from "@/models/types/contact";
+import { PopulatedContactRequest } from "@/types/contact-request";
 import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { formatCurrency } from "@/utils/helper";
 
 // UI Components
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +56,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from "@/components/ui/empty";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Icons
 import {
@@ -70,6 +78,10 @@ import {
   Clock,
   Inbox,
   Send,
+  Check,
+  XCircle,
+  Bell,
+  Timer,
 } from "lucide-react";
 
 import { formatDistanceToNow } from "date-fns";
@@ -85,6 +97,7 @@ const ContactsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const { t } = useTranslation();
 
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -118,6 +131,41 @@ const ContactsPage = () => {
 
   // Delete mutation
   const { deleteContact, isPending: isDeleting } = useDeleteContact();
+
+  // Pending contact requests (received)
+  const {
+    requests: pendingRequests,
+    isLoading: isPendingRequestsLoading,
+  } = useGetContactRequests(
+    { type: "received", status: "PENDING" },
+    { enabled: true }
+  );
+
+  // Pending count for badge
+  const { pendingCount } = useGetPendingContactRequestsCount();
+
+  // Respond to contact request mutation
+  const { respondToContactRequest, isPending: isResponding } = useRespondToContactRequest();
+
+  const handleAcceptRequest = (requestId: string) => {
+    setRespondingTo(requestId);
+    respondToContactRequest(
+      { requestId, action: "ACCEPT" },
+      {
+        onSettled: () => setRespondingTo(null),
+      }
+    );
+  };
+
+  const handleRejectRequest = (requestId: string) => {
+    setRespondingTo(requestId);
+    respondToContactRequest(
+      { requestId, action: "REJECT" },
+      {
+        onSettled: () => setRespondingTo(null),
+      }
+    );
+  };
 
   // Determine which contacts to display
   const displayedContacts = useMemo(() => {
@@ -226,6 +274,47 @@ const ContactsPage = () => {
           className="text-amber-600 dark:text-amber-400"
         />
       </div>
+
+      {/* Pending Contact Requests Section */}
+      {(isPendingRequestsLoading || (pendingRequests && pendingRequests.length > 0)) && (
+        <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                <CardTitle className="text-lg">Pending Contact Requests</CardTitle>
+                {pendingCount > 0 && (
+                  <Badge variant="secondary" className="bg-amber-500 text-white hover:bg-amber-600">
+                    {pendingCount}
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <CardDescription>
+              Brokers are requesting your contact details for your properties. Respond within 48 hours.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {isPendingRequestsLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <PendingRequestSkeleton key={i} />
+                ))}
+              </div>
+            ) : pendingRequests && pendingRequests.length > 0 ? (
+              pendingRequests.map((request) => (
+                <PendingRequestCard
+                  key={request._id}
+                  request={request}
+                  onAccept={handleAcceptRequest}
+                  onReject={handleRejectRequest}
+                  isResponding={isResponding && respondingTo === request._id}
+                />
+              ))
+            ) : null}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters and Search */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -666,6 +755,128 @@ const ContactCardSkeleton = () => (
       </div>
     </CardHeader>
   </Card>
+);
+
+// Pending Request Card Component
+interface PendingRequestCardProps {
+  request: PopulatedContactRequest;
+  onAccept: (requestId: string) => void;
+  onReject: (requestId: string) => void;
+  isResponding: boolean;
+}
+
+const PendingRequestCard = ({
+  request,
+  onAccept,
+  onReject,
+  isResponding,
+}: PendingRequestCardProps) => {
+  const requester = request.requesterId;
+  const property = request.propertyId;
+  const expiresAt = new Date(request.expiresAt);
+  const timeLeft = formatDistanceToNow(expiresAt, { addSuffix: false });
+  const isExpiringSoon = expiresAt.getTime() - Date.now() < 12 * 60 * 60 * 1000; // Less than 12 hours
+
+  const requesterName = `${requester.firstName} ${requester.lastName}`.trim();
+  const requesterInitials = `${requester.firstName?.[0] || ""}${requester.lastName?.[0] || ""}`.toUpperCase();
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-background border border-border/50 shadow-sm">
+      <div className="flex items-start gap-3 min-w-0 flex-1">
+        <Avatar className="h-10 w-10 shrink-0">
+          <AvatarImage src={undefined} alt={requesterName} />
+          <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+            {requesterInitials || <UserCircle className="h-5 w-5" />}
+          </AvatarFallback>
+        </Avatar>
+
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-sm truncate">{requesterName}</span>
+            {requester.companyName && (
+              <span className="text-xs text-muted-foreground truncate">
+                • {requester.companyName}
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Home className="h-3 w-3" />
+              <span className="truncate max-w-[200px]">
+                {property.propertyId || `${property.propertyCategory} - ${property.propertyType?.replace(/_/g, " ")}`}
+              </span>
+            </div>
+            {property.totalPrice && (
+              <span className="font-medium text-foreground">
+                {formatCurrency(property.totalPrice)}
+              </span>
+            )}
+          </div>
+
+          <div className={cn(
+            "flex items-center gap-1 text-xs",
+            isExpiringSoon ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
+          )}>
+            <Timer className="h-3 w-3" />
+            <span>Expires in {timeLeft}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 shrink-0">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onReject(request._id)}
+          disabled={isResponding}
+          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+        >
+          {isResponding ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <XCircle className="h-4 w-4 mr-1" />
+              Reject
+            </>
+          )}
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => onAccept(request._id)}
+          disabled={isResponding}
+          className="bg-green-600 hover:bg-green-700 text-white"
+        >
+          {isResponding ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <Check className="h-4 w-4 mr-1" />
+              Accept
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Skeleton for pending request card
+const PendingRequestSkeleton = () => (
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-background border border-border/50">
+    <div className="flex items-start gap-3 flex-1">
+      <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="h-3 w-56" />
+        <Skeleton className="h-3 w-24" />
+      </div>
+    </div>
+    <div className="flex gap-2 shrink-0">
+      <Skeleton className="h-8 w-20" />
+      <Skeleton className="h-8 w-20" />
+    </div>
+  </div>
 );
 
 export default ContactsPage;

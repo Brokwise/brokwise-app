@@ -132,7 +132,6 @@ const CreateProperty = () => {
   const handleCompanySubmit = async (data: PropertyFormData) => {
     try {
       await createCompanyPropertyAsync({ ...data });
-      // Reset state and navigate to success page after successful submission
       setSelectedCategory(null);
       setSelectedDraft(null);
       router.replace("/property/createProperty/success");
