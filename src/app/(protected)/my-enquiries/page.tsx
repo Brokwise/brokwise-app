@@ -6,7 +6,6 @@ import { EnquiryCard } from "@/app/(protected)/enquiries/_components/EnquiryCard
 import {
   Loader2,
   Plus,
-  Inbox,
   LayoutGrid,
   List,
   Search,
@@ -14,7 +13,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import { Input } from "@/components/ui/input";
@@ -35,19 +33,18 @@ const STORAGE_KEY = "myEnquiriesView";
 const MyEnquiriesPage = () => {
   const router = useRouter();
   const { myEnquiries, isLoading, error } = useGetMyEnquiries();
-  const [view, setView] = useState<"grid" | "list" | null>(null); // null = loading from storage
+  const [view, setView] = useState<"grid" | "list" | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [propertyTypeFilter, setPropertyTypeFilter] = useState("all");
   const { t } = useTranslation();
 
-  // Load view preference from local storage (client-side only)
+  // Load view preference from local storage
   useEffect(() => {
     try {
       const savedView = localStorage.getItem(STORAGE_KEY);
       setView(savedView === "list" ? "list" : "grid");
     } catch {
-      // localStorage not available (SSR or privacy mode)
       setView("grid");
     }
   }, []);
@@ -57,11 +54,10 @@ const MyEnquiriesPage = () => {
     try {
       localStorage.setItem(STORAGE_KEY, newView);
     } catch {
-      // localStorage not available
+      // ignore
     }
   };
 
-  // Derive effective view for rendering (default to grid while loading)
   const effectiveView = view ?? "grid";
 
   const filteredEnquiries = useMemo(() => {
@@ -82,21 +78,17 @@ const MyEnquiriesPage = () => {
       if (!searchQuery) return true;
       const search = searchQuery.toLowerCase();
 
-      // Check if description matches
       const descriptionMatch = enquiry.description
         ?.toLowerCase()
         .includes(search);
 
-      // Check if location matches
       const locationString = formatEnquiryLocation(enquiry);
       const locationMatch = locationString.toLowerCase().includes(search);
 
-      // Check if category matches
       const categoryMatch = enquiry.enquiryCategory
         ?.toLowerCase()
         .includes(search);
 
-      // Check if type matches
       const typeMatch = enquiry.enquiryType?.toLowerCase().includes(search);
 
       return descriptionMatch || locationMatch || categoryMatch || typeMatch;
@@ -137,8 +129,8 @@ const MyEnquiriesPage = () => {
         </div>
       </PageHeader>
 
-      <div className="space-y-5 sm:space-y-6">
-        {/* Filters Section - Visible in both views */}
+      <div className="space-y-6">
+        {/* Filters Section */}
         {myEnquiries && myEnquiries.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-1 sm:mt-2">
             <div className="relative flex-1">
@@ -151,8 +143,6 @@ const MyEnquiriesPage = () => {
               />
             </div>
             <div className="flex gap-2">
-
-
               <div className="w-full sm:w-48 flex flex-row">
                 <Select
                   value={propertyTypeFilter}
@@ -210,96 +200,14 @@ const MyEnquiriesPage = () => {
             </div>
           </div>
         )}
-      </div>
 
-      {/* Stats Overview */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-3">
-        <Card>
-          <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center space-y-1.5 sm:space-y-2">
-            <div className="text-xl sm:text-2xl font-bold">
-              {myEnquiries?.length || 0}
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground text-center">
-              {t("page_my_enquiries_total")}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center space-y-1.5 sm:space-y-2">
-            <div className="text-xl sm:text-2xl font-bold text-green-600">
-              {myEnquiries?.filter((e) => e.status === "active").length || 0}
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground text-center">
-              {t("page_my_enquiries_active")}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center space-y-1.5 sm:space-y-2">
-            <div className="text-xl sm:text-2xl font-bold text-blue-600">
-              {myEnquiries?.reduce(
-                (acc, curr) => acc + (curr.submissionCount || 0),
-                0
-              ) || 0}
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground text-center">
-              {t("page_my_enquiries_responses")}
-            </div>
-          </CardContent>
-        </Card>
+        <DataTable
+          columns={columns}
+          data={filteredEnquiries}
+          viewMode={effectiveView}
+          renderGridItem={(enquiry) => <EnquiryCard enquiry={enquiry} />}
+        />
       </div>
-
-      {!myEnquiries || myEnquiries.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center border rounded-xl bg-muted/20 border-dashed">
-          <Inbox className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4 opacity-50" />
-          <h3 className="text-lg font-medium">
-            {t("page_my_enquiries_empty_title")}
-          </h3>
-          <p className="text-sm sm:text-base text-muted-foreground max-w-sm mx-auto mt-2">
-            {t("page_my_enquiries_empty_desc")}
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-4 h-9 sm:h-10"
-            onClick={() => router.push("/enquiries/create")}
-          >
-            {t("page_my_enquiries_empty_button")}
-          </Button>
-        </div>
-      ) : (
-        <>
-          {effectiveView === "grid" ? (
-            filteredEnquiries.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center border rounded-xl bg-muted/20 border-dashed">
-                <Inbox className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3 sm:mb-4 opacity-50" />
-                <h3 className="text-lg font-medium">
-                  {t("page_my_enquiries_no_match")}
-                </h3>
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setStatusFilter("all");
-                    setPropertyTypeFilter("all");
-                  }}
-                >
-                  {t("action_clear_filters")}
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {filteredEnquiries.map((enquiry) => (
-                  <EnquiryCard key={enquiry._id} enquiry={enquiry} />
-                ))}
-              </div>
-            )
-          ) : (
-            <DataTable columns={columns} data={filteredEnquiries} />
-          )}
-        </>
-      )}
     </PageShell>
   );
 };
