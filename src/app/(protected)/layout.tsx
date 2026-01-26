@@ -15,6 +15,7 @@ import { UserAvatar } from "./_components/userAvatar";
 import { CreditsBadge } from "./_components/creditsBadge";
 import { Separator } from "@/components/ui/separator";
 import { ChatbotWidget } from "@/components/chatbot";
+import ScrollToTop from "@/components/ui/scroll-to-top";
 
 const layout = ({ children }: { children: React.ReactNode }) => {
   const sidebarCookie = cookies().get("sidebar_state")?.value;
@@ -27,7 +28,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
         <UndoDeleteProvider>
           <SidebarProvider defaultOpen={defaultSidebarOpen}>
             <AppSidebar />
-            <SidebarInset className="overflow-auto h-svh">
+            <SidebarInset className="overflow-auto h-svh scrollbar-hide">
               <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 sticky top-0 z-40 w-full">
                 <div className="flex items-center gap-2">
                   <SidebarTrigger className="-ml-1" />
@@ -47,6 +48,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
 
               <BottomNav />
               <ChatbotWidget />
+              <ScrollToTop />
             </SidebarInset>
           </SidebarProvider>
         </UndoDeleteProvider>
