@@ -205,6 +205,7 @@ const MyEnquiriesPage = () => {
           columns={columns}
           data={filteredEnquiries}
           viewMode={effectiveView}
+          onRowClick={(enquiry) => router.push(`/enquiries/${enquiry._id}`)}
           renderGridItem={(enquiry) => <EnquiryCard enquiry={enquiry} />}
         />
       </div>

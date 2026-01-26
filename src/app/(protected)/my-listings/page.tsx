@@ -7,6 +7,7 @@ import { columns } from "./columns";
 import { PageHeader, PageShell } from "@/components/ui/layout";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   LayoutGrid,
@@ -33,6 +34,7 @@ import { PropertyActions } from "@/components/property/property-actions";
 const STORAGE_KEY = "myListingsView";
 
 export default function MyListings() {
+  const router = useRouter();
   const { myListings, isLoading, error } = useGetMyListings();
   const { t } = useTranslation();
 
@@ -215,6 +217,7 @@ export default function MyListings() {
           columns={columns}
           data={filteredListings}
           viewMode={effectiveView}
+          onRowClick={(property) => router.push(`/property/${property._id}`)}
           renderGridItem={(property) => (
             <PropertyCard
               property={property}

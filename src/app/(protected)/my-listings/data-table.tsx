@@ -57,6 +57,7 @@ interface DataTableProps<TData, TValue> {
   error?: Error | null;
   renderGridItem?: (data: TData) => React.ReactNode;
   viewMode?: "grid" | "list";
+  onRowClick?: (data: TData) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -66,6 +67,7 @@ export function DataTable<TData, TValue>({
   error = null,
   renderGridItem,
   viewMode = "grid",
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -218,7 +220,8 @@ export function DataTable<TData, TValue>({
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && "selected"}
-                        className="hover:bg-muted/20 transition-colors"
+                        className={`hover:bg-muted/20 transition-colors ${onRowClick ? "cursor-pointer" : ""}`}
+                        onClick={() => onRowClick?.(row.original)}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id} className="py-3">
