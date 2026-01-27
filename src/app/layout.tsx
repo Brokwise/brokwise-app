@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "../globals.css";
 import { QueryClientProviderWrapper } from "@/providers/queryClientProvider";
 import { Toaster } from "@/components/ui/sonner";
@@ -25,6 +26,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <Script
+        src="https://t.contentsquare.net/uxa/43df6114dc031.js"
+        strategy="beforeInteractive"
+      />
       <body
         className={`${inter.variable} antialiased`}
       >
