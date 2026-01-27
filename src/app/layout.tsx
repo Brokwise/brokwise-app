@@ -26,13 +26,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <Script
-        src="https://t.contentsquare.net/uxa/43df6114dc031.js"
-        strategy="beforeInteractive"
-      />
       <body
         className={`${inter.variable} antialiased`}
       >
+        <Script
+          src="https://t.contentsquare.net/uxa/43df6114dc031.js"
+          strategy="beforeInteractive"
+        />
         <PostHogProvider>
           <Providers>
             <QueryClientProviderWrapper>
