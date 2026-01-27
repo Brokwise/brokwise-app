@@ -50,7 +50,7 @@ export function UserAvatar() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80 p-2" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal p-3 bg-muted/30 rounded-md mb-2">
+        <DropdownMenuLabel className="font-normal p-3 bg-muted/50 border border-border/50 rounded-lg mb-2 shadow-sm">
           <div className="flex flex-col space-y-1.5">
             <p className="text-sm font-semibold leading-none text-foreground">{user?.displayName || "User"}</p>
             <p className="text-xs leading-normal text-muted-foreground truncate max-w-[280px] pb-0.5" title={user?.email || ""}>
