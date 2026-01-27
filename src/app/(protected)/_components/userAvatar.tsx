@@ -36,16 +36,19 @@ export function UserAvatar() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all">
           <Avatar className="h-9 w-9 border border-border">
-            <Image
-              src={user?.photoURL || ""}
-              alt={user?.displayName || "User"}
-              width={100}
-              height={100}
-              className="object-cover"
-            />
-            <AvatarFallback className="bg-primary/10 text-primary font-medium">
-              {user?.displayName?.charAt(0).toUpperCase() || "U"}
-            </AvatarFallback>
+            {user?.photoURL ? (
+              <Image
+                src={user.photoURL}
+                alt={user?.displayName || "User"}
+                width={100}
+                height={100}
+                className="object-cover"
+              />
+            ) : (
+              <AvatarFallback className="bg-gradient-to-br from-primary/20 via-primary/10 to-transparent text-primary font-semibold">
+                {(user?.displayName?.charAt(0) || user?.email?.charAt(0) || "U").toUpperCase()}
+              </AvatarFallback>
+            )}
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
