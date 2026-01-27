@@ -23,77 +23,96 @@ import { changeLanguage } from "@/i18n";
 export function UserAvatar() {
   const [user] = useAuthState(firebaseAuth);
   const [mounted, setMounted] = useState(false);
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language;
 
   useEffect(() => setMounted(true), []);
 
   if (!mounted) return null;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
-          <Avatar className="h-8 w-8">
+        <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all">
+          <Avatar className="h-9 w-9 border border-border">
             <Image
               src={user?.photoURL || ""}
               alt={user?.displayName || "User"}
               width={100}
               height={100}
+              className="object-cover"
             />
-            <AvatarFallback>
+            <AvatarFallback className="bg-primary/10 text-primary font-medium">
               {user?.displayName?.charAt(0).toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end">
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.displayName || "User"}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+      <DropdownMenuContent className="w-80 p-2" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal p-3 bg-muted/30 rounded-md mb-2">
+          <div className="flex flex-col space-y-1.5">
+            <p className="text-sm font-semibold leading-none text-foreground">{user?.displayName || "User"}</p>
+            <p className="text-xs leading-none text-muted-foreground truncate max-w-[280px]" title={user?.email || ""}>
+              {user?.email}
+            </p>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link href="/profile" className="w-full cursor-pointer">
-              {t("nav_profile")}
+
+        <DropdownMenuGroup className="space-y-1">
+          <DropdownMenuItem asChild className="cursor-pointer py-2.5 focus:bg-accent/50">
+            <Link href="/profile" className="w-full flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </div>
+              <span className="font-medium">{t("nav_profile") || "Profile"}</span>
             </Link>
           </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          {/* Language Toggle */}
-          <DropdownMenuItem
-            className="focus:bg-transparent focus:text-foreground"
-            onSelect={(e) => e.preventDefault()}
-          >
-            <div className="w-full flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Languages className="h-4 w-4" />
-                <span className="text-sm">{t("select_language")}</span>
+
+          <div className="px-2 py-2">
+            <div className="flex items-center justify-between mb-2 px-1">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Settings</span>
+            </div>
+
+            {/* Language Selection */}
+            <div className="flex items-center justify-between p-2 rounded-lg border bg-card mb-2 hover:bg-accent/20 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                  <Languages className="h-4 w-4" />
+                </div>
+                <span className="text-sm font-medium">{t("select_language") || "Language"}</span>
               </div>
-              <div className="flex gap-1 border rounded-full px-1 py-0.5 bg-muted/50">
+              <div className="flex gap-1 p-1 bg-muted/60 rounded-lg">
                 <Button
-                  variant={currentLang === "en" ? "secondary" : "ghost"}
+                  variant={currentLang === "en" ? "default" : "ghost"}
                   size="sm"
-                  className="h-6 px-2 rounded-full text-xs"
+                  className={`h-7 px-3 rounded-md text-xs font-medium transition-all ${currentLang === 'en' ? 'shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    e.stopPropagation();
                     changeLanguage("en");
                   }}
                 >
                   EN
                 </Button>
                 <Button
-                  variant={currentLang === "hi" ? "secondary" : "ghost"}
+                  variant={currentLang === "hi" ? "default" : "ghost"}
                   size="sm"
-                  className="h-6 px-2 rounded-full text-xs"
+                  className={`h-7 px-3 rounded-md text-xs font-medium transition-all ${currentLang === 'hi' ? 'shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    e.stopPropagation();
                     changeLanguage("hi");
                   }}
                 >
@@ -101,46 +120,44 @@ export function UserAvatar() {
                 </Button>
               </div>
             </div>
-          </DropdownMenuItem>
-          {/* Theme Toggle */}
-          <DropdownMenuItem
-            className="focus:bg-transparent focus:text-foreground"
-            onSelect={(e) => e.preventDefault()}
-          >
-            <div className="w-full flex items-center justify-between">
-              <span className="text-sm">Theme</span>
-              <div className="flex gap-1 border rounded-full px-1 py-0.5 bg-muted/50">
+
+            {/* Theme Selection */}
+            <div className="flex items-center justify-between p-2 rounded-lg border bg-card hover:bg-accent/20 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                  <Sun className="h-4 w-4" />
+                </div>
+                <span className="text-sm font-medium">Theme</span>
+              </div>
+              <div className="flex gap-1 p-1 bg-muted/60 rounded-lg">
                 <Button
-                  variant="ghost"
+                  variant={theme === "light" ? "default" : "ghost"}
                   size="icon"
-                  className="h-6 w-6 rounded-full"
+                  className={`h-7 w-7 rounded-md transition-all ${theme === 'light' ? 'shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    e.stopPropagation();
                     setTheme("light");
                   }}
                 >
                   <Sun className="h-3.5 w-3.5" />
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant={theme === "dark" ? "default" : "ghost"}
                   size="icon"
-                  className="h-6 w-6 rounded-full"
+                  className={`h-7 w-7 rounded-md transition-all ${theme === 'dark' ? 'shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    e.stopPropagation();
                     setTheme("dark");
                   }}
                 >
                   <Moon className="h-3.5 w-3.5" />
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant={theme === "system" ? "default" : "ghost"}
                   size="icon"
-                  className="h-6 w-6 rounded-full"
+                  className={`h-7 w-7 rounded-md transition-all ${theme === 'system' ? 'shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    e.stopPropagation();
                     setTheme("system");
                   }}
                 >
@@ -148,13 +165,18 @@ export function UserAvatar() {
                 </Button>
               </div>
             </div>
-          </DropdownMenuItem>
+          </div>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
+
+        <DropdownMenuSeparator className="my-2" />
+
         <DropdownMenuItem
           onClick={() => signOut(firebaseAuth)}
-          className="text-destructive focus:text-destructive cursor-pointer"
+          className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 py-2.5 flex items-center gap-3 font-medium"
         >
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>
+          </div>
           Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
