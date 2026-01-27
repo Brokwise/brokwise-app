@@ -53,7 +53,7 @@ export function UserAvatar() {
         <DropdownMenuLabel className="font-normal p-3 bg-muted/30 rounded-md mb-2">
           <div className="flex flex-col space-y-1.5">
             <p className="text-sm font-semibold leading-none text-foreground">{user?.displayName || "User"}</p>
-            <p className="text-xs leading-none text-muted-foreground truncate max-w-[280px]" title={user?.email || ""}>
+            <p className="text-xs leading-normal text-muted-foreground truncate max-w-[280px] pb-0.5" title={user?.email || ""}>
               {user?.email}
             </p>
           </div>
