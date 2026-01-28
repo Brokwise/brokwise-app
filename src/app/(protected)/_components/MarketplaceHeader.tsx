@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Typography } from "@/components/ui/typography";
 import {
   Search,
@@ -191,9 +192,16 @@ export const MarketplaceHeader = ({
       <div className="flex items-center justify-between gap-2 sm:gap-4">
         {/* Left: Title + Segmented Control */}
         <div className="flex items-center gap-2 sm:gap-4 md:gap-6 min-w-0 flex-1">
-          <Typography variant="h1" className="shrink-0">
-            Marketplace
-          </Typography>
+          <motion.div
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="shrink-0"
+          >
+            <Typography variant="h1">
+              Marketplace
+            </Typography>
+          </motion.div>
 
           {/* Segmented Control */}
           <div className="flex items-center gap-0.5 bg-muted/50 p-0.5 rounded-lg border border-border/40">

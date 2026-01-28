@@ -453,7 +453,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             <div className="text-xs font-medium text-accent uppercase tracking-wider">
               {property.propertyCategory}
             </div>
-            <Typography variant="h3" className="line-clamp-1 leading-tight">
+            <Typography variant="h3" className="text-base line-clamp-1 leading-tight">
               {property.bhk ? `${property.bhk} BHK ` : ""}
               {property.propertyType.replace(/_/g, " ")}
             </Typography>
