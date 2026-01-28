@@ -434,7 +434,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Price Tag Overlay (Luxurious Touch) */}
         <div className="absolute bottom-3 right-3 z-10">
           <div className="bg-background/95 backdrop-blur shadow-md px-3 py-1.5 rounded-lg border border-accent/10 flex flex-col items-end">
-            <Typography variant="h3" className="font-bold text-accent leading-none">
+            <Typography variant="large" className="font-bold text-accent leading-none">
               {formatPriceShort(property.totalPrice)}
             </Typography>
             {rateDisplay && (

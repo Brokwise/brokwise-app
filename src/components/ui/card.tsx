@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { Typography } from "./typography"
 
 const Card = React.forwardRef<
   HTMLDivElement,
@@ -29,8 +30,6 @@ const CardHeader = React.forwardRef<
 ))
 CardHeader.displayName = "CardHeader"
 
-import { Typography } from "./typography";
-
 const CardTitle = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -48,9 +47,11 @@ const CardDescription = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div
+  <Typography
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    variant="muted"
+    as="div"
+    className={cn("", className)}
     {...props}
   />
 ))

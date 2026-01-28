@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell, PageHeader } from "@/components/ui/layout";
+import { Typography } from "@/components/ui/typography";
 import {
     Wallet,
     CreditCard,
@@ -101,7 +102,7 @@ const WalletBalanceCard = ({
     return (
         <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/20">
             <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle>
                     <Wallet className="h-5 w-5 text-primary" />
                     Your Credit Balance
                 </CardTitle>
@@ -112,10 +113,10 @@ const WalletBalanceCard = ({
                     <Skeleton className="h-12 w-32" />
                 ) : (
                     <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-bold text-primary">
+                        <Typography variant="value" className="text-4xl text-primary">
                             {balance.toLocaleString()}
-                        </span>
-                        <span className="text-muted-foreground">credits</span>
+                        </Typography>
+                        <Typography variant="muted">credits</Typography>
                     </div>
                 )}
             </CardContent>
@@ -145,9 +146,9 @@ const CreditPackCard = ({
         >
             {/* Badge */}
             {pack.flagText && (
-                <div className="absolute top-0 right-0 px-3 py-1.5 text-xs font-semibold rounded-bl-xl flex items-center gap-1.5 bg-primary text-primary-foreground">
+                <div className="absolute top-0 right-0 px-3 py-1.5 rounded-bl-xl flex items-center gap-1.5 bg-primary text-primary-foreground">
                     <Sparkles className="h-3 w-3" />
-                    {pack.flagText}
+                    <Typography variant="small">{pack.flagText}</Typography>
                 </div>
             )}
 
@@ -159,7 +160,7 @@ const CreditPackCard = ({
             )}
 
             <CardHeader className={cn("pb-3", pack.flagText && "pt-8")}>
-                <CardTitle className="text-xl font-bold">{pack.name}</CardTitle>
+                <CardTitle>{pack.name}</CardTitle>
                 <CardDescription>{pack.description}</CardDescription>
             </CardHeader>
 
@@ -168,14 +169,14 @@ const CreditPackCard = ({
                 <div className="text-center py-4 bg-muted/50 rounded-lg">
                     <div className="flex items-baseline justify-center gap-1">
                         <Coins className="h-6 w-6 text-primary mr-1" />
-                        <span className="text-4xl font-bold text-foreground">{pack.credits.toLocaleString()}</span>
+                        <Typography variant="value" className="text-foreground">{pack.credits.toLocaleString()}</Typography>
                     </div>
-                    <span className="text-sm text-muted-foreground">credits</span>
+                    <Typography variant="small" className="text-muted-foreground">credits</Typography>
                 </div>
 
                 {/* Price */}
                 <div className="text-center">
-                    <span className="text-3xl font-bold text-primary">₹{pack.priceInr}</span>
+                    <Typography variant="value" className="text-primary">₹{pack.priceInr}</Typography>
                 </div>
             </CardContent>
 
@@ -228,7 +229,7 @@ const TransactionHistory = () => {
             <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <CardTitle className="text-lg flex items-center gap-2">
+                        <CardTitle>
                             <History className="h-5 w-5" />
                             Transaction History
                         </CardTitle>
@@ -466,10 +467,10 @@ const CreditsPage = () => {
 
                         {/* Credit Packs */}
                         <div>
-                            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                            <Typography variant="h2" className="mb-4 flex items-center gap-2">
                                 <CreditCard className="h-5 w-5" />
                                 Choose a Credit Pack
-                            </h2>
+                            </Typography>
                             {isLoading ? (
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {[1, 2, 3].map((i) => (
@@ -497,13 +498,13 @@ const CreditsPage = () => {
                                     <div>
                                         {selectedPackId ? (
                                             <div className="space-y-1">
-                                                <p className="font-medium">
+                                                <Typography variant="p" className="font-medium">
                                                     Selected:{" "}
                                                     {
                                                         creditPacks.find((p) => p.id === selectedPackId)
                                                             ?.name
                                                     }
-                                                </p>
+                                                </Typography>
                                                 <p className="text-muted-foreground text-sm">
                                                     {
                                                         creditPacks.find((p) => p.id === selectedPackId)

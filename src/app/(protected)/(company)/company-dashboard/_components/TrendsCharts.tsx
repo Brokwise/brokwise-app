@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Typography } from "@/components/ui/typography";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrendData, TimeFrame } from "@/hooks/useCompanyDashboard";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -158,7 +159,7 @@ export function TrendsCharts({
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle>
                 <TrendingUp className="h-5 w-5 text-primary" />
                 Activity Trends
               </CardTitle>
@@ -187,23 +188,24 @@ export function TrendsCharts({
                   <div className="p-2 rounded-lg bg-blue-500/10">
                     <Building2 className="h-4 w-4 text-blue-500" />
                   </div>
-                  <span className="font-medium">Properties</span>
+                  <Typography variant="p" className="font-medium">Properties</Typography>
                 </div>
                 {propertyGrowth.trend !== "neutral" && (
-                  <div
-                    className={`flex items-center gap-1 text-sm ${
+                  <Typography
+                    variant="small"
+                    className={
                       propertyGrowth.trend === "up"
                         ? "text-emerald-600"
                         : "text-red-600"
-                    }`}
+                    }
                   >
                     {propertyGrowth.trend === "up" ? (
-                      <TrendingUp className="h-4 w-4" />
+                      <TrendingUp className="h-4 w-4 inline mr-1" />
                     ) : (
-                      <TrendingDown className="h-4 w-4" />
+                      <TrendingDown className="h-4 w-4 inline mr-1" />
                     )}
                     {propertyGrowth.percentage.toFixed(1)}%
-                  </div>
+                  </Typography>
                 )}
               </div>
               {propertyData.length > 0 ? (
@@ -276,23 +278,24 @@ export function TrendsCharts({
                   <div className="p-2 rounded-lg bg-emerald-500/10">
                     <MessageSquare className="h-4 w-4 text-emerald-500" />
                   </div>
-                  <span className="font-medium">Enquiries</span>
+                  <Typography variant="p" className="font-medium">Enquiries</Typography>
                 </div>
                 {enquiryGrowth.trend !== "neutral" && (
-                  <div
-                    className={`flex items-center gap-1 text-sm ${
+                  <Typography
+                    variant="small"
+                    className={
                       enquiryGrowth.trend === "up"
                         ? "text-emerald-600"
                         : "text-red-600"
-                    }`}
+                    }
                   >
                     {enquiryGrowth.trend === "up" ? (
-                      <TrendingUp className="h-4 w-4" />
+                      <TrendingUp className="h-4 w-4 inline mr-1" />
                     ) : (
-                      <TrendingDown className="h-4 w-4" />
+                      <TrendingDown className="h-4 w-4 inline mr-1" />
                     )}
                     {enquiryGrowth.percentage.toFixed(1)}%
-                  </div>
+                  </Typography>
                 )}
               </div>
               {enquiryData.length > 0 ? (

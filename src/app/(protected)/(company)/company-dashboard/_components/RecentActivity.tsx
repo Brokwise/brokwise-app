@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Typography } from "@/components/ui/typography";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecentActivity } from "@/hooks/useCompanyDashboard";
 import { motion } from "framer-motion";
@@ -69,14 +70,14 @@ export function RecentActivityFeed({
     return (
       <Card className="h-full border-none shadow-none bg-transparent">
         <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-xl font-semibold flex items-center gap-2">
+          <CardTitle>
             Recent Activity
           </CardTitle>
           <CardDescription>Latest updates from your team</CardDescription>
         </CardHeader>
         <CardContent className="px-0 flex flex-col items-center justify-center h-[300px] text-muted-foreground bg-muted/30 rounded-xl">
           <Clock className="h-10 w-10 mb-3 opacity-20" />
-          <p>No activity yet</p>
+          <Typography variant="p">No activity yet</Typography>
         </CardContent>
       </Card>
     );
@@ -89,12 +90,12 @@ export function RecentActivityFeed({
       className="h-full flex flex-col"
     >
       <div className="mb-4">
-        <h3 className="text-xl font-semibold text-foreground">
+        <Typography variant="h2">
           Recent Activity
-        </h3>
-        <p className="text-sm text-muted-foreground">
+        </Typography>
+        <Typography variant="muted">
           Real-time updates
-        </p>
+        </Typography>
       </div>
 
       <ScrollArea className="flex-1 -mr-4 pr-4">
@@ -120,9 +121,9 @@ export function RecentActivityFeed({
               {/* Content */}
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between">
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full w-fit ${getStatusColor(activity.status)}`}>
+                  <Typography variant="small" className={`px-2 py-0.5 rounded-full w-fit ${getStatusColor(activity.status)}`}>
                     {activity.status}
-                  </span>
+                  </Typography>
                   <span className="text-[10px] text-muted-foreground">
                     {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
                   </span>
@@ -130,21 +131,21 @@ export function RecentActivityFeed({
 
                 <div className="space-y-0.5">
                   {activity.type === "property" ? (
-                    <p className="text-sm font-medium text-foreground">
+                    <Typography variant="p" className="font-medium">
                       {activity.listedBy?.firstName} updated {activity.category?.toLowerCase() || 'property'}
-                    </p>
+                    </Typography>
                   ) : (
-                    <p className="text-sm font-medium text-foreground">
+                    <Typography variant="p" className="font-medium">
                       New enquiry from {activity.name || activity.enquiryType}
-                    </p>
+                    </Typography>
                   )}
 
-                  <p className="text-xs text-muted-foreground line-clamp-2 bg-muted/30 p-2 rounded-md mt-1">
+                  <Typography variant="muted" className="line-clamp-2 bg-muted/30 p-2 rounded-md mt-1">
                     {activity.type === 'property'
                       ? `${activity.propertyType} in ${activity.address?.city}`
                       : `Enquiry for ${activity.enquiryType} from ${activity.name || 'Unknown Client'}`
                     }
-                  </p>
+                  </Typography>
                 </div>
               </div>
             </motion.div>

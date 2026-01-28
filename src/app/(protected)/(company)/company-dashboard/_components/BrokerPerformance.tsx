@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Typography } from "@/components/ui/typography";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BrokerPerformance, TimeFrame } from "@/hooks/useCompanyDashboard";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -119,7 +120,7 @@ export function BrokerPerformanceCard({
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle>
                 <Users className="h-5 w-5 text-primary" />
                 Broker Performance
               </CardTitle>
@@ -147,10 +148,10 @@ export function BrokerPerformanceCard({
                 <Users className="h-4 w-4 text-violet-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Total Brokers</p>
-                <p className="text-lg font-semibold">
+                <Typography variant="muted">Total Brokers</Typography>
+                <Typography variant="large">
                   {data.summary.totalBrokers}
-                </p>
+                </Typography>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
@@ -158,10 +159,10 @@ export function BrokerPerformanceCard({
                 <TrendingUp className="h-4 w-4 text-emerald-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Active Brokers</p>
-                <p className="text-lg font-semibold">
+                <Typography variant="muted">Active Brokers</Typography>
+                <Typography variant="large">
                   {data.summary.activeBrokers}
-                </p>
+                </Typography>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
@@ -169,10 +170,10 @@ export function BrokerPerformanceCard({
                 <Building2 className="h-4 w-4 text-blue-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Avg Properties</p>
-                <p className="text-lg font-semibold">
+                <Typography variant="muted">Avg Properties</Typography>
+                <Typography variant="large">
                   {data.summary.avgPropertiesPerBroker}
-                </p>
+                </Typography>
               </div>
             </div>
           </div>
@@ -180,10 +181,10 @@ export function BrokerPerformanceCard({
           {/* Top Performers */}
           {data.topPerformers.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium flex items-center gap-2 mb-3">
+              <Typography variant="h4" className="flex items-center gap-2 mb-3">
                 <Trophy className="h-4 w-4 text-amber-500" />
                 Top Performers
-              </h4>
+              </Typography>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {data.topPerformers.slice(0, 3).map((broker, index) => (
                   <div
@@ -197,38 +198,37 @@ export function BrokerPerformanceCard({
                             index === 0
                               ? "bg-amber-500/20 text-amber-600"
                               : index === 1
-                              ? "bg-slate-400/20 text-slate-600"
-                              : "bg-orange-400/20 text-orange-600"
+                                ? "bg-slate-400/20 text-slate-600"
+                                : "bg-orange-400/20 text-orange-600"
                           }
                         >
                           {getInitials(broker.brokerName)}
                         </AvatarFallback>
                       </Avatar>
                       <div
-                        className={`absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                          index === 0
-                            ? "bg-amber-500 text-white"
-                            : index === 1
+                        className={`absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${index === 0
+                          ? "bg-amber-500 text-white"
+                          : index === 1
                             ? "bg-slate-400 text-white"
                             : "bg-orange-400 text-white"
-                        }`}
+                          }`}
                       >
                         {index + 1}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
+                      <Typography variant="p" className="font-medium truncate">
                         {broker.brokerName}
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
+                      </Typography>
+                      <div className="flex items-center gap-2">
+                        <Typography variant="small" className="text-muted-foreground flex items-center gap-1">
                           <Building2 className="h-3 w-3" />
                           {broker.totalProperties}
-                        </span>
-                        <span className="flex items-center gap-1">
+                        </Typography>
+                        <Typography variant="small" className="text-muted-foreground flex items-center gap-1">
                           <IndianRupee className="h-3 w-3" />
                           {formatCurrency(broker.totalPropertyValue)}
-                        </span>
+                        </Typography>
                       </div>
                     </div>
                     <Badge
@@ -248,9 +248,9 @@ export function BrokerPerformanceCard({
           {/* Performance Chart */}
           {chartData.length > 0 ? (
             <div>
-              <h4 className="text-sm font-medium mb-3">
+              <Typography variant="h4" className="mb-3">
                 Property Distribution
-              </h4>
+              </Typography>
               <ChartContainer config={chartConfig} className="h-[250px]">
                 <BarChart data={chartData} margin={{ bottom: 40 }}>
                   <CartesianGrid
