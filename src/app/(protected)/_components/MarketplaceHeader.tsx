@@ -192,16 +192,17 @@ export const MarketplaceHeader = ({
       <div className="flex items-center justify-between gap-2 sm:gap-4">
         {/* Left: Title + Segmented Control */}
         <div className="flex items-center gap-2 sm:gap-4 md:gap-6 min-w-0 flex-1">
-          <motion.div
-            initial={{ opacity: 0, x: -20, filter: "blur(5px)" }}
-            animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="shrink-0"
-          >
-            <Typography variant="h1">
-              Marketplace
-            </Typography>
-          </motion.div>
+          <div className="overflow-hidden h-fit shrink-0">
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.5, ease: [0.33, 1, 0.68, 1] }}
+            >
+              <Typography variant="h1">
+                Marketplace
+              </Typography>
+            </motion.div>
+          </div>
 
           {/* Segmented Control */}
           <div className="flex items-center gap-0.5 bg-muted/50 p-0.5 rounded-lg border border-border/40">
