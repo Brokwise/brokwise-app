@@ -520,22 +520,48 @@ export const MarketPlace = () => {
             ${isMapOverlayActive ? "hidden lg:flex" : ""}
           `}
             >
-              <div className="p-6 md:p-8 space-y-4 pb-24">
+              <div className="pt-3 px-6 md:px-8 space-y-3 pb-24">
                 {!isLoading && (
                   <div className="hidden sm:flex items-center justify-between px-1">
-                    <p className="text-sm text-muted-foreground">
-                      Showing{" "}
-                      <span className="font-medium text-foreground">
-                        {pagination.total}
-                      </span>{" "}
-                      properties
-                      {categoryFilter !== "ALL" && (
-                        <span className="text-accent">
-                          {" "}
-                          in {categoryFilter.toLowerCase().replace("_", " ")}
+                    <div className="flex items-center gap-4">
+                      <p className="text-sm text-muted-foreground">
+                        Showing{" "}
+                        <span className="font-medium text-foreground">
+                          {filteredProperties.length}
+                        </span>{" "}
+                        of{" "}
+                        <span className="font-medium text-foreground">
+                          {pagination.total}
+                        </span>{" "}
+                        properties
+                        {categoryFilter !== "ALL" && (
+                          <span className="text-accent">
+                            {" "}
+                            in {categoryFilter.toLowerCase().replace("_", " ")}
+                          </span>
+                        )}
+                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-muted-foreground">
+                          Per page:
                         </span>
-                      )}
-                    </p>
+                        <Select
+                          value={String(cardsPerPage)}
+                          onValueChange={(val) =>
+                            setCardsPerPage(Number(val))
+                          }
+                        >
+                          <SelectTrigger className="w-16 h-7 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="12">12</SelectItem>
+                            <SelectItem value="24">24</SelectItem>
+                            <SelectItem value="48">48</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                     {pagination.totalPages > 1 && (
                       <p className="text-sm text-muted-foreground">
                         Page{" "}
@@ -611,29 +637,7 @@ export const MarketPlace = () => {
                         <EmptyState onClearFilters={clearFilters} />
                       )}
                     </motion.div>
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">
-                          Cards per page:
-                        </span>
-                        <Select
-                          value={String(cardsPerPage)}
-                          onValueChange={(val) =>
-                            setCardsPerPage(Number(val))
-                          }
-                        >
-                          <SelectTrigger className="w-20 h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="12">12</SelectItem>
-                            <SelectItem value="24">24</SelectItem>
-                            <SelectItem value="48">48</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      {renderPagination()}
-                    </div>
+                    {renderPagination()}
                   </>
                 )}
               </div>
