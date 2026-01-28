@@ -380,6 +380,7 @@ const ViewMarketPlaceEnquiry = () => {
           <ReceivedProperties
             id={id as string}
             isMyEnquiry={isMyEnquiry || false}
+            enquiry={enquiry}
           />
 
           {/* Submissions List (For Others' Enquiries) */}
