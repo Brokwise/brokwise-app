@@ -199,9 +199,14 @@ const ViewMarketPlaceEnquiry = () => {
               </h1>
             </div>
           </div>
-          <div className="flex items-center text-muted-foreground text-sm">
+          <div className="flex items-center text-muted-foreground text-sm flex-wrap gap-y-1">
             <MapPin className="h-4 w-4 mr-1.5 text-primary/70" />
             {formatEnquiryLocation(enquiry) || "—"}
+            {(enquiry.preferredLocations?.length ?? 0) > 1 && (
+              <Badge variant="secondary" className="ml-2 text-xs px-1.5 py-0 h-5">
+                +{(enquiry.preferredLocations?.length ?? 1) - 1} more
+              </Badge>
+            )}
             <div className="ml-2 rounded-full bg-muted px-2 ">
               {isMyEnquiry && (
                 <div className="flex gap-3">

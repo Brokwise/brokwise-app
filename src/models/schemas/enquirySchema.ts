@@ -85,16 +85,29 @@ const rentalIncomeRangeSchema = z
     path: ["max"],
   });
 
+// Preferred location schema for form
+const preferredLocationFormSchema = z.object({
+  address: z.string().default(""),
+  placeId: z.string().default(""),
+  city: z.string().default(""),
+  locality: z.string().default(""),
+});
+
 export const createEnquirySchema = z
   .object({
     // Internal flags (not sent to API)
     locationMode: z.enum(["search", "manual"]),
     isCompany: z.boolean(),
 
-    address: z.string().min(3, "Address is required"),
-    addressPlaceId: z.string().optional(),
+    // Preferred locations (1 required, up to 3)
+    preferredLocations: z
+      .array(preferredLocationFormSchema)
+      .min(1)
+      .max(3),
 
-    // Company endpoint requires these; brokers can submit without them.
+    // Legacy fields kept for backward compat
+    address: z.string().optional(),
+    addressPlaceId: z.string().optional(),
     city: z.string().max(50, "City is too long").optional(),
     localities: z.array(z.string().min(2).max(100)).max(10).optional(),
     enquiryCategory: z.enum(
@@ -181,35 +194,51 @@ export const createEnquirySchema = z
     urgent: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
-    // Location requirements
-    if (data.locationMode === "search") {
-      if (!data.addressPlaceId || !data.addressPlaceId.trim()) {
+    // Validate preferred locations
+    const locations = data.preferredLocations ?? [];
+    if (locations.length < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["preferredLocations"],
+        message: "At least one preferred location is required",
+      });
+    } else {
+      // First location is mandatory
+      const first = locations[0];
+      if (!first?.address || first.address.trim().length < 3) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["addressPlaceId"],
+          path: ["preferredLocations", 0, "address"],
+          message: "Please select a location",
+        });
+      }
+      if (data.locationMode === "search" && (!first?.placeId || !first.placeId.trim())) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["preferredLocations", 0, "placeId"],
           message: "Please select an address from suggestions",
         });
       }
+      // Validate optional locations (only if they have content)
+      for (let i = 1; i < locations.length; i++) {
+        const loc = locations[i];
+        if (loc?.address && loc.address.trim().length > 0 && loc.address.trim().length < 3) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["preferredLocations", i, "address"],
+            message: "Location address must be at least 3 characters",
+          });
+        }
+      }
     }
 
+    // Company-specific location requirements
     if (data.isCompany) {
       if (!data.city || data.city.trim().length < 2) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["city"],
           message: "City is required",
-        });
-      }
-
-      const locs = Array.isArray(data.localities)
-        ? data.localities.map((l) => l.trim()).filter((l) => l.length >= 2)
-        : [];
-
-      if (locs.length < 1) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["localities"],
-          message: "At least one locality is required",
         });
       }
     }
@@ -288,18 +317,6 @@ export const createEnquirySchema = z
         code: z.ZodIssueCode.custom,
         path: ["size"],
         message: "Size range is required for this enquiry type",
-      });
-    }
-
-    const locs = Array.isArray(data.localities)
-      ? data.localities.map((l) => l.trim()).filter((l) => l.length >= 2)
-      : [];
-
-    if (locs.length < 1) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["localities"],
-        message: "At least one locality is required",
       });
     }
 

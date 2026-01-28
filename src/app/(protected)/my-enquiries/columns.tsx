@@ -21,7 +21,7 @@ import {
     Bath,
     MessageSquare,
 } from "lucide-react";
-import { formatEnquiryLocation } from "@/utils/helper";
+import { formatEnquiryLocation, getEnquiryLocationCount } from "@/utils/helper";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -209,10 +209,16 @@ export const columns: ColumnDef<Enquiry>[] = [
         header: () => <LocationHeader />,
         cell: ({ row }) => {
             const loc = formatEnquiryLocation(row.original);
+            const count = getEnquiryLocationCount(row.original);
             return (
-                <div className="max-w-[200px] truncate text-sm flex items-center" title={loc}>
+                <div className="max-w-[200px] truncate text-sm flex items-center gap-1" title={loc}>
                     <MapPin className="h-3.5 w-3.5 mr-1 text-muted-foreground shrink-0" />
                     <span className="truncate">{loc}</span>
+                    {count > 1 && (
+                        <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 shrink-0">
+                            +{count - 1}
+                        </Badge>
+                    )}
                 </div>
             );
         },

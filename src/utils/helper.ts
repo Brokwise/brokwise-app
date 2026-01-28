@@ -52,9 +52,14 @@ export const formatAddress = (address: Address | string | undefined) => {
 
 export const formatEnquiryLocation = (enquiry: {
   address?: string;
+  preferredLocations?: { address: string; city?: string; locality?: string }[];
   city?: string;
   localities?: string[];
 }) => {
+  // Use first preferred location if available
+  if (enquiry.preferredLocations && enquiry.preferredLocations.length > 0) {
+    return enquiry.preferredLocations[0].address || "";
+  }
   const address = formatAddress(enquiry.address);
   if (address) return address;
   const localities = Array.isArray(enquiry.localities)
@@ -62,6 +67,25 @@ export const formatEnquiryLocation = (enquiry: {
     : [];
   if (localities.length > 0) return localities.join(", ");
   return enquiry.city ?? "";
+};
+
+export const formatAllEnquiryLocations = (enquiry: {
+  address?: string;
+  preferredLocations?: { address: string; city?: string; locality?: string }[];
+  city?: string;
+  localities?: string[];
+}) => {
+  if (enquiry.preferredLocations && enquiry.preferredLocations.length > 0) {
+    return enquiry.preferredLocations.map((loc) => loc.address).filter(Boolean);
+  }
+  const primary = formatEnquiryLocation(enquiry);
+  return primary ? [primary] : [];
+};
+
+export const getEnquiryLocationCount = (enquiry: {
+  preferredLocations?: { address: string }[];
+}) => {
+  return enquiry.preferredLocations?.length ?? 1;
 };
 
 export const getCityFromAddress = (address?: string) => {
