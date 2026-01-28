@@ -48,6 +48,7 @@ import {
   getStatusColor,
   formatPrice,
   formatEnquiryLocation,
+  formatAllEnquiryLocations,
 } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
 import { toast } from "sonner";
@@ -195,9 +196,14 @@ const SingleEnquiry = () => {
               </h1>
             </div>
           </div>
-          <div className="flex items-center text-muted-foreground text-sm">
+          <div className="flex items-center text-muted-foreground text-sm flex-wrap gap-y-1">
             <MapPin className="h-4 w-4 mr-1.5 text-primary/70" />
             {formatEnquiryLocation(enquiry) || "—"}
+            {(enquiry.preferredLocations?.length ?? 0) > 1 && (
+              <Badge variant="secondary" className="ml-2 text-xs px-1.5 py-0 h-5">
+                +{(enquiry.preferredLocations?.length ?? 1) - 1} more location{(enquiry.preferredLocations?.length ?? 1) - 1 > 1 ? "s" : ""}
+              </Badge>
+            )}
             <div className="ml-2 rounded-full bg-muted px-2 ">
               {isMyEnquiry && (
                 <div className="flex gap-3">
@@ -354,6 +360,37 @@ const SingleEnquiry = () => {
             </CardContent>
           </Card>
 
+          {/* Preferred Locations Card */}
+          {(() => {
+            const allLocations = formatAllEnquiryLocations(enquiry);
+            if (allLocations.length <= 1) return null;
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    Preferred Locations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {allLocations.map((loc, i) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-3 p-3 rounded-lg bg-muted/30"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                          {i + 1}
+                        </span>
+                        <span className="text-sm font-medium">{loc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
+
           {/* Description Card */}
           <Card>
             <CardHeader>
@@ -370,6 +407,7 @@ const SingleEnquiry = () => {
           <ReceivedProperties
             id={id as string}
             isMyEnquiry={isMyEnquiry || false}
+            enquiry={enquiry}
           />
 
           {/* Submissions List (For Others' Enquiries) */}

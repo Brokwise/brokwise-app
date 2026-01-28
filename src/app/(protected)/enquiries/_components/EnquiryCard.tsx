@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
-import { formatCurrencyEnquiry, formatEnquiryLocation } from "@/utils/helper";
+import { formatCurrencyEnquiry, formatEnquiryLocation, getEnquiryLocationCount } from "@/utils/helper";
 import { cn } from "@/lib/utils";
 import { useGetMyEnquiries } from "@/hooks/useEnquiry";
 import { useApp } from "@/context/AppContext";
@@ -42,6 +42,7 @@ export const EnquiryCard = ({
 
   const isCompany = userData?.userType === "company";
   const locationTitle = formatEnquiryLocation(enquiry);
+  const locationCount = getEnquiryLocationCount(enquiry);
   const { myEnquiries, isLoading } = useGetMyEnquiries();
 
   const getStatusConfig = (status: string) => {
@@ -135,6 +136,11 @@ export const EnquiryCard = ({
             <span className="line-clamp-1">
               {locationTitle || t("label_location_not_specified")}
             </span>
+            {locationCount > 1 && (
+              <Badge variant="secondary" className="ml-2 text-xs px-1.5 py-0 h-5 shrink-0">
+                +{locationCount - 1} more
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>

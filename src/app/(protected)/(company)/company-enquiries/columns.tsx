@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ArrowUpDown, MoreHorizontal, Eye, Trash } from "lucide-react";
 import { useState } from "react";
-import { formatEnquiryLocation, formatPrice } from "@/utils/helper";
+import { formatEnquiryLocation, formatPrice, getEnquiryLocationCount } from "@/utils/helper";
 import { Enquiry, EnquiryStatus } from "@/models/types/enquiry";
 import {
   useHardDeleteCompanyEnquiry,
@@ -152,6 +152,7 @@ export const columns: ColumnDef<CompanyEnquiry>[] = [
     accessorFn: (row) => formatEnquiryLocation(row),
     cell: ({ row }) => {
       const location = formatEnquiryLocation(row.original) || "—";
+      const count = getEnquiryLocationCount(row.original);
       return (
         <div className="flex flex-col max-w-[200px]">
           <span
@@ -160,6 +161,11 @@ export const columns: ColumnDef<CompanyEnquiry>[] = [
           >
             {location}
           </span>
+          {count > 1 && (
+            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 w-fit mt-0.5">
+              +{count - 1} more
+            </Badge>
+          )}
         </div>
       );
     },

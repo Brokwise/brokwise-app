@@ -15,6 +15,14 @@ export type SubmissionStatus = "pending" | "approved" | "rejected";
 export type MessageThreadType = "enquirer_admin" | "submitter_admin";
 export type SubmissionViewStatus = "not_viewed" | "viewed" | "contact_shared";
 
+// === PREFERRED LOCATION ===
+export interface PreferredLocation {
+  address: string;
+  placeId?: string;
+  city?: string;
+  locality?: string;
+}
+
 // === RANGE TYPES ===
 export interface BudgetRange {
   min: number;
@@ -45,8 +53,9 @@ export interface Enquiry {
   enquiryCategory: PropertyCategory;
   enquiryType: PropertyType;
 
-  // Location (schema updated: address replaces city + localities)
+  // Location
   address: string;
+  preferredLocations?: PreferredLocation[];
   // Legacy fields (kept for backward compatibility with older records)
   city?: string;
   localities?: string[];
@@ -146,6 +155,7 @@ export interface EnquirySubmission {
 
   isBoosted?: boolean;
   bidRank?: number;
+  preferredLocationIndex?: number;
 }
 export interface EnquiryMessage {
   _id: string;
@@ -197,7 +207,8 @@ export interface MarketplaceFilters {
 }
 
 export interface CreateEnquiryDTO {
-  address: string;
+  address?: string;
+  preferredLocations?: PreferredLocation[];
   // Legacy fields required by company create-enquiry endpoint (backend still expects these)
   city?: string;
   localities?: string[];

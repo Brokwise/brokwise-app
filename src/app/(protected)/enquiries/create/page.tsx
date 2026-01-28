@@ -64,6 +64,7 @@ const CreateEnquiryPage = () => {
     defaultValues: {
       locationMode: "search",
       isCompany: false,
+      preferredLocations: [{ address: "", placeId: "", city: "", locality: "" }],
       address: "",
       addressPlaceId: "",
       city: "",
@@ -120,6 +121,17 @@ const CreateEnquiryPage = () => {
     if (!data.isCorner) {
       delete payload.roadFacingSides;
       delete payload.roadWidths;
+    }
+
+    // Clean preferredLocations: filter out empty entries and strip placeId (internal only)
+    const cleanedLocations = (data.preferredLocations ?? [])
+      .filter((loc) => loc.address && loc.address.trim().length >= 3)
+      .map(({ placeId, ...rest }) => rest);
+    payload.preferredLocations = cleanedLocations;
+
+    // Auto-set address from first preferred location for backward compat
+    if (cleanedLocations.length > 0) {
+      payload.address = cleanedLocations[0].address;
     }
 
     const finalPayload = payload as unknown as CreateEnquiryDTO;

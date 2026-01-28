@@ -4,6 +4,10 @@
     "next/typescript"
   ],
   "rules": {
-    "react/forbid-dom-props": "off"
+    "react/forbid-dom-props": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "ignoreRestSiblings": true }
+    ]
   }
 }

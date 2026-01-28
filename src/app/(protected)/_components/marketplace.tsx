@@ -718,9 +718,16 @@ export const MarketPlace = () => {
                     const enquiryCity =
                       enquiry.city?.toLowerCase().trim() || "";
                     const enquiryAddress = enquiry.address?.toLowerCase() || "";
+                    // Check if any preferred location matches user's city
+                    const preferredLocationsMatch = enquiry.preferredLocations?.some(
+                      (loc) =>
+                        loc.city?.toLowerCase().trim() === normalizedUserCity ||
+                        loc.address?.toLowerCase().includes(normalizedUserCity)
+                    ) ?? false;
                     const isSameCity = normalizedUserCity
                       ? enquiryCity === normalizedUserCity ||
-                      enquiryAddress.includes(normalizedUserCity)
+                      enquiryAddress.includes(normalizedUserCity) ||
+                      preferredLocationsMatch
                       : false;
                     return (
                       <motion.div key={enquiry._id} variants={itemVariants}>

@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, MapPin, Eye, PhoneCall, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PropertyPreviewModal } from "./PropertyPreviewModal";
-import { EnquirySubmission } from "@/models/types/enquiry";
+import { Enquiry, EnquirySubmission } from "@/models/types/enquiry";
 import { Property } from "@/types/property";
 import { ShareContactDialog } from "./share-contact-dialog";
 import moment from "moment";
@@ -68,9 +68,11 @@ const getPopulatedProperty = (
 export const ReceivedProperties = ({
   id,
   isMyEnquiry,
+  enquiry,
 }: {
   id: string;
   isMyEnquiry: boolean;
+  enquiry?: Enquiry;
 }) => {
   const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(
     null
@@ -179,6 +181,14 @@ export const ReceivedProperties = ({
                     {property?.address?.city || t("page_enquiry_detail_click_view_location")}
                   </span>
                 </div>
+                {enquiry?.preferredLocations && enquiry.preferredLocations.length > 1 && (
+                  <div className="flex items-center text-xs">
+                    <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                      <MapPin className="h-2.5 w-2.5 mr-0.5" />
+                      For: {enquiry.preferredLocations[submission.preferredLocationIndex ?? 0]?.address?.split(",")[0] || `Location ${(submission.preferredLocationIndex ?? 0) + 1}`}
+                    </Badge>
+                  </div>
+                )}
 
                 {submission.privateMessage && (
                   <div className="bg-muted/20 p-2 rounded text-xs text-muted-foreground italic">

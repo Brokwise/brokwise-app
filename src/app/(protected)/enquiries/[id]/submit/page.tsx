@@ -13,7 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyTitle } from "@/components/ui/empty";
-import { ArrowLeft, Loader2, Plus, LayoutGrid } from "lucide-react";
+import { ArrowLeft, Loader2, Plus, LayoutGrid, MapPin } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { ResidentialWizard } from "@/app/(protected)/property/createProperty/residentialForm/wizard";
@@ -58,6 +60,10 @@ export default function SubmitEnquiryPage() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [bidCredits, setBidCredits] = useState<number | null>(null);
   const [shouldUseCredits, setShouldUseCredits] = useState(false);
+  const [selectedLocationIndex, setSelectedLocationIndex] = useState<number>(0);
+
+  const hasMultipleLocations =
+    (enquiry?.preferredLocations?.length ?? 0) > 1;
 
   const { submitPropertyToEnquiry, isPending: isSubmittingExisting } =
     useSubmitPropertyToEnquiry();
@@ -95,6 +101,7 @@ export default function SubmitEnquiryPage() {
         privateMessage: trimmedMessage || undefined,
         bidCredits: bidCredits ?? undefined,
         shouldUseCredits,
+        preferredLocationIndex: hasMultipleLocations ? selectedLocationIndex : undefined,
       },
       {
         onSuccess: () => {
@@ -126,6 +133,7 @@ export default function SubmitEnquiryPage() {
         payload: {
           ...freshPropertyData,
           privateMessage: trimmedMessage || undefined,
+          preferredLocationIndex: hasMultipleLocations ? selectedLocationIndex : undefined,
         },
         bidCredits: bidCredits ?? undefined,
       },
@@ -227,6 +235,45 @@ export default function SubmitEnquiryPage() {
           </p>
         </div>
       </div>
+
+      {/* Location Selector - shown when enquiry has multiple preferred locations */}
+      {hasMultipleLocations && enquiry.preferredLocations && (
+        <Card>
+          <CardContent className="p-5">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-primary" />
+                <Label className="text-sm font-semibold">
+                  Which location is this property for?
+                </Label>
+              </div>
+              <RadioGroup
+                value={String(selectedLocationIndex)}
+                onValueChange={(v) => setSelectedLocationIndex(Number(v))}
+                className="space-y-2"
+              >
+                {enquiry.preferredLocations.map((loc, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center space-x-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+                  >
+                    <RadioGroupItem value={String(i)} id={`location-${i}`} />
+                    <Label
+                      htmlFor={`location-${i}`}
+                      className="flex-1 cursor-pointer text-sm"
+                    >
+                      <span className="font-medium">{loc.address}</span>
+                      {i === 0 && (
+                        <span className="ml-2 text-xs text-muted-foreground">(Primary)</span>
+                      )}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="flex flex-col min-h-[600px]">
         {view === "message" ? (

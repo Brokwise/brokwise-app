@@ -124,9 +124,10 @@ export const useSubmitPropertyToEnquiry = () => {
       privateMessage?: string;
       bidCredits?: number;
       shouldUseCredits?: boolean;
+      preferredLocationIndex?: number;
     }
   >({
-    mutationFn: async ({ enquiryId, propertyId, privateMessage, bidCredits, shouldUseCredits }) => {
+    mutationFn: async ({ enquiryId, propertyId, privateMessage, bidCredits, shouldUseCredits, preferredLocationIndex }) => {
       const payload: Record<string, unknown> = { propertyId, shouldUseCredits };
       const trimmedMessage = privateMessage?.trim();
       if (trimmedMessage) {
@@ -134,6 +135,9 @@ export const useSubmitPropertyToEnquiry = () => {
       }
       if (bidCredits && bidCredits > 0) {
         payload.bidCredits = bidCredits;
+      }
+      if (preferredLocationIndex !== undefined) {
+        payload.preferredLocationIndex = preferredLocationIndex;
       }
       return (await api.post(`/broker/enquiry/${enquiryId}/submit`, payload))
         .data.data;
