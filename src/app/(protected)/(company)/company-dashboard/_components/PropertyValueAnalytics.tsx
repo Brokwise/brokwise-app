@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Typography } from "@/components/ui/typography";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PropertyValueAnalytics } from "@/hooks/useCompanyDashboard";
 import {
@@ -105,7 +106,7 @@ export function PropertyValueAnalyticsCard({
     >
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
+          <CardTitle>
             <IndianRupee className="h-5 w-5 text-primary" />
             Property Value Analytics
           </CardTitle>
@@ -119,54 +120,54 @@ export function PropertyValueAnalyticsCard({
             <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="h-4 w-4 text-emerald-600" />
-                <span className="text-xs text-muted-foreground">
+                <Typography variant="small" className="text-muted-foreground">
                   Total Portfolio
-                </span>
+                </Typography>
               </div>
-              <p className="text-xl font-bold text-emerald-600">
+              <Typography variant="value" className="text-emerald-600">
                 {formatCurrency(data.overall.totalValue)}
-              </p>
+              </Typography>
             </div>
 
             <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20">
               <div className="flex items-center gap-2 mb-2">
                 <Building2 className="h-4 w-4 text-blue-600" />
-                <span className="text-xs text-muted-foreground">Avg Price</span>
+                <Typography variant="small" className="text-muted-foreground">Avg Price</Typography>
               </div>
-              <p className="text-xl font-bold text-blue-600">
+              <Typography variant="value" className="text-blue-600">
                 {formatCurrency(data.overall.avgPrice)}
-              </p>
+              </Typography>
             </div>
 
             <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-500/5 border border-violet-500/20">
               <div className="flex items-center gap-2 mb-2">
                 <ArrowUpRight className="h-4 w-4 text-violet-600" />
-                <span className="text-xs text-muted-foreground">Max Price</span>
+                <Typography variant="small" className="text-muted-foreground">Max Price</Typography>
               </div>
-              <p className="text-xl font-bold text-violet-600">
+              <Typography variant="value" className="text-violet-600">
                 {formatCurrency(data.overall.maxPrice)}
-              </p>
+              </Typography>
             </div>
 
             <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 border border-amber-500/20">
               <div className="flex items-center gap-2 mb-2">
                 <Building2 className="h-4 w-4 text-amber-600" />
-                <span className="text-xs text-muted-foreground">
+                <Typography variant="small" className="text-muted-foreground">
                   Total Properties
-                </span>
+                </Typography>
               </div>
-              <p className="text-xl font-bold text-amber-600">
+              <Typography variant="value" className="text-amber-600">
                 {data.overall.totalProperties}
-              </p>
+              </Typography>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Average Price by Category Chart */}
             <div>
-              <h4 className="text-sm font-medium mb-3">
+              <Typography variant="h4" className="mb-3">
                 Average Price by Category
-              </h4>
+              </Typography>
               {categoryData.length > 0 ? (
                 <ChartContainer config={chartConfig} className="h-[220px]">
                   <BarChart
@@ -222,10 +223,10 @@ export function PropertyValueAnalyticsCard({
 
             {/* Top Valued Properties */}
             <div>
-              <h4 className="text-sm font-medium flex items-center gap-2 mb-3">
+              <Typography variant="h4" className="flex items-center gap-2 mb-3">
                 <Gem className="h-4 w-4 text-amber-500" />
                 Top Valued Properties
-              </h4>
+              </Typography>
               <div className="space-y-3">
                 {data.topValuedProperties.length > 0 ? (
                   data.topValuedProperties.map((property, index) => (
@@ -234,35 +235,34 @@ export function PropertyValueAnalyticsCard({
                       className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
                     >
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                          index === 0
-                            ? "bg-amber-500/20 text-amber-600"
-                            : index === 1
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${index === 0
+                          ? "bg-amber-500/20 text-amber-600"
+                          : index === 1
                             ? "bg-slate-400/20 text-slate-600"
                             : index === 2
-                            ? "bg-orange-400/20 text-orange-600"
-                            : "bg-muted text-muted-foreground"
-                        }`}
+                              ? "bg-orange-400/20 text-orange-600"
+                              : "bg-muted text-muted-foreground"
+                          }`}
                       >
                         {index + 1}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate capitalize">
+                        <Typography variant="p" className="font-medium truncate capitalize">
                           {property.propertyCategory?.toLowerCase()}{" "}
-                          <span className="text-muted-foreground">
+                          <Typography variant="muted" as="span">
                             {property.propertyType?.toLowerCase()}
-                          </span>
-                        </p>
-                        <p className="text-xs text-muted-foreground">
+                          </Typography>
+                        </Typography>
+                        <Typography variant="small" className="text-muted-foreground truncate">
                           {property.address?.city}
                           {property.address?.state &&
                             `, ${property.address.state}`}
-                        </p>
+                        </Typography>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-semibold text-emerald-600">
+                        <Typography variant="p" className="font-semibold text-emerald-600">
                           {formatCurrency(property.totalPrice)}
-                        </p>
+                        </Typography>
                         <Badge variant="outline" className="text-xs mt-1">
                           {property.listingStatus}
                         </Badge>

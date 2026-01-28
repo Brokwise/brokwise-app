@@ -5,17 +5,18 @@ import React from "react";
 const typographyVariants = cva("text-foreground", {
     variants: {
         variant: {
-            h1: "scroll-m-20 text-3xl font-bold tracking-tight lg:text-3xl",
-            h2: "scroll-m-20 text-2xl font-semibold tracking-tight",
-            h3: "scroll-m-20 text-xl font-semibold tracking-tight",
-            h4: "scroll-m-20 text-lg font-medium",
-            p: "leading-7 [&:not(:first-child)]:mt-6",
+            h1: "text-3xl font-bold tracking-tight",
+            h2: "text-2xl font-semibold tracking-tight",
+            h3: "text-xl font-semibold tracking-tight",
+            h4: "text-lg font-medium",
+            p: "text-base leading-7",
+            small: "text-sm font-medium leading-none",
+            muted: "text-sm text-muted-foreground",
+            value: "text-2xl font-bold tracking-tight",
             blockquote: "mt-6 border-l-2 pl-6 italic",
             list: "my-6 ml-6 list-disc [&>li]:mt-2",
             lead: "text-xl text-muted-foreground",
             large: "text-lg font-semibold",
-            small: "text-sm font-medium leading-none",
-            muted: "text-sm text-muted-foreground",
         },
     },
     defaultVariants: {
@@ -40,6 +41,7 @@ const variantElementMap: Record<
     large: "div",
     small: "small",
     muted: "p",
+    value: "span",
 };
 
 export interface TypographyProps

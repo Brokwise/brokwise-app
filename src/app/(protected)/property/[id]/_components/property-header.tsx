@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Typography } from "@/components/ui/typography";
 import { ArrowLeft, MoreVertical, ShieldX } from "lucide-react";
 import {
     DropdownMenu,
@@ -42,7 +43,7 @@ export const PropertyHeader = ({
                     </Button>
                     <div className="flex items-center gap-3">
                         <div className="px-3 py-1.5 bg-muted/50 rounded-lg border">
-                            <span className="text-sm font-medium text-muted-foreground">#{property.propertyId || "N/A"}</span>
+                            <Typography variant="muted" className="font-medium">#{property.propertyId || "N/A"}</Typography>
                         </div>
                         <Badge
                             variant={

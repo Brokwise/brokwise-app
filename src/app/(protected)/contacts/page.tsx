@@ -57,6 +57,7 @@ import {
   EmptyDescription,
 } from "@/components/ui/empty";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Typography } from "@/components/ui/typography";
 
 // Icons
 import {
@@ -282,7 +283,7 @@ const ContactsPage = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                <CardTitle className="text-lg">Pending Contact Requests</CardTitle>
+                <CardTitle>Pending Contact Requests</CardTitle>
                 {pendingCount > 0 && (
                   <Badge variant="secondary" className="bg-amber-500 text-white hover:bg-amber-600">
                     {pendingCount}
@@ -525,12 +526,12 @@ const StatsCard = ({
       ) : (
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+            <Typography variant="muted" className="font-medium">
               {title}
-            </p>
-            <p className="text-2xl sm:text-3xl font-bold tracking-tight">
+            </Typography>
+            <Typography variant="value">
               {value}
-            </p>
+            </Typography>
           </div>
           <div
             className={cn(
@@ -593,9 +594,9 @@ const ContactCard = ({
             <div className="min-w-0 flex-1 space-y-2">
               {/* Name and Source Badge */}
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-semibold text-base sm:text-lg leading-tight tracking-tight truncate">
+                <Typography variant="h4" className="leading-tight truncate">
                   {fullName}
-                </h3>
+                </Typography>
                 <Badge
                   variant="outline"
                   className={cn(
@@ -792,7 +793,7 @@ const PendingRequestCard = ({
 
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold text-sm truncate">{requesterName}</span>
+            <Typography variant="small" as="span" className="font-semibold truncate">{requesterName}</Typography>
             {requester.companyName && (
               <span className="text-xs text-muted-foreground truncate">
                 • {requester.companyName}

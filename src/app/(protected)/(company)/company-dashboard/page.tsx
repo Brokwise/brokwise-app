@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageShell, PageHeader } from "@/components/ui/layout";
+import { Typography } from "@/components/ui/typography";
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -214,29 +215,29 @@ export default function CompanyDashboard() {
             <div className="absolute top-0 right-0 p-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-white/10 transition-colors" />
 
             <div className="relative z-10">
-              <h2 className="text-lg font-medium text-primary-foreground/80">Active Pipeline</h2>
+              <Typography variant="h2" className="text-primary-foreground/80">Active Pipeline</Typography>
               <div className="mt-4 flex items-baseline gap-2">
-                <span className="text-5xl font-bold tracking-tighter">
+                <Typography variant="value" className="text-5xl tracking-tighter">
                   {formatCurrency(
                     (dashboardStats?.properties.active || 0) * 15000000 // Placeholder avg value or real calc needed
                     // Use 'Total Value' if available or just count
                   )}
-                </span>
+                </Typography>
                 {/* Fallback to simple stats if value not available */}
-                <span className="text-sm font-medium text-primary-foreground/60">Estimated Value</span>
+                <Typography variant="small" className="text-primary-foreground/60">Estimated Value</Typography>
               </div>
               <div className="mt-6 flex gap-8">
                 <div>
-                  <p className="text-3xl font-bold">{dashboardStats?.overview.activeProperties || 0}</p>
-                  <p className="text-xs text-primary-foreground/60 uppercase tracking-wider mt-1">Active Properties</p>
+                  <Typography variant="value" className="text-3xl">{dashboardStats?.overview.activeProperties || 0}</Typography>
+                  <Typography variant="muted" className="text-primary-foreground/60 uppercase tracking-wider mt-1">Active Properties</Typography>
                 </div>
                 <div>
-                  <p className="text-3xl font-bold">{dashboardStats?.overview.activeEnquiries || 0}</p>
-                  <p className="text-xs text-primary-foreground/60 uppercase tracking-wider mt-1">Active Leads</p>
+                  <Typography variant="value" className="text-3xl">{dashboardStats?.overview.activeEnquiries || 0}</Typography>
+                  <Typography variant="muted" className="text-primary-foreground/60 uppercase tracking-wider mt-1">Active Leads</Typography>
                 </div>
                 <div>
-                  <p className="text-3xl font-bold">{dashboardStats?.overview.activeBrokers || 0}</p>
-                  <p className="text-xs text-primary-foreground/60 uppercase tracking-wider mt-1">Active Brokers</p>
+                  <Typography variant="value" className="text-3xl">{dashboardStats?.overview.activeBrokers || 0}</Typography>
+                  <Typography variant="muted" className="text-primary-foreground/60 uppercase tracking-wider mt-1">Active Brokers</Typography>
                 </div>
               </div>
             </div>
@@ -277,7 +278,7 @@ export default function CompanyDashboard() {
           <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
             <Tabs defaultValue="overview" className="w-full">
               <div className="px-6 pt-6 flex items-center justify-between">
-                <h3 className="font-semibold text-lg">Analytics</h3>
+                <Typography variant="h3">Analytics</Typography>
                 <TabsList>
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="distribution">Distribution</TabsTrigger>

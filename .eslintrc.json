@@ -4,17 +4,6 @@
     "next/typescript"
   ],
   "rules": {
-    "react/forbid-dom-props": "off",
-    "no-restricted-syntax": [
-      "error",
-      {
-        "selector": "Literal[value=/font-instrument-serif/]",
-        "message": "font-instrument-serif is deprecated. Use the Typography component instead."
-      },
-      {
-        "selector": "Literal[value=/font-host-grotesk/]",
-        "message": "font-host-grotesk is deprecated. Use the Typography component instead."
-      }
-    ]
+    "react/forbid-dom-props": "off"
   }
 }

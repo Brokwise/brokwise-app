@@ -1,6 +1,7 @@
 "use client";
 
 import { Property } from "@/types/property";
+import { Typography } from "@/components/ui/typography";
 import {
     Bed,
     Bath,
@@ -115,7 +116,7 @@ export const PropertyFacts = ({ property }: PropertyFactsProps) => {
 
     return (
         <div className="space-y-4">
-            <h3 className="text-lg font-semibold">{t("property_key_facts")}</h3>
+            <Typography variant="h3">{t("property_key_facts")}</Typography>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {visibleItems.map((item, index) => (
                     <div key={index} className="flex flex-col p-3 bg-muted/30 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors">
