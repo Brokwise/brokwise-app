@@ -193,9 +193,9 @@ export const MarketplaceHeader = ({
         {/* Left: Title + Segmented Control */}
         <div className="flex items-center gap-2 sm:gap-4 md:gap-6 min-w-0 flex-1">
           <motion.div
-            initial={{ opacity: 0, x: -16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            initial={{ opacity: 0, x: -20, filter: "blur(5px)" }}
+            animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="shrink-0"
           >
             <Typography variant="h1">
@@ -211,8 +211,8 @@ export const MarketplaceHeader = ({
               onClick={() => setViewMode("PROPERTIES")}
               size="sm"
               className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all ${viewMode === "PROPERTIES"
-                  ? "shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                ? "shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
                 }`}
             >
               {t("nav_properties")}
@@ -223,8 +223,8 @@ export const MarketplaceHeader = ({
               onClick={() => setViewMode("ENQUIRIES")}
               size="sm"
               className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all ${viewMode === "ENQUIRIES"
-                  ? "shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                ? "shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
                 }`}
             >
               {t("nav_enquiries")}
@@ -362,8 +362,8 @@ export const MarketplaceHeader = ({
                   }
                 }}
                 className={`shrink-0 rounded-full px-2.5 sm:px-4 h-7 sm:h-8 font-medium border text-xs sm:text-sm transition-all ${categoryFilter === pill.value
-                    ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary"
                   }`}
               >
                 {pill.label}
@@ -381,8 +381,8 @@ export const MarketplaceHeader = ({
                   variant="outline"
                   size="sm"
                   className={`relative gap-1.5 sm:gap-2 h-8 rounded-full border-border/60 hover:bg-secondary hover:border-border px-2.5 sm:px-3 ${hasActiveFilters
-                      ? "text-accent border-accent/30 bg-accent/5"
-                      : "text-muted-foreground hover:text-foreground"
+                    ? "text-accent border-accent/30 bg-accent/5"
+                    : "text-muted-foreground hover:text-foreground"
                     }`}
                 >
                   <FilterIcon className="h-3.5 w-3.5" />
@@ -632,8 +632,8 @@ export const MarketplaceHeader = ({
                     onClearPropertySelection();
                   }}
                   className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${view === "grid"
-                      ? "shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                    ? "shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                     }`}
                   title="Grid View"
                 >
@@ -648,8 +648,8 @@ export const MarketplaceHeader = ({
                     onClearPropertySelection();
                   }}
                   className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${view === "map"
-                      ? "shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                    ? "shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                     }`}
                   title="Map View"
                 >
@@ -664,8 +664,8 @@ export const MarketplaceHeader = ({
                     onClearPropertySelection();
                   }}
                   className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full hidden md:flex transition-all duration-300 ${view === "split"
-                      ? "shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                    ? "shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                     }`}
                   title="Split View"
                 >
