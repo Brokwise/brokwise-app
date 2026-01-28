@@ -6,7 +6,10 @@ import React, {
   useCallback,
 } from "react";
 import { motion } from "framer-motion";
-import { useGetAllProperties } from "@/hooks/useProperty";
+import {
+  useGetAllProperties,
+  PropertyListFilters,
+} from "@/hooks/useProperty";
 import { useGetAllMarketPlaceEnquiries } from "@/hooks/useEnquiry";
 import { PropertyCard } from "@/./app/(protected)/_components/propertyCard";
 import { MapBox } from "@/./app/(protected)/_components/mapBox";
@@ -19,6 +22,13 @@ import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useApp } from "@/context/AppContext";
 import Fuse from "fuse.js";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Pagination,
   PaginationContent,
@@ -45,16 +55,65 @@ export const MarketPlace = () => {
     "PROPERTIES"
   );
   const [currentPage, setCurrentPage] = useState(1);
+  const [cardsPerPage, setCardsPerPage] = useState(12);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState<string>("ALL");
+  const [sourceFilter, setSourceFilter] = useState<string>("ALL");
+  const [priceRange, setPriceRange] = useState<number[] | null>(null);
+  const [bhkFilter, setBhkFilter] = useState<string>("ALL");
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const debouncedPriceRange = useDebounce(priceRange, 300);
+
+  // Build server-side filters object
+  const serverFilters = useMemo((): PropertyListFilters => {
+    const filters: PropertyListFilters = {};
+    if (categoryFilter !== "ALL") filters.propertyCategory = categoryFilter;
+    if (propertyTypeFilter !== "ALL") filters.propertyType = propertyTypeFilter;
+    if (sourceFilter !== "ALL") filters.source = sourceFilter;
+    if (bhkFilter !== "ALL") filters.bhk = bhkFilter;
+    if (debouncedSearchQuery) filters.search = debouncedSearchQuery;
+    if (debouncedPriceRange) {
+      filters.minPrice = debouncedPriceRange[0];
+      filters.maxPrice = debouncedPriceRange[1];
+    }
+    if (userCity) filters.userCity = userCity;
+    return filters;
+  }, [
+    categoryFilter,
+    propertyTypeFilter,
+    sourceFilter,
+    bhkFilter,
+    debouncedSearchQuery,
+    debouncedPriceRange,
+    userCity,
+  ]);
+
   const { properties, pagination, isLoading, error } = useGetAllProperties(
     currentPage,
-    12
+    cardsPerPage,
+    serverFilters
   );
   const {
     marketPlaceEnquiries,
     isPending: isEnquiriesLoading,
     error: enquiriesError,
   } = useGetAllMarketPlaceEnquiries({ enabled: viewMode === "ENQUIRIES" });
-  const { totalPages } = pagination;
+
+  // Reset to page 1 when any filter or page size changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    categoryFilter,
+    propertyTypeFilter,
+    sourceFilter,
+    bhkFilter,
+    debouncedSearchQuery,
+    debouncedPriceRange,
+    cardsPerPage,
+  ]);
   const [isMobileMapOpen, setIsMobileMapOpen] = useState(false);
   const [view, setView] = useState<"grid" | "map" | "split">("grid"); // Default to grid property-only view
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
@@ -123,47 +182,17 @@ export const MarketPlace = () => {
     }
   }, [viewMode]);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
-  const [propertyTypeFilter, setPropertyTypeFilter] = useState<string>("ALL");
-  const [sourceFilter, setSourceFilter] = useState<string>("ALL");
-  const [priceRange, setPriceRange] = useState<number[] | null>(null);
-  const [bhkFilter, setBhkFilter] = useState<string>("ALL");
-
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
-
   const selectedProperty = properties?.find(
     (p) => p._id === selectedPropertyId
   );
 
-  const maxPropertyPrice = useMemo(() => {
-    if (!properties || properties.length === 0) return 100000000;
-    const max = Math.max(...properties.map((p) => p.totalPrice));
-    return max > 0 ? max : 100000000;
-  }, [properties]);
+  const maxPropertyPrice = 1_000_000_000; // 100 Crore fixed max for price slider
 
   const effectivePriceRange = useMemo(
     () => priceRange ?? [0, maxPropertyPrice],
     [priceRange, maxPropertyPrice]
   );
-  const debouncedPriceRange = useDebounce(effectivePriceRange, 300);
   const debouncedEnquiryPriceRange = useDebounce(priceRange, 300);
-
-  const fuse = useMemo(() => {
-    if (!properties) return null;
-    return new Fuse(properties, {
-      keys: [
-        { name: "address.address", weight: 0.7 },
-        { name: "address.city", weight: 0.6 },
-        { name: "address.state", weight: 0.4 },
-        { name: "society", weight: 0.5 },
-        { name: "description", weight: 0.3 },
-        { name: "propertyType", weight: 0.4 },
-      ],
-      threshold: 0.4,
-      includeScore: true,
-    });
-  }, [properties]);
 
   const enquiryFuse = useMemo(() => {
     if (!marketPlaceEnquiries || marketPlaceEnquiries.length === 0) return null;
@@ -196,83 +225,8 @@ export const MarketPlace = () => {
     }
   }, [currentPage]);
 
-  const filteredProperties = useMemo(() => {
-    if (!properties) return [];
-
-    let baseProperties = properties;
-
-    if (debouncedSearchQuery) {
-      if (fuse) {
-        const searchResults = fuse.search(debouncedSearchQuery);
-        baseProperties = searchResults.map((res) => res.item);
-      }
-    }
-
-    const filtered = baseProperties.filter((property) => {
-      const isNotEnquiryProperty = property.listingStatus !== "ENQUIRY_ONLY";
-      const isNotUnderDeletion = !property.deletingStatus;
-      const matchesSource =
-        sourceFilter === "ALL" ||
-        (sourceFilter === "BROKER" && property.listedBy) ||
-        (sourceFilter === "COMPANY" && !property.listedBy);
-
-      const matchesCategory =
-        categoryFilter === "ALL" ||
-        property.propertyCategory === categoryFilter;
-
-      const matchesPropertyType =
-        propertyTypeFilter === "ALL" ||
-        property.propertyType === propertyTypeFilter;
-
-      const price = property.totalPrice;
-      const matchesMinPrice = price >= debouncedPriceRange[0];
-      const matchesMaxPrice =
-        debouncedPriceRange.length > 1 ? price <= debouncedPriceRange[1] : true;
-
-      const matchesBhk =
-        bhkFilter === "ALL" ||
-        (bhkFilter === "5+"
-          ? (property.bhk || 0) >= 5
-          : property.bhk === Number(bhkFilter));
-
-      return (
-        isNotEnquiryProperty &&
-        matchesSource &&
-        matchesCategory &&
-        matchesPropertyType &&
-        matchesMinPrice &&
-        matchesMaxPrice &&
-        matchesBhk &&
-        isNotUnderDeletion
-      );
-    });
-
-    // Sort same-city properties first
-    if (userCity) {
-      const normalizedUserCity = userCity.toLowerCase().trim();
-      return filtered.sort((a, b) => {
-        const aCity = a.address?.city?.toLowerCase().trim() || "";
-        const bCity = b.address?.city?.toLowerCase().trim() || "";
-        const aIsSameCity = aCity === normalizedUserCity;
-        const bIsSameCity = bCity === normalizedUserCity;
-        if (aIsSameCity && !bIsSameCity) return -1;
-        if (!aIsSameCity && bIsSameCity) return 1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [
-    properties,
-    debouncedSearchQuery,
-    sourceFilter,
-    categoryFilter,
-    propertyTypeFilter,
-    debouncedPriceRange,
-    bhkFilter,
-    fuse,
-    userCity,
-  ]);
+  // Properties are now filtered and sorted server-side
+  const filteredProperties = properties;
 
   const filteredEnquiries = useMemo(() => {
     let baseEnquiries = marketPlaceEnquiries || [];
@@ -367,6 +321,7 @@ export const MarketPlace = () => {
     priceRange !== null;
 
   const renderPagination = () => {
+    const { totalPages } = pagination;
     if (totalPages <= 1) return null;
 
     const items = [];
@@ -540,7 +495,7 @@ export const MarketPlace = () => {
         setBhkFilter={setBhkFilter}
         view={view}
         setView={setView}
-        filteredCount={filteredProperties.length}
+        filteredCount={pagination.total}
         filteredEnquiriesCount={filteredEnquiries.length}
         maxPropertyPrice={maxPropertyPrice}
         effectivePriceRange={effectivePriceRange}
@@ -571,7 +526,7 @@ export const MarketPlace = () => {
                     <p className="text-sm text-muted-foreground">
                       Showing{" "}
                       <span className="font-medium text-foreground">
-                        {filteredProperties.length}
+                        {pagination.total}
                       </span>{" "}
                       properties
                       {categoryFilter !== "ALL" && (
@@ -581,7 +536,7 @@ export const MarketPlace = () => {
                         </span>
                       )}
                     </p>
-                    {totalPages > 1 && (
+                    {pagination.totalPages > 1 && (
                       <p className="text-sm text-muted-foreground">
                         Page{" "}
                         <span className="font-medium text-foreground">
@@ -589,7 +544,7 @@ export const MarketPlace = () => {
                         </span>{" "}
                         of{" "}
                         <span className="font-medium text-foreground">
-                          {totalPages}
+                          {pagination.totalPages}
                         </span>
                       </p>
                     )}
@@ -656,7 +611,29 @@ export const MarketPlace = () => {
                         <EmptyState onClearFilters={clearFilters} />
                       )}
                     </motion.div>
-                    {renderPagination()}
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          Cards per page:
+                        </span>
+                        <Select
+                          value={String(cardsPerPage)}
+                          onValueChange={(val) =>
+                            setCardsPerPage(Number(val))
+                          }
+                        >
+                          <SelectTrigger className="w-20 h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="12">12</SelectItem>
+                            <SelectItem value="24">24</SelectItem>
+                            <SelectItem value="48">48</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {renderPagination()}
+                    </div>
                   </>
                 )}
               </div>

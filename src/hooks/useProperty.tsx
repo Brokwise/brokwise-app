@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   useQuery,
   useMutation,
@@ -65,13 +66,61 @@ export const useGetProperty = (
   return { property, isLoading, error };
 };
 
-export const useGetAllProperties = (page = 1, limit = 100) => {
+export interface PropertyListFilters {
+  propertyCategory?: string;
+  propertyType?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  bhk?: string;
+  source?: string;
+  search?: string;
+  userCity?: string;
+}
+
+export const useGetAllProperties = (
+  page = 1,
+  limit = 12,
+  filters: PropertyListFilters = {}
+) => {
   const api = useAxios();
+
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("limit", String(limit));
+
+    if (filters.propertyCategory && filters.propertyCategory !== "ALL") {
+      params.set("propertyCategory", filters.propertyCategory);
+    }
+    if (filters.propertyType && filters.propertyType !== "ALL") {
+      params.set("propertyType", filters.propertyType);
+    }
+    if (filters.minPrice !== undefined && filters.minPrice > 0) {
+      params.set("minPrice", String(filters.minPrice));
+    }
+    if (filters.maxPrice !== undefined) {
+      params.set("maxPrice", String(filters.maxPrice));
+    }
+    if (filters.bhk && filters.bhk !== "ALL") {
+      params.set("bhk", filters.bhk === "5+" ? "5" : filters.bhk);
+    }
+    if (filters.source && filters.source !== "ALL") {
+      params.set("source", filters.source);
+    }
+    if (filters.search && filters.search.trim()) {
+      params.set("search", filters.search.trim());
+    }
+    if (filters.userCity) {
+      params.set("userCity", filters.userCity);
+    }
+
+    return params.toString();
+  }, [page, limit, filters]);
+
   const { data, isLoading, error } = useQuery<PaginatedPropertyResponse>({
-    queryKey: ["properties", page, limit],
+    queryKey: ["properties", queryString],
     queryFn: async () => {
-      return (await api.get(`/property/list?page=${page}&limit=${limit}`)).data
-        .data;
+      return (await api.get(`/property/list?${queryString}`)).data.data;
     },
     placeholderData: keepPreviousData,
   });
