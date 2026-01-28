@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Property } from "@/types/property";
+import { Typography } from "@/components/ui/typography";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -433,9 +434,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Price Tag Overlay (Luxurious Touch) */}
         <div className="absolute bottom-3 right-3 z-10">
           <div className="bg-background/95 backdrop-blur shadow-md px-3 py-1.5 rounded-lg border border-accent/10 flex flex-col items-end">
-            <p className="text-lg font-bold text-accent leading-none">
+            <Typography variant="h3" className="font-bold text-accent leading-none">
               {formatPriceShort(property.totalPrice)}
-            </p>
+            </Typography>
             {rateDisplay && (
               <p className="text-[10px] text-muted-foreground font-medium mt-1">
                 {rateDisplay}
@@ -452,10 +453,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             <div className="text-xs font-medium text-accent uppercase tracking-wider">
               {property.propertyCategory}
             </div>
-            <h3 className="font-semibold text-sm! md:text-sm line-clamp-1 text-foreground leading-tight">
+            <Typography variant="h3" className="line-clamp-1 leading-tight">
               {property.bhk ? `${property.bhk} BHK ` : ""}
               {property.propertyType.replace(/_/g, " ")}
-            </h3>
+            </Typography>
             <div className="flex items-center text-muted-foreground text-sm">
               <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0 text-accent/70" />
               <span className="line-clamp-1 text-sm">

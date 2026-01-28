@@ -190,6 +190,9 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+        // Ensure no other font families are available
+        serif: ["ui-serif", "Georgia", "Cambria", "Times New Roman", "Times", "serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import { Typography } from "@/components/ui/typography";
 import {
   Search,
   X,
@@ -190,9 +191,9 @@ export const MarketplaceHeader = ({
       <div className="flex items-center justify-between gap-2 sm:gap-4">
         {/* Left: Title + Segmented Control */}
         <div className="flex items-center gap-2 sm:gap-4 md:gap-6 min-w-0 flex-1">
-          <h1 className="text-xl sm:text-2xl md:text-3xl text-foreground tracking-tight shrink-0">
+          <Typography variant="h1" className="shrink-0">
             Marketplace
-          </h1>
+          </Typography>
 
           {/* Segmented Control */}
           <div className="flex items-center gap-0.5 bg-muted/50 p-0.5 rounded-lg border border-border/40">
@@ -201,11 +202,10 @@ export const MarketplaceHeader = ({
               variant={viewMode === "PROPERTIES" ? "default" : "ghost"}
               onClick={() => setViewMode("PROPERTIES")}
               size="sm"
-              className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all ${
-                viewMode === "PROPERTIES"
+              className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all ${viewMode === "PROPERTIES"
                   ? "shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               {t("nav_properties")}
             </Button>
@@ -214,11 +214,10 @@ export const MarketplaceHeader = ({
               variant={viewMode === "ENQUIRIES" ? "default" : "ghost"}
               onClick={() => setViewMode("ENQUIRIES")}
               size="sm"
-              className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all ${
-                viewMode === "ENQUIRIES"
+              className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all ${viewMode === "ENQUIRIES"
                   ? "shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               {t("nav_enquiries")}
             </Button>
@@ -300,7 +299,7 @@ export const MarketplaceHeader = ({
             sideOffset={8}
           >
             <div className="p-3 border-b border-border/50">
-              <h4 className="font-semibold text-sm">{t("label_recent_searches")}</h4>
+              <Typography variant="small" className="font-semibold">{t("label_recent_searches")}</Typography>
             </div>
             <div className="max-h-64 overflow-y-auto">
               {isRecentLoading ? (
@@ -354,11 +353,10 @@ export const MarketplaceHeader = ({
                     setBhkFilter("ALL");
                   }
                 }}
-                className={`shrink-0 rounded-full px-2.5 sm:px-4 h-7 sm:h-8 font-medium border text-xs sm:text-sm transition-all ${
-                  categoryFilter === pill.value
+                className={`shrink-0 rounded-full px-2.5 sm:px-4 h-7 sm:h-8 font-medium border text-xs sm:text-sm transition-all ${categoryFilter === pill.value
                     ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
                     : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary"
-                }`}
+                  }`}
               >
                 {pill.label}
               </Button>
@@ -374,11 +372,10 @@ export const MarketplaceHeader = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  className={`relative gap-1.5 sm:gap-2 h-8 rounded-full border-border/60 hover:bg-secondary hover:border-border px-2.5 sm:px-3 ${
-                    hasActiveFilters
+                  className={`relative gap-1.5 sm:gap-2 h-8 rounded-full border-border/60 hover:bg-secondary hover:border-border px-2.5 sm:px-3 ${hasActiveFilters
                       ? "text-accent border-accent/30 bg-accent/5"
                       : "text-muted-foreground hover:text-foreground"
-                  }`}
+                    }`}
                 >
                   <FilterIcon className="h-3.5 w-3.5" />
                   <span className="hidden xs:inline sm:inline">{t("label_filters")}</span>
@@ -626,11 +623,10 @@ export const MarketplaceHeader = ({
                     setView("grid");
                     onClearPropertySelection();
                   }}
-                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${
-                    view === "grid"
+                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${view === "grid"
                       ? "shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                  }`}
+                    }`}
                   title="Grid View"
                 >
                   {" "}
@@ -643,11 +639,10 @@ export const MarketplaceHeader = ({
                     setView("map");
                     onClearPropertySelection();
                   }}
-                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${
-                    view === "map"
+                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${view === "map"
                       ? "shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                  }`}
+                    }`}
                   title="Map View"
                 >
                   {" "}
@@ -660,11 +655,10 @@ export const MarketplaceHeader = ({
                     setView("split");
                     onClearPropertySelection();
                   }}
-                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full hidden md:flex transition-all duration-300 ${
-                    view === "split"
+                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full hidden md:flex transition-all duration-300 ${view === "split"
                       ? "shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                  }`}
+                    }`}
                   title="Split View"
                 >
                   {" "}

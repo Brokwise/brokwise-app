@@ -21,7 +21,7 @@ export const PropertyDescription = ({ description }: PropertyDescriptionProps) =
     return (
         <Card className="shadow-sm">
             <CardHeader>
-                <CardTitle className="text-xl">{t("label_description")}</CardTitle>
+                <CardTitle>{t("label_description")}</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className={`prose prose-sm max-w-none text-muted-foreground leading-relaxed whitespace-pre-wrap ${!isExpanded && shouldTruncate ? "mask-gradient-bottom" : ""}`}>

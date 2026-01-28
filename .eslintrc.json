@@ -8,12 +8,12 @@
     "no-restricted-syntax": [
       "error",
       {
-        "selector": "Literal[value=/font-instrument-serif/]",
-        "message": "font-instrument-serif is deprecated. Use the Typography component instead."
+        "selector": "JSXAttribute[name.name='className'] Literal[value=/\\bfont-(bold|semibold|medium|light|extrabold|black|sans|serif|mono)\\b/]",
+        "message": "Manual font weight/family classes are disabled to enforce consistency. Use the <Typography /> component with appropriate variants."
       },
       {
-        "selector": "Literal[value=/font-host-grotesk/]",
-        "message": "font-host-grotesk is deprecated. Use the Typography component instead."
+        "selector": "JSXAttribute[name.name='className'] Literal[value=/\\btext-(xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl)\\b/]",
+        "message": "Manual text size classes are disabled to enforce consistency. Use the <Typography /> component with appropriate variants."
       }
     ]
   }
