@@ -92,12 +92,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 {<BottomNav />}
                 <ChatbotWidget />
                 <ScrollToTop />
-              </SidebarInset>
-            </SidebarProvider>
-          </UndoDeleteProvider>
-        </SwipeBackProvider>
-      </ProtectedPage>
-    </AppProvider>
+              </SidebarInset >
+            </SidebarProvider >
+          </UndoDeleteProvider >
+        </SwipeBackProvider >
+      </ProtectedPage >
+    </AppProvider >
   );
 };
 
