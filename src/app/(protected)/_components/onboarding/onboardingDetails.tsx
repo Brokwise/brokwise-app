@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useTranslation } from "react-i18next";
-import i18n from "@/i18n";
+import { changeLanguage } from "@/i18n";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +21,6 @@ import {
   ArrowRight,
   Sun,
   Moon,
-  Computer,
   Camera,
   User,
 } from "lucide-react";
@@ -85,7 +84,8 @@ export const OnboardingDetails = ({
   const [isNotifying, setIsNotifying] = useState(false);
   const [hasNotified, setHasNotified] = useState(false);
   const [notifyMobile, setNotifyMobile] = useState("");
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language;
 
   const isIndianNumber = selectedCountry === "+91";
 
@@ -103,7 +103,6 @@ export const OnboardingDetails = ({
   }, []);
 
   const activeTheme = mounted ? resolvedTheme ?? theme : undefined;
-  const isSystemTheme = mounted && theme === "system";
 
   const stepFields = {
     1: ["profilePhoto", "firstName", "lastName", "mobile"],
@@ -304,54 +303,39 @@ export const OnboardingDetails = ({
     <section className="relative h-[100dvh] w-full overflow-y-auto transition-colors duration-500">
       {/* Theme & Language Toggles */}
       <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
-        <Select
-          onValueChange={(value) => i18n.changeLanguage(value)}
-          defaultValue={i18n.language}
-        >
-          <SelectTrigger className="w-[100px] h-8 text-xs bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-slate-200 dark:border-slate-800">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="en">English</SelectItem>
-            <SelectItem value="hi">हिंदी</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <div className="flex gap-0.5 border border-slate-200 dark:border-slate-800 rounded-full p-1 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md shadow-sm">
+        {/* Language Toggle */}
+        <div className="flex items-center gap-1 border rounded-full px-1 py-0.5 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-slate-200 dark:border-slate-800">
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme("light")}
-            className={`h-7 w-7 rounded-full transition-all ${activeTheme === "light"
-              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
+            variant={currentLang === "en" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-7 px-2.5 rounded-full text-xs font-medium"
+            onClick={() => changeLanguage("en")}
           >
-            <Sun className="h-3.5 w-3.5" />
+            EN
           </Button>
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme("dark")}
-            className={`h-7 w-7 rounded-full transition-all ${activeTheme === "dark"
-              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
+            variant={currentLang === "hi" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-7 px-2.5 rounded-full text-xs font-medium"
+            onClick={() => changeLanguage("hi")}
           >
-            <Moon className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme("system")}
-            className={`h-7 w-7 rounded-full transition-all ${isSystemTheme
-              ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-              : "text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
-          >
-            <Computer className="h-3.5 w-3.5" />
+            हिं
           </Button>
         </div>
+
+        {/* Theme Toggle */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 rounded-full bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border border-slate-200 dark:border-slate-800"
+          onClick={() => setTheme(activeTheme === "light" ? "dark" : "light")}
+        >
+          {activeTheme === "light" ? (
+            <Moon className="h-4 w-4" />
+          ) : (
+            <Sun className="h-4 w-4" />
+          )}
+        </Button>
 
         <Button
           variant="ghost"

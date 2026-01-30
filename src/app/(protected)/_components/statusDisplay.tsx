@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import {
   Card,
@@ -24,6 +24,8 @@ import {
   Briefcase,
   Hash,
   LucideProps,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -32,6 +34,9 @@ import { firebaseAuth } from "@/config/firebase";
 import { Broker } from "@/stores/authStore";
 import { Company } from "@/models/types/company";
 import { Separator } from "@/components/ui/separator";
+import { useTranslation } from "react-i18next";
+import { changeLanguage } from "@/i18n";
+import { useTheme } from "next-themes";
 
 interface StatusDisplayProps {
   onEdit?: () => void;
@@ -42,6 +47,17 @@ interface StatusDisplayProps {
 export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
   const { brokerData, companyData } = useApp();
   const [signOut] = useSignOut(firebaseAuth);
+  const { i18n } = useTranslation();
+  const { theme, resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  const currentLang = i18n.language;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const activeTheme = mounted ? resolvedTheme ?? theme : undefined;
 
   const activeData = data || brokerData || companyData;
   const activeType =
@@ -140,11 +156,47 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
 
   return (
     <div className="h-screen overflow-hidden w-full flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950/50">
-      <div className="absolute top-4 right-4">
+      {/* Top Bar - Language, Theme, and Logout */}
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+        {/* Language Toggle */}
+        <div className="flex items-center gap-1 border rounded-full px-1 py-0.5 bg-background/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200 dark:border-slate-800">
+          <Button
+            variant={currentLang === "en" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-7 px-2.5 rounded-full text-xs font-medium"
+            onClick={() => changeLanguage("en")}
+          >
+            EN
+          </Button>
+          <Button
+            variant={currentLang === "hi" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-7 px-2.5 rounded-full text-xs font-medium"
+            onClick={() => changeLanguage("hi")}
+          >
+            हिं
+          </Button>
+        </div>
+
+        {/* Theme Toggle */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 rounded-full bg-background/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-800"
+          onClick={() => setTheme(activeTheme === "light" ? "dark" : "light")}
+        >
+          {activeTheme === "light" ? (
+            <Moon className="h-4 w-4" />
+          ) : (
+            <Sun className="h-4 w-4" />
+          )}
+        </Button>
+
+        {/* Logout Button */}
         <Button
           variant="ghost"
           onClick={() => signOut()}
-          className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors gap-2"
+          className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors gap-2 border border-transparent hover:border-red-200 dark:hover:border-red-900"
         >
           <LogOut className="h-4 w-4" />
           Logout
@@ -159,22 +211,29 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
 
         <CardHeader className="text-center pb-8 pt-8">
           <div className="mx-auto mb-6 relative">
+            {/* Animated glow effect for pending status */}
             <div
               className={cn(
-                "absolute inset-0 rounded-full blur-xl opacity-50",
-                statusConfig.bgColor
+                "absolute inset-0 rounded-full blur-xl opacity-50 transition-opacity duration-1000",
+                statusConfig.bgColor,
+                activeData.status === "pending" && "animate-pulse"
               )}
+              style={{ animationDuration: activeData.status === "pending" ? "2s" : undefined }}
             />
+            {/* Icon container with enhanced animation */}
             <div
               className={cn(
                 "relative flex items-center justify-center w-24 h-24 rounded-full border-[6px] bg-white dark:bg-slate-900 shadow-lg mx-auto transform transition-all duration-500 hover:scale-105",
                 statusConfig.borderColor,
-                statusConfig.color,
-                activeData.status === "pending" && "animate-pulse"
+                statusConfig.color
               )}
-              style={{ animationDuration: activeData.status === "pending" ? "3s" : undefined }}
             >
-              <statusConfig.icon className="h-12 w-12" />
+              <statusConfig.icon
+                className={cn(
+                  "h-12 w-12 transition-transform duration-1000",
+                  activeData.status === "pending" && "animate-[spin_4s_ease-in-out_infinite]"
+                )}
+              />
             </div>
           </div>
 
