@@ -47,7 +47,7 @@ interface StatusDisplayProps {
 export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
   const { brokerData, companyData } = useApp();
   const [signOut] = useSignOut(firebaseAuth);
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -86,8 +86,8 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
           borderColor: "border-emerald-200 dark:border-emerald-500/20",
           badgeClass:
             "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20",
-          title: "Account Approved",
-          description: "Your account is active and verified",
+          title: t("status_account_approved"),
+          description: t("status_approved_message"),
         };
       case "pending":
         return {
@@ -97,8 +97,8 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
           borderColor: "border-amber-200 dark:border-amber-500/20",
           badgeClass:
             "bg-amber-100 text-amber-900 dark:bg-amber-500/10 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-500/10 text-md px-6 py-2 shadow-sm border border-amber-200 dark:border-amber-500/20",
-          title: "Profile Under Review",
-          description: "We are currently reviewing your profile details. You'll be notified once the verification is complete.",
+          title: t("status_profile_under_review"),
+          description: t("status_review_message"),
         };
       case "blacklisted":
         return {
@@ -108,8 +108,8 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
           borderColor: "border-red-200 dark:border-red-500/20",
           badgeClass:
             "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20",
-          title: "Account Suspended",
-          description: "Please contact support for assistance",
+          title: t("status_account_suspended"),
+          description: t("status_suspended_message"),
         };
       default:
         return {
@@ -119,8 +119,8 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
           borderColor: "border-slate-200 dark:border-slate-500/20",
           badgeClass:
             "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-500/20",
-          title: "Processing",
-          description: "Status update in progress",
+          title: t("status_processing"),
+          description: t("status_processing_message"),
         };
     }
   };
@@ -199,7 +199,7 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
           className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors gap-2 border border-transparent hover:border-red-200 dark:hover:border-red-900"
         >
           <LogOut className="h-4 w-4" />
-          Logout
+          {t("action_logout")}
         </Button>
       </div>
 
@@ -266,32 +266,32 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
               <>
                 <DetailItem
                   icon={Building2}
-                  label="Company Name"
+                  label={t("status_company_name")}
                   value={company.name}
                 />
                 <DetailItem
                   icon={FileText}
-                  label="GSTIN"
+                  label={t("status_gstin")}
                   value={company.gstin}
                 />
                 <DetailItem
                   icon={Mail}
-                  label="Email Address"
+                  label={t("status_email_address")}
                   value={company.email}
                 />
                 <DetailItem
                   icon={Phone}
-                  label="Phone Number"
+                  label={t("status_phone_number")}
                   value={company.mobile}
                 />
                 <DetailItem
                   icon={MapPin}
-                  label="Headquarters"
+                  label={t("status_headquarters")}
                   value={company.city}
                 />
                 <DetailItem
                   icon={Users}
-                  label="Team Size"
+                  label={t("status_team_size")}
                   value={company.noOfEmployees}
                 />
               </>
@@ -299,41 +299,41 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
               <>
                 <DetailItem
                   icon={User}
-                  label="Full Name"
+                  label={t("status_full_name")}
                   value={`${broker.firstName} ${broker.lastName}`}
                 />
                 <DetailItem
                   icon={Building2}
-                  label="Company"
+                  label={t("status_company")}
                   value={broker.companyName}
                 />
                 <DetailItem
                   icon={Mail}
-                  label="Email Address"
+                  label={t("status_email_address")}
                   value={broker.email}
                 />
                 <DetailItem
                   icon={Phone}
-                  label="Phone Number"
+                  label={t("status_phone_number")}
                   value={broker.mobile}
                 />
                 <DetailItem
                   icon={MapPin}
-                  label="Location"
+                  label={t("status_location")}
                   value={broker.city}
                 />
                 <DetailItem
                   icon={Briefcase}
-                  label="Experience"
+                  label={t("status_experience")}
                   value={`${broker.yearsOfExperience === 15
                     ? "15+"
                     : broker.yearsOfExperience
-                    } Years`}
+                    } ${t("status_years")}`}
                 />
                 {broker.brokerId && (
                   <DetailItem
                     icon={Hash}
-                    label="Broker ID"
+                    label={t("status_broker_id")}
                     value={broker.brokerId}
                   />
                 )}
@@ -349,7 +349,7 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
                 className="gap-2 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
               >
                 <Edit2 className="h-4 w-4" />
-                Edit Profile Details
+                {t("status_edit_profile")}
               </Button>
             </div>
           )}
