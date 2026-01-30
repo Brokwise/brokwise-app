@@ -153,9 +153,9 @@ const SingleEnquiry = () => {
   );
 
   return (
-    <div className="">
+    <div className="p-4 md:p-6 lg:p-8">
       {/* Header Section */}
-      <div className="flex flex-col space-y-4 md:flex-row md:items-start md:justify-between md:space-y-0 mb-2">
+      <div className="flex flex-col space-y-4 md:flex-row md:items-start md:justify-between md:space-y-0 mb-6 md:mb-8">
         <div className="space-y-3">
           <Button
             variant="ghost"
@@ -282,9 +282,9 @@ const SingleEnquiry = () => {
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-6 md:gap-8 lg:grid-cols-3">
         {/* Main Content Column */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-6 md:space-y-8">
           {/* Requirements Card */}
           <Card className="overflow-hidden border-muted">
             <CardHeader className="bg-muted/10 pb-4">
@@ -568,7 +568,7 @@ const SingleEnquiry = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-6 lg:pl-2">
           {/* Summary Card */}
           <Card className="bg-muted/20 border shadow-sm">
             <CardHeader className="pb-3">
