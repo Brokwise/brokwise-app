@@ -217,7 +217,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
       </Dialog>
 
       {/* Chat Input Bar */}
-      <div className="relative flex items-end gap-3 border-t border-border/40 bg-background/95 p-4 backdrop-blur-md md:pb-4">
+      <div className="relative flex items-end gap-3 border-t border-border/40 bg-background/95 p-4 md:pr-24 backdrop-blur-md md:pb-4">
         <input
           type="file"
           className="hidden"
