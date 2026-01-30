@@ -13,13 +13,31 @@ import { ChatMessages } from "./ChatMessages";
 import { ChatInput } from "./ChatInput";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-export function ChatbotWidget() {
+interface ChatbotWidgetProps {
+  isOnboarding?: boolean;
+}
+
+export function ChatbotWidget({ isOnboarding = false }: ChatbotWidgetProps) {
   const isMobile = useIsMobile();
   const { messages, isOpen, setIsOpen, clearChat } = useChatbotStore();
   const { sendMessage, isStreaming } = useChatbot();
+  const [showHelperTooltip, setShowHelperTooltip] = React.useState(true);
+
+  // Auto-hide helper tooltip after 8 seconds
+  React.useEffect(() => {
+    if (isOnboarding && showHelperTooltip) {
+      const timer = setTimeout(() => {
+        setShowHelperTooltip(false);
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOnboarding, showHelperTooltip]);
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
+    if (isOnboarding) {
+      setShowHelperTooltip(false);
+    }
   };
 
   const handleClose = () => {
@@ -46,6 +64,7 @@ export function ChatbotWidget() {
         messages={messages}
         isStreaming={isStreaming}
         onSuggestionClick={handleSendMessage}
+        isOnboarding={isOnboarding}
       />
       <ChatInput onSend={handleSendMessage} isStreaming={isStreaming} />
     </div>
@@ -67,6 +86,32 @@ export function ChatbotWidget() {
               isMobile ? "bottom-24 right-4" : "bottom-6 right-6"
             )}
           >
+            {/* Helper Tooltip for Onboarding */}
+            {isOnboarding && showHelperTooltip && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ delay: 0.5 }}
+                className={cn(
+                  "absolute bottom-full mb-3 right-0",
+                  isMobile ? "w-64" : "w-72",
+                  "bg-primary text-primary-foreground",
+                  "px-4 py-3 rounded-lg shadow-lg",
+                  "text-sm leading-relaxed"
+                )}
+              >
+                <div className="relative">
+                  <p className="font-medium mb-1">Need help with onboarding?</p>
+                  <p className="text-xs opacity-90">
+                    Ask me anything about filling the form, RERA, or understanding the platform!
+                  </p>
+                  {/* Arrow pointer */}
+                  <div className="absolute -bottom-7 right-4 w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-primary" />
+                </div>
+              </motion.div>
+            )}
+
             <Button
               onClick={handleToggle}
               size="icon"
