@@ -11,6 +11,7 @@ import { CompanyOnboardingDetails } from "@/app/(protected)/_components/onboardi
 import { StatusDisplay } from "@/app/(protected)/_components/statusDisplay";
 import { useApp } from "@/context/AppContext";
 import { PushNotificationsService } from "@/app/services/pushNotifications";
+import { ChatbotWidget } from "@/components/chatbot";
 
 import { logError } from "@/utils/errors";
 import WaveBackground from "@/components/ui/waveBackground";
@@ -207,6 +208,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
             isEditing={true}
             onCancel={() => setIsEditing(false)}
           />
+          <ChatbotWidget isOnboarding={true} />
         </WaveBackground>
       );
     }
@@ -215,6 +217,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
         return (
           <WaveBackground>
             <OnboardingDetails />
+            <ChatbotWidget isOnboarding={true} />
           </WaveBackground>
         );
       case "pending":
@@ -222,7 +225,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
       case "blacklisted":
         return <StatusDisplay />;
       case "approved":
-        break; 
+        break;
       default:
         return <StatusDisplay />;
     }
@@ -235,6 +238,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
     return (
       <WaveBackground>
         <CompanyOnboardingDetails />
+        <ChatbotWidget isOnboarding={true} />
       </WaveBackground>
     );
   }
@@ -243,6 +247,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
     return (
       <WaveBackground>
         <OnboardingDetails />
+        <ChatbotWidget isOnboarding={true} />
       </WaveBackground>
     );
   }

@@ -11,11 +11,33 @@ interface ChatMessagesProps {
   messages: ChatMessage[];
   isStreaming: boolean;
   onSuggestionClick?: (suggestion: string) => void;
+  isOnboarding?: boolean;
 }
 
-export function ChatMessages({ messages, isStreaming, onSuggestionClick }: ChatMessagesProps) {
+export function ChatMessages({
+  messages,
+  isStreaming,
+  onSuggestionClick,
+  isOnboarding = false,
+}: ChatMessagesProps) {
   const endRef = React.useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
+
+  // Define suggestions based on context
+  const suggestions = isOnboarding
+    ? [
+        "What is RERA number?",
+        "How do I find my RERA number?",
+        "Is RERA mandatory?",
+        "What is GSTIN?",
+        "Convert 10 bigha to square yards",
+        "What happens after onboarding?",
+      ]
+    : [
+        t("chatbot_suggestion_1"),
+        t("chatbot_suggestion_2"),
+        t("chatbot_suggestion_3"),
+      ];
 
   // Auto-scroll to bottom when new messages arrive
   React.useEffect(() => {
@@ -36,16 +58,12 @@ export function ChatMessages({ messages, isStreaming, onSuggestionClick }: ChatM
         <p className="text-sm text-muted-foreground max-w-[280px]">
           {t("chatbot_welcome_message")}
         </p>
-        <div className="mt-6 space-y-2 w-full max-w-[280px]">
+        <div className="mt-6 space-y-2 w-full max-w-[320px]">
           <p className="text-xs text-muted-foreground font-medium">
-            {t("chatbot_suggestions_title")}
+            {isOnboarding ? "Quick onboarding questions:" : t("chatbot_suggestions_title")}
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
-            {[
-              t("chatbot_suggestion_1"),
-              t("chatbot_suggestion_2"),
-              t("chatbot_suggestion_3"),
-            ].map((suggestion, index) => (
+            {suggestions.map((suggestion, index) => (
               <button
                 key={index}
                 type="button"
