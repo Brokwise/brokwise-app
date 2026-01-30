@@ -80,9 +80,9 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
           bgColor: "bg-amber-50 dark:bg-amber-500/10",
           borderColor: "border-amber-200 dark:border-amber-500/20",
           badgeClass:
-            "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/20",
-          title: "Under Review",
-          description: "We are currently verifying your details",
+            "bg-amber-100 text-amber-900 dark:bg-amber-500/10 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-500/10 text-md px-6 py-2 shadow-sm border border-amber-200 dark:border-amber-500/20",
+          title: "Profile Under Review",
+          description: "We are currently reviewing your profile details. You'll be notified once the verification is complete.",
         };
       case "blacklisted":
         return {
@@ -261,11 +261,10 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
                 <DetailItem
                   icon={Briefcase}
                   label="Experience"
-                  value={`${
-                    broker.yearsOfExperience === 15
-                      ? "15+"
-                      : broker.yearsOfExperience
-                  } Years`}
+                  value={`${broker.yearsOfExperience === 15
+                    ? "15+"
+                    : broker.yearsOfExperience
+                    } Years`}
                 />
                 {broker.brokerId && (
                   <DetailItem
