@@ -139,7 +139,7 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
   );
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950/50">
+    <div className="h-screen overflow-hidden w-full flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950/50">
       <div className="absolute top-4 right-4">
         <Button
           variant="ghost"
