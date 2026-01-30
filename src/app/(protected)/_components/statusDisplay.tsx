@@ -170,8 +170,9 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
                 "relative flex items-center justify-center w-24 h-24 rounded-full border-[6px] bg-white dark:bg-slate-900 shadow-lg mx-auto transform transition-all duration-500 hover:scale-105",
                 statusConfig.borderColor,
                 statusConfig.color,
-                activeData.status === "pending" && "ring-4 ring-amber-50 dark:ring-amber-900/10"
+                activeData.status === "pending" && "animate-pulse"
               )}
+              style={{ animationDuration: activeData.status === "pending" ? "3s" : undefined }}
             >
               <statusConfig.icon className="h-12 w-12" />
             </div>
