@@ -123,13 +123,13 @@ export const Wizard: React.FC<WizardProps> = ({
         </CardContent>
       </Card>
 
-      <div className="flex justify-between pt-0 pb-8 md:pb-2 md:pt-4">
-        <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
+      <div className="relative flex flex-col items-center pt-2 pb-8 md:pb-2 md:pt-4 space-y-4">
+        <PropertyCreateUseCredits shouldUseCredits={shouldUseCredits} setShouldUseCredits={setShouldUseCredits} />
+
+        <div className="flex items-center justify-center w-full relative">
+          {/* Left Side - Save Draft */}
           {onSaveDraft && (
-            <div className="flex items-center gap-2">
+            <div className="absolute left-0 hidden md:flex items-center gap-2">
               <Button
                 type="button"
                 variant="secondary"
@@ -157,32 +157,72 @@ export const Wizard: React.FC<WizardProps> = ({
               </span>
             </div>
           )}
-          {!isFirstStep && (
-            <Button type="button" variant="outline" onClick={onPrevious}>
-              Previous
-            </Button>
-          )}
-        </div>
-        <div>
-          <PropertyCreateUseCredits shouldUseCredits={shouldUseCredits} setShouldUseCredits={setShouldUseCredits} />
-        </div>
-        <div className="flex gap-2">
-          {!isLastStep ? (
-            <Button type="button" onClick={onNext} disabled={!canProceed || isQuotaLoading || (remaining?.property_listing === 0 && !shouldUseCredits)}>
-              Next
-            </Button>
-          ) : (
+
+          {/* Center - Action Buttons Pill */}
+          <div className="inline-flex items-center bg-background/95 backdrop-blur-xl backdrop-saturate-150 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-full p-1.5 gap-2 ring-1 ring-black/5 dark:ring-white/10">
             <Button
               type="button"
-              onClick={() => { onSubmit(shouldUseCredits) }}
-              disabled={isSubmitting || isLoading || isQuotaLoading || !canProceed || (remaining?.property_listing === 0 && !shouldUseCredits)}
+              variant="ghost"
+              onClick={onCancel}
+              className="text-muted-foreground hover:bg-muted/50 rounded-full px-4 h-9 text-sm font-medium"
             >
-              {isSubmitting || isLoading
-                ? "Processing..."
-                : submitLabel || "Create Property"}
+              Cancel
             </Button>
-          )}
+
+            {!isFirstStep && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onPrevious}
+                className="text-muted-foreground hover:bg-muted/50 rounded-full px-4 h-9 text-sm font-medium"
+              >
+                Previous
+              </Button>
+            )}
+
+            {!isLastStep ? (
+              <Button
+                type="button"
+                onClick={onNext}
+                disabled={!canProceed || isQuotaLoading || (remaining?.property_listing === 0 && !shouldUseCredits)}
+                className="rounded-full px-6 h-9 text-sm font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 bg-primary"
+              >
+                Next
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={() => { onSubmit(shouldUseCredits) }}
+                disabled={isSubmitting || isLoading || isQuotaLoading || !canProceed || (remaining?.property_listing === 0 && !shouldUseCredits)}
+                className="rounded-full px-6 h-9 text-sm font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 bg-primary"
+              >
+                {isSubmitting || isLoading
+                  ? "Processing..."
+                  : submitLabel || "Create Property"}
+              </Button>
+            )}
+          </div>
         </div>
+
+        {/* Mobile Save Draft fallback */}
+        {onSaveDraft && (
+          <div className="md:hidden flex items-center gap-2 justify-center">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={onSaveDraft}
+              disabled={
+                isSavingDraft || isLoading || isSubmitting || !canSaveDraft
+              }
+            >
+              {isSavingDraft ? "Saving..." : "Save Draft"}
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {draftCount}/{maxDrafts}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
