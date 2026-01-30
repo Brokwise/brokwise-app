@@ -83,14 +83,14 @@ export const EnquiryCard = ({
   }
   return (
     <Card
-      className="group relative overflow-hidden border border-border/50 bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/20 cursor-pointer"
+      className="group relative overflow-hidden border border-border/50 bg-card dark:bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/20 cursor-pointer h-full flex flex-col"
       onClick={() => {
         if (isCompany)
           router.push(`/company-enquiries/marketplace/${enquiry._id}`);
         else router.push(`/enquiries/${enquiry._id}`);
       }}
     >
-      <CardHeader className="p-5 pb-3">
+      <CardHeader className="p-4 md:p-5 pb-3">
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center gap-2">
             {isSameCity && (
@@ -145,7 +145,7 @@ export const EnquiryCard = ({
         </div>
       </CardHeader>
 
-      <CardContent className="p-3 md:p-5">
+      <CardContent className="p-4 md:p-5 flex-grow">
         <div className="mb-4">
           <div className="flex items-baseline gap-1">
             <span className="text-xl font-bold tracking-tight">
@@ -187,7 +187,7 @@ export const EnquiryCard = ({
         </div>
       </CardContent>
 
-      <CardFooter className="p-5 pt-0 flex items-center justify-between">
+      <CardFooter className="p-4 md:p-5 pt-0 flex items-center justify-between">
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center">
             <Clock className="mr-1.5 h-3.5 w-3.5" />
