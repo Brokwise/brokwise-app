@@ -152,7 +152,10 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
       </div>
 
       <Card className="w-full max-w-2xl overflow-hidden border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-900">
-        <div className={`h-2 w-full ${statusConfig.bgColor.split(" ")[0]}`} />
+        <div className={`h-3 w-full bg-gradient-to-r from-transparent via-${statusConfig.color.split("-")[1]}-500/20 to-transparent`} />
+
+        {/* Decorative background gradient */}
+        <div className={cn("absolute inset-0 opacity-[0.03] pointer-events-none", statusConfig.bgColor)} />
 
         <CardHeader className="text-center pb-8 pt-8">
           <div className="mx-auto mb-6 relative">
@@ -162,15 +165,16 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
                 statusConfig.bgColor
               )}
             />
-            {/* <div
+            <div
               className={cn(
-                "relative flex items-center justify-center w-20 h-20 rounded-full border-4 bg-white dark:bg-slate-900",
+                "relative flex items-center justify-center w-24 h-24 rounded-full border-[6px] bg-white dark:bg-slate-900 shadow-lg mx-auto transform transition-all duration-500 hover:scale-105",
                 statusConfig.borderColor,
-                statusConfig.color
+                statusConfig.color,
+                activeData.status === "pending" && "ring-4 ring-amber-50 dark:ring-amber-900/10"
               )}
             >
-              <StatusIcon className="h-10 w-10" />
-            </div> */}
+              <statusConfig.icon className="h-12 w-12" />
+            </div>
           </div>
 
           <div className="space-y-2">
