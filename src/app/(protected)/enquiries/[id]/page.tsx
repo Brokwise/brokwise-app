@@ -153,7 +153,7 @@ const SingleEnquiry = () => {
   );
 
   return (
-    <div className="p-4 md:p-6 lg:p-8">
+    <div className="px-4 md:px-6 lg:px-8 pt-[11px] md:pt-[19px] lg:pt-[27px] pb-4 md:pb-6 lg:pb-8">
       {/* Header Section */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-start md:justify-between md:space-y-0 mb-6 md:mb-8">
         <div className="space-y-3">
