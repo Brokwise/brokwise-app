@@ -1,5 +1,11 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  indexedDBLocalPersistence, 
+  initializeAuth,
+  Auth
+} from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import {
   getFirestore,
@@ -8,6 +14,7 @@ import {
   DocumentReference,
   DocumentData,
 } from "firebase/firestore";
+import { Capacitor } from "@capacitor/core";
 import { Config } from "./index";
 import { Broker } from "@/stores/authStore";
 
@@ -20,9 +27,32 @@ export interface FirebaseConfig {
   appId: string;
   measurementId?: string;
 }
-export const firebaseApp = initializeApp(Config.firebaseConfig);
+
+// Initialize Firebase app only once
+export const firebaseApp = getApps().length === 0 
+  ? initializeApp(Config.firebaseConfig) 
+  : getApp();
+
 export const firebaseDb = getFirestore(firebaseApp);
-export const firebaseAuth = getAuth(firebaseApp);
+
+// Initialize auth with proper persistence for the platform
+// Use indexedDBLocalPersistence for Capacitor (more reliable in WebViews)
+function getFirebaseAuth(): Auth {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      // Try to initialize with indexedDB persistence for native platforms
+      return initializeAuth(firebaseApp, {
+        persistence: indexedDBLocalPersistence,
+      });
+    } catch {
+      // If already initialized, just get the existing auth instance
+      return getAuth(firebaseApp);
+    }
+  }
+  return getAuth(firebaseApp);
+}
+
+export const firebaseAuth = getFirebaseAuth();
 export const firebaseStorage = getStorage(firebaseApp);
 
 export const googleAuthProvider = new GoogleAuthProvider();

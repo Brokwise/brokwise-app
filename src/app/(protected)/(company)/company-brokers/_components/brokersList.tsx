@@ -75,7 +75,7 @@ export const BrokersList = ({
           {brokers.map((broker) => (
             <TableRow key={broker._id}>
               <TableCell className="font-medium">
-                <Link href={`company-brokers/${broker._id}`}>
+                <Link href={`/company-brokers/detail?id=${broker._id}`}>
                   {broker.firstName} {broker.lastName}
                 </Link>
               </TableCell>

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 import {
   useGetEnquiryById,
@@ -30,7 +30,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import {
   Dialog,
@@ -41,17 +40,20 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ReceivedProperties } from "@/app/(protected)/enquiries/[id]/_components/received-properties";
-import { AdminMessages } from "@/app/(protected)/enquiries/[id]/_components/admin-messages";
-import { PropertyPreviewModal } from "@/app/(protected)/enquiries/[id]/_components/PropertyPreviewModal";
+import { ReceivedProperties } from "../[id]/_components/received-properties";
+import { AdminMessages } from "../[id]/_components/admin-messages";
+import { PropertyPreviewModal } from "../[id]/_components/PropertyPreviewModal";
 import {
   formatCurrencyEnquiry,
   getStatusColor,
   formatPrice,
   formatEnquiryLocation,
+  formatAllEnquiryLocations,
 } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
 import { toast } from "sonner";
+import { Alert } from "@/components/ui/alert";
+import { useTranslation } from "react-i18next";
 
 const isPopulatedProperty = (
   propertyId: Property | string | undefined | null
@@ -72,9 +74,11 @@ const getPropertyId = (submission: EnquirySubmission): string | null => {
   return null;
 };
 
-const ViewMarketPlaceEnquiry = () => {
-  const { id } = useParams();
+const SingleEnquiryContent = () => {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") || "";
   const { brokerData } = useApp();
+  const { t } = useTranslation();
   const [confirmationText, setConfirmationText] = useState<string>("");
   const [isCloseDialogOpen, setIsCloseDialogOpen] = useState(false);
   const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(
@@ -82,9 +86,9 @@ const ViewMarketPlaceEnquiry = () => {
   );
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const router = useRouter();
-  const { enquiry, isPending, error } = useGetEnquiryById(id as string);
+  const { enquiry, isPending, error } = useGetEnquiryById(id);
   const { myEnquiries } = useGetMyEnquiries();
-  const { enquirySubmissions } = useGetEnquirySubmissions(id as string);
+  const { enquirySubmissions } = useGetEnquirySubmissions(id);
   const { closeEnquiryAsync, isPending: isPendingCloseEnquiry } =
     useCloseEnquiry();
   const { markAsInterested, isPending: isMarkingInterested } =
@@ -93,13 +97,17 @@ const ViewMarketPlaceEnquiry = () => {
     myEnquiries &&
     myEnquiries.length > 0 &&
     myEnquiries.some((e) => e._id === enquiry?._id);
-  const brokerCompanyId =
-    typeof brokerData?.companyId === "string"
-      ? brokerData.companyId
-      : brokerData?.companyId?._id;
-  const isSameCompany =
-    !!brokerCompanyId && enquiry?.createdByCompanyId === brokerCompanyId;
-  console.log(enquiry);
+
+  if (!id) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center min-h-[60vh] text-destructive gap-4">
+        <p>No enquiry ID provided.</p>
+        <Button variant="outline" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> {t("page_enquiry_detail_go_back")}
+        </Button>
+      </div>
+    );
+  }
 
   if (isPending) {
     return (
@@ -112,9 +120,9 @@ const ViewMarketPlaceEnquiry = () => {
   if (error || !enquiry) {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center min-h-[60vh] text-destructive gap-4">
-        <p>Error loading enquiry details or enquiry not found.</p>
+        <p>{t("page_enquiry_detail_error")}</p>
         <Button variant="outline" onClick={() => router.back()}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+          <ArrowLeft className="mr-2 h-4 w-4" /> {t("page_enquiry_detail_go_back")}
         </Button>
       </div>
     );
@@ -156,9 +164,9 @@ const ViewMarketPlaceEnquiry = () => {
   );
 
   return (
-    <div className="">
+    <div className="px-4 md:px-6 lg:px-8 pt-[11px] md:pt-[19px] lg:pt-[27px] pb-4 md:pb-6 lg:pb-8">
       {/* Header Section */}
-      <div className="flex flex-col space-y-4 md:flex-row md:items-start md:justify-between md:space-y-0">
+      <div className="flex flex-col space-y-4 md:flex-row md:items-start md:justify-between md:space-y-0 mb-6 md:mb-8">
         <div className="space-y-3">
           <Button
             variant="ghost"
@@ -166,7 +174,7 @@ const ViewMarketPlaceEnquiry = () => {
             className="-ml-2 text-muted-foreground hover:text-foreground mb-2"
             onClick={() => router.back()}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Enquiries
+            <ArrowLeft className="mr-2 h-4 w-4" /> {t("page_enquiry_detail_back")}
           </Button>
           <div className="space-y-1">
             <div className="flex flex-wrap items-center  gap-2">
@@ -191,7 +199,7 @@ const ViewMarketPlaceEnquiry = () => {
                   </span>
                 </div>
               </div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              <h1 className="text-xl md:text-3xl font-bold tracking-tight text-foreground">
                 {enquiry.enquiryType} Enquiry{" "}
                 {formatEnquiryLocation(enquiry)
                   ? `in ${formatEnquiryLocation(enquiry)}`
@@ -204,18 +212,18 @@ const ViewMarketPlaceEnquiry = () => {
             {formatEnquiryLocation(enquiry) || "—"}
             {(enquiry.preferredLocations?.length ?? 0) > 1 && (
               <Badge variant="secondary" className="ml-2 text-xs px-1.5 py-0 h-5">
-                +{(enquiry.preferredLocations?.length ?? 1) - 1} more
+                +{(enquiry.preferredLocations?.length ?? 1) - 1} more location{(enquiry.preferredLocations?.length ?? 1) - 1 > 1 ? "s" : ""}
               </Badge>
             )}
             <div className="ml-2 rounded-full bg-muted px-2 ">
               {isMyEnquiry && (
                 <div className="flex gap-3">
                   <span className="flex gap-2 font-semibold">
-                    <span>Interested</span>
+                    <span>{t("page_enquiry_detail_interested")}</span>
                     {enquiry.interestedBrokersAndCompanies?.length || 0}
                   </span>
                   <span className="flex gap-2 font-semibold">
-                    <span>Submissions</span>
+                    <span>{t("page_enquiry_detail_submissions")}</span>
                     {enquiry.submissionCount}
                   </span>
                 </div>
@@ -235,20 +243,19 @@ const ViewMarketPlaceEnquiry = () => {
               }}
             >
               <DialogTrigger asChild>
-                <Button variant="destructive">Close Enquiry</Button>
+                <Button variant="destructive">{t("page_enquiry_detail_close_enquiry")}</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Close Enquiry</DialogTitle>
+                  <DialogTitle>{t("page_enquiry_detail_close_title")}</DialogTitle>
                   <DialogDescription>
-                    Are you sure you want to close this enquiry? This action
-                    cannot be undone. Type <strong>{enquiry.enquiryId}</strong>{" "}
-                    to confirm.
+                    {t("page_enquiry_detail_close_desc")} <strong>{enquiry.enquiryId}</strong>{" "}
+                    {t("page_enquiry_detail_close_to_confirm")}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
                   <Input
-                    placeholder={`Type ${enquiry.enquiryId} to confirm`}
+                    placeholder={t("page_enquiry_detail_type_to_confirm", { id: enquiry.enquiryId })}
                     value={confirmationText}
                     onChange={(e) => setConfirmationText(e.target.value)}
                   />
@@ -262,10 +269,10 @@ const ViewMarketPlaceEnquiry = () => {
                         await closeEnquiryAsync(enquiry._id);
                         setIsCloseDialogOpen(false);
                         setConfirmationText("");
-                        toast.success("Enquiry closed successfully");
+                        toast.success(t("page_enquiry_detail_closed_success"));
                       } catch {
                         toast.error(
-                          "Failed to close enquiry. Please try again."
+                          t("page_enquiry_detail_closed_error")
                         );
                       }
                     }
@@ -278,7 +285,7 @@ const ViewMarketPlaceEnquiry = () => {
                   {isPendingCloseEnquiry ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : null}
-                  Confirm Closure
+                  {t("page_enquiry_detail_confirm_closure")}
                 </Button>
               </DialogContent>
             </Dialog>
@@ -286,22 +293,22 @@ const ViewMarketPlaceEnquiry = () => {
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-6 md:gap-8 lg:grid-cols-3">
         {/* Main Content Column */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-6 md:space-y-8">
           {/* Requirements Card */}
           <Card className="overflow-hidden border-muted">
             <CardHeader className="bg-muted/10 pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <LayoutGrid className="h-5 w-5 text-primary" />
-                Requirement Details
+                {t("page_enquiry_detail_requirement_details")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
                 <RequirementItem
                   icon={IndianRupee}
-                  label="Budget Range"
+                  label={t("page_enquiry_detail_budget_range")}
                   value={`₹${formatCurrencyEnquiry(
                     enquiry.budget.min as number
                   )} - ₹${formatCurrencyEnquiry(enquiry.budget.max as number)}`}
@@ -310,49 +317,49 @@ const ViewMarketPlaceEnquiry = () => {
                 {enquiry.bhk && (
                   <RequirementItem
                     icon={BedDouble}
-                    label="BHK"
+                    label={t("page_enquiry_detail_bhk")}
                     value={`${enquiry.bhk} BHK`}
                   />
                 )}
                 {enquiry.washrooms && (
                   <RequirementItem
                     icon={Bath}
-                    label="Washrooms"
+                    label={t("page_enquiry_detail_washrooms")}
                     value={enquiry.washrooms}
                   />
                 )}
                 {enquiry.size && (
                   <RequirementItem
                     icon={Maximize}
-                    label="Size"
+                    label={t("page_enquiry_detail_size")}
                     value={`${enquiry.size.min} - ${enquiry.size.max} ${enquiry.size.unit}`}
                   />
                 )}
                 {enquiry.rooms && (
                   <RequirementItem
                     icon={DoorOpen}
-                    label="Rooms"
+                    label={t("page_enquiry_detail_rooms")}
                     value={enquiry.rooms}
                   />
                 )}
                 {enquiry.beds && (
                   <RequirementItem
                     icon={BedDouble}
-                    label="Beds"
+                    label={t("page_enquiry_detail_beds")}
                     value={enquiry.beds}
                   />
                 )}
                 {enquiry.plotType && (
                   <RequirementItem
                     icon={Home}
-                    label="Plot Type"
+                    label={t("page_enquiry_detail_plot_type")}
                     value={enquiry.plotType}
                   />
                 )}
                 {enquiry.facing && (
                   <RequirementItem
                     icon={Compass}
-                    label="Facing"
+                    label={t("page_enquiry_detail_facing")}
                     value={
                       <span className="capitalize">
                         {enquiry.facing.replace("_", " ").toLowerCase()}
@@ -364,21 +371,52 @@ const ViewMarketPlaceEnquiry = () => {
             </CardContent>
           </Card>
 
+          {/* Preferred Locations Card */}
+          {(() => {
+            const allLocations = formatAllEnquiryLocations(enquiry);
+            if (allLocations.length <= 1) return null;
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    Preferred Locations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {allLocations.map((loc, i) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-3 p-3 rounded-lg bg-muted/30"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                          {i + 1}
+                        </span>
+                        <span className="text-sm font-medium">{loc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
+
           {/* Description Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Description</CardTitle>
+              <CardTitle className="text-lg">{t("page_enquiry_detail_description")}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="whitespace-pre-wrap text-muted-foreground leading-relaxed text-sm md:text-base">
-                {enquiry.description || "No description provided."}
+                {enquiry.description || t("page_enquiry_detail_no_description")}
               </p>
             </CardContent>
           </Card>
 
           {/* Received Properties (For My Enquiry) */}
           <ReceivedProperties
-            id={id as string}
+            id={id}
             isMyEnquiry={isMyEnquiry || false}
             enquiry={enquiry}
           />
@@ -387,10 +425,10 @@ const ViewMarketPlaceEnquiry = () => {
           {!isMyEnquiry && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Your Submissions</h2>
+                <h2 className="text-lg font-semibold">{t("page_enquiry_detail_your_submissions")}</h2>
                 {enquirySubmissions?.length === 0 && (
                   <span className="text-sm text-muted-foreground">
-                    No submissions yet
+                    {t("page_enquiry_detail_no_submissions_yet")}
                   </span>
                 )}
               </div>
@@ -402,6 +440,13 @@ const ViewMarketPlaceEnquiry = () => {
                     const property = isPopulatedProperty(submission.propertyId)
                       ? submission.propertyId
                       : null;
+                    const viewStatus = submission.viewStatus ?? "not_viewed";
+                    const viewStatusLabel =
+                      viewStatus === "contact_shared"
+                        ? t("page_enquiry_detail_contact_shared")
+                        : viewStatus === "viewed"
+                          ? t("page_enquiry_detail_viewed")
+                          : t("page_enquiry_detail_not_viewed");
 
                     return (
                       <Card key={submission._id}>
@@ -411,26 +456,30 @@ const ViewMarketPlaceEnquiry = () => {
                               <CardTitle className="text-base line-clamp-1">
                                 {property?.propertyTitle ||
                                   property?.address?.city ||
-                                  "View Property Details"}
+                                  t("page_enquiry_detail_view_property_details")}
                               </CardTitle>
                               <div className="flex items-center text-xs text-muted-foreground mt-1">
                                 <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
                                 <span className="truncate">
                                   {property?.address?.city ||
-                                    "Click to view location"}
+                                    t("page_enquiry_detail_click_view_location")}
                                 </span>
                               </div>
                             </div>
-                            <Badge
-                              variant={
-                                submission.status === "pending"
-                                  ? "outline"
-                                  : "secondary"
-                              }
-                              className="flex-shrink-0"
-                            >
-                              {submission.status}
-                            </Badge>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <Badge
+                                variant="outline"
+                                className={
+                                  viewStatus === "contact_shared"
+                                    ? "border-green-300 text-green-700"
+                                    : viewStatus === "viewed"
+                                      ? "border-blue-300 text-blue-700"
+                                      : "text-muted-foreground"
+                                }
+                              >
+                                {viewStatusLabel}
+                              </Badge>
+                            </div>
                           </div>
                         </CardHeader>
                         <CardContent className="p-4 pt-0 space-y-3">
@@ -446,7 +495,7 @@ const ViewMarketPlaceEnquiry = () => {
                             </div>
                           ) : (
                             <p className="text-xs text-muted-foreground/60 italic">
-                              No message attached
+                              {t("page_enquiry_detail_no_message")}
                             </p>
                           )}
 
@@ -462,7 +511,7 @@ const ViewMarketPlaceEnquiry = () => {
                             }}
                             disabled={!propertyIdStr}
                           >
-                            View Property
+                            {t("page_enquiry_detail_view_property")}
                           </Button>
                         </CardContent>
                       </Card>
@@ -481,7 +530,7 @@ const ViewMarketPlaceEnquiry = () => {
                   onClick={() => {
                     markAsInterested(enquiry._id, {
                       onSuccess: () => {
-                        toast.success("Marked as interested");
+                        toast.success(t("page_enquiry_detail_marked_interested"));
                       },
 
                       onError: (error) => {
@@ -491,7 +540,7 @@ const ViewMarketPlaceEnquiry = () => {
                         };
                         toast.error(
                           e.response?.data?.message ||
-                          "Failed to mark as interested"
+                          t("page_enquiry_detail_failed_interested")
                         );
                       },
                     });
@@ -501,71 +550,75 @@ const ViewMarketPlaceEnquiry = () => {
                     className={`mr-2 h-4 w-4 ${!!enquiry.isInterested ? "fill-current" : ""
                       }`}
                   />
-                  {!!enquiry.isInterested ? "Interested" : "I am Interested"}
+                  {!!enquiry.isInterested ? t("page_enquiry_detail_interested") : t("page_enquiry_detail_i_am_interested")}
                 </Button>
                 <Button
                   onClick={() => {
-                    router.push(`/enquiries/${enquiry._id}/submit`);
+                    router.push(`/enquiries/submit?id=${enquiry._id}`);
                   }}
                   className="flex-1"
                   size="lg"
-                  disabled={isSameCompany || enquiry.status === "closed"}
+                  disabled={
+                    (typeof brokerData?.companyId === "object" &&
+                      brokerData?.companyId !== null &&
+                      enquiry.createdByCompanyId ===
+                      brokerData?.companyId._id) ||
+                    enquiry.status === "closed"
+                  }
                 >
-                  Submit Proposal
+                  {t("page_enquiry_detail_submit_proposal")}
                 </Button>
               </div>
+              {enquiry.status == "closed" && (
+                <Alert>
+                  {t("page_enquiry_detail_enquiry_closed")}
+                </Alert>
+              )}
             </div>
           )}
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-6 lg:pl-2">
           {/* Summary Card */}
-          <Card className="bg-muted/5 border-none shadow-sm">
+          <Card className="bg-muted/20 border shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-medium">
-                Enquiry Summary
+                {t("page_enquiry_detail_enquiry_summary")}
               </CardTitle>
             </CardHeader>
             <CardContent className="text-sm space-y-1">
-              {detailRow("Enquiry ID", enquiry.enquiryId)}
-              {detailRow("Category", enquiry.enquiryCategory)}
-              {detailRow("Type", enquiry.enquiryType)}
-              {detailRow("Source", enquiry.source)}
-              {detailRow("Status", enquiry.status)}
-              <Separator className="my-3" />
-              {detailRow("Address", formatEnquiryLocation(enquiry) || "—")}
-              {detailRow("Submissions", String(enquiry.submissionCount ?? 0))}
-              {detailRow("Interested", enquiry.isInterested ? "Yes" : "No")}
-              {detailRow("Recommended", enquiry.isRecommended ? "Yes" : "No")}
-              {detailRow("Owner", enquiry.isOwner ? "Yes" : "No")}
+              {detailRow(t("page_enquiry_detail_enquiry_id"), enquiry.enquiryId)}
+              {detailRow(t("page_enquiry_detail_category"), enquiry.enquiryCategory)}
+              {detailRow(t("page_enquiry_detail_type"), enquiry.enquiryType)}
+              {detailRow(t("page_enquiry_detail_status"), enquiry.status)}
 
               {detailRow(
-                "Created",
+                t("page_enquiry_detail_created"),
                 new Date(enquiry.createdAt).toLocaleDateString()
               )}
               {detailRow(
-                "Updated",
+                t("page_enquiry_detail_updated"),
                 new Date(enquiry.updatedAt).toLocaleDateString()
               )}
             </CardContent>
           </Card>
 
           {/* Admin Messages */}
-          {isSameCompany ? (
+          {typeof brokerData?.companyId === "object" &&
+            brokerData?.companyId !== null &&
+            enquiry.createdByCompanyId === brokerData?.companyId._id ? (
             <p>
-              Someone from your company has raised this enquiry, so you
-              can&apos;t submit a property.
+              {t("page_enquiry_detail_same_company")}
             </p>
           ) : !isMyEnquiry &&
             enquirySubmissions &&
             enquirySubmissions.length === 0 ? (
             <p>
-              No submissions yet, to view admin messages please submit a
-              property
+              {t("page_enquiry_detail_no_submissions_message")}
             </p>
           ) : (
-            !isMyEnquiry && <AdminMessages id={id as string} />
+            !isMyEnquiry && <AdminMessages id={id} />
           )}
         </div>
       </div>
@@ -580,4 +633,16 @@ const ViewMarketPlaceEnquiry = () => {
   );
 };
 
-export default ViewMarketPlaceEnquiry;
+const SingleEnquiry = () => {
+  return (
+    <Suspense fallback={
+      <div className="flex h-full w-full items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <SingleEnquiryContent />
+    </Suspense>
+  );
+};
+
+export default SingleEnquiry;

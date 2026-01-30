@@ -100,7 +100,7 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
             className="h-8 text-xs"
             onClick={() => {
               if (propertyId) {
-                window.open(`/property/${propertyId}`, "_blank");
+                window.open(`/property/detail?id=${propertyId}`, "_blank");
               }
             }}
             disabled={!propertyId}

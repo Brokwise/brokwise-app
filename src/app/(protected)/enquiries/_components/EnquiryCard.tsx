@@ -86,8 +86,8 @@ export const EnquiryCard = ({
       className="group relative overflow-hidden border border-border/50 bg-card dark:bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/20 cursor-pointer h-full flex flex-col"
       onClick={() => {
         if (isCompany)
-          router.push(`/company-enquiries/marketplace/${enquiry._id}`);
-        else router.push(`/enquiries/${enquiry._id}`);
+          router.push(`/company-enquiries/marketplace/detail?id=${enquiry._id}`);
+        else router.push(`/enquiries/detail?id=${enquiry._id}`);
       }}
     >
       <CardHeader className="p-4 md:p-5 pb-3">

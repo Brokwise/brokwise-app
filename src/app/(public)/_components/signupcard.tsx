@@ -224,7 +224,6 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
       );
 
       const statePayload = `${isNative}---${target}`;
-      alert(statePayload);
       const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${Config.googleOauthClientId
         }&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${encodeURIComponent(
           statePayload

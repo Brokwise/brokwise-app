@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { useGetProperty } from "@/hooks/useProperty";
 import { useToggleBookmark } from "@/hooks/useBookmarks";
@@ -15,30 +15,30 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 
 
-import { PropertyHeader } from "./_components/property-header";
-import { PropertyActionsBar } from "./_components/property-actions-bar";
-import { MediaCarousel } from "./_components/media-carousel";
-import { PropertyFacts } from "./_components/property-facts";
-import { PropertyDescription } from "./_components/property-description";
-import { DocumentsList } from "./_components/documents-list";
-import { PropertySidebar } from "./_components/property-sidebar";
+import { PropertyHeader } from "../[id]/_components/property-header";
+import { PropertyActionsBar } from "../[id]/_components/property-actions-bar";
+import { MediaCarousel } from "../[id]/_components/media-carousel";
+import { PropertyFacts } from "../[id]/_components/property-facts";
+import { PropertyDescription } from "../[id]/_components/property-description";
+import { DocumentsList } from "../[id]/_components/documents-list";
+import { PropertySidebar } from "../[id]/_components/property-sidebar";
 
 import { PropertyPdfLayout } from "@/components/property-pdf/property-pdf-layout";
 import { exportElementAsPdf, makeSafeFilePart, imagesToBase64 } from "@/utils/pdf";
 
 
-import { FlagInAppropriate } from "./_components/flag-inappropriate";
+import { FlagInAppropriate } from "../[id]/_components/flag-inappropriate";
 
-
-const PropertyPage = ({ params }: { params: { id: string } }) => {
-  const { id } = params;
+const PropertyPageContent = () => {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
   const router = useRouter();
-  const { property, isLoading, error } = useGetProperty(id);
+  const { property, isLoading, error } = useGetProperty(id || "");
   const { userData, brokerData, setBrokerData, companyData, setCompanyData } = useApp();
   const { toggleBookmarkAsync, isPending: isBookmarkPending } = useToggleBookmark();
   const [isExportingPdf, setIsExportingPdf] = useState(false);
@@ -128,6 +128,23 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
     }
   }, [property]);
 
+  if (!id) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="text-destructive">Invalid Property ID</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>No property ID was provided.</p>
+            <Button className="mt-4" onClick={() => router.back()}>
+              Go Back
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -310,6 +327,19 @@ const PropertyPage = ({ params }: { params: { id: string } }) => {
         />
       </div>
     </main >
+  );
+};
+
+// Wrap in Suspense for useSearchParams
+const PropertyPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    }>
+      <PropertyPageContent />
+    </Suspense>
   );
 };
 

@@ -3,23 +3,19 @@ import { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "com.brokwise.app",
   appName: "Brokwise",
-  webDir: "public",
-  server: {
-    url: "http://localhost:3001",
-    cleartext: true,
-    iosScheme: "http",
-  },
+  webDir: "out",
   ios: {
     path: "ios",
     scheme: "App",
-    contentInset: "always",
-    //@ts-ignore
-    allowsFullScreenMode: true,
   },
   plugins: {
     App: {
       //@ts-ignore
       scheme: "brokwise",
+    },
+    FirebaseAuthentication: {
+      skipNativeAuth: true,
+      providers: ["google.com"],
     },
     SplashScreen: {
       launchShowDuration: 3,
@@ -30,7 +26,6 @@ const config: CapacitorConfig = {
     StatusBar: {
       style: "dark",
       overlaysWebView: true,
-      hideStatusBar: true,
     },
   },
   packageClassList: [
@@ -39,6 +34,7 @@ const config: CapacitorConfig = {
     "ClipboardPlugin",
     "FilesystemPlugin",
     "KeyboardPlugin",
+    "StatusBarPlugin",
     "VoiceRecorder",
   ],
 };

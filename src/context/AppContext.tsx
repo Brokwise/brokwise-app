@@ -93,41 +93,69 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [user?.uid, userLoading]);
 
-  // Fetch broker and company data
+  // Fetch broker and company data with timeout
   useEffect(() => {
     if (!user?.uid || userLoading) {
       return;
     }
 
+    // Create abort controllers for timeout
+    const brokerAbortController = new AbortController();
+    const companyAbortController = new AbortController();
+    const FETCH_TIMEOUT = 15000; // 15 seconds
+
     const fetchBrokerData = async () => {
+      const timeoutId = setTimeout(() => {
+        brokerAbortController.abort();
+        console.warn("Broker data fetch timed out");
+      }, FETCH_TIMEOUT);
+
       try {
         setBrokerDataLoading(true);
         const response = await getBrokerDetails({ uid: user.uid });
         setBrokerData(response.data);
-      } catch {
+      } catch (err) {
         // Only log real errors, not 404s if user might be a company
         // But for now we don't know distinction, so we might get 404.
         // We'll treat it as null result.
+        if (err instanceof Error && err.name !== 'AbortError') {
+          console.error("Error fetching broker data:", err);
+        }
         setBrokerData(null);
       } finally {
+        clearTimeout(timeoutId);
         setBrokerDataLoading(false);
       }
     };
 
     const fetchCompanyData = async () => {
+      const timeoutId = setTimeout(() => {
+        companyAbortController.abort();
+        console.warn("Company data fetch timed out");
+      }, FETCH_TIMEOUT);
+
       try {
         setCompanyDataLoading(true);
         const response = await getCompanyDetails({ uid: user.uid });
         setCompanyData(response.data);
-      } catch {
+      } catch (err) {
+        if (err instanceof Error && err.name !== 'AbortError') {
+          console.error("Error fetching company data:", err);
+        }
         setCompanyData(null);
       } finally {
+        clearTimeout(timeoutId);
         setCompanyDataLoading(false);
       }
     };
 
     fetchBrokerData();
     fetchCompanyData();
+
+    return () => {
+      brokerAbortController.abort();
+      companyAbortController.abort();
+    };
   }, [user?.uid, userLoading]);
 
   return (

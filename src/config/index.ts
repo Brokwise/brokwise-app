@@ -14,7 +14,7 @@ export interface FrontendConfig {
 const initClient = () => {
   return {
     version: pkg.version,
-    backendUrl: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     frontendUrl: process.env.NEXT_PUBLIC_FRONTEND_URL,
     googleOauthClientId: process.env.NEXT_PUBLIC_GOOGLE_OAUTH_CLIENT_ID,
     firebaseConfig: {
@@ -26,6 +26,7 @@ const initClient = () => {
       appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
       measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
     },
+    backendUrl: process.env.NEXT_PUBLIC_API_URL,
     environment: process.env.NEXT_PUBLIC_ENVIRONMENT as Environment,
   } as const;
 };

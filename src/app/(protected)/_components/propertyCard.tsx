@@ -85,8 +85,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
   const propertyUrl =
     typeof window !== "undefined"
-      ? `${window.location.origin}/property/${property._id}`
-      : `/property/${property._id}`;
+      ? `${window.location.origin}/property/detail?id=${property._id}`
+      : `/property/detail?id=${property._id}`;
 
   const handleCopyLink = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -244,7 +244,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       {/* Image Section */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
         <Link
-          href={`/property/${property._id}`}
+          href={`/property/detail?id=${property._id}`}
           className="block w-full h-full"
         >
           <Image
@@ -531,7 +531,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           asChild
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
         >
-          <Link href={`/property/${property._id}`}>{t("action_view_details")}</Link>
+          <Link href={`/property/detail?id=${property._id}`}>{t("action_view_details")}</Link>
         </Button>
         {actionSlot}
       </CardFooter>

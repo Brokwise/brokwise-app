@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useGetEnquiryById } from "@/hooks/useEnquiry";
 import { useGetMyListings } from "@/hooks/useProperty";
 import {
@@ -24,22 +24,23 @@ import { IndustrialWizard } from "@/app/(protected)/property/createProperty/indu
 import { AgriculturalWizard } from "@/app/(protected)/property/createProperty/agriculturalForm/wizard";
 import { ResortWizard } from "@/app/(protected)/property/createProperty/resortForm/wizard";
 import { FarmHouseWizard } from "@/app/(protected)/property/createProperty/farmhouseForm/wizard";
-import { PropertyPreviewModal } from "../_components/PropertyPreviewModal";
+import { PropertyPreviewModal } from "../[id]/_components/PropertyPreviewModal";
 import { formatEnquiryLocation } from "@/utils/helper";
-import { FilteredProperties } from "./filteredProperties";
+import { FilteredProperties } from "../[id]/submit/filteredProperties";
 import { Property } from "@/types/property";
 
 
 type View = "select" | "create" | "message";
 
-export default function SubmitEnquiryPage() {
-  const { id } = useParams();
+function SubmitEnquiryPageContent() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") || "";
   const router = useRouter();
   const {
     enquiry,
     isPending: isEnquiryLoading,
     error: enquiryError,
-  } = useGetEnquiryById(id as string);
+  } = useGetEnquiryById(id);
 
   const [activeTab, setActiveTab] = useState<"existing" | "new">("existing");
   const [message, setMessage] = useState("");
@@ -70,6 +71,17 @@ export default function SubmitEnquiryPage() {
 
   const { submitFreshProperty, isPending: isSubmittingFresh } =
     useSubmitFreshProperty();
+
+  if (!id) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center min-h-[60vh] text-destructive gap-4">
+        <p>No enquiry ID provided.</p>
+        <Button variant="outline" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+        </Button>
+      </div>
+    );
+  }
 
   if (isEnquiryLoading) {
     return (
@@ -110,7 +122,7 @@ export default function SubmitEnquiryPage() {
           setBidCredits(null);
           setShouldUseCredits(false);
           toast.success("Property submitted successfully");
-          router.push(`/enquiries/${id}`);
+          router.push(`/enquiries/detail?id=${id}`);
         },
         onError: (error: unknown) => {
           const axiosError = error as AxiosError<{ message: string }>;
@@ -143,7 +155,7 @@ export default function SubmitEnquiryPage() {
           setFreshPropertyData(null);
           setBidCredits(null);
           toast.success("New property created and submitted successfully");
-          router.push(`/enquiries/${id}`);
+          router.push(`/enquiries/detail?id=${id}`);
         },
         onError: (error: unknown) => {
           const axiosError = error as AxiosError<{ message: string }>;
@@ -428,5 +440,17 @@ export default function SubmitEnquiryPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function SubmitEnquiryPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-full w-full items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <SubmitEnquiryPageContent />
+    </Suspense>
   );
 }

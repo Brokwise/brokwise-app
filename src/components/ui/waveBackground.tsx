@@ -11,9 +11,9 @@ const WaveBackground = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <div className="w-full">
-      <div className="relative w-full h-screen bg-white dark:bg-black overflow-hidden font-sans transition-colors duration-700">
-        <div>
+    <div className="w-full safe-area-container">
+      <div className="relative w-full h-full min-h-screen bg-white dark:bg-black overflow-hidden font-sans transition-colors duration-700">
+        <div className="h-full">
           <div className="relative z-10 flex flex-col h-full items-center justify-center gap-6">
             {children}
           </div>

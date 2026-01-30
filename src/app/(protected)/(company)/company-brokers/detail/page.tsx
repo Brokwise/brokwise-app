@@ -9,23 +9,31 @@ import {
   Building2,
   Briefcase,
 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import React from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import React, { Suspense } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BrokerPropertiesTable } from "./_components/BrokerPropertiesTable";
-import { BrokerEnquiriesTable } from "./_components/BrokerEnquiriesTable";
+import { BrokerPropertiesTable } from "../[id]/_components/BrokerPropertiesTable";
+import { BrokerEnquiriesTable } from "../[id]/_components/BrokerEnquiriesTable";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
-const SingleBrokerPage = () => {
-  const { id } = useParams();
+const SingleBrokerPageContent = () => {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") || "";
   const router = useRouter();
-  const { data, error, isLoading } = useGetBrokerDetails(id as string);
+  const { data, error, isLoading } = useGetBrokerDetails(id);
 
   if (!id) {
-    return null;
+    return (
+      <div className="h-screen flex items-center justify-center flex-col gap-4">
+        <p>No broker ID provided.</p>
+        <Button variant="outline" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+        </Button>
+      </div>
+    );
   }
   if (isLoading) {
     return (
@@ -166,6 +174,18 @@ const SingleBrokerPage = () => {
 
       {renderInvitationContent()}
     </div>
+  );
+};
+
+const SingleBrokerPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin" />
+      </div>
+    }>
+      <SingleBrokerPageContent />
+    </Suspense>
   );
 };
 

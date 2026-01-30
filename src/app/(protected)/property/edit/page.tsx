@@ -1,7 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useGetProperty, useEditProperty } from "@/hooks/useProperty";
 import { EditPropertyDTO, Facing } from "@/types/property";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ import { PageShell, PageHeader } from "@/components/ui/layout";
 
 const BUILT_PROPERTY_TYPES = ["FLAT", "VILLA", "HOTEL", "HOSTEL", "RESORT", "SHOWROOM", "SHOP", "OFFICE_SPACE", "WAREHOUSE", "OTHER_SPACE"];
 
-export default function EditPropertyPage() {
+function EditPropertyPageContent() {
     const { t } = useTranslation();
     const facingOptions: { label: string; value: Facing }[] = [
         { label: t("label_north"), value: "NORTH" },
@@ -45,9 +45,9 @@ export default function EditPropertyPage() {
         { label: t("label_meter"), value: "METER" },
         { label: t("label_feet"), value: "FEET" },
     ];
-    const params = useParams();
+    const searchParams = useSearchParams();
     const router = useRouter();
-    const propertyId = params.id as string;
+    const propertyId = searchParams.get("id") || "";
 
     const { property, isLoading: isLoadingProperty, error: propertyError } = useGetProperty(propertyId);
     const { editProperty, isPending: isEditing } = useEditProperty();
@@ -213,6 +213,24 @@ export default function EditPropertyPage() {
             console.error("Error editing property:", error);
         }
     };
+
+    if (!propertyId) {
+        return (
+            <div className="space-y-4">
+                <Button variant="ghost" onClick={() => router.back()} className="gap-2">
+                    <ArrowLeft className="w-4 h-4" />
+                    {t("action_back")}
+                </Button>
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>{t("error_title")}</AlertTitle>
+                    <AlertDescription>
+                        No property ID provided.
+                    </AlertDescription>
+                </Alert>
+            </div>
+        );
+    }
 
     if (isLoadingProperty) {
         return (
@@ -628,5 +646,17 @@ export default function EditPropertyPage() {
                 </div>
             </form>
         </PageShell>
+    );
+}
+
+export default function EditPropertyPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+        }>
+            <EditPropertyPageContent />
+        </Suspense>
     );
 }

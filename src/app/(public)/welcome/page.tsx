@@ -8,6 +8,8 @@ import { useTranslation } from "react-i18next";
 import { changeLanguage } from "@/i18n";
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
+import { StatusBar, Style } from "@capacitor/status-bar";
 
 const WelcomeScreen = () => {
   const { t, i18n } = useTranslation();
@@ -17,9 +19,23 @@ const WelcomeScreen = () => {
 
   useEffect(() => setMounted(true), []);
 
+  useEffect(() => {
+    if (!mounted || !Capacitor.isNativePlatform()) return;
+
+    const updateStatusBar = async () => {
+      try {
+        await StatusBar.show();
+        await StatusBar.setStyle({ style: Style.Dark });
+      } catch (error) {
+        console.error("Error updating status bar:", error);
+      }
+    };
+
+    updateStatusBar();
+  }, [mounted]);
+
   return (
     <div className="relative h-dvh w-full overflow-hidden flex flex-col items-center justify-end pb-10">
-      {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
           src="/images/login.jpg"
@@ -31,17 +47,14 @@ const WelcomeScreen = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
       </div>
 
-      {/* Language and Theme Toggle - Top Right */}
       {mounted && (
-        <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
-          {/* Language Toggle */}
+        <div className="absolute right-4 z-50 flex items-center gap-2" style={{ top: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}>
           <div className="flex items-center gap-1 border border-white/20 rounded-full px-1 py-0.5 bg-black/30 backdrop-blur-sm">
             <Button
               variant={currentLang === "en" ? "secondary" : "ghost"}
               size="sm"
-              className={`h-7 px-2.5 rounded-full text-xs font-medium ${
-                currentLang !== "en" ? "text-white hover:text-white hover:bg-white/20" : ""
-              }`}
+              className={`h-7 px-2.5 rounded-full text-xs font-medium ${currentLang !== "en" ? "text-white hover:text-white hover:bg-white/20" : ""
+                }`}
               onClick={() => changeLanguage("en")}
             >
               EN
@@ -49,15 +62,14 @@ const WelcomeScreen = () => {
             <Button
               variant={currentLang === "hi" ? "secondary" : "ghost"}
               size="sm"
-              className={`h-7 px-2.5 rounded-full text-xs font-medium ${
-                currentLang !== "hi" ? "text-white hover:text-white hover:bg-white/20" : ""
-              }`}
+              className={`h-7 px-2.5 rounded-full text-xs font-medium ${currentLang !== "hi" ? "text-white hover:text-white hover:bg-white/20" : ""
+                }`}
               onClick={() => changeLanguage("hi")}
             >
               हिं
             </Button>
           </div>
-          
+
           {/* Theme Toggle */}
           <Button
             variant="ghost"

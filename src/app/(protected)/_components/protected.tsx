@@ -2,7 +2,7 @@
 import { firebaseAuth } from "@/config/firebase";
 import { setCookie } from "@/utils/helper";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
 import pkg from "../../../../package.json";
 import { Verification } from "@/app/(protected)/_components/verification";
@@ -17,6 +17,13 @@ import { logError } from "@/utils/errors";
 import WaveBackground from "@/components/ui/waveBackground";
 import { Loader2 } from "lucide-react";
 
+const AUTH_TIMEOUT_MS = 10000;
+
+// Wrapper component for screens that need safe area insets (iOS status bar protection)
+const SafeAreaWrapper = ({ children }: { children: React.ReactNode }) => (
+  <div className="safe-area-container">{children}</div>
+);
+
 export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   const [user, loading, error] = useAuthState(firebaseAuth);
   const [signOut] = useSignOut(firebaseAuth);
@@ -30,6 +37,30 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
     userData,
   } = useApp();
   const [isEditing, setIsEditing] = useState(false);
+  const [authTimedOut, setAuthTimedOut] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auth timeout - redirect to login if auth takes too long
+  useEffect(() => {
+    if (loading || brokerDataLoading || companyDataLoading) {
+      timeoutRef.current = setTimeout(() => {
+        console.warn("Auth/data loading timed out, redirecting to login");
+        setAuthTimedOut(true);
+        router.push("/login");
+      }, AUTH_TIMEOUT_MS);
+    } else {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    }
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [loading, brokerDataLoading, companyDataLoading, router]);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -128,10 +159,32 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
     }
   }, [companyData, pathname, router]);
 
-  if (loading || !user || brokerDataLoading || companyDataLoading) {
+  // If auth timed out, don't show loading - the redirect is happening
+  if (authTimedOut) {
     return (
-      <div className="h-screen w-full flex justify-center items-center">
+      <div className="h-screen w-full flex flex-col justify-center items-center gap-4">
         <Loader2 className="animate-spin h-10 w-10" />
+        <p className="text-muted-foreground">Redirecting to login...</p>
+      </div>
+    );
+  }
+
+  if (loading || !user || brokerDataLoading || companyDataLoading) {
+    // Debug info for development
+    const loadingStates = [];
+    if (loading) loadingStates.push("auth");
+    if (!user && !loading) loadingStates.push("no-user");
+    if (brokerDataLoading) loadingStates.push("broker");
+    if (companyDataLoading) loadingStates.push("company");
+
+    return (
+      <div className="h-screen w-full flex flex-col justify-center items-center gap-4">
+        <Loader2 className="animate-spin h-10 w-10" />
+        <h1>Loading...</h1>
+        <p className="text-xs text-muted-foreground">
+          Loading: {loadingStates.join(", ") || "initializing"}
+        </p>
+
       </div>
     );
   }
@@ -141,7 +194,11 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user.emailVerified) {
-    return <Verification />;
+    return (
+      <SafeAreaWrapper>
+        <Verification />
+      </SafeAreaWrapper>
+    );
   }
 
   // Check company status
@@ -165,14 +222,20 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
         );
       case "pending":
         return (
-          <StatusDisplay
-            data={companyData}
-            type="company"
-            onEdit={() => setIsEditing(true)}
-          />
+          <SafeAreaWrapper>
+            <StatusDisplay
+              data={companyData}
+              type="company"
+              onEdit={() => setIsEditing(true)}
+            />
+          </SafeAreaWrapper>
         );
       case "blacklisted":
-        return <StatusDisplay data={companyData} type="company" />;
+        return (
+          <SafeAreaWrapper>
+            <StatusDisplay data={companyData} type="company" />
+          </SafeAreaWrapper>
+        );
       case "approved":
         const allowedPaths = [
           "/company-brokers",
@@ -195,7 +258,11 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
 
         return children;
       default:
-        return <StatusDisplay />;
+        return (
+          <SafeAreaWrapper>
+            <StatusDisplay />
+          </SafeAreaWrapper>
+        );
     }
   }
 
@@ -221,13 +288,25 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
           </WaveBackground>
         );
       case "pending":
-        return <StatusDisplay onEdit={() => setIsEditing(true)} />;
+        return (
+          <SafeAreaWrapper>
+            <StatusDisplay onEdit={() => setIsEditing(true)} />
+          </SafeAreaWrapper>
+        );
       case "blacklisted":
-        return <StatusDisplay />;
+        return (
+          <SafeAreaWrapper>
+            <StatusDisplay />
+          </SafeAreaWrapper>
+        );
       case "approved":
         break;
       default:
-        return <StatusDisplay />;
+        return (
+          <SafeAreaWrapper>
+            <StatusDisplay />
+          </SafeAreaWrapper>
+        );
     }
 
   }

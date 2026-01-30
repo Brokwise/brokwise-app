@@ -18,13 +18,13 @@ export type CustomFetchConfig<RequestType> = {
   keepalive?: boolean;
   isRetry?: boolean;
 } & (
-  | {
+    | {
       path: string;
     }
-  | {
+    | {
       url: string;
     }
-);
+  );
 
 export const customFetch = async <ResponseType, RequestType extends object>({
   method,
@@ -52,11 +52,15 @@ export const customFetch = async <ResponseType, RequestType extends object>({
       ...headers,
     };
     if (isProtected) {
+      console.log("[customFetch] Getting Firebase token...");
+      console.log("[customFetch] Current user:", firebaseAuth.currentUser?.uid);
       const token =
         bearerToken || (await firebaseAuth.currentUser?.getIdToken());
       if (!token) {
+        console.error("[customFetch] No token found!");
         throw new Error("Bearer token not found");
       }
+      console.log("[customFetch] Token obtained, length:", token.length);
       formattedHeaders.Authorization = `Bearer ${token}`;
     }
     const isFormData =
@@ -65,6 +69,7 @@ export const customFetch = async <ResponseType, RequestType extends object>({
       formattedHeaders["Content-Type"] = "application/json";
     }
 
+    console.log("[customFetch] Making fetch request...");
     const response = await fetch(formattedUrl, {
       method,
       body: body
@@ -76,7 +81,9 @@ export const customFetch = async <ResponseType, RequestType extends object>({
       signal,
       keepalive: keepalive,
     });
+    console.log("[customFetch] Response status:", response.status);
     const data = (await response.json()) as ResponseType;
+    console.log("[customFetch] Response data received");
     if (response.status >= 400 || !response.ok) {
       throw new Error(JSON.stringify(data));
     }
@@ -156,9 +163,8 @@ export const retryFetch = <ResponseType>(
       hasStartedRetry = true;
       logError({
         description: `${label} taking too long to respond`,
-        error: `${label} took more than ${
-          delay / 1000
-        }s. A retry has been initiated`,
+        error: `${label} took more than ${delay / 1000
+          }s. A retry has been initiated`,
         slackChannel: "frontend-errors",
       });
       apiFunction(passRetryFlag)

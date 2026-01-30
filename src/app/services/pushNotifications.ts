@@ -30,7 +30,6 @@ export class PushNotificationsService {
           }
         );
       } catch (e) {
-        alert(JSON.stringify(e));
         console.error("Failed to send token to backend", e);
       }
     });

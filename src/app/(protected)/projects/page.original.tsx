@@ -195,7 +195,7 @@ const ProjectsPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {projects.map((project) => (
-                <Link key={project._id} href={`/projects/${project._id}`}>
+                <Link key={project._id} href={`/projects/detail?id=${project._id}`}>
                   <Card className="h-full hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
                     <div className="aspect-video relative bg-muted">
                       <Image
@@ -311,7 +311,7 @@ const ProjectsPage = () => {
                     <Button
                       variant={"outline"}
                       onClick={() => {
-                        router.push("/booking/" + booking._id);
+                        router.push("/booking?id=" + booking._id);
                       }}
                     >
                       View Details

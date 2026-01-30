@@ -81,7 +81,7 @@ export const PropertyHeader = ({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 {isOwner && (property.editCount || 0) < 3 && (
-                                    <DropdownMenuItem onClick={() => router.push(`/property/edit/${property._id}`)}>
+                                    <DropdownMenuItem onClick={() => router.push(`/property/edit?id=${property._id}`)}>
                                         <Edit className="mr-2 h-4 w-4" />
                                         {t("action_edit") || "Edit Property"}
                                     </DropdownMenuItem>

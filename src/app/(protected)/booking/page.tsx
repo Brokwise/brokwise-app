@@ -1,8 +1,8 @@
 "use client";
 
 import { useGetBooking } from "@/hooks/useBooking";
-import { useParams, useRouter } from "next/navigation";
-import React from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import React, { Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -26,12 +26,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Booking } from "@/models/types/booking";
 import { PageShell, PageHeader } from "@/components/ui/layout";
 
-const BookingPage = () => {
-  const { id } = useParams();
+const BookingPageContent = () => {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
   const router = useRouter();
-  const { data: bookingDetails, isLoading } = useGetBooking(
-    (id as string) || ""
-  );
+  const { data: bookingDetails, isLoading } = useGetBooking(id || "");
+
+  if (!id) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+        <h2 className="text-2xl font-bold">Invalid booking ID</h2>
+        <Button onClick={() => router.back()}>Go Back</Button>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return <BookingLoadingSkeleton />;
@@ -419,6 +427,15 @@ const BookingLoadingSkeleton = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+// Wrap in Suspense for useSearchParams
+const BookingPage = () => {
+  return (
+    <Suspense fallback={<BookingLoadingSkeleton />}>
+      <BookingPageContent />
+    </Suspense>
   );
 };
 

@@ -216,7 +216,7 @@ export default function MyListings() {
           columns={columns}
           data={filteredListings}
           viewMode={effectiveView}
-          onRowClick={(property) => router.push(`/property/${property._id}`)}
+          onRowClick={(property) => router.push(`/property/detail?id=${property._id}`)}
           renderGridItem={(property) => (
             <PropertyCard
               property={property}

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useGetProject, useGetProjectPlots } from "@/hooks/useProject";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,18 +29,19 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { formatCurrency, formatAddress } from "@/utils/helper";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Plot } from "@/models/types/project";
-import { BookingDialog } from "./_components/BookingDialog";
-import { ProjectMap } from "./_components/ProjectMap";
-import { ProjectSitePlan } from "./_components/ProjectSitePlan";
+import { BookingDialog } from "../[id]/_components/BookingDialog";
+import { ProjectMap } from "../[id]/_components/ProjectMap";
+import { ProjectSitePlan } from "../[id]/_components/ProjectSitePlan";
 import { useApp } from "@/context/AppContext";
 import { CountdownTimer } from "@/components/ui/countdown-timer";
 import { PageShell, PageHeader } from "@/components/ui/layout";
 
-const ProjectPage = ({ params }: { params: { id: string } }) => {
-  const { id } = params;
+const ProjectPageContent = () => {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") || "";
   const router = useRouter();
   const { project, stats, isLoading, error } = useGetProject(id);
   const { plots, isLoading: isLoadingPlots } = useGetProjectPlots(id, {
@@ -92,6 +93,24 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
   const isSelected = (plotId: string) => {
     return selectedPlots.some((p) => p._id === plotId);
   };
+
+  if (!id) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="text-destructive">Invalid Project ID</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>No project ID was provided.</p>
+            <Button className="mt-4" onClick={() => router.back()}>
+              Go Back
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -672,6 +691,18 @@ const ProjectPage = ({ params }: { params: { id: string } }) => {
         )
       }
     </PageShell>
+  );
+};
+
+const ProjectPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    }>
+      <ProjectPageContent />
+    </Suspense>
   );
 };
 

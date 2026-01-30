@@ -20,6 +20,40 @@ h6 {
     text-wrap: balance;
   }
 
+  /* Safe area insets for iOS notch/status bar */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  /* Status bar spacer - creates a solid background behind the status bar */
+  .status-bar-spacer {
+    height: env(safe-area-inset-top, 0px);
+    min-height: env(safe-area-inset-top, 0px);
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  /* Safe area container - use for full-screen pages that need status bar protection */
+  .safe-area-container {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100vh;
+    min-height: 100dvh;
+    position: relative;
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;

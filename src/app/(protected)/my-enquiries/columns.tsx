@@ -281,7 +281,7 @@ const ActionCell = ({ enquiry }: { enquiry: Enquiry }) => {
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{t("table_actions")}</DropdownMenuLabel>
                 <DropdownMenuItem
-                    onClick={() => router.push(`/enquiries/${enquiry._id}`)}
+                    onClick={() => router.push(`/enquiries/detail?id=${enquiry._id}`)}
                     className="cursor-pointer"
                 >
                     <Eye className="mr-2 h-4 w-4" />

@@ -19,12 +19,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Capacitor } from "@capacitor/core";
+import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
+import { StatusBar, Style } from "@capacitor/status-bar";
 
 import { FirebaseError } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
+  signInWithCredential,
+  GoogleAuthProvider,
   User,
 } from "firebase/auth";
 import { toast } from "sonner";
@@ -55,6 +59,7 @@ import { firebaseAuth, getUserDoc, setUserDoc } from "@/config/firebase";
 import { createUser } from "@/models/api/user";
 import { logError } from "@/utils/errors";
 import { useIsMobile } from "@/hooks/use-mobile";
+// import { tr } from "zod/v4/locales";
 
 // --- Types ---
 
@@ -140,6 +145,31 @@ export default function AuthPage({
       router.replace("/welcome");
     }
   }, [isMobile, searchParams, router]);
+
+  // Handle status bar based on theme
+  React.useEffect(() => {
+    if (!mounted || !Capacitor.isNativePlatform()) return;
+
+    const updateStatusBar = async () => {
+      try {
+        const currentTheme = theme === "system" ? resolvedTheme : theme;
+        
+        // Show status bar
+        await StatusBar.show();
+        
+        // Update status bar style based on theme
+        if (currentTheme === "dark") {
+          await StatusBar.setStyle({ style: Style.Dark });
+        } else {
+          await StatusBar.setStyle({ style: Style.Light });
+        }
+      } catch (error) {
+        console.error("Error updating status bar:", error);
+      }
+    };
+
+    updateStatusBar();
+  }, [mounted, theme, resolvedTheme]);
 
   const activeTheme = mounted ? resolvedTheme ?? theme : undefined;
   // const isSystemTheme = mounted && theme === "system";
@@ -334,37 +364,90 @@ export default function AuthPage({
 
   const handleGoogleAuth = async () => {
     try {
-      if (!Config.googleOauthClientId) {
-        toast.error(t("google_oauth_not_configured"));
-        return;
-      }
-
       const isNative = Capacitor.isNativePlatform();
-      const target = searchParams.get("target") ?? "/";
-      const redirectUrlStr = `${Config.frontendUrl}/google-oauth`;
-      const redirectUri = encodeURIComponent(redirectUrlStr);
 
-      const scope = encodeURIComponent(
-        "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
-      );
+      if (isNative) {
+        // Use native Google Sign-In for Capacitor (iOS/Android)
+        setLoading(true);
+        
+        let result;
+        try {
+          result = await FirebaseAuthentication.signInWithGoogle();
+        } catch (error) {
+          console.error("Google sign-in error:", error);
+          throw error;
+        }
+        
+        if (!result) {
+          return;
+        }
+        
+        if (result.credential?.idToken) {
+          // Sign in with Firebase using the Google credential
+          const credential = GoogleAuthProvider.credential(result.credential.idToken);
+          const userCredential = await signInWithCredential(firebaseAuth, credential);
+          const user = userCredential.user;
 
-      const statePayload = `${isNative}---${target}`;
+          // Wait for auth state to be properly set
+          await new Promise<void>((resolve) => {
+            const unsubscribe = firebaseAuth.onAuthStateChanged((authUser) => {
+              if (authUser) {
+                unsubscribe();
+                resolve();
+              }
+            });
+            // Timeout after 5 seconds to prevent hanging
+            setTimeout(() => {
+              unsubscribe();
+              resolve();
+            }, 5000);
+          });
 
-      const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${Config.googleOauthClientId
-        }&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${encodeURIComponent(
-          statePayload
-        )}`;
+          // Create user in DB if first time
+          await createUserInDb(user, user.displayName ?? "");
 
-      window.open(authUrl, "_self");
+          // Clear forgot password rate limit state on successful login
+          localStorage.removeItem("brokwise_password_reset_attempts");
+
+          toast.success(t("logged_in_success"));
+          router.push("/");
+        } else {
+          throw new Error("No credential returned from Google Sign-In");
+        }
+      } else {
+        // Web OAuth flow
+        if (!Config.googleOauthClientId) {
+          toast.error(t("google_oauth_not_configured"));
+          return;
+        }
+
+        const target = searchParams.get("target") ?? "/";
+        const redirectUrlStr = `${Config.frontendUrl}/google-oauth`;
+        const redirectUri = encodeURIComponent(redirectUrlStr);
+
+        const scope = encodeURIComponent(
+          "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
+        );
+
+        const statePayload = `false---${target}`;
+
+        const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${Config.googleOauthClientId
+          }&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${encodeURIComponent(
+            statePayload
+          )}`;
+
+        window.open(authUrl, "_self");
+      }
     } catch (error) {
       logError({
         description: "Error signing up with Google",
         error: error as Error,
         slackChannel: "frontend-errors",
       });
-      console.error(error);
-      console.log(error);
+      console.error("Google auth error:", error);
       toast.error(t("google_auth_failed"));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -462,11 +545,17 @@ export default function AuthPage({
 
       {/* Right Side - Auth Form (Scrollable) */}
       <div
-        className={`flex-1 h-full overflow-hidden relative transition-colors duration-500 ${activeTheme === "light" ? "bg-[#FDFCF8]" : "bg-background"
+        className={`flex-1 h-full overflow-hidden relative flex flex-col transition-colors duration-500 ${activeTheme === "light" ? "bg-[#FDFCF8]" : "bg-background"
           }`}
       >
+        {/* Safe area spacer - fixed at top with same background */}
+        <div 
+          className={`shrink-0 ${activeTheme === "light" ? "bg-[#FDFCF8]" : "bg-background"}`}
+          style={{ height: "env(safe-area-inset-top, 0px)" }} 
+        />
+        
         {isMobile && (
-          <div className="absolute top-4 left-4 z-50">
+          <div className="absolute left-4 z-50" style={{ top: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}>
             <Button
               variant="ghost"
               size="icon"
@@ -479,7 +568,7 @@ export default function AuthPage({
         )}
 
         {/* Language and Theme Toggle - Top Right */}
-        <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+        <div className="absolute right-4 z-50 flex items-center gap-2" style={{ top: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}>
           {/* Language Toggle */}
           <div className="flex items-center gap-1 border rounded-full px-1 py-0.5 bg-background/80 backdrop-blur-sm">
             <Button
@@ -514,7 +603,7 @@ export default function AuthPage({
             )}
           </Button>
         </div>
-        <div className="h-full w-full flex flex-col items-center px-6 lg:px-16">
+        <div className="flex-1 w-full flex flex-col items-center px-6 lg:px-16 overflow-auto">
           {/* Fixed header area (prevents the Brokwise title from jumping when mode changes) */}
           <div className="w-full max-w-md shrink-0 pt-7 lg:pt-10">
             <div className="text-center space-y-3">

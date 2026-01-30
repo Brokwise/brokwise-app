@@ -190,7 +190,7 @@ export const PropertyDetails = ({
 
       <div className="p-4 border-t border-border/50 bg-muted/5 mt-auto">
         <Button className="w-full gap-2 shadow-sm" asChild>
-          <Link href={`/property/${property._id}`} target="_blank">
+          <Link href={`/property/detail?id=${property._id}`} target="_blank">
             View Full Details
             <ArrowUpRight className="h-4 w-4" />
           </Link>
