@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Script from "next/script";
 import { useApp } from "@/context/AppContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -45,6 +45,8 @@ import {
   Shield,
   Clock,
   Sparkles,
+  ExternalLink,
+  Smartphone,
 } from "lucide-react";
 import {
   TIER,
@@ -58,6 +60,8 @@ import {
 } from "@/config/tier_limits";
 import { cn } from "@/lib/utils";
 import { PageShell, PageHeader } from "@/components/ui/layout";
+import { isNativeIOS } from "@/utils/helper";
+import { Typography } from "@/components/ui/typography";
 
 declare global {
   interface Window {
@@ -65,6 +69,46 @@ declare global {
     Razorpay: any;
   }
 }
+
+// Web App Information Component for iOS (Apple Compliant)
+const WebAppInfoCard = () => {
+  const { t } = useTranslation();
+  const WEB_APP_URL = "https://app.brokwise.com";
+
+  return (
+    <Card className="border-primary/50 bg-gradient-to-br from-primary/5 to-background">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Smartphone className="h-5 w-5 text-primary" />
+          {t("page_subscription_additional_features") || "Additional Features"}
+        </CardTitle>
+        <CardDescription>
+          {t("page_subscription_more_options") || "More options are available on our web platform"}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Typography variant="p" className="text-muted-foreground">
+          {t("page_subscription_web_info") || "For account management and additional features, visit our web application."}{" "}
+          {t("page_subscription_sync_info") || "Your account is synced across all platforms."}
+        </Typography>
+        <Button
+          variant="outline"
+          className="w-full sm:w-auto"
+          onClick={() => window.open(WEB_APP_URL, "_blank")}
+        >
+          <ExternalLink className="mr-2 h-4 w-4" />
+          {t("page_subscription_visit_website") || "Visit Website"}
+        </Button>
+      </CardContent>
+      <CardFooter className="text-xs text-muted-foreground border-t pt-4">
+        <div className="flex items-center gap-2">
+          <Shield className="h-4 w-4" />
+          {t("page_subscription_sync_message") || "Your account is synced across all platforms"}
+        </div>
+      </CardFooter>
+    </Card>
+  );
+};
 
 // Tier icons mapping
 const tierIcons: Record<TIER, React.ReactNode> = {
@@ -522,10 +566,17 @@ const SubscriptionPage = () => {
   const [selectedTier, setSelectedTier] = useState<TIER | null>(null);
   const [selectedDuration, setSelectedDuration] =
     useState<SubscriptionDuration>("3_MONTHS");
+  const [isIOSNative, setIsIOSNative] = useState(false);
 
   const { t } = useTranslation();
 
+  // Check if running on native iOS platform
+  useEffect(() => {
+    setIsIOSNative(isNativeIOS());
+  }, []);
+
   const currentTier = subscription?.tier || tier || "STARTER";
+  const WEB_APP_URL = "https://app.brokwise.com";
 
   const handleUpgrade = async () => {
     if (!selectedTier || !brokerData || selectedTier === "STARTER") return;
@@ -555,7 +606,8 @@ const SubscriptionPage = () => {
 
   return (
     <>
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+      {/* Only load Razorpay script on non-iOS platforms */}
+      {!isIOSNative && <Script src="https://checkout.razorpay.com/v1/checkout.js" />}
       <PageShell className="max-w-6xl">
         <PageHeader
           title={t("page_subscription_title")}
@@ -600,253 +652,365 @@ const SubscriptionPage = () => {
                 <CardTitle className="text-lg">{t("page_subscription_quick_actions")}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-4">
-                {currentTier !== "ELITE" && (
+                {isIOSNative ? (
+                  /* iOS: Generic "Visit Website" button - no purchase/upgrade language */
                   <Button
-                    onClick={() => {
-                      const tab = document.querySelector(
-                        '[data-state="inactive"][value="plans"]'
-                      ) as HTMLButtonElement;
-                      tab?.click();
-                    }}
+                    variant="outline"
+                    onClick={() => window.open(WEB_APP_URL, "_blank")}
                   >
-                    <Rocket className="mr-2 h-4 w-4" />
-                    {t("page_subscription_upgrade_plan")}
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    {t("page_subscription_visit_website") || "Visit Website"}
                   </Button>
+                ) : (
+                  /* Web/Android: Full functionality */
+                  <>
+                    {currentTier !== "ELITE" && (
+                      <Button
+                        onClick={() => {
+                          const tab = document.querySelector(
+                            '[data-state="inactive"][value="plans"]'
+                          ) as HTMLButtonElement;
+                          tab?.click();
+                        }}
+                      >
+                        <Rocket className="mr-2 h-4 w-4" />
+                        {t("page_subscription_upgrade_plan")}
+                      </Button>
+                    )}
+                    {currentTier !== "STARTER" &&
+                      subscription?.status === "active" && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" className="text-red-500">
+                              <X className="mr-2 h-4 w-4" />
+                              {t("page_subscription_cancel_sub_btn")}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {t("page_subscription_cancel_title")}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t("page_subscription_cancel_desc")}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>{t("page_subscription_keep_sub")}</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={handleCancelSubscription}
+                                className="bg-red-500 hover:bg-red-600"
+                                disabled={cancelPending}
+                              >
+                                {cancelPending ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    {t("page_subscription_cancelling")}
+                                  </>
+                                ) : (
+                                  t("page_subscription_yes_cancel")
+                                )}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                  </>
                 )}
-                {currentTier !== "STARTER" &&
-                  subscription?.status === "active" && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" className="text-red-500">
-                          <X className="mr-2 h-4 w-4" />
-                          {t("page_subscription_cancel_sub_btn")}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            {t("page_subscription_cancel_title")}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t("page_subscription_cancel_desc")}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>{t("page_subscription_keep_sub")}</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleCancelSubscription}
-                            className="bg-red-500 hover:bg-red-600"
-                            disabled={cancelPending}
-                          >
-                            {cancelPending ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                {t("page_subscription_cancelling")}
-                              </>
-                            ) : (
-                              t("page_subscription_yes_cancel")
-                            )}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
               </CardContent>
             </Card>
           </TabsContent>
 
           {/* Plans Tab */}
           <TabsContent value="plans" className="space-y-6">
-            {/* Duration Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  {t("page_subscription_select_duration")}
-                </CardTitle>
-                <CardDescription>
-                  {t("page_subscription_duration_desc")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-4">
-                  {(
-                    Object.keys(SUBSCRIPTION_DURATION_LABELS) as SubscriptionDuration[]
-                  ).map((duration) => {
-                    const savingsInfo = DURATION_SAVINGS[duration];
-                    return (
-                      <Button
-                        key={duration}
-                        variant={
-                          selectedDuration === duration ? "default" : "outline"
-                        }
-                        onClick={() => setSelectedDuration(duration)}
-                        className="flex-1 min-w-[120px]"
-                      >
-                        <div className="flex flex-col items-center">
-                          <span>{t(`label_${duration.toLowerCase()}`)}</span>
-                          {savingsInfo.savingsPercent && (
-                            <span className="text-xs opacity-75">
-                              {t("page_subscription_save_percent", { percent: savingsInfo.savingsPercent })}
-                            </span>
-                          )}
-                        </div>
-                      </Button>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Plan Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {(["STARTER", "ESSENTIAL", "ELITE"] as TIER[]).map((planTier) => (
-                <PlanCard
-                  key={planTier}
-                  tier={planTier}
-                  isCurrentPlan={currentTier === planTier}
-                  selectedDuration={selectedDuration}
-                  onSelect={() => setSelectedTier(planTier)}
-                  isSelected={selectedTier === planTier}
-                />
-              ))}
-            </div>
-
-            {/* Checkout Card */}
-            {selectedTier && selectedTier !== "STARTER" && selectedTier !== currentTier && (
-              <Card className="border-primary">
-                <CardContent className="pt-6">
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <p className="font-semibold text-lg">
-                        {t("page_subscription_upgrade_to", { plan: t(`page_subscription_tier_${selectedTier.toLowerCase()}_name`) })}
-                      </p>
-                      <p className="text-muted-foreground">
-                        ₹
-                        {getRazorpayPlan(
-                          selectedTier,
-                          selectedDuration
-                        )?.amount.toLocaleString()}{" "}
-                        for {t(`label_${selectedDuration?.toLowerCase()}`)}
-                      </p>
+            {/* iOS Native: Show web app info instead of purchase flow */}
+            {isIOSNative ? (
+              <>
+                <WebAppInfoCard />
+                
+                {/* Feature Comparison - still show on iOS for information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">{t("page_subscription_feature_comparison")}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-3 px-4">{t("page_subscription_feature_col")}</th>
+                            <th className="text-center py-3 px-4">{t("page_subscription_tier_starter_name")}</th>
+                            <th className="text-center py-3 px-4">{t("page_subscription_tier_essential_name")}</th>
+                            <th className="text-center py-3 px-4">{t("page_subscription_tier_elite_name")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">{t("page_subscription_feature_property_listing")}</td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.PROPERTY_LISTING ?? "-"}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.PROPERTY_LISTING ?? "-"}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.PROPERTY_LISTING ?? "-"}
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">{t("page_subscription_feature_enquiry_listing")}</td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.ENQUIRY_LISTING ?? "-"}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.ENQUIRY_LISTING ?? "-"}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.ENQUIRY_LISTING ?? "-"}
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">{t("page_subscription_feature_property_submission")}</td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">Support</td>
+                            <td className="text-center py-3 px-4">Basic</td>
+                            <td className="text-center py-3 px-4">Priority</td>
+                            <td className="text-center py-3 px-4">Premium</td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">Analytics</td>
+                            <td className="text-center py-3 px-4">
+                              <X className="h-4 w-4 mx-auto text-red-500" />
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              <Check className="h-4 w-4 mx-auto text-green-500" />
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              <Check className="h-4 w-4 mx-auto text-green-500" />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="py-3 px-4">Team Collaboration</td>
+                            <td className="text-center py-3 px-4">
+                              <X className="h-4 w-4 mx-auto text-red-500" />
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              <X className="h-4 w-4 mx-auto text-red-500" />
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              <Check className="h-4 w-4 mx-auto text-green-500" />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
-                    <Button
-                      size="lg"
-                      onClick={handleUpgrade}
-                      disabled={createPending}
-                      className="w-full sm:w-auto"
-                    >
-                      {createPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {t("page_subscription_processing")}
-                        </>
-                      ) : (
-                        <>
-                          <Rocket className="mr-2 h-4 w-4" />
-                          {t("page_subscription_upgrade_now")}
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-                <CardFooter className="text-xs text-muted-foreground border-t pt-4">
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    {t("page_subscription_secure_payment")}
-                  </div>
-                </CardFooter>
-              </Card>
-            )}
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <>
+                {/* Duration Selection */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      {t("page_subscription_select_duration")}
+                    </CardTitle>
+                    <CardDescription>
+                      {t("page_subscription_duration_desc")}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-4">
+                      {(
+                        Object.keys(SUBSCRIPTION_DURATION_LABELS) as SubscriptionDuration[]
+                      ).map((duration) => {
+                        const savingsInfo = DURATION_SAVINGS[duration];
+                        return (
+                          <Button
+                            key={duration}
+                            variant={
+                              selectedDuration === duration ? "default" : "outline"
+                            }
+                            onClick={() => setSelectedDuration(duration)}
+                            className="flex-1 min-w-[120px]"
+                          >
+                            <div className="flex flex-col items-center">
+                              <span>{t(`label_${duration.toLowerCase()}`)}</span>
+                              {savingsInfo.savingsPercent && (
+                                <span className="text-xs opacity-75">
+                                  {t("page_subscription_save_percent", { percent: savingsInfo.savingsPercent })}
+                                </span>
+                              )}
+                            </div>
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
 
-            {/* Feature Comparison */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">{t("page_subscription_feature_comparison")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-3 px-4">{t("page_subscription_feature_col")}</th>
-                        <th className="text-center py-3 px-4">{t("page_subscription_tier_starter_name")}</th>
-                        <th className="text-center py-3 px-4">{t("page_subscription_tier_essential_name")}</th>
-                        <th className="text-center py-3 px-4">{t("page_subscription_tier_elite_name")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b">
-                        <td className="py-3 px-4">{t("page_subscription_feature_property_listing")}</td>
-                        <td className="text-center py-3 px-4">
-                          {limits?.PROPERTY_LISTING ?? "-"}
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          {limits?.PROPERTY_LISTING ?? "-"}
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          {limits?.PROPERTY_LISTING ?? "-"}
-                        </td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="py-3 px-4">{t("page_subscription_feature_enquiry_listing")}</td>
-                        <td className="text-center py-3 px-4">
-                          {limits?.ENQUIRY_LISTING ?? "-"}
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          {limits?.ENQUIRY_LISTING ?? "-"}
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          {limits?.ENQUIRY_LISTING ?? "-"}
-                        </td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="py-3 px-4">{t("page_subscription_feature_property_submission")}</td>
-                        <td className="text-center py-3 px-4">
-                          {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
-                        </td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="py-3 px-4">Support</td>
-                        <td className="text-center py-3 px-4">Basic</td>
-                        <td className="text-center py-3 px-4">Priority</td>
-                        <td className="text-center py-3 px-4">Premium</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="py-3 px-4">Analytics</td>
-                        <td className="text-center py-3 px-4">
-                          <X className="h-4 w-4 mx-auto text-red-500" />
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          <Check className="h-4 w-4 mx-auto text-green-500" />
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          <Check className="h-4 w-4 mx-auto text-green-500" />
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="py-3 px-4">Team Collaboration</td>
-                        <td className="text-center py-3 px-4">
-                          <X className="h-4 w-4 mx-auto text-red-500" />
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          <X className="h-4 w-4 mx-auto text-red-500" />
-                        </td>
-                        <td className="text-center py-3 px-4">
-                          <Check className="h-4 w-4 mx-auto text-green-500" />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                {/* Plan Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {(["STARTER", "ESSENTIAL", "ELITE"] as TIER[]).map((planTier) => (
+                    <PlanCard
+                      key={planTier}
+                      tier={planTier}
+                      isCurrentPlan={currentTier === planTier}
+                      selectedDuration={selectedDuration}
+                      onSelect={() => setSelectedTier(planTier)}
+                      isSelected={selectedTier === planTier}
+                    />
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
+
+                {/* Checkout Card */}
+                {selectedTier && selectedTier !== "STARTER" && selectedTier !== currentTier && (
+                  <Card className="border-primary">
+                    <CardContent className="pt-6">
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="space-y-1">
+                          <p className="font-semibold text-lg">
+                            {t("page_subscription_upgrade_to", { plan: t(`page_subscription_tier_${selectedTier.toLowerCase()}_name`) })}
+                          </p>
+                          <p className="text-muted-foreground">
+                            ₹
+                            {getRazorpayPlan(
+                              selectedTier,
+                              selectedDuration
+                            )?.amount.toLocaleString()}{" "}
+                            for {t(`label_${selectedDuration?.toLowerCase()}`)}
+                          </p>
+                        </div>
+                        <Button
+                          size="lg"
+                          onClick={handleUpgrade}
+                          disabled={createPending}
+                          className="w-full sm:w-auto"
+                        >
+                          {createPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              {t("page_subscription_processing")}
+                            </>
+                          ) : (
+                            <>
+                              <Rocket className="mr-2 h-4 w-4" />
+                              {t("page_subscription_upgrade_now")}
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="text-xs text-muted-foreground border-t pt-4">
+                      <div className="flex items-center gap-2">
+                        <Shield className="h-4 w-4" />
+                        {t("page_subscription_secure_payment")}
+                      </div>
+                    </CardFooter>
+                  </Card>
+                )}
+
+                {/* Feature Comparison */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">{t("page_subscription_feature_comparison")}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-3 px-4">{t("page_subscription_feature_col")}</th>
+                            <th className="text-center py-3 px-4">{t("page_subscription_tier_starter_name")}</th>
+                            <th className="text-center py-3 px-4">{t("page_subscription_tier_essential_name")}</th>
+                            <th className="text-center py-3 px-4">{t("page_subscription_tier_elite_name")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">{t("page_subscription_feature_property_listing")}</td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.PROPERTY_LISTING ?? "-"}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.PROPERTY_LISTING ?? "-"}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.PROPERTY_LISTING ?? "-"}
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">{t("page_subscription_feature_enquiry_listing")}</td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.ENQUIRY_LISTING ?? "-"}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.ENQUIRY_LISTING ?? "-"}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.ENQUIRY_LISTING ?? "-"}
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">{t("page_subscription_feature_property_submission")}</td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">Support</td>
+                            <td className="text-center py-3 px-4">Basic</td>
+                            <td className="text-center py-3 px-4">Priority</td>
+                            <td className="text-center py-3 px-4">Premium</td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">Analytics</td>
+                            <td className="text-center py-3 px-4">
+                              <X className="h-4 w-4 mx-auto text-red-500" />
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              <Check className="h-4 w-4 mx-auto text-green-500" />
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              <Check className="h-4 w-4 mx-auto text-green-500" />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="py-3 px-4">Team Collaboration</td>
+                            <td className="text-center py-3 px-4">
+                              <X className="h-4 w-4 mx-auto text-red-500" />
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              <X className="h-4 w-4 mx-auto text-red-500" />
+                            </td>
+                            <td className="text-center py-3 px-4">
+                              <Check className="h-4 w-4 mx-auto text-green-500" />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </TabsContent>
         </Tabs>
       </PageShell>
