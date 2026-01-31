@@ -142,31 +142,34 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
     <>
       {/* File Preview Dialog */}
       <Dialog open={!!pendingFile} onOpenChange={(open) => !open && handleCancelUpload()}>
-        <DialogContent className="max-w-md rounded-2xl border-border/40 bg-background p-0 shadow-2xl">
-          <DialogHeader className="border-b border-border/30 px-6 py-4">
-            <DialogTitle className="text-xl font-medium">
-              {pendingFile?.isImage ? t("page_messages_send_image") : t("page_messages_send_file")}
-            </DialogTitle>
+        <DialogContent className="max-w-md rounded-2xl border-border/40 bg-background p-0 shadow-2xl sm:max-w-lg">
+          <DialogHeader className="border-b border-border/10 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-xl font-semibold tracking-tight">
+                {pendingFile?.isImage ? t("page_messages_send_image") : t("page_messages_send_file")}
+              </DialogTitle>
+              {/* Close button is usually handled by Dialog primitive but adding explicit cancel if needed */}
+            </div>
           </DialogHeader>
 
-          <div className="space-y-4 px-6 py-4">
+          <div className="space-y-5 px-6 py-5">
             {/* Preview */}
             {pendingFile?.isImage && pendingFile.previewUrl ? (
-              <div className="relative overflow-hidden rounded-xl border border-border/30 bg-muted/20">
+              <div className="group relative overflow-hidden rounded-xl border border-border/20 bg-muted/30 shadow-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={pendingFile.previewUrl}
                   alt="Preview"
-                  className="mx-auto max-h-[300px] w-auto object-contain"
+                  className="mx-auto max-h-[350px] w-auto object-contain transition-transform duration-300 group-hover:scale-[1.02]"
                 />
               </div>
             ) : pendingFile && (
-              <div className="flex items-center gap-4 rounded-xl border border-border/30 bg-muted/20 p-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <FileIcon className="h-6 w-6 text-primary" />
+              <div className="flex items-center gap-4 rounded-xl border border-border/20 bg-muted/30 p-4 shadow-sm">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-4 ring-primary/5">
+                  <FileIcon className="h-7 w-7 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-foreground">{pendingFile.file.name}</p>
+                  <p className="truncate text-base font-medium text-foreground">{pendingFile.file.name}</p>
                   <p className="text-sm text-muted-foreground">{formatFileSize(pendingFile.file.size)}</p>
                 </div>
               </div>
@@ -175,30 +178,32 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
             {/* Caption input for images */}
             {pendingFile?.isImage && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">{t("page_messages_add_caption")}</label>
+                <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground/80">
+                  {t("page_messages_add_caption")}
+                </label>
                 <Textarea
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
                   placeholder={t("page_messages_write_caption")}
-                  className="min-h-[60px] resize-none rounded-xl border-border/30 bg-muted/20 focus-visible:ring-1 focus-visible:ring-primary/30"
+                  className="min-h-[80px] resize-none rounded-xl border-border/30 bg-muted/30 px-4 py-3 text-sm focus-visible:ring-1 focus-visible:ring-primary/30"
                 />
               </div>
             )}
           </div>
 
-          <DialogFooter className="border-t border-border/30 px-6 py-4">
+          <DialogFooter className="border-t border-border/10 bg-muted/5 px-6 py-4">
             <Button
               variant="ghost"
               onClick={handleCancelUpload}
               disabled={isUploading}
-              className="rounded-xl"
+              className="rounded-xl hover:bg-muted/80"
             >
               {t("action_cancel")}
             </Button>
             <Button
               onClick={handleConfirmUpload}
               disabled={isUploading}
-              className="rounded-xl bg-primary px-6 text-primary-foreground hover:bg-primary/90"
+              className="rounded-xl bg-primary px-8 font-medium text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30"
             >
               {isUploading ? (
                 <>
@@ -226,58 +231,68 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
           accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.xls,.ppt,.pptx"
         />
 
-        <div className="flex shrink-0 gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
-            onClick={triggerFileSelect}
-            disabled={disabled || isUploading}
-            title={t("page_messages_attach_file")}
-          >
-            <Paperclip className="h-5 w-5" />
-          </Button>
-          <Popover>
-            <PopoverTrigger asChild>
+        <div className="mx-auto flex max-w-4xl items-end gap-2 md:gap-3">
+          {/* Input Wrapper */}
+          <div className="flex flex-1 items-end gap-2 rounded-[24px] border border-border/40 bg-muted/40 p-1.5 shadow-sm transition-all focus-within:border-primary/20 focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/10">
+
+            {/* Left Actions */}
+            <div className="flex shrink-0 gap-0.5 pb-0.5 pl-1">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 rounded-full text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                className="h-9 w-9 rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                onClick={triggerFileSelect}
                 disabled={disabled || isUploading}
-                title={t("page_messages_add_emoji")}
+                title={t("page_messages_attach_file")}
               >
-                <Smile className="h-5 w-5" />
+                <Paperclip className="h-5 w-5" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto border-none p-0 shadow-xl" align="start" side="top">
-              <EmojiPicker
-                onEmojiClick={(emojiData) =>
-                  setMessage((prev) => prev + emojiData.emoji)
-                }
-                width={300}
-                height={350}
-              />
-            </PopoverContent>
-          </Popover>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    disabled={disabled || isUploading}
+                    title={t("page_messages_add_emoji")}
+                  >
+                    <Smile className="h-5 w-5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto border-none p-0 shadow-xl" align="start" side="top">
+                  <EmojiPicker
+                    onEmojiClick={(emojiData) =>
+                      setMessage((prev) => prev + emojiData.emoji)
+                    }
+                    width={300}
+                    height={350}
+                    previewConfig={{ showPreview: false }}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <Textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={t("page_messages_type_message")}
+              className="min-h-[44px] max-h-[140px] flex-1 resize-none border-0 bg-transparent px-2 py-3 shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/50"
+              disabled={disabled || isUploading}
+            />
+          </div>
+
+          {/* Send Button */}
+          <Button
+            onClick={handleSend}
+            disabled={!message.trim() || disabled || isUploading}
+            size="icon"
+            className="h-[48px] w-[48px] shrink-0 rounded-full bg-primary text-primary-foreground shadow-md transition-all hover:scale-105 hover:bg-primary/90 hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+          >
+            <Send className="h-5 w-5 translate-x-0.5" />
+          </Button>
         </div>
-
-        <Textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={t("page_messages_type_message")}
-          className="min-h-[44px] max-h-[120px] flex-1 resize-none rounded-2xl border-transparent bg-muted/30 px-4 py-3 placeholder:text-muted-foreground/60 focus:border-border/30 focus:ring-0 focus-visible:ring-1 focus-visible:ring-primary/20 scrollbar-hide"
-          disabled={disabled || isUploading}
-        />
-
-        <Button
-          onClick={handleSend}
-          disabled={!message.trim() || disabled || isUploading}
-          size="icon"
-          className="h-11 w-11 shrink-0 rounded-xl bg-primary text-primary-foreground shadow-lg transition-all hover:scale-105 hover:bg-primary/90 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
-        >
-          <Send className="h-5 w-5" />
-        </Button>
       </div>
     </>
   );

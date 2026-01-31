@@ -16,6 +16,7 @@ import { CreditsBadge } from "./_components/creditsBadge";
 import { Separator } from "@/components/ui/separator";
 import { ChatbotWidget } from "@/components/chatbot";
 import ScrollToTop from "@/components/ui/scroll-to-top";
+import { SwipeBackProvider } from "@/components/SwipeBackProvider";
 
 const layout = ({ children }: { children: React.ReactNode }) => {
   const sidebarCookie = cookies().get("sidebar_state")?.value;
@@ -25,33 +26,35 @@ const layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <AppProvider>
       <ProtectedPage>
-        <UndoDeleteProvider>
-          <SidebarProvider defaultOpen={defaultSidebarOpen}>
-            <AppSidebar />
-            <SidebarInset className="overflow-auto h-svh scrollbar-hide">
-              <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 sticky top-0 z-40 w-full">
-                <div className="flex items-center gap-2">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                </div>
+        <SwipeBackProvider>
+          <UndoDeleteProvider>
+            <SidebarProvider defaultOpen={defaultSidebarOpen}>
+              <AppSidebar />
+              <SidebarInset className="overflow-auto h-svh scrollbar-hide">
+                <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 sticky top-0 z-40 w-full">
+                  <div className="flex items-center gap-2">
+                    <SidebarTrigger className="-ml-1" />
+                    <Separator orientation="vertical" className="mr-2 h-4" />
+                  </div>
 
-                <div className="flex items-center gap-2">
-                  <CreditsBadge />
-                  <Notifications />
-                  <UserAvatar />
-                </div>
-              </header>
+                  <div className="flex items-center gap-2">
+                    <CreditsBadge />
+                    <Notifications />
+                    <UserAvatar />
+                  </div>
+                </header>
 
-              <main className="flex-1 min-h-0 flex flex-col w-full">
-                {children}
-              </main>
+                <main className="flex-1 min-h-0 flex flex-col w-full">
+                  {children}
+                </main>
 
-              <BottomNav />
-              <ChatbotWidget />
-              <ScrollToTop />
-            </SidebarInset>
-          </SidebarProvider>
-        </UndoDeleteProvider>
+                {<BottomNav />}
+                <ChatbotWidget />
+                <ScrollToTop />
+              </SidebarInset>
+            </SidebarProvider>
+          </UndoDeleteProvider>
+        </SwipeBackProvider>
       </ProtectedPage>
     </AppProvider>
   );

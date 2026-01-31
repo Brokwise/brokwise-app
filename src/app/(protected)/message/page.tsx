@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ArrowLeft, MessageSquarePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Conversation } from "@/models/types/chat";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "next/navigation";
 
 const MessagePage = () => {
   const { conversations, isLoadingConversations } = useGetConversations();
@@ -26,7 +27,7 @@ const MessagePage = () => {
 
   const currentUserId = brokerData?._id || companyData?._id;
 
-  // Auto-select first conversation if available and none selected (only on desktop)
+  const router = useRouter()
   useEffect(() => {
     if (
       !isMobile &&
@@ -63,7 +64,7 @@ const MessagePage = () => {
     // If adminId is populated object
     if (conv?.adminId && typeof conv.adminId === "object") {
       return {
-        name: conv.adminId.name || "Support",
+        name: "Brokwise",
         initials: (conv.adminId.name || "S").substring(0, 2).toUpperCase(),
       };
     }
@@ -89,6 +90,7 @@ const MessagePage = () => {
       >
         <div className="flex h-[80px] shrink-0 items-center justify-between border-b border-border/20 px-6">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            <Button onClick={() => { router.push("/") }} variant={"ghost"}><ArrowLeft />Back</Button>
             {t("page_messages_title")}
           </h1>
           <Button
@@ -165,6 +167,7 @@ const MessagePage = () => {
                 </Button>
               )}
               <Avatar className="h-10 w-10 border border-border/50">
+                <AvatarImage src={"/logo.webp"} />
                 <AvatarFallback className="bg-muted text-sm font-medium">
                   {partnerDetails?.initials}
                 </AvatarFallback>

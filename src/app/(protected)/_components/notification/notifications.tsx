@@ -30,7 +30,7 @@ import { useApp } from "@/context/AppContext";
 
 export const Notifications = () => {
   const { userData } = useApp();
- 
+
   const { notificationsData, isLoading: isLoadingNotifications } =
     useNotification();
   const { mutate, isPending } = useUpdateNotification();
@@ -162,11 +162,10 @@ export const Notifications = () => {
     isUnread: boolean;
   }) => (
     <Card
-      className={`mb-2 sm:mb-3 transition-all duration-200 ${
-        isUnread
-          ? "border-primary/20 dark:border-primary/20 bg-blue-50/50 dark:bg-primary/5"
-          : "border-primary/20 dark:border-primary/20"
-      }`}
+      className={`mb-2 sm:mb-3 transition-all duration-200 ${isUnread
+        ? "border-primary/20 dark:border-primary/20 bg-blue-50/50 dark:bg-primary/5"
+        : "border-primary/20 dark:border-primary/20"
+        }`}
     >
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-start justify-between gap-2 sm:gap-3">
@@ -176,11 +175,10 @@ export const Notifications = () => {
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full flex-shrink-0 dark:bg-blue-500" />
               )}
               <h4
-                className={`text-xs sm:text-sm font-medium ${
-                  isUnread
-                    ? "text-gray-900 dark:text-gray-100"
-                    : "text-gray-700 dark:text-gray-100"
-                }`}
+                className={`text-xs sm:text-sm font-medium ${isUnread
+                  ? "text-gray-900 dark:text-gray-100"
+                  : "text-gray-700 dark:text-gray-100"
+                  }`}
               >
                 {notification.title}
               </h4>
@@ -227,7 +225,7 @@ export const Notifications = () => {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="max-w-[92vw] md:w-full p-4 sm:p-6">
+      <SheetContent className="max-w-[92vw] md:w-full p-4 sm:p-6 max-h-[80vh] md:max-h-[100vh] overflow-auto my-auto rounded-l-2xl">
         <SheetHeader className="pb-2 sm:pb-4">
           <SheetTitle className="flex items-center gap-2 text-base sm:text-lg">
             <Bell className="w-4 h-4 sm:w-5 sm:h-5" />

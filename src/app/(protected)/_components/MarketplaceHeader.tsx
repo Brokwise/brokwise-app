@@ -237,7 +237,7 @@ export const MarketplaceHeader = ({
         <Button
           asChild
           size="sm"
-          className="h-8 sm:h-9 gap-1.5 sm:gap-2 rounded-lg font-medium shadow-sm hover:shadow-md transition-all shrink-0 px-2.5 sm:px-3"
+          className="h-8 sm:h-9 gap-1.5 sm:gap-2 rounded-lg font-medium shadow-sm hover:shadow-md transition-all shrink-0 px-2.5 sm:px-3 hidden md:flex"
         >
           <Link
             href={
@@ -348,7 +348,7 @@ export const MarketplaceHeader = ({
       <div className="flex flex-col gap-3 sm:gap-4 w-full">
         {/* Category Pills (Scrollable) - Full width on mobile */}
         <div className="flex justify-between w-full">
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 w-full scrollbar-thin -mx-3 px-3 sm:mx-0 sm:px-0">
+          <div className="hidden md:flex items-center gap-1 overflow-x-auto pb-1 w-full scrollbar-thin -mx-3 px-3 sm:mx-0 sm:px-0">
             {categoryPills.map((pill) => (
               <Button
                 key={pill.value}
@@ -370,6 +370,30 @@ export const MarketplaceHeader = ({
                 {pill.label}
               </Button>
             ))}
+          </div>
+          <div>
+            <Select
+              value={categoryFilter}
+              onValueChange={(val) => {
+                setCategoryFilter(val);
+                // Reset dependent filters when category changes via select
+                setPropertyTypeFilter("ALL");
+                if (val !== "ALL" && val !== "RESIDENTIAL") {
+                  setBhkFilter("ALL");
+                }
+              }}
+            >
+              <SelectTrigger className="flex items-center justify-center md:hidden h-8 rounded-full px-3">
+                <SelectValue placeholder={t("label_all")} />
+              </SelectTrigger>
+              <SelectContent>
+                {categoryPills.map((pill) => (
+                  <SelectItem key={pill.value} value={pill.value}>
+                    {pill.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 justify-end">
