@@ -207,13 +207,13 @@ const PropertyPageContent = () => {
   ];
 
   return (
-    <main className="min-h-screen pb-10">
+    <main className="min-h-screen">
       <PropertyHeader
         property={property}
         onFlag={() => setIsFlagDialogOpen(true)}
       />
 
-      <div className="container mx-auto px-4 max-w-7xl pt-4">
+      <div className="container mx-auto px-4 max-w-7xl pt-4 pb-20 md:pb-0">
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
           <div className="order-1 lg:order-1 lg:col-span-7">
             <MediaCarousel images={allImages} property={property} />

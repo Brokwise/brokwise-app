@@ -13,15 +13,15 @@ const PageShell = React.forwardRef<HTMLDivElement, PageShellProps>(
             <Component
                 ref={ref}
                 className={cn(
-                    "flex flex-col flex-1 w-full max-w-[1600px] mx-auto px-2 pt-0 pb-1 md:px-3 md:pt-0 md:pb-1 lg:px-4 lg:pt-0.5 lg:pb-2 space-y-1.5 md:space-y-2",
-                    className
+                    "flex flex-col flex-1 w-full max-w-[1600px] mx-auto px-2 pt-0  md:px-3 md:pt-0  lg:px-4 lg:pt-0.5 lg:pb-2 space-y-1.5 md:space-y-2 pb-20 md:pb-1",
+                    className,
                 )}
                 {...props}
             >
                 {children}
             </Component>
         );
-    }
+    },
 );
 PageShell.displayName = "PageShell";
 
@@ -38,7 +38,7 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
                 ref={ref}
                 className={cn(
                     "flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between",
-                    className
+                    className,
                 )}
                 {...props}
             >
@@ -55,7 +55,7 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
                 {children && <div className="flex items-center gap-2">{children}</div>}
             </div>
         );
-    }
+    },
 );
 PageHeader.displayName = "PageHeader";
 
@@ -70,14 +70,14 @@ const PageGrid = React.forwardRef<HTMLDivElement, PageGridProps>(
                 ref={ref}
                 className={cn(
                     "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
-                    className
+                    className,
                 )}
                 {...props}
             >
                 {children}
             </div>
         );
-    }
+    },
 );
 PageGrid.displayName = "PageGrid";
 
@@ -100,7 +100,7 @@ const Section = React.forwardRef<HTMLDivElement, SectionProps>(
                 {children}
             </section>
         );
-    }
+    },
 );
 Section.displayName = "Section";
 

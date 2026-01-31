@@ -61,9 +61,9 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
   const allImages =
     property && (property.featuredMedia || property.images?.length)
       ? [
-          ...(property.featuredMedia ? [property.featuredMedia] : []),
-          ...(property.images || []),
-        ]
+        ...(property.featuredMedia ? [property.featuredMedia] : []),
+        ...(property.images || []),
+      ]
       : [];
 
   const handlePrevImage = () => {
@@ -87,7 +87,7 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[92vh] overflow-hidden p-0 gap-0">
+      <DialogContent className="max-w-4xl max-h-[70vh] md:max-h-[92vh] overflow-hidden p-0 gap-0">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 pr-12 border-b bg-gradient-to-r from-background to-muted/30">
           <DialogTitle className="text-base font-semibold flex items-center gap-2">
@@ -211,11 +211,10 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
                           <button
                             key={idx}
                             onClick={() => setCurrentImageIndex(idx)}
-                            className={`relative flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-all ${
-                              currentImageIndex === idx
-                                ? "border-primary ring-1 ring-primary"
-                                : "border-transparent opacity-60 hover:opacity-100"
-                            }`}
+                            className={`relative flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-all ${currentImageIndex === idx
+                              ? "border-primary ring-1 ring-primary"
+                              : "border-transparent opacity-60 hover:opacity-100"
+                              }`}
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
@@ -261,11 +260,10 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
                         </Badge>
                         <Badge
                           variant="outline"
-                          className={`text-xs ${
-                            property.listingStatus === "ACTIVE"
-                              ? "border-emerald-500 text-emerald-600 bg-emerald-50 dark:bg-emerald-950"
-                              : ""
-                          }`}
+                          className={`text-xs ${property.listingStatus === "ACTIVE"
+                            ? "border-emerald-500 text-emerald-600 bg-emerald-50 dark:bg-emerald-950"
+                            : ""
+                            }`}
                         >
                           {property.listingStatus?.replace(/_/g, " ")}
                         </Badge>
@@ -378,42 +376,42 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
                     property.areaType ||
                     property.plotType ||
                     property.rentalIncome) && (
-                    <>
-                      <Separator />
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-semibold flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-primary" />
-                          Additional Details
-                        </h4>
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          {property.society && (
-                            <DetailRow label="Society" value={property.society} />
-                          )}
-                          {property.purpose && (
-                            <DetailRow label="Purpose" value={property.purpose} />
-                          )}
-                          {property.areaType && (
-                            <DetailRow
-                              label="Area Type"
-                              value={property.areaType.replace(/_/g, " ")}
-                            />
-                          )}
-                          {property.plotType && (
-                            <DetailRow
-                              label="Plot Type"
-                              value={property.plotType}
-                            />
-                          )}
-                          {property.rentalIncome && (
-                            <DetailRow
-                              label="Rental Income"
-                              value={`₹${property.rentalIncome.min.toLocaleString("en-IN")} - ₹${property.rentalIncome.max.toLocaleString("en-IN")}`}
-                            />
-                          )}
+                      <>
+                        <Separator />
+                        <div className="space-y-3">
+                          <h4 className="text-sm font-semibold flex items-center gap-2">
+                            <Building2 className="h-4 w-4 text-primary" />
+                            Additional Details
+                          </h4>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            {property.society && (
+                              <DetailRow label="Society" value={property.society} />
+                            )}
+                            {property.purpose && (
+                              <DetailRow label="Purpose" value={property.purpose} />
+                            )}
+                            {property.areaType && (
+                              <DetailRow
+                                label="Area Type"
+                                value={property.areaType.replace(/_/g, " ")}
+                              />
+                            )}
+                            {property.plotType && (
+                              <DetailRow
+                                label="Plot Type"
+                                value={property.plotType}
+                              />
+                            )}
+                            {property.rentalIncome && (
+                              <DetailRow
+                                label="Rental Income"
+                                value={`₹${property.rentalIncome.min.toLocaleString("en-IN")} - ₹${property.rentalIncome.max.toLocaleString("en-IN")}`}
+                              />
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </>
-                  )}
+                      </>
+                    )}
 
                   {/* Amenities */}
                   {property.amenities && property.amenities.length > 0 && (

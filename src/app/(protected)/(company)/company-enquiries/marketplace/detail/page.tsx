@@ -483,7 +483,7 @@ const ViewMarketPlaceEnquiryContent = () => {
               ) : null}
 
               {/* Action to Submit */}
-              <div className="pt-2 flex flex-col sm:flex-row gap-3">
+              <div className="pt-2 flex ">
                 <Button
                   variant="outline"
                   size="lg"

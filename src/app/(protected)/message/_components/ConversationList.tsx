@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Conversation } from "@/models/types/chat";
 import { format } from "date-fns";
@@ -20,16 +20,14 @@ export const ConversationList = ({
   return (
     <div className="flex flex-col gap-1 pb-4">
       {conversations.map((conv) => {
-        // Determine partner
-        // If I am broker/company (currentUser), I see adminId
-        // If I am admin (unlikely in this app context, but checking), I see participantId
+
         let partnerName = "Support";
         let partnerInitials = "S";
 
         // Logic: The logged in user is either 'broker' or 'company'
         // So the partner is the Admin.
         if (conv.adminId) {
-          partnerName = conv.adminId.name || "Support";
+          partnerName = "Brokwise";
           partnerInitials = partnerName.substring(0, 2).toUpperCase();
         }
 
@@ -47,6 +45,7 @@ export const ConversationList = ({
             )}
           >
             <Avatar className="h-12 w-12 border border-border/40 transition-transform group-hover:scale-105">
+              <AvatarImage src="/logo.webp" />
               <AvatarFallback className={cn("text-sm", isSelected ? "bg-primary/10 text-primary" : "bg-muted")}>
                 {partnerInitials}
               </AvatarFallback>

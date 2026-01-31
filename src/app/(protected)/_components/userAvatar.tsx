@@ -93,7 +93,7 @@ export function UserAvatar() {
             {/* Language Selection */}
             <div className="flex items-center justify-between p-2 rounded-lg border bg-card mb-2 hover:bg-accent/20 transition-colors">
               <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                   <Languages className="h-4 w-4" />
                 </div>
                 <span className="text-sm font-medium">{t("select_language") || "Language"}</span>

@@ -20,15 +20,9 @@ import ScrollToTop from "@/components/ui/scroll-to-top";
 import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { useTheme } from "next-themes";
+import { SwipeBackProvider } from "@/components/SwipeBackProvider";
+import { getCookie } from "@/lib/utils";
 
-// Helper to get cookie value on client side
-const getCookie = (name: string): string | undefined => {
-  if (typeof document === "undefined") return undefined;
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(";").shift();
-  return undefined;
-};
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [defaultSidebarOpen, setDefaultSidebarOpen] = useState(true);
@@ -41,18 +35,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     setMounted(true);
   }, []);
 
-  // Handle status bar based on theme
   useEffect(() => {
-    if (!mounted || !Capacitor.isNativePlatform()) return;
 
     const updateStatusBar = async () => {
       try {
         const currentTheme = theme === "system" ? resolvedTheme : theme;
-        
-        // Show status bar
         await StatusBar.show();
-        
-        // Update status bar style based on theme
         if (currentTheme === "dark") {
           await StatusBar.setStyle({ style: Style.Dark });
         } else {
@@ -66,7 +54,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     updateStatusBar();
   }, [mounted, theme, resolvedTheme]);
 
-  // Avoid hydration mismatch by rendering null until mounted
   if (!mounted) {
     return null;
   }
@@ -74,42 +61,40 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <AppProvider>
       <ProtectedPage>
-        <UndoDeleteProvider>
-          <SidebarProvider defaultOpen={defaultSidebarOpen}>
-            <AppSidebar />
-            <SidebarInset className="flex flex-col h-svh">
-              {/* Fixed header with safe area - this doesn't scroll */}
-              <div className="sticky top-0 z-40 w-full bg-background shrink-0">
-                {/* Safe area spacer for iOS status bar */}
-                <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
-                {/* Actual header content */}
-                <header className="flex h-16 items-center justify-between gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-                  <div className="flex items-center gap-2">
-                    <SidebarTrigger className="-ml-1" />
-                    <Separator orientation="vertical" className="mr-2 h-4" />
-                  </div>
+        <SwipeBackProvider>
+          <UndoDeleteProvider>
+            <SidebarProvider defaultOpen={defaultSidebarOpen}>
+              <AppSidebar />
+              <SidebarInset className="flex flex-col h-svh">
+                <div className="sticky top-0 z-40 w-full bg-background shrink-0">
+                  <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
+                  <header className="flex h-16 items-center justify-between gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+                    <div className="flex items-center gap-2">
+                      <SidebarTrigger className="-ml-1" />
+                      <Separator orientation="vertical" className="mr-2 h-4" />
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    <CreditsBadge />
-                    <Notifications />
-                    <UserAvatar />
-                  </div>
-                </header>
-              </div>
+                    <div className="flex items-center gap-2">
+                      <CreditsBadge />
+                      <Notifications />
+                      <UserAvatar />
+                    </div>
+                  </header>
+                </div>
 
-              {/* Scrollable content area */}
-              <div className="flex-1 overflow-auto scrollbar-hide">
-                <main className="flex-1 min-h-0 flex flex-col w-full">
-                  {children}
-                </main>
-              </div>
+                <div className="flex-1 overflow-auto scrollbar-hide">
+                  <main className="flex-1 min-h-0 flex flex-col w-full">
+                    {children}
+                  </main>
+                </div>
 
-              <BottomNav />
-              <ChatbotWidget />
-              <ScrollToTop />
-            </SidebarInset>
-          </SidebarProvider>
-        </UndoDeleteProvider>
+                {<BottomNav />}
+                <ChatbotWidget />
+                <ScrollToTop />
+              </SidebarInset>
+            </SidebarProvider>
+          </UndoDeleteProvider>
+        </SwipeBackProvider>
       </ProtectedPage>
     </AppProvider>
   );

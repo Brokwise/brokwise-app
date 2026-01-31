@@ -45,7 +45,7 @@ export const PropertyHeader = ({
                         <div className="px-3 py-1.5 bg-muted/50 rounded-lg border">
                             <Typography variant="muted" className="font-medium">#{property.propertyId || "N/A"}</Typography>
                         </div>
-                        <Badge
+                        {/* <Badge
                             variant={
                                 property.listingStatus === "ACTIVE" ? "default" : "secondary"
                             }
@@ -56,7 +56,7 @@ export const PropertyHeader = ({
                             }
                         >
                             {property.listingStatus ? property.listingStatus.replace("_", " ") : "Unknown"}
-                        </Badge>
+                        </Badge> */}
                         {isOwner && (
                             <Badge variant="outline" className="text-xs">
                                 Edits: {property.editCount || 0}/3

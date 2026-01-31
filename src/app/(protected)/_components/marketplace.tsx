@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   useGetAllProperties,
@@ -47,12 +48,26 @@ import {
 
 export const MarketPlace = () => {
   console.log("first");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { brokerData, companyData, userData } = useApp();
   const userCity =
     userData?.userType === "company" ? companyData?.city : brokerData?.city;
 
-  const [viewMode, setViewMode] = useState<"PROPERTIES" | "ENQUIRIES">(
-    "PROPERTIES"
+  const viewMode = useMemo<"PROPERTIES" | "ENQUIRIES">(() => {
+    const mode = searchParams.get("mode")?.toLowerCase();
+    return mode === "enquiries" ? "ENQUIRIES" : "PROPERTIES";
+  }, [searchParams]);
+
+  const handleViewModeChange = useCallback(
+    (mode: "PROPERTIES" | "ENQUIRIES") => {
+      const expectedMode = mode === "ENQUIRIES" ? "enquiries" : "properties";
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("mode", expectedMode);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
   );
   const [currentPage, setCurrentPage] = useState(1);
   const [cardsPerPage, setCardsPerPage] = useState(12);
@@ -135,6 +150,7 @@ export const MarketPlace = () => {
       setIsMobileMapOpen(false);
     }
   }, [viewMode]);
+
 
   useEffect(() => {
     const mql = window.matchMedia(`(max-width: ${LG_BREAKPOINT_PX - 1}px)`);
@@ -480,7 +496,7 @@ export const MarketPlace = () => {
     <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden relative w-full">
       <MarketplaceHeader
         viewMode={viewMode}
-        setViewMode={setViewMode}
+        setViewMode={handleViewModeChange}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         categoryFilter={categoryFilter}

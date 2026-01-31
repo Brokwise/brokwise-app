@@ -21,9 +21,11 @@ export function BottomNav() {
   const { companyData } = useApp();
   const [isFabOpen, setIsFabOpen] = React.useState(false);
   const { t } = useTranslation();
+  const [show, setShow] = React.useState(true)
 
   // Close FAB menu when pathname changes
   React.useEffect(() => {
+    setShow(!pathname.includes("message"));
     setIsFabOpen(false);
   }, [pathname]);
 
@@ -140,7 +142,7 @@ export function BottomNav() {
   );
 
   return (
-    <>
+    show && <>
       <FabMenu />
       <div className="pointer-events-none fixed inset-x-0 bottom-1 z-50 flex justify-center md:hidden">
         <div className="pointer-events-auto relative flex h-16 w-[90vw] max-w-md items-center justify-between rounded-full border border-white/20 bg-background/60 px-2 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] backdrop-blur-xl">
