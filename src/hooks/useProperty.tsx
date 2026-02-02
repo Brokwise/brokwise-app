@@ -75,6 +75,7 @@ export interface PropertyListFilters {
   source?: string;
   search?: string;
   userCity?: string;
+  featured?: boolean;
 }
 
 export const useGetAllProperties = (
@@ -112,6 +113,9 @@ export const useGetAllProperties = (
     }
     if (filters.userCity) {
       params.set("userCity", filters.userCity);
+    }
+    if (filters.featured !== undefined) {
+      params.set("featured", String(filters.featured));
     }
 
     return params.toString();

@@ -100,6 +100,8 @@ interface MarketplaceHeaderProps {
   setPriceRange: (val: number[] | null) => void;
   bhkFilter: string;
   setBhkFilter: (val: string) => void;
+  featuredFilter: string;
+  setFeaturedFilter: (val: string) => void;
   view: "grid" | "map" | "split";
   setView: (val: "grid" | "map" | "split") => void;
   filteredCount: number;
@@ -126,6 +128,8 @@ export const MarketplaceHeader = ({
   setPriceRange,
   bhkFilter,
   setBhkFilter,
+  featuredFilter,
+  setFeaturedFilter,
   view,
   setView,
   filteredCount,
@@ -626,6 +630,28 @@ export const MarketplaceHeader = ({
                       </Select>{" "}
                     </div>
                   )}{" "}
+                  {/* Featured Filter - Only for Properties */}{" "}
+                  {viewMode === "PROPERTIES" && (
+                    <div className="space-y-2">
+                      {" "}
+                      <Label>Featured Properties</Label>{" "}
+                      <Select
+                        value={featuredFilter}
+                        onValueChange={setFeaturedFilter}
+                      >
+                        {" "}
+                        <SelectTrigger>
+                          {" "}
+                          <SelectValue placeholder="Featured" />{" "}
+                        </SelectTrigger>{" "}
+                        <SelectContent>
+                          {" "}
+                          <SelectItem value="ALL">All Properties</SelectItem>{" "}
+                          <SelectItem value="YES">Featured Only</SelectItem>{" "}
+                        </SelectContent>{" "}
+                      </Select>{" "}
+                    </div>
+                  )}{" "}
                 </div>{" "}
                 <DialogFooter className="gap-2 sm:gap-0">
                   {" "}
@@ -790,6 +816,18 @@ export const MarketplaceHeader = ({
               className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
             >
               {sourceFilter === "BROKER" ? "Broker Listed" : "Company Listed"}
+              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
+            </Button>
+          )}
+
+          {viewMode === "PROPERTIES" && featuredFilter !== "ALL" && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setFeaturedFilter("ALL")}
+              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+            >
+              Featured Only
               <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
             </Button>
           )}

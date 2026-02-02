@@ -37,6 +37,7 @@ const MyEnquiriesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [propertyTypeFilter, setPropertyTypeFilter] = useState("all");
+  const [urgentFilter, setUrgentFilter] = useState("all");
   const { t } = useTranslation();
 
   // Load view preference from local storage
@@ -74,6 +75,12 @@ const MyEnquiriesPage = () => {
       )
         return false;
 
+      // Urgent Filter
+      if (urgentFilter !== "all") {
+        if (urgentFilter === "urgent" && !enquiry.isUrgent) return false;
+        if (urgentFilter === "not-urgent" && enquiry.isUrgent) return false;
+      }
+
       // Search Filter
       if (!searchQuery) return true;
       const search = searchQuery.toLowerCase();
@@ -93,7 +100,7 @@ const MyEnquiriesPage = () => {
 
       return descriptionMatch || locationMatch || categoryMatch || typeMatch;
     });
-  }, [myEnquiries, searchQuery, statusFilter, propertyTypeFilter]);
+  }, [myEnquiries, searchQuery, statusFilter, propertyTypeFilter, urgentFilter]);
 
   if (isLoading) {
     return (
@@ -174,6 +181,20 @@ const MyEnquiriesPage = () => {
                     <SelectItem value="active">{t("label_active")}</SelectItem>
                     <SelectItem value="closed">{t("label_closed")}</SelectItem>
                     <SelectItem value="expired">{t("label_expired")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="w-full sm:w-48">
+                <Select value={urgentFilter} onValueChange={setUrgentFilter}>
+                  <SelectTrigger className="h-10 text-sm bg-background">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Urgent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="urgent">Urgent Only</SelectItem>
+                    <SelectItem value="not-urgent">Not Urgent</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

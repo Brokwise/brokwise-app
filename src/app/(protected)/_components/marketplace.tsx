@@ -78,6 +78,7 @@ export const MarketPlace = () => {
   const [sourceFilter, setSourceFilter] = useState<string>("ALL");
   const [priceRange, setPriceRange] = useState<number[] | null>(null);
   const [bhkFilter, setBhkFilter] = useState<string>("ALL");
+  const [featuredFilter, setFeaturedFilter] = useState<string>("ALL");
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const debouncedPriceRange = useDebounce(priceRange, 300);
@@ -89,6 +90,7 @@ export const MarketPlace = () => {
     if (propertyTypeFilter !== "ALL") filters.propertyType = propertyTypeFilter;
     if (sourceFilter !== "ALL") filters.source = sourceFilter;
     if (bhkFilter !== "ALL") filters.bhk = bhkFilter;
+    if (featuredFilter === "YES") filters.featured = true;
     if (debouncedSearchQuery) filters.search = debouncedSearchQuery;
     if (debouncedPriceRange) {
       filters.minPrice = debouncedPriceRange[0];
@@ -101,6 +103,7 @@ export const MarketPlace = () => {
     propertyTypeFilter,
     sourceFilter,
     bhkFilter,
+    featuredFilter,
     debouncedSearchQuery,
     debouncedPriceRange,
     userCity,
@@ -125,6 +128,7 @@ export const MarketPlace = () => {
     propertyTypeFilter,
     sourceFilter,
     bhkFilter,
+    featuredFilter,
     debouncedSearchQuery,
     debouncedPriceRange,
     cardsPerPage,
@@ -327,6 +331,7 @@ export const MarketPlace = () => {
     setSourceFilter("ALL");
     setPriceRange(null);
     setBhkFilter("ALL");
+    setFeaturedFilter("ALL");
   };
 
   const hasActiveFilters =
@@ -334,6 +339,7 @@ export const MarketPlace = () => {
     bhkFilter !== "ALL" ||
     sourceFilter !== "ALL" ||
     propertyTypeFilter !== "ALL" ||
+    featuredFilter !== "ALL" ||
     priceRange !== null;
 
   const renderPagination = () => {
@@ -509,6 +515,8 @@ export const MarketPlace = () => {
         setPriceRange={setPriceRange}
         bhkFilter={bhkFilter}
         setBhkFilter={setBhkFilter}
+        featuredFilter={featuredFilter}
+        setFeaturedFilter={setFeaturedFilter}
         view={view}
         setView={setView}
         filteredCount={pagination.total}
