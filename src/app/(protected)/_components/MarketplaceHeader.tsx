@@ -217,7 +217,7 @@ export const MarketplaceHeader = ({
               size="sm"
               className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all ${viewMode === "PROPERTIES"
                 ? "shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
             >
               {t("nav_properties")}
@@ -229,7 +229,7 @@ export const MarketplaceHeader = ({
               size="sm"
               className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all ${viewMode === "ENQUIRIES"
                 ? "shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
             >
               {t("nav_enquiries")}
