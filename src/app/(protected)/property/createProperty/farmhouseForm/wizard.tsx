@@ -380,7 +380,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
       id: "review",
       title: "Review",
       description: "Review and submit",
-      component: <FarmhouseReview form={form} />,
+      component: <FarmhouseReview form={form} isEnquiry={enquiry !== undefined} />,
       isCompleted: completedSteps.has(2),
     },
   ];

@@ -427,7 +427,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
       id: "review",
       title: "Review",
       description: "Review and submit",
-      component: <CommercialReview propertyType={propertyType} form={form} />,
+      component: <CommercialReview propertyType={propertyType} form={form} isEnquiry={enquiry !== undefined} />,
       isCompleted: completedSteps.has(2),
     },
   ];

@@ -25,11 +25,13 @@ type CommercialPropertyType =
 interface CommercialReviewProps {
   form: UseFormReturn<CommercialPropertyFormData>;
   propertyType: CommercialPropertyType;
+  isEnquiry?: boolean
 }
 
 export const CommercialReview: React.FC<CommercialReviewProps> = ({
   form,
   propertyType,
+  isEnquiry
 }) => {
   const { balance, isLoading: isCreditsLoading } = useCredits();
   const { prices } = useGetCreditPrices();
@@ -183,7 +185,7 @@ export const CommercialReview: React.FC<CommercialReviewProps> = ({
           </div>
         </div>
 
-        <div className="mt-6 pt-6 border-t border-border">
+        {!isEnquiry && <div className="mt-6 pt-6 border-t border-border">
           <h4 className="text-base font-medium mb-4">Promotion</h4>
           {isCreditsLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -220,7 +222,7 @@ export const CommercialReview: React.FC<CommercialReviewProps> = ({
               )}
             />
           )}
-        </div>
+        </div>}
       </div>
 
       <div className="text-sm text-muted-foreground">

@@ -377,7 +377,7 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
       id: "review",
       title: "Review",
       description: "Review and submit",
-      component: <AgriculturalReview form={form} />,
+      component: <AgriculturalReview form={form} isEnquiry={enquiry !== undefined} />,
       isCompleted: completedSteps.has(2),
     },
   ];

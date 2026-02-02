@@ -390,7 +390,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
       id: "review",
       title: "Review",
       description: "Review and submit",
-      component: <IndustrialReview propertyType={propertyType} form={form} />,
+      component: <IndustrialReview propertyType={propertyType} form={form} isEnquiry={enquiry !== undefined} />,
       isCompleted: completedSteps.has(2),
     },
   ];

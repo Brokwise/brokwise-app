@@ -15,9 +15,10 @@ import { Loader2 } from "lucide-react";
 
 interface FarmhouseReviewProps {
   form: UseFormReturn<FarmHousePropertyFormData>;
+  isEnquiry?: boolean
 }
 
-const FarmhouseReview: React.FC<FarmhouseReviewProps> = ({ form }) => {
+const FarmhouseReview: React.FC<FarmhouseReviewProps> = ({ form, isEnquiry }) => {
   const { balance, isLoading: isCreditsLoading } = useCredits();
   const { prices } = useGetCreditPrices();
   const FEATURED_COST = prices.MARK_PROPERTY_AS_FEATURED;
@@ -99,7 +100,7 @@ const FarmhouseReview: React.FC<FarmhouseReviewProps> = ({ form }) => {
           </div>
         </div>
 
-        <div className="mt-6 pt-6 border-t border-border">
+        {!isEnquiry && <div className="mt-6 pt-6 border-t border-border">
           <h4 className="text-base font-medium mb-4">Promotion</h4>
           {isCreditsLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -136,7 +137,7 @@ const FarmhouseReview: React.FC<FarmhouseReviewProps> = ({ form }) => {
               )}
             />
           )}
-        </div>
+        </div>}
       </div>
 
       <div className="text-sm text-muted-foreground">

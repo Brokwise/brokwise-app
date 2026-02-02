@@ -62,6 +62,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     <AppProvider>
       <ProtectedPage>
         <SwipeBackProvider>
+
           <UndoDeleteProvider>
             <SidebarProvider defaultOpen={defaultSidebarOpen}>
               <AppSidebar />
@@ -89,7 +90,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   </main>
                 </div>
 
-                {<BottomNav />}
+                <BottomNav />
                 <ChatbotWidget />
                 <ScrollToTop />
               </SidebarInset >

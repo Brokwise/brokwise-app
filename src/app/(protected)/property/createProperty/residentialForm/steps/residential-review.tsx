@@ -15,10 +15,13 @@ interface ResidentialReviewProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: any;
   propertyType: string;
+  isEnquiry?: boolean
 }
 const ResidentialReview: React.FC<ResidentialReviewProps> = ({
   form,
   propertyType,
+  isEnquiry
+
 }) => {
   const { balance, isLoading: isCreditsLoading } = useCredits();
   const { prices } = useGetCreditPrices();
@@ -151,7 +154,7 @@ const ResidentialReview: React.FC<ResidentialReviewProps> = ({
           </div>
         </div>
 
-        <div className="mt-6 pt-6 border-t border-border">
+        {!isEnquiry && <div className="mt-6 pt-6 border-t border-border">
           <h4 className="text-base font-medium mb-4">Promotion</h4>
           {isCreditsLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -188,7 +191,7 @@ const ResidentialReview: React.FC<ResidentialReviewProps> = ({
               )}
             />
           )}
-        </div>
+        </div>}
       </div>
 
       <div className="text-sm text-muted-foreground">

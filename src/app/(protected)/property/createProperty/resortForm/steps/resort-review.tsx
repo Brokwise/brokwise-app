@@ -14,9 +14,10 @@ import { Loader2 } from "lucide-react";
 interface ResortReviewProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: any;
+  isEnquiry?: boolean
 }
 
-const ResortReview: React.FC<ResortReviewProps> = ({ form }) => {
+const ResortReview: React.FC<ResortReviewProps> = ({ form, isEnquiry }) => {
   const { balance, isLoading: isCreditsLoading } = useCredits();
   const { prices } = useGetCreditPrices();
   const FEATURED_COST = prices.MARK_PROPERTY_AS_FEATURED;
@@ -98,7 +99,7 @@ const ResortReview: React.FC<ResortReviewProps> = ({ form }) => {
           </div>
         </div>
 
-        <div className="mt-6 pt-6 border-t border-border">
+        {!isEnquiry && <div className="mt-6 pt-6 border-t border-border">
           <h4 className="text-base font-medium mb-4">Promotion</h4>
           {isCreditsLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -135,7 +136,7 @@ const ResortReview: React.FC<ResortReviewProps> = ({ form }) => {
               )}
             />
           )}
-        </div>
+        </div>}
       </div>
 
       <div className="text-sm text-muted-foreground">

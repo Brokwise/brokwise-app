@@ -418,7 +418,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       id: "review",
       title: t("wizard_step_review"),
       description: t("wizard_step_review_desc"),
-      component: <ResidentialReview propertyType={propertyType} form={form} />,
+      component: <ResidentialReview propertyType={propertyType} form={form} isEnquiry={enquiry !== undefined} />,
       isCompleted: completedSteps.has(2),
     },
   ];

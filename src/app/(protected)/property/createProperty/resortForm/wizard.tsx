@@ -375,7 +375,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
       id: "review",
       title: "Review",
       description: "Review and submit",
-      component: <ResortReview form={form} />,
+      component: <ResortReview form={form} isEnquiry={enquiry !== undefined} />,
       isCompleted: completedSteps.has(2),
     },
   ];
