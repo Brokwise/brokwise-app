@@ -17,7 +17,6 @@ import { CreditsBadge } from "./_components/creditsBadge";
 import { Separator } from "@/components/ui/separator";
 import { ChatbotWidget } from "@/components/chatbot";
 import ScrollToTop from "@/components/ui/scroll-to-top";
-import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { useTheme } from "next-themes";
 import { SwipeBackProvider } from "@/components/SwipeBackProvider";
