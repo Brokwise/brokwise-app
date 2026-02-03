@@ -77,8 +77,8 @@ const MyEnquiriesPage = () => {
 
       // Urgent Filter
       if (urgentFilter !== "all") {
-        if (urgentFilter === "urgent" && !enquiry.isUrgent) return false;
-        if (urgentFilter === "not-urgent" && enquiry.isUrgent) return false;
+        if (urgentFilter === "urgent" && !enquiry.urgent) return false;
+        if (urgentFilter === "not-urgent" && enquiry.urgent) return false;
       }
 
       // Search Filter
