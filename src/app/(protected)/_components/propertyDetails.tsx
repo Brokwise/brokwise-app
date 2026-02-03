@@ -60,7 +60,7 @@ export const PropertyDetails = ({
           className="block p-3 space-y-3 cursor-pointer hover:bg-muted/30 transition-colors group"
         >
           {/* Compact Image with Price & Badges */}
-          <div className="aspect-[2.5/1] w-full relative rounded-lg overflow-hidden bg-muted border">
+          <div className="aspect-[4/1] w-full relative rounded-lg overflow-hidden bg-muted border">
             <Image
               src={
                 property.featuredMedia &&
@@ -243,11 +243,6 @@ export const PropertyDetails = ({
             </div>
           )}
 
-          {/* Listed By - Compact */}
-          <div className="text-[9px] text-muted-foreground border-t border-border/30 pt-2">
-            Listed by: <span className="font-medium text-foreground">{property.listedBy?.firstName} {property.listedBy?.lastName}</span>
-            {property.listedByType && <span className="text-accent"> ({property.listedByType})</span>}
-          </div>
         </Link>
       </ScrollArea>
 
