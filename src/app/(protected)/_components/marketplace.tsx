@@ -170,6 +170,11 @@ export const MarketPlace = () => {
     }
   }, [isBelowLg]);
 
+  // Close property card when view mode changes
+  useEffect(() => {
+    setSelectedPropertyId(null);
+  }, [view]);
+
   const handleShowOnMap = useCallback(
     (propertyId: string) => {
       setView("split");
@@ -684,7 +689,7 @@ export const MarketPlace = () => {
         `}
             >
               {selectedProperty && (
-                <div className="absolute left-4 top-14 z-20 w-[calc(100%-2rem)] sm:w-[340px] lg:w-[380px] max-h-[calc(100%-4.5rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
+                <div className="absolute right-4 top-4 bottom-auto max-h-[calc(100vh-10rem)] z-[200] w-[calc(100%-2rem)] sm:w-[400px] lg:w-[420px] bg-background rounded-xl shadow-2xl overflow-y-auto scrollbar-hide border-2 border-border/50 flex flex-col">
                   <PropertyDetails
                     property={selectedProperty}
                     onClose={() => setSelectedPropertyId(null)}
@@ -694,6 +699,7 @@ export const MarketPlace = () => {
               <MapBox
                 properties={filteredProperties}
                 onSelectProperty={setSelectedPropertyId}
+                selectedPropertyId={selectedPropertyId}
                 highlightedPropertyId={highlightedPropertyId}
                 highlightRequestId={highlightRequestId}
                 onHighlightComplete={handleHighlightComplete}
