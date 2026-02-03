@@ -29,10 +29,11 @@ import { DocumentsList } from "../[id]/_components/documents-list";
 import { PropertySidebar } from "../[id]/_components/property-sidebar";
 
 import { PropertyPdfLayout } from "@/components/property-pdf/property-pdf-layout";
-import { exportElementAsPdf, makeSafeFilePart, imagesToBase64 } from "@/utils/pdf";
+import { exportElementAsPdf, makeSafeFilePart, imagesToBase64, generatePdfAsBlob } from "@/utils/pdf";
 
 
 import { FlagInAppropriate } from "../[id]/_components/flag-inappropriate";
+import { isNativeIOS } from "@/utils/helper";
 
 const PropertyPageContent = () => {
   const searchParams = useSearchParams();
@@ -110,12 +111,40 @@ const PropertyPageContent = () => {
       const safeId = makeSafeFilePart(
         property.propertyId || property._id || "property"
       );
-      await exportElementAsPdf({
-        element,
-        fileName: `Brokwise_Property_${safeId}.pdf`,
-      });
+      const fileName = `Brokwise_Property_${safeId}.pdf`;
+
+      if (isNativeIOS()) {
+        // For iOS native app: generate PDF as blob and use Web Share API
+        const pdfBlob = await generatePdfAsBlob({ element });
+        const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+        
+        // Use Web Share API with file sharing (supported on iOS Safari/WebView)
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `Property ${property.propertyId || "Details"}`,
+          });
+        } else {
+          // Fallback: create download link
+          const url = URL.createObjectURL(pdfBlob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+        }
+      } else {
+        // For web/other platforms: use standard browser download
+        await exportElementAsPdf({
+          element,
+          fileName,
+        });
+      }
     } catch (e) {
-      console.error(e);
+      alert(e)
+
       toast.error("Failed to export PDF. Please try again.");
     } finally {
       try {

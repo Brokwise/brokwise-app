@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "prebuild": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\"",
+    "sync-ios": "npm run build && npx cap sync ios",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

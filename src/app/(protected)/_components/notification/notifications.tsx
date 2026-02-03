@@ -225,7 +225,7 @@ export const Notifications = () => {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="max-w-[92vw] md:w-full p-4 sm:p-6 max-h-[80vh] md:max-h-[100vh] overflow-auto my-auto rounded-l-2xl">
+      <SheetContent className="max-w-[92vw] md:w-full p-4 sm:p-6 max-h-[90vh] md:max-h-[100vh] overflow-auto my-auto rounded-l-2xl">
         <SheetHeader className="pb-2 sm:pb-4">
           <SheetTitle className="flex items-center gap-2 text-base sm:text-lg">
             <Bell className="w-4 h-4 sm:w-5 sm:h-5" />

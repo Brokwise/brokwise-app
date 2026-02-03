@@ -16,10 +16,11 @@ import { ChatbotWidget } from "@/components/chatbot";
 import { logError } from "@/utils/errors";
 import WaveBackground from "@/components/ui/waveBackground";
 import { Loader2 } from "lucide-react";
+import { Loader } from "@/components/ui/loader";
+import Image from "next/image";
 
 const AUTH_TIMEOUT_MS = 10000;
 
-// Wrapper component for screens that need safe area insets (iOS status bar protection)
 const SafeAreaWrapper = ({ children }: { children: React.ReactNode }) => (
   <div className="safe-area-container">{children}</div>
 );
@@ -40,7 +41,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   const [authTimedOut, setAuthTimedOut] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auth timeout - redirect to login if auth takes too long
+
   useEffect(() => {
     if (loading || brokerDataLoading || companyDataLoading) {
       timeoutRef.current = setTimeout(() => {
@@ -170,7 +171,6 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (loading || !user || brokerDataLoading || companyDataLoading) {
-    // Debug info for development
     const loadingStates = [];
     if (loading) loadingStates.push("auth");
     if (!user && !loading) loadingStates.push("no-user");
@@ -179,12 +179,16 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
 
     return (
       <div className="h-screen w-full flex flex-col justify-center items-center gap-4">
-        <Loader2 className="animate-spin h-10 w-10" />
-        <h1>Loading...</h1>
-        <p className="text-xs text-muted-foreground">
-          Loading: {loadingStates.join(", ") || "initializing"}
-        </p>
-
+        <div className="relative flex items-center justify-center">
+          <Loader size="5rem" className="absolute" />
+          <Image
+            src={"/logo.webp"}
+            height={52}
+            width={52}
+            alt="Brokwise"
+            className="rounded-full z-10"
+          />
+        </div>
       </div>
     );
   }

@@ -38,8 +38,9 @@ import { toast } from "sonner";
 import { createRoot } from "react-dom/client";
 import { format } from "date-fns";
 import { PropertyPdfLayout } from "@/components/property-pdf/property-pdf-layout";
-import { exportElementAsPdf, makeSafeFilePart } from "@/utils/pdf";
+import { exportElementAsPdf, makeSafeFilePart, generatePdfAsBlob } from "@/utils/pdf";
 import { useTranslation } from "react-i18next";
+import { isNativeIOS } from "@/utils/helper";
 
 interface PropertyCardProps {
   property: Property;
@@ -104,18 +105,18 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const handleShareNative = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const shareData = {
-      title: `${property.bhk ? `${property.bhk} BHK ` : ""
-        }${property.propertyType.replace(/_/g, " ")}`,
-      text: `Check out this property: ${formatAddress(
-        property.address
-      )} - ${formatCurrency(property.totalPrice)}`,
-      url: propertyUrl,
-    };
 
+    const propertyTitle = `${property.bhk ? `${property.bhk} BHK ` : ""}${property.propertyType.replace(/_/g, " ")}`;
+    const shareText = `Check out this property: ${formatAddress(property.address)} - ${formatCurrency(property.totalPrice)}`;
+
+    // Use Web Share API (works on both iOS native and web)
     if (navigator.share) {
       try {
-        await navigator.share(shareData);
+        await navigator.share({
+          title: propertyTitle,
+          text: shareText,
+          url: propertyUrl,
+        });
       } catch {
         // User cancelled or share failed - do nothing
       }
@@ -203,12 +204,41 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       const safeId = makeSafeFilePart(
         property.propertyId || property._id || "property"
       );
-      await exportElementAsPdf({
-        element,
-        fileName: `Brokwise_Property_${safeId}.pdf`,
-      });
+      const fileName = `Brokwise_Property_${safeId}.pdf`;
 
-      toast.success(t("toast_pdf_downloaded"), { id: toastId });
+      if (isNativeIOS()) {
+        // For iOS native app: generate PDF as blob and use Web Share API
+        const pdfBlob = await generatePdfAsBlob({ element });
+        const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+        
+        // Use Web Share API with file sharing (supported on iOS Safari/WebView)
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `Property ${property.propertyId || "Details"}`,
+          });
+        } else {
+          // Fallback: create download link
+          const url = URL.createObjectURL(pdfBlob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+        }
+
+        toast.success(t("toast_pdf_downloaded"), { id: toastId });
+      } else {
+        // For web/other platforms: use standard browser download
+        await exportElementAsPdf({
+          element,
+          fileName,
+        });
+
+        toast.success(t("toast_pdf_downloaded"), { id: toastId });
+      }
     } catch (err) {
       console.error(err);
       toast.error(t("toast_error_pdf_export"), { id: toastId });

@@ -18,6 +18,7 @@ import {
 } from "@/utils/upload";
 import { Loader2, Wand2Icon, X, Plus, Upload } from "lucide-react";
 import { useState } from "react";
+import useAxios from "@/hooks/useAxios";
 interface ResidentialMediaProps {
   uploading: { [key: string]: boolean };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,6 +40,7 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
   // Dynamic label based on property type
   const floorPlanLabel = propertyType === "LAND" ? "Site Plan" : "Floor Plans";
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const api = useAxios();
   const handleFileUpload = async (
     files: FileList | null,
     fieldName: "featuredMedia" | "images" | "floorPlans"
@@ -93,11 +95,10 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
   const handleGenerateDescription = async () => {
     try {
       setGeneratingDescription(true);
-      const response = await fetch("/api/ai", {
-        method: "POST",
-        body: JSON.stringify({ data: form.getValues() }),
+      const response = await api.post("/utils/ai", {
+        data: form.getValues(),
       });
-      const data = await response.json();
+      const data = await response.data;
       form.setValue("description", data.description, { shouldValidate: true });
       setGeneratingDescription(false);
       toast.success("Description generated successfully");

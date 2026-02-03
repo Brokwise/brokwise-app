@@ -17,13 +17,14 @@ import { CreateEnquiryFormValues } from "@/models/schemas/enquirySchema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "react-i18next";
 import { useGetCreditPrices } from "@/hooks/useCredits";
+import useAxios from "@/hooks/useAxios";
 
 const AdditionalDetailsSection = () => {
     const { t } = useTranslation();
     const { control, setValue, getValues } = useFormContext<CreateEnquiryFormValues>();
     const [generating, setGenerating] = useState(false);
     const { prices } = useGetCreditPrices();
-
+    const api = useAxios()
     const handleGenerateDescription = async () => {
         try {
             setGenerating(true);
@@ -33,14 +34,11 @@ const AdditionalDetailsSection = () => {
                 return;
             }
 
-            const response = await fetch("/api/ai", {
-                method: "POST",
-                body: JSON.stringify({ data: formValues, type: "enquiry" }),
-            });
+            const response = await api.post("/utils/ai", { data: formValues, type: "enquiry" });
 
-            if (!response.ok) throw new Error("Failed to generate");
+            if (!response.status) throw new Error("Failed to generate");
 
-            const data = await response.json();
+            const data = await response.data;
             setValue("description", data.description, { shouldValidate: true, shouldDirty: true });
             toast.success(t("toast_description_generated"));
         } catch (error) {

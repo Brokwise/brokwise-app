@@ -91,7 +91,7 @@ export const ShareContactDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-scroll">
         <DialogHeader>
           <DialogTitle>Share Contact Details</DialogTitle>
           <DialogDescription>
@@ -128,7 +128,7 @@ export const ShareContactDialog = ({
                     className={cn(
                       "w-full justify-center",
                       selectedTime === time &&
-                        "bg-primary text-primary-foreground"
+                      "bg-primary text-primary-foreground"
                     )}
                     onClick={() => setSelectedTime(time)}
                   >

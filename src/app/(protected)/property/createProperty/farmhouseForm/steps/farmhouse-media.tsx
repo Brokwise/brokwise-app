@@ -19,6 +19,7 @@ import { Loader2, Wand2Icon, X, Plus, Upload } from "lucide-react";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { FarmHousePropertyFormData } from "@/validators/property";
+import useAxios from "@/hooks/useAxios";
 
 interface FarmhouseMediaProps {
   uploading: { [key: string]: boolean };
@@ -36,6 +37,7 @@ export const FarmhouseMedia: React.FC<FarmhouseMediaProps> = ({
   uploading,
 }) => {
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const api = useAxios();
 
   const handleFileUpload = async (
     files: FileList | null,
@@ -92,11 +94,10 @@ export const FarmhouseMedia: React.FC<FarmhouseMediaProps> = ({
   const handleGenerateDescription = async () => {
     try {
       setGeneratingDescription(true);
-      const response = await fetch("/api/ai", {
-        method: "POST",
-        body: JSON.stringify({ data: form.getValues() }),
+      const response = await api.post("/utils/ai", {
+        data: form.getValues(),
       });
-      const data = await response.json();
+      const data = await response.data;
       form.setValue("description", data.description, { shouldValidate: true });
       setGeneratingDescription(false);
       toast.success("Description generated successfully");

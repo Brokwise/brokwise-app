@@ -23,7 +23,7 @@ export function BottomNav() {
   const { t } = useTranslation();
   const [show, setShow] = React.useState(true)
 
-  // Close FAB menu when pathname changes
+
   React.useEffect(() => {
     setShow(!pathname.includes("message"));
     setIsFabOpen(false);
@@ -93,7 +93,7 @@ export function BottomNav() {
             onClick={() => setIsFabOpen(false)}
             className="fixed inset-0 z-40 bg-background/50 backdrop-blur-sm md:hidden"
           />
-          <div className="fixed bottom-36 left-1/2 z-[60] flex -translate-x-1/2 flex-col gap-4 items-center w-max">
+          <div className="fixed bottom-32 left-1/2 z-[60] flex -translate-x-1/2 flex-col gap-4 items-center w-max">
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.8 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -144,7 +144,7 @@ export function BottomNav() {
   return (
     show && <>
       <FabMenu />
-      <div className="pointer-events-none fixed inset-x-0 bottom-1 z-50 flex justify-center md:hidden">
+      <div className="pointer-events-none fixed inset-x-0 bottom-3 z-50 flex justify-center md:hidden">
         <div className="pointer-events-auto relative flex h-16 w-[90vw] max-w-md items-center justify-between rounded-full border border-white/20 bg-background/60 px-2 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] backdrop-blur-xl">
           {navItems.map((item, index) => {
             if (item.isFab) {

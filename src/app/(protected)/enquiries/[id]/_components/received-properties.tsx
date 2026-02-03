@@ -253,24 +253,26 @@ export const ReceivedProperties = ({
         })}
       </div>
 
-      {/* Property Preview Modal */}
       <PropertyPreviewModal
         propertyId={previewPropertyId}
         open={isPreviewOpen}
         onOpenChange={setIsPreviewOpen}
       />
 
-      {/* Share Contact Dialog */}
+
       {shareContactSubmissionId && (
-        <ShareContactDialog
-          isOpen={isShareContactOpen}
-          onClose={() => {
-            setIsShareContactOpen(false);
-            setShareContactSubmissionId(null);
-          }}
-          enquiryId={id}
-          submissionId={shareContactSubmissionId}
-        />
+        <div className="w-[90vw] flex justify-center items-center">
+
+          <ShareContactDialog
+            isOpen={isShareContactOpen}
+            onClose={() => {
+              setIsShareContactOpen(false);
+              setShareContactSubmissionId(null);
+            }}
+            enquiryId={id}
+            submissionId={shareContactSubmissionId}
+          />
+        </div>
       )}
     </div>
   );
