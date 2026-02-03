@@ -57,10 +57,10 @@ export const PropertyDetails = ({
         <Link
           href={`/property/detail?id=${property._id}`}
           target="_blank"
-          className="block p-4 space-y-4 cursor-pointer hover:bg-muted/30 transition-colors group"
+          className="block p-3 space-y-3 cursor-pointer hover:bg-muted/30 transition-colors group"
         >
-          {/* Compact Image with Badges */}
-          <div className="aspect-[16/9] w-full relative rounded-lg overflow-hidden bg-muted border">
+          {/* Compact Image with Price & Badges */}
+          <div className="aspect-[2.5/1] w-full relative rounded-lg overflow-hidden bg-muted border">
             <Image
               src={
                 property.featuredMedia &&
@@ -74,227 +74,177 @@ export const PropertyDetails = ({
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
-            <div className="absolute top-2 left-2 flex gap-1.5 flex-wrap">
-              <Badge className="bg-background/90 text-foreground hover:bg-background/100 backdrop-blur shadow-sm text-[10px]">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
+              <Badge className="bg-background/90 text-foreground hover:bg-background/100 backdrop-blur shadow-sm text-[9px] py-0.5">
                 {property.propertyCategory}
               </Badge>
               {property.isFeatured && (
-                <Badge className="bg-amber-500/90 text-white hover:bg-amber-500 backdrop-blur shadow-sm text-[10px]">
-                  <Star className="h-3 w-3 mr-1" />
+                <Badge className="bg-amber-500/90 text-white hover:bg-amber-500 backdrop-blur shadow-sm text-[9px] py-0.5">
+                  <Star className="h-2.5 w-2.5 mr-0.5" />
                   Featured
                 </Badge>
               )}
             </div>
-            <div className="absolute bottom-2 right-2">
-              <Badge className="bg-accent/95 text-accent-foreground hover:bg-accent backdrop-blur shadow-sm font-semibold">
-                {formatCurrency(property.totalPrice)}
-              </Badge>
+            <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between">
+              <div>
+                <p className="text-white text-xl font-bold drop-shadow-lg">
+                  {formatCurrency(property.totalPrice)}
+                </p>
+                <p className="text-white/80 text-[10px] font-medium drop-shadow">
+                  {formatCurrency(property.rate)}/sqft
+                  {property.isPriceNegotiable && <span className="text-emerald-300 ml-1">• Negotiable</span>}
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Title & Location */}
-          <div className="space-y-2">
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1 flex-1">
-                <p className="text-[10px] font-semibold text-accent uppercase tracking-widest">
-                  {property.propertyCategory} • {property.propertyType.replace(/_/g, " ")}
-                </p>
-                <h3 className="text-lg font-semibold text-foreground leading-tight">
+          {/* Title & Location - Compact */}
+          <div className="space-y-1.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-foreground leading-tight truncate">
                   {property.bhk ? `${property.bhk} BHK ` : ""}{property.propertyType.replace(/_/g, " ")}
                   {property.society && ` in ${property.society}`}
                 </h3>
+                <div className="flex items-center text-muted-foreground text-xs mt-0.5">
+                  <MapPin className="h-3 w-3 mr-1 shrink-0 text-accent/60" />
+                  <span className="truncate">{formatAddress(property.address)}</span>
+                </div>
               </div>
-              <div className="text-right shrink-0">
-                <p className="text-xs text-muted-foreground font-medium">
-                  {formatCurrency(property.rate)}/sqft
-                </p>
-                {property.isPriceNegotiable && (
-                  <p className="text-[10px] text-emerald-600 font-medium">Negotiable</p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center text-muted-foreground text-sm">
-              <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0 text-accent/60" />
-              <span className="line-clamp-1">{formatAddress(property.address)}</span>
             </div>
 
-            {/* Status Badges */}
-            <div className="flex gap-1.5 flex-wrap">
+            {/* Status Badges - Inline */}
+            <div className="flex gap-1 flex-wrap">
               <Badge
                 variant={property.listingStatus === "ACTIVE" ? "default" : "secondary"}
-                className={property.listingStatus === "ACTIVE" ? "bg-emerald-600/90 text-white border-none text-[10px]" : "text-[10px]"}
+                className={property.listingStatus === "ACTIVE" ? "bg-emerald-600/90 text-white border-none text-[9px] py-0" : "text-[9px] py-0"}
               >
                 {property.listingStatus.replace(/_/g, " ")}
               </Badge>
               {property.isVerified && (
-                <Badge variant="outline" className="border-emerald-500/50 text-emerald-600 bg-emerald-50/50 text-[10px]">
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                <Badge variant="outline" className="border-emerald-500/50 text-emerald-600 bg-emerald-50/50 text-[9px] py-0">
+                  <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
                   Verified
-                </Badge>
-              )}
-              {property.propertyStatus && (
-                <Badge variant="outline" className="text-[10px]">
-                  {property.propertyStatus}
                 </Badge>
               )}
             </div>
           </div>
 
-          <div className="h-px bg-border" />
-
-          {/* Key Stats Grid - 2 columns */}
-          <div className="grid grid-cols-2 gap-2">
+          {/* Key Stats Grid - Compact 3 columns */}
+          <div className="grid grid-cols-3 gap-1.5">
             {/* Size */}
-            <div className="bg-muted/30 p-2.5 rounded-lg flex items-center gap-2 border border-border/30">
-              <Move className="h-4 w-4 text-accent/80 shrink-0" />
-              <div>
-                <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Size</p>
-                <p className="font-semibold text-sm text-foreground">
-                  {property.size} {property.sizeUnit?.replace("SQ_", "").replace("_", " ")}
-                </p>
-              </div>
+            <div className="bg-muted/40 p-2 rounded-md text-center border border-border/30">
+              <Move className="h-3.5 w-3.5 mx-auto text-accent/80 mb-0.5" />
+              <p className="font-semibold text-xs text-foreground">
+                {property.size} {property.sizeUnit?.replace("SQ_", "").replace("_", " ")}
+              </p>
+              <p className="text-[8px] text-muted-foreground uppercase">Size</p>
             </div>
 
             {/* BHK or Type */}
             {property.bhk ? (
-              <div className="bg-muted/30 p-2.5 rounded-lg flex items-center gap-2 border border-border/30">
-                <BedDouble className="h-4 w-4 text-accent/80 shrink-0" />
-                <div>
-                  <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Config</p>
-                  <p className="font-semibold text-sm text-foreground">{property.bhk} BHK</p>
-                </div>
+              <div className="bg-muted/40 p-2 rounded-md text-center border border-border/30">
+                <BedDouble className="h-3.5 w-3.5 mx-auto text-accent/80 mb-0.5" />
+                <p className="font-semibold text-xs text-foreground">{property.bhk} BHK</p>
+                <p className="text-[8px] text-muted-foreground uppercase">Config</p>
               </div>
             ) : (
-              <div className="bg-muted/30 p-2.5 rounded-lg flex items-center gap-2 border border-border/30">
-                <Building2 className="h-4 w-4 text-accent/80 shrink-0" />
-                <div>
-                  <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Type</p>
-                  <p className="font-semibold text-sm text-foreground truncate">
-                    {property.propertyType.replace(/_/g, " ")}
-                  </p>
-                </div>
+              <div className="bg-muted/40 p-2 rounded-md text-center border border-border/30">
+                <Building2 className="h-3.5 w-3.5 mx-auto text-accent/80 mb-0.5" />
+                <p className="font-semibold text-xs text-foreground truncate px-0.5">
+                  {property.propertyType.replace(/_/g, " ")}
+                </p>
+                <p className="text-[8px] text-muted-foreground uppercase">Type</p>
               </div>
             )}
 
-            {/* Washrooms */}
-            {property.washrooms !== undefined && (
-              <div className="bg-muted/30 p-2.5 rounded-lg flex items-center gap-2 border border-border/30">
-                <Bath className="h-4 w-4 text-accent/80 shrink-0" />
-                <div>
-                  <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Baths</p>
-                  <p className="font-semibold text-sm text-foreground">{property.washrooms}</p>
-                </div>
+            {/* Washrooms or Facing */}
+            {property.washrooms !== undefined ? (
+              <div className="bg-muted/40 p-2 rounded-md text-center border border-border/30">
+                <Bath className="h-3.5 w-3.5 mx-auto text-accent/80 mb-0.5" />
+                <p className="font-semibold text-xs text-foreground">{property.washrooms}</p>
+                <p className="text-[8px] text-muted-foreground uppercase">Baths</p>
               </div>
-            )}
-
-            {/* Facing */}
-            {property.facing && (
-              <div className="bg-muted/30 p-2.5 rounded-lg flex items-center gap-2 border border-border/30">
-                <Compass className="h-4 w-4 text-accent/80 shrink-0" />
-                <div>
-                  <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Facing</p>
-                  <p className="font-semibold text-sm text-foreground">{property.facing.replace(/_/g, " ")}</p>
-                </div>
+            ) : property.facing ? (
+              <div className="bg-muted/40 p-2 rounded-md text-center border border-border/30">
+                <Compass className="h-3.5 w-3.5 mx-auto text-accent/80 mb-0.5" />
+                <p className="font-semibold text-xs text-foreground">{property.facing.replace(/_/g, " ")}</p>
+                <p className="text-[8px] text-muted-foreground uppercase">Facing</p>
               </div>
-            )}
-
-            {/* Floor */}
-            {property.floor && (
-              <div className="bg-muted/30 p-2.5 rounded-lg flex items-center gap-2 border border-border/30">
-                <Layers className="h-4 w-4 text-accent/80 shrink-0" />
-                <div>
-                  <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Floor</p>
-                  <p className="font-semibold text-sm text-foreground">{property.floor}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Plot Type */}
-            {property.plotType && (
-              <div className="bg-muted/30 p-2.5 rounded-lg flex items-center gap-2 border border-border/30">
-                <Home className="h-4 w-4 text-accent/80 shrink-0" />
-                <div>
-                  <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Plot Type</p>
-                  <p className="font-semibold text-sm text-foreground">{property.plotType}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Road Width */}
-            {property.frontRoadWidth && (
-              <div className="bg-muted/30 p-2.5 rounded-lg flex items-center gap-2 border border-border/30">
-                <Route className="h-4 w-4 text-accent/80 shrink-0" />
-                <div>
-                  <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Road Width</p>
-                  <p className="font-semibold text-sm text-foreground">
-                    {property.frontRoadWidth} {property.roadWidthUnit?.toLowerCase() || "ft"}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Possession */}
-            {property.possessionDate && (
-              <div className="bg-muted/30 p-2.5 rounded-lg flex items-center gap-2 border border-border/30">
-                <Calendar className="h-4 w-4 text-accent/80 shrink-0" />
-                <div>
-                  <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Possession</p>
-                  <p className="font-semibold text-sm text-foreground">
-                    {new Date(property.possessionDate).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Rental Income */}
-            {property.rentalIncome && (property.rentalIncome.min > 0 || property.rentalIncome.max > 0) && (
-              <div className="bg-muted/30 p-2.5 rounded-lg flex items-center gap-2 border border-border/30">
-                <IndianRupee className="h-4 w-4 text-accent/80 shrink-0" />
-                <div>
-                  <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Rental</p>
-                  <p className="font-semibold text-sm text-foreground">
-                    {formatCurrency(property.rentalIncome.min)}-{formatCurrency(property.rentalIncome.max)}/mo
-                  </p>
-                </div>
+            ) : (
+              <div className="bg-muted/40 p-2 rounded-md text-center border border-border/30">
+                <Building2 className="h-3.5 w-3.5 mx-auto text-accent/80 mb-0.5" />
+                <p className="font-semibold text-xs text-foreground truncate px-0.5">
+                  {property.propertyCategory}
+                </p>
+                <p className="text-[8px] text-muted-foreground uppercase">Category</p>
               </div>
             )}
           </div>
 
-          {/* Description - more compact */}
-          {property.description && (
-            <div className="space-y-1.5">
-              <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
-                Description
-              </h4>
-              <p className="text-sm text-foreground leading-relaxed line-clamp-3">
-                {property.description}
-              </p>
-            </div>
-          )}
-
-          {/* Amenities - more compact */}
-          {property.amenities && property.amenities.length > 0 && (
-            <div className="space-y-1.5">
-              <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
-                Amenities
-              </h4>
-              <div className="flex flex-wrap gap-1.5">
-                {property.amenities.slice(0, 6).map((amenity, index) => (
-                  <Badge key={index} variant="secondary" className="font-normal text-[10px]">
-                    {amenity}
-                  </Badge>
-                ))}
-                {property.amenities.length > 6 && (
-                  <Badge variant="outline" className="font-normal text-[10px]">
-                    +{property.amenities.length - 6} more
-                  </Badge>
-                )}
+          {/* Additional Details - Compact List */}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+            {property.facing && property.washrooms !== undefined && (
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Compass className="h-3 w-3 text-accent/70" />
+                <span><span className="text-foreground font-medium">{property.facing.replace(/_/g, " ")}</span> Facing</span>
               </div>
+            )}
+            {property.floor && (
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Layers className="h-3 w-3 text-accent/70" />
+                <span>Floor: <span className="text-foreground font-medium">{property.floor}</span></span>
+              </div>
+            )}
+            {property.plotType && (
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Home className="h-3 w-3 text-accent/70" />
+                <span><span className="text-foreground font-medium">{property.plotType}</span> Plot</span>
+              </div>
+            )}
+            {property.frontRoadWidth && (
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Route className="h-3 w-3 text-accent/70" />
+                <span>Road: <span className="text-foreground font-medium">{property.frontRoadWidth} {property.roadWidthUnit?.toLowerCase() || "ft"}</span></span>
+              </div>
+            )}
+            {property.possessionDate && (
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Calendar className="h-3 w-3 text-accent/70" />
+                <span>Possession: <span className="text-foreground font-medium">
+                  {new Date(property.possessionDate).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
+                </span></span>
+              </div>
+            )}
+            {property.rentalIncome && (property.rentalIncome.min > 0 || property.rentalIncome.max > 0) && (
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <IndianRupee className="h-3 w-3 text-accent/70" />
+                <span>Rent: <span className="text-foreground font-medium">
+                  {formatCurrency(property.rentalIncome.min)}-{formatCurrency(property.rentalIncome.max)}
+                </span></span>
+              </div>
+            )}
+          </div>
+
+          {/* Amenities - Inline compact */}
+          {property.amenities && property.amenities.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {property.amenities.slice(0, 4).map((amenity, index) => (
+                <Badge key={index} variant="secondary" className="font-normal text-[9px] py-0">
+                  {amenity}
+                </Badge>
+              ))}
+              {property.amenities.length > 4 && (
+                <Badge variant="outline" className="font-normal text-[9px] py-0">
+                  +{property.amenities.length - 4} more
+                </Badge>
+              )}
             </div>
           )}
 
-          {/* Listed By */}
-          <div className="text-[10px] text-muted-foreground pt-1">
+          {/* Listed By - Compact */}
+          <div className="text-[9px] text-muted-foreground border-t border-border/30 pt-2">
             Listed by: <span className="font-medium text-foreground">{property.listedBy?.firstName} {property.listedBy?.lastName}</span>
             {property.listedByType && <span className="text-accent"> ({property.listedByType})</span>}
           </div>
