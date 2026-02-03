@@ -9,6 +9,7 @@ import { useTheme } from "next-themes";
 interface MapBoxProps {
   properties: Property[];
   onSelectProperty?: (propertyId: string) => void;
+  selectedPropertyId?: string | null;
   highlightedPropertyId?: string | null;
   highlightRequestId?: number;
   onHighlightComplete?: () => void;
@@ -70,6 +71,21 @@ const MARKER_ANIMATION_STYLES = `
   visibility: visible;
   pointer-events: auto;
 }
+
+.price-marker.marker-selected .marker-bubble {
+  background-color: #16a34a !important;
+  box-shadow: 0 6px 20px rgba(22, 163, 74, 0.5) !important;
+  border: 3px solid white !important;
+  transform: scale(1.15);
+}
+
+.price-marker.marker-selected .marker-arrow {
+  border-top-color: #16a34a !important;
+}
+
+.price-marker.marker-selected {
+  z-index: 100 !important;
+}
 `;
 
 // GeoJSON source and layer IDs
@@ -81,6 +97,7 @@ const UNCLUSTERED_POINT_LAYER_ID = "unclustered-point";
 export const MapBox = ({
   properties,
   onSelectProperty,
+  selectedPropertyId,
   highlightedPropertyId,
   highlightRequestId,
   onHighlightComplete,
@@ -433,7 +450,7 @@ export const MapBox = ({
         });
       });
 
-      // Handle unclustered point clicks at medium zoom
+      // Handle unclustered point clicks at medium zoom - just select the property, no zoom
       map.on("click", UNCLUSTERED_POINT_LAYER_ID, (e) => {
         const features = map.queryRenderedFeatures(e.point, {
           layers: [UNCLUSTERED_POINT_LAYER_ID],
@@ -442,14 +459,7 @@ export const MapBox = ({
 
         const props = features[0].properties;
         if (props?.id) {
-          const geometry = features[0].geometry;
-          if (geometry.type === "Point") {
-            map.easeTo({
-              center: geometry.coordinates as [number, number],
-              zoom: INDIVIDUAL_MIN_ZOOM + 1,
-              duration: 500,
-            });
-          }
+          onSelectProperty?.(props.id);
         }
       });
 
@@ -681,6 +691,24 @@ export const MapBox = ({
     onHighlightComplete,
     updateMarkerVisibility,
   ]);
+
+  // Handle selected property marker styling (green color)
+  useEffect(() => {
+    if (!mapLoaded) return;
+
+    // Remove selected class from all markers
+    markerElementsRef.current.forEach((el) => {
+      el.classList.remove("marker-selected");
+    });
+
+    // Add selected class to the selected marker
+    if (selectedPropertyId) {
+      const selectedEl = markerElementsRef.current.get(selectedPropertyId);
+      if (selectedEl) {
+        selectedEl.classList.add("marker-selected");
+      }
+    }
+  }, [selectedPropertyId, mapLoaded, markersVersion]);
 
   return (
     <div className="relative w-full h-full min-h-[500px] rounded-lg overflow-hidden border bg-muted group">

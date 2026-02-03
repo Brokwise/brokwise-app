@@ -170,6 +170,11 @@ export const MarketPlace = () => {
     }
   }, [isBelowLg]);
 
+  // Close property card when view mode changes
+  useEffect(() => {
+    setSelectedPropertyId(null);
+  }, [view]);
+
   const handleShowOnMap = useCallback(
     (propertyId: string) => {
       setView("split");
@@ -694,6 +699,7 @@ export const MarketPlace = () => {
               <MapBox
                 properties={filteredProperties}
                 onSelectProperty={setSelectedPropertyId}
+                selectedPropertyId={selectedPropertyId}
                 highlightedPropertyId={highlightedPropertyId}
                 highlightRequestId={highlightRequestId}
                 onHighlightComplete={handleHighlightComplete}
