@@ -48,7 +48,7 @@ export const MapBox = ({
       center: [lng, lat],
       zoom: 14,
       attributionControl: false, // Minimal look
-      interactive: variant === "default", // Disable interaction on minimal (sidebar) if desired, but user might want to pan
+      // Always enable interaction for drag/pan
     });
 
     // Add interactions back if variant is minimal but we want it
