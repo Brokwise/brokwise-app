@@ -92,7 +92,7 @@ export const EnquiryCard = ({
     >
       <CardHeader className="p-4 md:p-5 pb-3">
         <div className="flex justify-between items-start mb-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {isSameCity && (
               <Badge className="rounded-md px-2.5 py-0.5 font-medium text-xs bg-blue-600/90 text-white border-none">
                 <MapPin className="h-3 w-3 mr-1" />
