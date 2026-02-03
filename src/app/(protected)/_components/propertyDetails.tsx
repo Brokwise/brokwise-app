@@ -46,7 +46,11 @@ export const PropertyDetails = ({
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-6">
+        <Link
+          href={`/property/detail?id=${property._id}`}
+          target="_blank"
+          className="block p-4 space-y-6 cursor-pointer hover:bg-muted/30 transition-colors group"
+        >
           {/* Image */}
           <div className="aspect-video w-full relative rounded-lg overflow-hidden bg-muted border">
             <Image
@@ -60,7 +64,7 @@ export const PropertyDetails = ({
               }
               alt="Property"
               fill
-              className="object-cover"
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
             <div className="absolute top-2 left-2 flex gap-2">
               <Badge className="bg-background/90 text-foreground hover:bg-background/100 backdrop-blur shadow-sm">
@@ -185,7 +189,7 @@ export const PropertyDetails = ({
               </div>
             </div>
           )}
-        </div>
+        </Link>
       </ScrollArea>
 
       <div className="p-4 border-t border-border/50 bg-muted/5 mt-auto">

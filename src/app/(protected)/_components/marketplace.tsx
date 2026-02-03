@@ -684,7 +684,7 @@ export const MarketPlace = () => {
         `}
             >
               {selectedProperty && (
-                <div className="absolute left-4 top-14 z-20 w-[calc(100%-2rem)] sm:w-[340px] lg:w-[380px] max-h-[calc(100%-4.5rem)] bg-background rounded-xl shadow-xl overflow-hidden border">
+                <div className="absolute right-4 top-4 bottom-4 z-30 w-[calc(100%-2rem)] sm:w-[420px] lg:w-[450px] bg-background rounded-xl shadow-2xl overflow-hidden border-2 border-border/50">
                   <PropertyDetails
                     property={selectedProperty}
                     onClose={() => setSelectedPropertyId(null)}

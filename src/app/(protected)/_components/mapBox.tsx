@@ -320,62 +320,16 @@ export const MapBox = ({
 
         markerElementsRef.current.set(property._id, el);
 
-        const popup = new mapboxgl.Popup({
-          offset: 25,
-          closeButton: false,
-          className: "custom-popup",
-          maxWidth: "300px",
-        }).setHTML(
-          `<div style="width: 260px; overflow: hidden; border-radius: 12px; background: hsl(var(--card)); box-shadow: 0 10px 40px hsl(var(--foreground) / 0.15); border: 1px solid hsl(var(--border)); font-family: system-ui, -apple-system, sans-serif; cursor: pointer;">
-           <div style="height: 140px; width: 100%; overflow: hidden; background-color: hsl(var(--muted)); position: relative;">
-             <img src="${
-               property.featuredMedia
-             }" alt="Property" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='/images/placeholder.webp'" />
-             <div style="position: absolute; top: 10px; left: 10px; padding: 3px 8px; background: hsl(var(--background) / 0.9); backdrop-filter: blur(4px); border-radius: 6px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: hsl(var(--foreground)); border: 1px solid hsl(var(--border));">
-                ${property.propertyCategory}
-             </div>
-           </div>
-           <div style="padding: 14px 16px;">
-              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px;">
-                <span style="font-size: 20px; color: hsl(var(--card-foreground)); font-weight: 600; letter-spacing: -0.3px;">${priceFormatted}</span>
-                <span style="font-size: 11px; color: hsl(var(--muted-foreground)); font-weight: 500;">₹${
-                  property.rate
-                }/sqft</span>
-              </div>
-              <p style="font-size: 12px; color: hsl(var(--muted-foreground)); margin: 0 0 12px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${
-                property.address?.address ||
-                property.society ||
-                "Address available on request"
-              }</p>
-              
-              <button id="view-details-${
-                property._id
-              }" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; border-radius: 8px; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: none; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-                View Details
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-              </button>
-           </div>
-         </div>`
-        );
+        // Add direct click handler on the marker element
+        el.addEventListener("click", () => {
+          onSelectProperty?.(property._id);
+        });
 
         const marker = new mapboxgl.Marker(el)
           .setLngLat([lng, lat])
-          .setPopup(popup)
           .addTo(map);
 
         markersRef.current.push(marker);
-
-        popup.on("open", () => {
-          const button = document.getElementById(
-            `view-details-${property._id}`
-          );
-          if (button) {
-            button.onclick = (e) => {
-              e.preventDefault();
-              onSelectProperty?.(property._id);
-            };
-          }
-        });
       });
 
       setMarkersVersion((v) => v + 1);
