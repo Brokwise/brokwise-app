@@ -287,38 +287,40 @@ export const LandConverter = () => {
           {/* Input Section */}
           <div className="space-y-4">
 
-            {/* State Selection */}
-            <div>
-              <Label className="text-sm">State</Label>
-              <Select value={selectedState} onValueChange={(v) => { setSelectedState(v); setCurrentResult(null); }}>
-                <SelectTrigger className="mt-1.5 w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(STATE_DATA).map((stateData) => (
-                    <SelectItem key={stateData.name} value={stateData.name}>
-                      {stateData.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Input and State Row */}
+            <div className="flex gap-2 items-end">
+              <div className="flex-[0.8] basis-[80%] min-w-0">
+                <Label htmlFor="land-value" className="text-sm">
+                  Enter Value
+                </Label>
+                <Input
+                  id="land-value"
+                  type="number"
+                  placeholder="Enter land area"
+                  value={inputValue}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyPress}
+                  className="mt-1.5"
+                  min="0"
+                  step="any"
+                />
+              </div>
 
-            <div>
-              <Label htmlFor="land-value" className="text-sm">
-                Enter Value
-              </Label>
-              <Input
-                id="land-value"
-                type="number"
-                placeholder="Enter land area"
-                value={inputValue}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyPress}
-                className="mt-1.5"
-                min="0"
-                step="any"
-              />
+              <div className="flex-[0.2] basis-[20%] min-w-[80px]">
+                <Label className="text-sm">State</Label>
+                <Select value={selectedState} onValueChange={(v) => { setSelectedState(v); setCurrentResult(null); }}>
+                  <SelectTrigger className="mt-1.5 w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(STATE_DATA).map((stateData) => (
+                      <SelectItem key={stateData.name} value={stateData.name}>
+                        {stateData.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="grid grid-cols-[1fr,auto,1fr] gap-2 items-end">
@@ -379,12 +381,12 @@ export const LandConverter = () => {
             {currentResult !== null && (
               <Card className="bg-primary/5 border-primary/20">
                 <CardContent className="p-4">
-                  <div className="text-center">
+                  <div className="text-center w-full overflow-hidden">
                     <div className="text-sm text-muted-foreground">Result</div>
-                    <div className="text-2xl font-bold text-primary mt-1">
+                    <div className="text-2xl font-bold text-primary mt-1 break-words leading-tight">
                       {formatNumber(currentResult)}
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-muted-foreground mt-1">
                       {UNIT_LABELS[toUnit]}
                     </div>
                     <div className="text-xs text-muted-foreground mt-2">
