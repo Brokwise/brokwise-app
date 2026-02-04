@@ -43,8 +43,8 @@ export const STATE_DATA: Record<string, { name: string; label: string; units: Re
         name: "GJ",
         label: "Gujarat",
         units: {
-            "bigha": 2391.98, // Approx 17565 sq ft
-            "vigha": 2391.98,
+            "bigha": 1618.74, // Gujarat Bigha = 17,427 sq ft ≈ 1618.74 sq m
+            "vigha": 1618.74,
             "guntha": 101.17,
         }
     },
