@@ -98,11 +98,16 @@ const formatDate = (timestamp: number): string => {
 const ResultItem = ({
   result,
   onRemove,
+  onSelect,
 }: {
   result: ConversionResult;
   onRemove: () => void;
+  onSelect: (result: ConversionResult) => void;
 }) => (
-  <Card className="mb-2 transition-all duration-200 hover:shadow-sm">
+  <Card
+    className="mb-2 transition-all duration-200 hover:shadow-sm cursor-pointer active:scale-[0.98]"
+    onClick={() => onSelect(result)}
+  >
     <CardContent className="p-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex-1 min-w-0">
@@ -122,7 +127,10 @@ const ResultItem = ({
         <Button
           variant="ghost"
           size="icon"
-          onClick={onRemove}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
           className="h-7 w-7 flex-shrink-0"
         >
           <X className="w-3.5 h-3.5" />
@@ -171,6 +179,13 @@ export const LandConverter = () => {
     if (e.key === "Enter") {
       handleConvert();
     }
+  };
+
+  const handleSelectResult = (result: ConversionResult) => {
+    setInputValue(result.inputValue.toString());
+    setFromUnit(result.inputUnit);
+    setToUnit(result.outputUnit);
+    setCurrentResult(result.outputValue);
   };
 
   return (
@@ -324,6 +339,7 @@ export const LandConverter = () => {
                       key={result.id}
                       result={result}
                       onRemove={() => removeResult(result.id)}
+                      onSelect={handleSelectResult}
                     />
                   ))}
                 </div>
