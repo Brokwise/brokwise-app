@@ -41,9 +41,10 @@ const STANDARD_UNITS: Record<string, number> = {
 };
 
 // State-specific overrides and additions
-const STATE_DATA: Record<string, { name: string; units: Record<string, number> }> = {
-  "Rajasthan": {
-    name: "Rajasthan",
+const STATE_DATA: Record<string, { name: string; label: string; units: Record<string, number> }> = {
+  "RJ": {
+    name: "RJ",
+    label: "Rajasthan",
     units: {
       "bigha": 2529.29, // Pucca Bigha (Standard in many parts)
       "bigha_kachha": 1618.74, // Kachha Bigha (varies, approx 1000-1700 sq m)
@@ -51,23 +52,26 @@ const STATE_DATA: Record<string, { name: string; units: Record<string, number> }
       "biswansi": 6.323, // 1/20 of Biswa
     }
   },
-  "Maharashtra": {
-    name: "Maharashtra",
+  "MH": {
+    name: "MH",
+    label: "Maharashtra",
     units: {
       "guntha": 101.17,
       "bigha": 2529.29,
     }
   },
-  "Uttar Pradesh": {
-    name: "Uttar Pradesh",
+  "UP": {
+    name: "UP",
+    label: "Uttar Pradesh",
     units: {
       "bigha": 2529.29,
       "biswa": 126.46,
       "biswansi": 6.323,
     }
   },
-  "Gujarat": {
-    name: "Gujarat",
+  "GJ": {
+    name: "GJ",
+    label: "Gujarat",
     units: {
       "bigha": 2391.98, // Approx 17565 sq ft
       "vigha": 2391.98,
@@ -75,8 +79,9 @@ const STATE_DATA: Record<string, { name: string; units: Record<string, number> }
     }
   },
   // Add fallback/standard layout
-  "Standard": {
-    name: "Standard (Generic)",
+  "STD": {
+    name: "STD",
+    label: "Standard (Generic)",
     units: {}
   }
 };
@@ -182,7 +187,7 @@ const ResultItem = ({
           <div className="flex items-center gap-2 mt-1">
             <div className="text-xs text-muted-foreground flex items-center gap-1 bg-secondary/50 px-1.5 py-0.5 rounded">
               <MapPin className="w-3 h-3" />
-              {result.state}
+              {STATE_DATA[result.state]?.label || result.state}
             </div>
             <div className="text-xs text-muted-foreground">
               {formatDate(result.timestamp)}
@@ -212,7 +217,7 @@ export const LandConverter = () => {
   const [inputValue, setInputValue] = useState<string>("");
   const [fromUnit, setFromUnit] = useState<string>("sq_ft");
   const [toUnit, setToUnit] = useState<string>("sq_m");
-  const [selectedState, setSelectedState] = useState<string>("Rajasthan");
+  const [selectedState, setSelectedState] = useState<string>("RJ");
   const [currentResult, setCurrentResult] = useState<number | null>(null);
 
   // Combine standard units with state-specific units for the dropdown
@@ -242,7 +247,16 @@ export const LandConverter = () => {
     setInputValue(result.inputValue.toString());
     setFromUnit(result.inputUnit);
     setToUnit(result.outputUnit);
-    setSelectedState(result.state || "Rajasthan"); // Fallback for old records
+
+    // Handle migration from old full names to new short codes
+    let stateCode = result.state;
+    if (result.state === "Rajasthan") stateCode = "RJ";
+    else if (result.state === "Maharashtra") stateCode = "MH";
+    else if (result.state === "Uttar Pradesh") stateCode = "UP";
+    else if (result.state === "Gujarat") stateCode = "GJ";
+    else if (!STATE_DATA[result.state]) stateCode = "RJ"; // Default fallback
+
+    setSelectedState(stateCode);
     setCurrentResult(result.outputValue);
   };
 
@@ -283,13 +297,13 @@ export const LandConverter = () => {
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto min-h-0 space-y-6 pr-1">
+        <div className="flex-1 overflow-y-auto min-h-0 space-y-6 px-1 py-1">
           {/* Input Section */}
           <div className="space-y-4">
 
             {/* Input and State Row */}
             <div className="flex gap-2 items-end">
-              <div className="flex-[0.8] basis-[80%] min-w-0">
+              <div className="flex-[0.8] basis-[80%] min-w-0 p-0.5">
                 <Label htmlFor="land-value" className="text-sm">
                   Enter Value
                 </Label>
@@ -306,7 +320,7 @@ export const LandConverter = () => {
                 />
               </div>
 
-              <div className="flex-[0.2] basis-[20%] min-w-[80px]">
+              <div className="flex-[0.2] basis-[20%] min-w-[70px] p-0.5">
                 <Label className="text-sm">State</Label>
                 <Select value={selectedState} onValueChange={(v) => { setSelectedState(v); setCurrentResult(null); }}>
                   <SelectTrigger className="mt-1.5 w-full">
@@ -315,7 +329,7 @@ export const LandConverter = () => {
                   <SelectContent>
                     {Object.values(STATE_DATA).map((stateData) => (
                       <SelectItem key={stateData.name} value={stateData.name}>
-                        {stateData.name}
+                        {stateData.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
