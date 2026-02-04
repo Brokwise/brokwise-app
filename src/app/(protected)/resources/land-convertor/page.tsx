@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { PageShell, PageHeader } from "@/components/ui/layout";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   STATE_DATA,
   UNIT_LABELS,
