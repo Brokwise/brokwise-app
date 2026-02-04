@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -9,158 +9,317 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { ArrowRightLeft } from "lucide-react";
+import { ArrowRightLeft, History, MapPin, Ruler, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageShell, PageHeader } from "@/components/ui/layout";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  STATE_DATA,
+  UNIT_LABELS,
+  STANDARD_UNITS,
+  convertLandUnit,
+  formatNumber,
+  formatDate,
+  getConversionFactor,
+} from "@/lib/landConverter";
+import {
+  useLandConverterStore,
+  ConversionResult,
+} from "@/stores/landConverterStore";
 
-const UNIT_FACTORS: Record<string, number> = {
-  "Square Meter": 1,
-  "Square Feet": 0.092903,
-  "Square Yard": 0.836127,
-  Acre: 4046.86,
-  Hectare: 10000,
-  "Square Kilometer": 1000000,
-  "Square Mile": 2589988.11,
-  "Square Inch": 0.00064516,
-  Guntha: 101.17,
-  Bigha: 2529.28, // Standard Rajasthan Pucca Bigha approx
-  Biswa: 126.46, // 1/20 of Bigha
-  Katha: 66.89,
-  Chatak: 4.18,
-  Killa: 4046.86,
-  Decimal: 40.47,
-  Cent: 40.47,
-  "Square Karam": 2.81,
-  Lessa: 6.69,
-  Pura: 10117.14, // Approx 4 Bighas in some contexts, needs verification but using placeholder based on common ratios
-};
-
-const UNITS = Object.keys(UNIT_FACTORS).sort();
+const ResultItem = ({
+  result,
+  onRemove,
+  onSelect,
+}: {
+  result: ConversionResult;
+  onRemove: () => void;
+  onSelect: (result: ConversionResult) => void;
+}) => (
+  <Card
+    className="mb-2 transition-all duration-200 hover:shadow-sm cursor-pointer active:scale-[0.98]"
+    onClick={() => onSelect(result)}
+  >
+    <CardContent className="p-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="font-medium truncate">
+              {formatNumber(result.inputValue)} {UNIT_LABELS[result.inputUnit]}
+            </span>
+            <ArrowRightLeft className="w-3 h-3 flex-shrink-0 text-muted-foreground" />
+            <span className="font-semibold text-primary truncate">
+              {formatNumber(result.outputValue)} {UNIT_LABELS[result.outputUnit]}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 mt-1">
+            <div className="text-xs text-muted-foreground flex items-center gap-1 bg-secondary/50 px-1.5 py-0.5 rounded">
+              <MapPin className="w-3 h-3" />
+              {STATE_DATA[result.state]?.label || result.state}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {formatDate(result.timestamp)}
+            </div>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="h-7 w-7 flex-shrink-0"
+        >
+          <X className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+    </CardContent>
+  </Card>
+);
 
 export default function LandConvertorPage() {
-  const [region, setRegion] = useState("Rajasthan");
-  const [fromUnit, setFromUnit] = useState("Square Meter");
-  const [toUnit, setToUnit] = useState("Square Feet");
-  const [inputValue, setInputValue] = useState<string>("1");
-  const [result, setResult] = useState<string>("");
-  const convert = useCallback(() => {
-    const val = parseFloat(inputValue);
-    if (isNaN(val)) {
-      setResult("Invalid Input");
-      return;
-    }
+  const { results, addResult, clearResults, removeResult } = useLandConverterStore();
 
-    const fromFactor = UNIT_FACTORS[fromUnit];
-    const toFactor = UNIT_FACTORS[toUnit];
+  const [selectedState, setSelectedState] = useState<string>("RJ");
+  const [fromUnit, setFromUnit] = useState<string>("sq_ft");
+  const [toUnit, setToUnit] = useState<string>("sq_m");
+  const [inputValue, setInputValue] = useState<string>("");
+  const [currentResult, setCurrentResult] = useState<number | null>(null);
 
-    if (!fromFactor || !toFactor) {
-      setResult("Unit not supported");
-      return;
-    }
+  // Combine standard units with state-specific units for the dropdown
+  const getAvailableUnits = (state: string) => {
+    const stateUnits = STATE_DATA[state]?.units || {};
+    const allUnitKeys = new Set([...Object.keys(STANDARD_UNITS), ...Object.keys(stateUnits)]);
+    return Array.from(allUnitKeys).sort();
+  };
 
-    // Convert to Square Meter first
-    const valInSqMeter = val * fromFactor;
-    // Convert from Square Meter to Target Unit
-    const finalVal = valInSqMeter / toFactor;
+  const handleConvert = () => {
+    const value = parseFloat(inputValue);
+    if (isNaN(value) || value <= 0) return;
 
-    // Format result to avoid long decimals but keep precision
-    const formatted = parseFloat(finalVal.toFixed(6));
-    setResult(`${val} ${fromUnit} = ${formatted} ${toUnit}`);
-  }, [inputValue, fromUnit, toUnit]);
+    const result = convertLandUnit(value, fromUnit, toUnit, selectedState);
+    setCurrentResult(result);
 
-  useEffect(() => {
-    convert();
-  }, [inputValue, fromUnit, toUnit, convert]);
+    addResult({
+      inputValue: value,
+      inputUnit: fromUnit,
+      outputUnit: toUnit,
+      outputValue: result,
+      state: selectedState,
+    });
+  };
+
+  const handleSelectResult = (result: ConversionResult) => {
+    setInputValue(result.inputValue.toString());
+    setFromUnit(result.inputUnit);
+    setToUnit(result.outputUnit);
+
+    // Handle migration from old full names to new short codes
+    let stateCode = result.state;
+    if (result.state === "Rajasthan") stateCode = "RJ";
+    else if (result.state === "Maharashtra") stateCode = "MH";
+    else if (result.state === "Uttar Pradesh") stateCode = "UP";
+    else if (result.state === "Gujarat") stateCode = "GJ";
+    else if (!STATE_DATA[result.state]) stateCode = "RJ"; // Default fallback
+
+    setSelectedState(stateCode);
+    setCurrentResult(result.outputValue);
+  };
 
   const handleSwap = () => {
     setFromUnit(toUnit);
     setToUnit(fromUnit);
+    setCurrentResult(null);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+    setCurrentResult(null);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleConvert();
+    }
   };
 
   return (
-    <PageShell className="max-w-lg">
+    <PageShell className="max-w-3xl mx-auto">
       <PageHeader
         title="Land Area Converter"
         description="Convert between Indian and global land area units instantly."
       />
 
-      <div className="space-y-6">
-        {/* Region Selection */}
-        <div className="space-y-2">
-          <Select value={region} onValueChange={setRegion}>
-            <SelectTrigger className="w-full h-12 bg-background border-input rounded-xl">
-              <SelectValue placeholder="Select Region" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Rajasthan">Rajasthan</SelectItem>
-              <SelectItem value="General">General (Standard)</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="space-y-8 mt-6">
+        {/* Main Converter Card */}
+        <div className="border rounded-2xl p-6 md:p-8 bg-card shadow-sm space-y-8">
+          {/* Input and State Row */}
+          <div className="flex flex-col md:flex-row gap-4 md:items-end">
+            <div className="flex-[0.75] min-w-0">
+              <Label htmlFor="land-value" className="text-base font-medium text-muted-foreground ml-1 mb-2 block">
+                Value
+              </Label>
+              <Input
+                id="land-value"
+                type="number"
+                placeholder="Enter land area"
+                value={inputValue}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyPress}
+                className="h-14 bg-background border-input rounded-xl text-lg px-4"
+                min="0"
+                step="any"
+              />
+            </div>
+
+            <div className="flex-[0.25] min-w-[140px]">
+              <Label className="text-base font-medium text-muted-foreground ml-1 mb-2 block">State</Label>
+              <Select value={selectedState} onValueChange={(v) => { setSelectedState(v); setCurrentResult(null); }}>
+                <SelectTrigger className="h-14 bg-background border-input rounded-xl w-full text-lg px-4">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(STATE_DATA).map((stateData) => (
+                    <SelectItem key={stateData.name} value={stateData.name} className="text-base">
+                      {stateData.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-[1fr,auto,1fr] gap-4 items-end">
+            <div className="space-y-2">
+              <label className="text-base font-medium text-muted-foreground ml-1">
+                From
+              </label>
+              <Select value={fromUnit} onValueChange={(v) => { setFromUnit(v); setCurrentResult(null); }}>
+                <SelectTrigger className="w-full h-14 bg-background border-input rounded-xl text-lg px-4">
+                  <SelectValue placeholder="Unit" className="truncate" />
+                </SelectTrigger>
+                <SelectContent className="h-80">
+                  {getAvailableUnits(selectedState).map((key) => (
+                    <SelectItem key={key} value={key} className="text-base">
+                      {UNIT_LABELS[key] || key}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="text-xs text-muted-foreground ml-1 truncate">
+                1 {UNIT_LABELS[fromUnit]} = {formatNumber(getConversionFactor(fromUnit, selectedState))} sq m
+              </div>
+            </div>
+
+            <div className="pb-8">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full h-12 w-12 bg-primary/10 border-primary/20 text-primary hover:bg-primary/20 hover:scale-105 transition-all"
+                onClick={handleSwap}
+              >
+                <ArrowRightLeft className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-base font-medium text-muted-foreground ml-1">
+                To
+              </label>
+              <Select value={toUnit} onValueChange={(v) => { setToUnit(v); setCurrentResult(null); }}>
+                <SelectTrigger className="w-full h-14 bg-background border-input rounded-xl text-lg px-4">
+                  <SelectValue placeholder="Unit" className="truncate" />
+                </SelectTrigger>
+                <SelectContent className="h-80">
+                  {getAvailableUnits(selectedState).map((key) => (
+                    <SelectItem key={key} value={key} className="text-base">
+                      {UNIT_LABELS[key] || key}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="text-xs text-muted-foreground ml-1 truncate">
+                1 {UNIT_LABELS[toUnit]} = {formatNumber(getConversionFactor(toUnit, selectedState))} sq m
+              </div>
+            </div>
+          </div>
+
+          <Button
+            onClick={handleConvert}
+            className="w-full h-14 rounded-xl text-xl font-semibold shadow-md hover:shadow-lg transition-all"
+            disabled={!inputValue}
+          >
+            Convert
+          </Button>
+
+          {/* Result */}
+          {currentResult !== null && (
+            <div className="mt-8 p-8 rounded-xl bg-primary/5 border border-primary/10 text-center overflow-hidden animate-in fade-in slide-in-from-bottom-4">
+              <p className="text-base font-medium text-muted-foreground mb-3">Result</p>
+              <p className="text-4xl md:text-5xl font-bold text-primary break-words leading-tight tracking-tight">{formatNumber(currentResult)}</p>
+              <p className="text-xl font-medium text-muted-foreground mt-3">{UNIT_LABELS[toUnit]}</p>
+              <div className="text-sm text-muted-foreground mt-4 bg-background/80 inline-block px-4 py-1.5 rounded-full border shadow-sm">
+                Based on {STATE_DATA[selectedState]?.label || selectedState} standards
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-[1fr,auto,1fr] gap-2 items-end">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground ml-1">
-              From
-            </label>
-            <Select value={fromUnit} onValueChange={setFromUnit}>
-              <SelectTrigger className="w-full h-12 bg-background border-input rounded-xl">
-                <SelectValue placeholder="Unit" />
-              </SelectTrigger>
-              <SelectContent className="h-60">
-                {UNITS.map((u) => (
-                  <SelectItem key={u} value={u}>
-                    {u}
-                  </SelectItem>
+        {/* History Section */}
+        <div className="mt-8 pt-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-secondary rounded-full">
+                <History className="w-5 h-5 text-foreground" />
+              </div>
+              <span className="text-xl font-semibold">Recent Conversions</span>
+              {results.length > 0 && (
+                <span className="text-sm font-medium text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-full">
+                  {results.length}
+                </span>
+              )}
+            </div>
+            {results.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearResults}
+                className="h-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Clear All
+              </Button>
+            )}
+          </div>
+
+          <div className="min-h-[100px]">
+            {results.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center bg-card rounded-2xl border border-dashed hover:border-solid transition-colors">
+                <div className="w-16 h-16 bg-secondary/50 rounded-full flex items-center justify-center mb-4">
+                  <Ruler className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <p className="text-lg font-medium text-foreground">
+                  No conversions yet
+                </p>
+                <p className="text-muted-foreground mt-2 max-w-[250px]">
+                  Your conversion history will appear here automatically
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {results.map((result) => (
+                  <ResultItem
+                    key={result.id}
+                    result={result}
+                    onRemove={() => removeResult(result.id)}
+                    onSelect={handleSelectResult}
+                  />
                 ))}
-              </SelectContent>
-            </Select>
+              </div>
+            )}
           </div>
-
-          <div className="pb-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full h-10 w-10 bg-primary/20 border-primary/20 text-primary-foreground hover:bg-primary/30"
-              onClick={handleSwap}
-            >
-              <ArrowRightLeft className="h-4 w-4 text-primary" />
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground ml-1">
-              To
-            </label>
-            <Select value={toUnit} onValueChange={setToUnit}>
-              <SelectTrigger className="w-full h-12 bg-background border-input rounded-xl">
-                <SelectValue placeholder="Unit" />
-              </SelectTrigger>
-              <SelectContent className="h-60">
-                {UNITS.map((u) => (
-                  <SelectItem key={u} value={u}>
-                    {u}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground ml-1">
-            Value
-          </label>
-          <Input
-            type="number"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            className="h-12 bg-background border-input rounded-xl"
-          />
-        </div>
-
-        <div className="mt-8 p-4 rounded-xl bg-primary/20 border border-primary/20 text-center">
-          <p className="text-lg font-semibold text-primary">{result}</p>
         </div>
       </div>
     </PageShell>

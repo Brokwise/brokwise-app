@@ -14,6 +14,7 @@ import {
 import { Notifications } from "./_components/notification/notifications";
 import { UserAvatar } from "./_components/userAvatar";
 import { CreditsBadge } from "./_components/creditsBadge";
+import { LandConverter } from "./_components/landConverter";
 import { Separator } from "@/components/ui/separator";
 import { ChatbotWidget } from "@/components/chatbot";
 import ScrollToTop from "@/components/ui/scroll-to-top";
@@ -75,6 +76,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
                     <div className="flex items-center gap-2">
                       <CreditsBadge />
+                      <LandConverter />
                       <Notifications />
                       <UserAvatar />
                     </div>
