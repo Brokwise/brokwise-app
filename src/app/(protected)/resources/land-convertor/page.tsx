@@ -159,7 +159,7 @@ export default function LandConvertorPage() {
         {/* Main Converter Card */}
         <div className="border rounded-2xl p-6 md:p-8 bg-card shadow-sm space-y-8">
           {/* Input and State Row */}
-          <div className="flex flex-col md:flex-row gap-4 md:items-end">
+          <div className="flex flex-col-reverse md:flex-row gap-4 md:items-end">
             <div className="w-full md:flex-[0.75] min-w-0">
               <Label htmlFor="land-value" className="text-base font-medium text-muted-foreground ml-1 mb-2 block">
                 Value

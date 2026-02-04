@@ -181,7 +181,7 @@ export const LandConverter = () => {
           <div className="space-y-4">
 
             {/* Input and State Row */}
-            <div className="flex flex-col sm:flex-row gap-4 items-end">
+            <div className="flex flex-col-reverse sm:flex-row gap-4 items-end">
               <div className="w-full sm:flex-[0.75] min-w-0 p-0.5">
                 <Label htmlFor="land-value" className="text-sm">
                   Enter Value
