@@ -49,23 +49,26 @@ const ResultItem = ({
     onClick={() => onSelect(result)}
   >
     <CardContent className="p-3">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium truncate">
+          <div className="flex flex-col gap-0.5 text-sm leading-snug">
+            <span className="font-medium break-words text-wrap">
               {formatNumber(result.inputValue)} {UNIT_LABELS[result.inputUnit]}
             </span>
-            <ArrowRightLeft className="w-3 h-3 flex-shrink-0 text-muted-foreground" />
-            <span className="font-semibold text-primary truncate">
+            <div className="flex items-center gap-1.5 text-muted-foreground text-xs py-0.5">
+              <ArrowRightLeft className="w-3 h-3 flex-shrink-0" />
+              <span>to</span>
+            </div>
+            <span className="font-semibold text-primary break-words text-wrap">
               {formatNumber(result.outputValue)} {UNIT_LABELS[result.outputUnit]}
             </span>
           </div>
-          <div className="flex items-center gap-2 mt-1">
-            <div className="text-xs text-muted-foreground flex items-center gap-1 bg-secondary/50 px-1.5 py-0.5 rounded">
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            <div className="text-xs text-muted-foreground flex items-center gap-1 bg-secondary/50 px-1.5 py-0.5 rounded whitespace-nowrap">
               <MapPin className="w-3 h-3" />
               {STATE_DATA[result.state]?.label || result.state}
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-muted-foreground whitespace-nowrap">
               {formatDate(result.timestamp)}
             </div>
           </div>
@@ -77,7 +80,7 @@ const ResultItem = ({
             e.stopPropagation();
             onRemove();
           }}
-          className="h-7 w-7 flex-shrink-0"
+          className="h-7 w-7 flex-shrink-0 -mr-1 -mt-1"
         >
           <X className="w-3.5 h-3.5" />
         </Button>
