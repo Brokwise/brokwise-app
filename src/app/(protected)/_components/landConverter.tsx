@@ -24,22 +24,61 @@ import {
   useLandConverterStore,
   ConversionResult,
 } from "@/stores/landConverterStore";
-import { Ruler, ArrowRightLeft, Trash2, X, History } from "lucide-react";
+import { Ruler, ArrowRightLeft, Trash2, X, History, MapPin } from "lucide-react";
 
-// Conversion factors to square meters (base unit)
-const UNIT_TO_SQ_METERS: Record<string, number> = {
+// Standard conversion factors to square meters (base unit)
+const STANDARD_UNITS: Record<string, number> = {
   "sq_ft": 0.092903,
   "sq_m": 1,
   "sq_yd": 0.836127,
   "acre": 4046.86,
   "hectare": 10000,
-  "bigha": 2529.29, // Standard bigha (varies by region)
-  "biswa": 125.419, // 1/20 of bigha
   "guntha": 101.171,
   "cent": 40.4686,
   "ground": 222.967,
   "kanal": 505.857,
   "marla": 25.2929,
+};
+
+// State-specific overrides and additions
+const STATE_DATA: Record<string, { name: string; units: Record<string, number> }> = {
+  "Rajasthan": {
+    name: "Rajasthan",
+    units: {
+      "bigha": 2529.29, // Pucca Bigha (Standard in many parts)
+      "bigha_kachha": 1618.74, // Kachha Bigha (varies, approx 1000-1700 sq m)
+      "biswa": 126.46, // 1/20 of Pucca Bigha
+      "biswansi": 6.323, // 1/20 of Biswa
+    }
+  },
+  "Maharashtra": {
+    name: "Maharashtra",
+    units: {
+      "guntha": 101.17,
+      "bigha": 2529.29,
+    }
+  },
+  "Uttar Pradesh": {
+    name: "Uttar Pradesh",
+    units: {
+      "bigha": 2529.29,
+      "biswa": 126.46,
+      "biswansi": 6.323,
+    }
+  },
+  "Gujarat": {
+    name: "Gujarat",
+    units: {
+      "bigha": 2391.98, // Approx 17565 sq ft
+      "vigha": 2391.98,
+      "guntha": 101.17,
+    }
+  },
+  // Add fallback/standard layout
+  "Standard": {
+    name: "Standard (Generic)",
+    units: {}
+  }
 };
 
 const UNIT_LABELS: Record<string, string> = {
@@ -48,8 +87,11 @@ const UNIT_LABELS: Record<string, string> = {
   "sq_yd": "Square Yards",
   "acre": "Acres",
   "hectare": "Hectares",
-  "bigha": "Bigha",
+  "bigha": "Bigha (Pucca)",
+  "bigha_kachha": "Bigha (Kachha)",
+  "vigha": "Vigha",
   "biswa": "Biswa",
+  "biswansi": "Biswansi",
   "guntha": "Guntha",
   "cent": "Cent",
   "ground": "Ground",
@@ -57,16 +99,33 @@ const UNIT_LABELS: Record<string, string> = {
   "marla": "Marla",
 };
 
+const getConversionFactor = (unit: string, state: string): number => {
+  // Check state specific first
+  if (STATE_DATA[state]?.units[unit]) {
+    return STATE_DATA[state].units[unit];
+  }
+  // Fallback to standard
+  if (STANDARD_UNITS[unit]) {
+    return STANDARD_UNITS[unit];
+  }
+  // Default to 1 if unknown (shouldn't happen if configured correctly)
+  return 1;
+};
+
 const convertLandUnit = (
   value: number,
   fromUnit: string,
-  toUnit: string
+  toUnit: string,
+  state: string
 ): number => {
   if (fromUnit === toUnit) return value;
 
+  const fromFactor = getConversionFactor(fromUnit, state);
+  const toFactor = getConversionFactor(toUnit, state);
+
   // Convert to square meters first, then to target unit
-  const sqMeters = value * UNIT_TO_SQ_METERS[fromUnit];
-  const result = sqMeters / UNIT_TO_SQ_METERS[toUnit];
+  const sqMeters = value * fromFactor;
+  const result = sqMeters / toFactor;
 
   return result;
 };
@@ -120,8 +179,14 @@ const ResultItem = ({
               {formatNumber(result.outputValue)} {UNIT_LABELS[result.outputUnit]}
             </span>
           </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {formatDate(result.timestamp)}
+          <div className="flex items-center gap-2 mt-1">
+            <div className="text-xs text-muted-foreground flex items-center gap-1 bg-secondary/50 px-1.5 py-0.5 rounded">
+              <MapPin className="w-3 h-3" />
+              {result.state}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {formatDate(result.timestamp)}
+            </div>
           </div>
         </div>
         <Button
@@ -147,13 +212,21 @@ export const LandConverter = () => {
   const [inputValue, setInputValue] = useState<string>("");
   const [fromUnit, setFromUnit] = useState<string>("sq_ft");
   const [toUnit, setToUnit] = useState<string>("sq_m");
+  const [selectedState, setSelectedState] = useState<string>("Rajasthan");
   const [currentResult, setCurrentResult] = useState<number | null>(null);
+
+  // Combine standard units with state-specific units for the dropdown
+  const getAvailableUnits = (state: string) => {
+    const stateUnits = STATE_DATA[state]?.units || {};
+    const allUnitKeys = new Set([...Object.keys(STANDARD_UNITS), ...Object.keys(stateUnits)]);
+    return Array.from(allUnitKeys).sort();
+  };
 
   const handleConvert = () => {
     const value = parseFloat(inputValue);
     if (isNaN(value) || value <= 0) return;
 
-    const result = convertLandUnit(value, fromUnit, toUnit);
+    const result = convertLandUnit(value, fromUnit, toUnit, selectedState);
     setCurrentResult(result);
 
     addResult({
@@ -161,7 +234,16 @@ export const LandConverter = () => {
       inputUnit: fromUnit,
       outputUnit: toUnit,
       outputValue: result,
+      state: selectedState,
     });
+  };
+
+  const handleSelectResult = (result: ConversionResult) => {
+    setInputValue(result.inputValue.toString());
+    setFromUnit(result.inputUnit);
+    setToUnit(result.outputUnit);
+    setSelectedState(result.state || "Rajasthan"); // Fallback for old records
+    setCurrentResult(result.outputValue);
   };
 
   const handleSwapUnits = () => {
@@ -179,13 +261,6 @@ export const LandConverter = () => {
     if (e.key === "Enter") {
       handleConvert();
     }
-  };
-
-  const handleSelectResult = (result: ConversionResult) => {
-    setInputValue(result.inputValue.toString());
-    setFromUnit(result.inputUnit);
-    setToUnit(result.outputUnit);
-    setCurrentResult(result.outputValue);
   };
 
   return (
@@ -210,7 +285,25 @@ export const LandConverter = () => {
 
         <div className="flex-1 overflow-y-auto min-h-0 space-y-6 pr-1">
           {/* Input Section */}
-          <div className="space-y-3">
+          <div className="space-y-4">
+
+            {/* State Selection */}
+            <div>
+              <Label className="text-sm">State</Label>
+              <Select value={selectedState} onValueChange={(v) => { setSelectedState(v); setCurrentResult(null); }}>
+                <SelectTrigger className="mt-1.5 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(STATE_DATA).map((stateData) => (
+                    <SelectItem key={stateData.name} value={stateData.name}>
+                      {stateData.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div>
               <Label htmlFor="land-value" className="text-sm">
                 Enter Value
@@ -233,23 +326,26 @@ export const LandConverter = () => {
                 <Label className="text-sm">From</Label>
                 <Select value={fromUnit} onValueChange={(v) => { setFromUnit(v); setCurrentResult(null); }}>
                   <SelectTrigger className="mt-1.5">
-                    <SelectValue />
+                    <SelectValue className="truncate" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(UNIT_LABELS).map(([key, label]) => (
+                    {getAvailableUnits(selectedState).map((key) => (
                       <SelectItem key={key} value={key}>
-                        {label}
+                        {UNIT_LABELS[key] || key}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                <div className="text-[10px] text-muted-foreground mt-1 truncate">
+                  1 {UNIT_LABELS[fromUnit]} = {formatNumber(getConversionFactor(fromUnit, selectedState))} sq m
+                </div>
               </div>
 
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleSwapUnits}
-                className="mb-0.5"
+                className="mb-6"
                 title="Swap units"
               >
                 <ArrowRightLeft className="w-4 h-4" />
@@ -259,16 +355,19 @@ export const LandConverter = () => {
                 <Label className="text-sm">To</Label>
                 <Select value={toUnit} onValueChange={(v) => { setToUnit(v); setCurrentResult(null); }}>
                   <SelectTrigger className="mt-1.5">
-                    <SelectValue />
+                    <SelectValue className="truncate" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(UNIT_LABELS).map(([key, label]) => (
+                    {getAvailableUnits(selectedState).map((key) => (
                       <SelectItem key={key} value={key}>
-                        {label}
+                        {UNIT_LABELS[key] || key}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                <div className="text-[10px] text-muted-foreground mt-1 truncate">
+                  1 {UNIT_LABELS[toUnit]} = {formatNumber(getConversionFactor(toUnit, selectedState))} sq m
+                </div>
               </div>
             </div>
 
@@ -287,6 +386,9 @@ export const LandConverter = () => {
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {UNIT_LABELS[toUnit]}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-2">
+                      Based on {selectedState} standards
                     </div>
                   </div>
                 </CardContent>

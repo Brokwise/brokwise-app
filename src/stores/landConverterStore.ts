@@ -9,6 +9,7 @@ export interface ConversionResult {
   inputUnit: string;
   outputUnit: string;
   outputValue: number;
+  state: string;
   timestamp: number;
 }
 
