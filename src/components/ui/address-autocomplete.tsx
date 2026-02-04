@@ -19,6 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import useAxios from "@/hooks/useAxios";
 
 export type AddressSuggestion = {
   id: string;
@@ -57,7 +58,7 @@ export function AddressAutocomplete({
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const debouncedQuery = useDebounce(query, 400);
-
+  const api = useAxios()
   const [loading, setLoading] = React.useState(false);
   const [items, setItems] = React.useState<AddressSuggestion[]>([]);
   const [error, setError] = React.useState<string | null>(null);
@@ -81,13 +82,12 @@ export function AddressAutocomplete({
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(
-          `/api/places?q=${encodeURIComponent(debouncedQuery.trim())}&limit=5`,
-          { cache: "no-store" }
+        const res = await api.get(
+          `/utils/places?q=${encodeURIComponent(debouncedQuery.trim())}&limit=5`,
         );
         let data: { features?: AddressSuggestion[]; error?: string } = {};
         try {
-          data = (await res.json()) as {
+          data = (await res.data) as {
             features?: AddressSuggestion[];
             error?: string;
           };
@@ -95,7 +95,7 @@ export function AddressAutocomplete({
           data = {};
         }
 
-        if (!res.ok) {
+        if (res.status >= 299) {
           const msg =
             data?.error ||
             `Address search failed (${res.status}). Please enter manually.`;
@@ -132,7 +132,7 @@ export function AddressAutocomplete({
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery]);
+  }, [debouncedQuery, api]);
 
   const showLabel = valueLabel?.trim() ? valueLabel.trim() : placeholder;
 

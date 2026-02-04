@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import useAxios from "@/hooks/useAxios";
 
 interface LocationPickerProps {
   value: [number, number];
@@ -56,10 +57,9 @@ export const LocationPicker = ({
   const [open, setOpen] = useState(false);
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
-
+  const api = useAxios()
   const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
 
-  // Search functionality
   useEffect(() => {
     const searchLocation = async () => {
       if (!searchQuery || searchQuery.length < 3) {
@@ -69,10 +69,10 @@ export const LocationPicker = ({
 
       setIsSearching(true);
       try {
-        const response = await fetch(
-          `/api/places?q=${encodeURIComponent(searchQuery)}`
+        const response = await api.get(
+          `/utils/places?q=${encodeURIComponent(searchQuery)}`
         );
-        const data = await response.json();
+        const data = await response.data
         setSearchResults(data.features || []);
       } catch (error) {
         console.error("Error searching location:", error);
@@ -83,24 +83,20 @@ export const LocationPicker = ({
 
     const timeoutId = setTimeout(searchLocation, 500);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  }, [searchQuery, api]);
 
-  // Helper function to extract pincode from Mapbox context or place_name
   const extractPincode = React.useCallback(
     (
       context?: { id: string; text: string }[],
       placeName?: string
     ): string | undefined => {
-      // First, try to find pincode in context
       if (context) {
         for (const item of context) {
           if (item.id.startsWith("postcode")) {
-            // Extract only numeric digits and ensure it's 6 characters for Indian pincodes
             const numericPincode = item.text.replace(/\D/g, "");
             if (numericPincode.length === 6) {
               return numericPincode;
             }
-            // If it's a partial match, still return it
             if (numericPincode.length > 0) {
               return numericPincode.slice(0, 6);
             }
@@ -108,7 +104,6 @@ export const LocationPicker = ({
         }
       }
 
-      // Fallback: try to extract 6-digit pincode from place_name
       if (placeName) {
         const pincodeMatch = placeName.match(/\b(\d{6})\b/);
         if (pincodeMatch) {
@@ -145,14 +140,13 @@ export const LocationPicker = ({
     [token, extractPincode]
   );
 
-  // Initialize Mapbox
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
     mapboxgl.accessToken = token;
 
     const [lng, lat] =
-      value[0] === 0 && value[1] === 0 ? [75.7873, 26.9124] : value; // Default to Jaipur if 0,0
+      value[0] === 0 && value[1] === 0 ? [75.7873, 26.9124] : value;
 
     const initialStyle = isDarkMode
       ? "mapbox://styles/mapbox/dark-v11"
@@ -248,10 +242,9 @@ export const LocationPicker = ({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, /* value, */ onChange, onLocationSelect, reverseGeocode]); // Removed value to prevent re-init loops
 
-  // Update map style dynamically
+  }, [token, onChange, onLocationSelect, reverseGeocode, isDarkMode, value]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -270,8 +263,8 @@ export const LocationPicker = ({
       [lng, lat] = result.center;
     } else {
       try {
-        const response = await fetch(`/api/places?placeId=${result.id}`);
-        const data = await response.json();
+        const response = await api(`/utils/places?placeId=${result.id}`);
+        const data = await response.data;
         if (data.center) {
           [lng, lat] = data.center;
           fetchedPincode = data.pincode;
@@ -285,7 +278,6 @@ export const LocationPicker = ({
       }
     }
 
-    // Update map
     mapRef.current?.flyTo({
       center: [lng, lat],
       zoom: 14,

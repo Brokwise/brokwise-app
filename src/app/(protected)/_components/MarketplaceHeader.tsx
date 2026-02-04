@@ -194,7 +194,6 @@ export const MarketplaceHeader = ({
   return (
     <div className="shrink-0 sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/40 pb-[9px] pt-[9px] px-3 sm:px-6 lg:px-8 space-y-[9px] sm:space-y-[13px]">
       <div className="flex items-center justify-between gap-2 sm:gap-4">
-        {/* Left: Title + Segmented Control */}
         <div className="flex items-center gap-2 sm:gap-4 md:gap-6 min-w-0 flex-1">
           <div className="overflow-hidden h-fit shrink-0">
             <motion.div
@@ -215,7 +214,7 @@ export const MarketplaceHeader = ({
               variant={viewMode === "PROPERTIES" ? "default" : "ghost"}
               onClick={() => setViewMode("PROPERTIES")}
               size="sm"
-              className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all ${viewMode === "PROPERTIES"
+              className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all touch-manipulation ${viewMode === "PROPERTIES"
                 ? "shadow-sm"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
@@ -227,7 +226,7 @@ export const MarketplaceHeader = ({
               variant={viewMode === "ENQUIRIES" ? "default" : "ghost"}
               onClick={() => setViewMode("ENQUIRIES")}
               size="sm"
-              className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all ${viewMode === "ENQUIRIES"
+              className={`h-7 sm:h-8 rounded-md px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium transition-all touch-manipulation ${viewMode === "ENQUIRIES"
                 ? "shadow-sm"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
@@ -630,218 +629,224 @@ export const MarketplaceHeader = ({
                       </Select>{" "}
                     </div>
                   )}{" "}
-                  {/* Featured Filter - Only for Properties */}{" "}
-                  {viewMode === "PROPERTIES" && (
-                    <div className="space-y-2">
-                      {" "}
-                      <Label>Featured Properties</Label>{" "}
-                      <Select
-                        value={featuredFilter}
-                        onValueChange={setFeaturedFilter}
-                      >
+                  {/* Featured Filter - Only for Properties */} {" "}
+                  {
+                    viewMode === "PROPERTIES" && (
+                      <div className="space-y-2">
                         {" "}
-                        <SelectTrigger>
+                        <Label>Featured Properties</Label>{" "}
+                        <Select
+                          value={featuredFilter}
+                          onValueChange={setFeaturedFilter}
+                        >
                           {" "}
-                          <SelectValue placeholder="Featured" />{" "}
-                        </SelectTrigger>{" "}
-                        <SelectContent>
-                          {" "}
-                          <SelectItem value="ALL">All Properties</SelectItem>{" "}
-                          <SelectItem value="YES">Featured Only</SelectItem>{" "}
-                        </SelectContent>{" "}
-                      </Select>{" "}
-                    </div>
-                  )}{" "}
-                </div>{" "}
-                <DialogFooter className="gap-2 sm:gap-0">
+                          <SelectTrigger>
+                            {" "}
+                            <SelectValue placeholder="Featured" />{" "}
+                          </SelectTrigger>{" "}
+                          <SelectContent>
+                            {" "}
+                            <SelectItem value="ALL">All Properties</SelectItem>{" "}
+                            <SelectItem value="YES">Featured Only</SelectItem>{" "}
+                          </SelectContent > {" "}
+                        </Select > {" "}
+                      </div >
+                    )}{" "}
+                </div > {" "}
+                < DialogFooter className="gap-2 sm:gap-0" >
                   {" "}
-                  <Button
+                  < Button
                     variant="outline"
                     onClick={clearFilters}
                     disabled={!hasActiveFilters && searchQuery === ""}
                   >
                     {" "}
                     Reset{" "}
-                  </Button>{" "}
-                  <Button onClick={() => setIsFilterOpen(false)}>
+                  </Button > {" "}
+                  < Button onClick={() => setIsFilterOpen(false)}>
                     {" "}
-                    View {currentCount}{" "}
-                    {viewMode === "PROPERTIES" ? "Properties" : "Enquiries"}{" "}
+                    View {currentCount} {" "}
+                    {viewMode === "PROPERTIES" ? "Properties" : "Enquiries"} {" "}
+                  </Button > {" "}
+                </DialogFooter > {" "}
+              </DialogContent > {" "}
+            </Dialog > {" "}
+            {/* View Toggles - Only for Properties */} {" "}
+            {
+              viewMode === "PROPERTIES" && (
+                <div className="flex items-center gap-0.5 bg-secondary/50 p-0.5 rounded-full border border-border/40">
+                  {" "}
+                  <Button
+                    variant={view === "grid" ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => {
+                      setView("grid");
+                      onClearPropertySelection();
+                    }}
+                    className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${view === "grid"
+                      ? "shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      }`}
+                    title="Grid View"
+                  >
+                    {" "}
+                    <LayoutGridIcon className="h-3.5 w-3.5" />{" "}
                   </Button>{" "}
-                </DialogFooter>{" "}
-              </DialogContent>{" "}
-            </Dialog>{" "}
-            {/* View Toggles - Only for Properties */}{" "}
-            {viewMode === "PROPERTIES" && (
-              <div className="flex items-center gap-0.5 bg-secondary/50 p-0.5 rounded-full border border-border/40">
-                {" "}
-                <Button
-                  variant={view === "grid" ? "default" : "ghost"}
-                  size="icon"
-                  onClick={() => {
-                    setView("grid");
-                    onClearPropertySelection();
-                  }}
-                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${view === "grid"
-                    ? "shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                    }`}
-                  title="Grid View"
-                >
-                  {" "}
-                  <LayoutGridIcon className="h-3.5 w-3.5" />{" "}
-                </Button>{" "}
-                <Button
-                  variant={view === "map" ? "default" : "ghost"}
-                  size="icon"
-                  onClick={() => {
-                    setView("map");
-                    onClearPropertySelection();
-                  }}
-                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${view === "map"
-                    ? "shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                    }`}
-                  title="Map View"
-                >
-                  {" "}
-                  <MapPin className="h-3.5 w-3.5" />{" "}
-                </Button>{" "}
-                <Button
-                  variant={view === "split" ? "default" : "ghost"}
-                  size="icon"
-                  onClick={() => {
-                    setView("split");
-                    onClearPropertySelection();
-                  }}
-                  className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full hidden md:flex transition-all duration-300 ${view === "split"
-                    ? "shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                    }`}
-                  title="Split View"
-                >
-                  {" "}
-                  <Columns className="h-3.5 w-3.5" />{" "}
-                </Button>{" "}
-              </div>
-            )}{" "}
-          </div>
-        </div>
+                  <Button
+                    variant={view === "map" ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => {
+                      setView("map");
+                      onClearPropertySelection();
+                    }}
+                    className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${view === "map"
+                      ? "shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      }`}
+                    title="Map View"
+                  >
+                    {" "}
+                    <MapPin className="h-3.5 w-3.5" />{" "}
+                  </Button>{" "}
+                  <Button
+                    variant={view === "split" ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => {
+                      setView("split");
+                      onClearPropertySelection();
+                    }}
+                    className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full hidden md:flex transition-all duration-300 ${view === "split"
+                      ? "shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      }`}
+                    title="Split View"
+                  >
+                    {" "}
+                    <Columns className="h-3.5 w-3.5" />{" "}
+                  </Button>{" "}
+                </div>
+              )
+            } {" "}
+          </div >
+        </div >
         {/* Right Side Actions - Filter + View Toggle */}
-      </div>
+      </div >
 
       {/* 3. Active Filters Quick Row (if filters active) */}
-      {(searchQuery || hasActiveFilters) && (
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-1 animate-in fade-in slide-in-from-top-2 duration-300">
-          <span className="text-[10px] sm:text-xs font-semibold text-muted-foreground mr-0.5 sm:mr-1">
-            Active:
-          </span>
-          {searchQuery && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setSearchQuery("")}
-              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-accent/10 text-accent hover:bg-accent/20 border border-accent/10"
-            >
-              <span className="max-w-[80px] sm:max-w-[120px] truncate">
-                &quot;{searchQuery}&quot;
-              </span>
-              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
-            </Button>
-          )}
+      {
+        (searchQuery || hasActiveFilters) && (
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-1 animate-in fade-in slide-in-from-top-2 duration-300">
+            <span className="text-[10px] sm:text-xs font-semibold text-muted-foreground mr-0.5 sm:mr-1">
+              Active:
+            </span>
+            {searchQuery && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setSearchQuery("")}
+                className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-accent/10 text-accent hover:bg-accent/20 border border-accent/10"
+              >
+                <span className="max-w-[80px] sm:max-w-[120px] truncate">
+                  &quot;{searchQuery}&quot;
+                </span>
+                <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
+              </Button>
+            )}
 
-          {categoryFilter !== "ALL" && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                setCategoryFilter("ALL");
-                setPropertyTypeFilter("ALL");
-                setBhkFilter("ALL");
-              }}
-              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
-            >
-              {categoryPills.find((p) => p.value === categoryFilter)?.label ||
-                categoryFilter}
-              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
-            </Button>
-          )}
+            {categoryFilter !== "ALL" && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setCategoryFilter("ALL");
+                  setPropertyTypeFilter("ALL");
+                  setBhkFilter("ALL");
+                }}
+                className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+              >
+                {categoryPills.find((p) => p.value === categoryFilter)?.label ||
+                  categoryFilter}
+                <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
+              </Button>
+            )}
 
-          {viewMode === "PROPERTIES" && propertyTypeFilter !== "ALL" && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setPropertyTypeFilter("ALL")}
-              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
-            >
-              {propertyTypeOptions.find((o) => o.value === propertyTypeFilter)
-                ?.label || propertyTypeFilter}
-              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
-            </Button>
-          )}
+            {viewMode === "PROPERTIES" && propertyTypeFilter !== "ALL" && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPropertyTypeFilter("ALL")}
+                className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+              >
+                {propertyTypeOptions.find((o) => o.value === propertyTypeFilter)
+                  ?.label || propertyTypeFilter}
+                <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
+              </Button>
+            )}
 
-          {priceRange !== null && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setPriceRange(null)}
-              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
-            >
-              <span className="hidden sm:inline">
-                {viewMode === "PROPERTIES" ? "Price" : "Budget"}:{" "}
-              </span>
-              {formatPriceShort(effectivePriceRange[0])} -{" "}
-              {formatPriceShort(effectivePriceRange[1])}
-              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
-            </Button>
-          )}
+            {priceRange !== null && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPriceRange(null)}
+                className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+              >
+                <span className="hidden sm:inline">
+                  {viewMode === "PROPERTIES" ? "Price" : "Budget"}:{" "}
+                </span>
+                {formatPriceShort(effectivePriceRange[0])} -{" "}
+                {formatPriceShort(effectivePriceRange[1])}
+                <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
+              </Button>
+            )}
 
-          {bhkFilter !== "ALL" && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setBhkFilter("ALL")}
-              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
-            >
-              {bhkFilter === "5+" ? "5+ BHK" : `${bhkFilter} BHK`}
-              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
-            </Button>
-          )}
+            {bhkFilter !== "ALL" && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setBhkFilter("ALL")}
+                className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+              >
+                {bhkFilter === "5+" ? "5+ BHK" : `${bhkFilter} BHK`}
+                <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
+              </Button>
+            )}
 
-          {userData?.userType === "company" && sourceFilter !== "ALL" && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setSourceFilter("ALL")}
-              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
-            >
-              {sourceFilter === "BROKER" ? "Broker Listed" : "Company Listed"}
-              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
-            </Button>
-          )}
+            {userData?.userType === "company" && sourceFilter !== "ALL" && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setSourceFilter("ALL")}
+                className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+              >
+                {sourceFilter === "BROKER" ? "Broker Listed" : "Company Listed"}
+                <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
+              </Button>
+            )}
 
-          {viewMode === "PROPERTIES" && featuredFilter !== "ALL" && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setFeaturedFilter("ALL")}
-              className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
-            >
-              Featured Only
-              <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
-            </Button>
-          )}
+            {
+              viewMode === "PROPERTIES" && featuredFilter !== "ALL" && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setFeaturedFilter("ALL")}
+                  className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+                >
+                  Featured Only
+                  <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
+                </Button>
+              )}
 
-          <Button
-            variant="link"
-            size="sm"
-            onClick={clearFilters}
-            className="h-5 sm:h-6 text-[10px] sm:text-xs px-1.5 sm:px-2 text-muted-foreground hover:text-destructive transition-colors"
-          >
-            {t("action_clear_all")}
-          </Button>
-        </div>
-      )}
-    </div>
+            <Button
+              variant="link"
+              size="sm"
+              onClick={clearFilters}
+              className="h-5 sm:h-6 text-[10px] sm:text-xs px-1.5 sm:px-2 text-muted-foreground hover:text-destructive transition-colors"
+            >
+              {t("action_clear_all")}
+            </Button>
+          </div>
+        )
+      }
+    </div >
   );
 };

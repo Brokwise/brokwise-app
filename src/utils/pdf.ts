@@ -223,3 +223,54 @@ export async function exportElementAsPdf(opts: {
 }
 
 
+/**
+ * Generate PDF from element and return as Blob.
+ * Used for iOS native apps where direct download doesn't work.
+ */
+export async function generatePdfAsBlob(opts: {
+  element: HTMLElement;
+  backgroundColor?: string;
+}): Promise<Blob> {
+  const { element, backgroundColor = "#ffffff" } = opts;
+
+  await waitForImages(element, 5000);
+  await new Promise((r) => setTimeout(r, 100));
+
+  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+    import("html2canvas"),
+    import("jspdf"),
+  ]);
+
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor,
+    imageTimeout: 5000,
+    logging: false,
+  });
+
+  const imgData = canvas.toDataURL("image/png");
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = pdf.internal.pageSize.getHeight();
+
+  const imgScale = pdfWidth / canvas.width;
+  const imgHeight = canvas.height * imgScale;
+
+  let heightLeft = imgHeight;
+  let position = 0;
+
+  pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
+  heightLeft -= pdfHeight;
+
+  while (heightLeft > 0) {
+    position = position - pdfHeight;
+    pdf.addPage();
+    pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
+    heightLeft -= pdfHeight;
+  }
+
+  // Return as Blob
+  return pdf.output("blob");
+}
