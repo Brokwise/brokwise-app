@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
@@ -186,15 +185,15 @@ export const LandConverter = () => {
           <Ruler className="w-4 h-4" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="max-w-[92vw] md:w-full p-4 sm:p-6 max-h-[80vh] md:max-h-[100vh] overflow-auto my-auto rounded-l-2xl">
-        <SheetHeader className="pb-2 sm:pb-4">
+      <SheetContent className="w-full sm:max-w-md p-4 sm:p-6 flex flex-col h-full overflow-hidden">
+        <SheetHeader className="pb-2 sm:pb-4 flex-none">
           <SheetTitle className="flex items-center gap-2 text-base sm:text-lg">
             <Ruler className="w-4 h-4 sm:w-5 sm:h-5" />
             Land Converter
           </SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-4">
+        <div className="flex-1 overflow-y-auto min-h-0 space-y-6 pr-1">
           {/* Input Section */}
           <div className="space-y-3">
             <div>
@@ -284,7 +283,7 @@ export const LandConverter = () => {
 
           {/* History Section */}
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 sticky top-0 bg-background py-2 z-10">
               <div className="flex items-center gap-2">
                 <History className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Recent Conversions</span>
@@ -307,7 +306,7 @@ export const LandConverter = () => {
               )}
             </div>
 
-            <ScrollArea className="h-[calc(100vh-480px)] min-h-[120px]">
+            <div className="min-h-[100px]">
               {results.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <Ruler className="w-10 h-10 text-muted-foreground/30 mb-3" />
@@ -319,7 +318,7 @@ export const LandConverter = () => {
                   </p>
                 </div>
               ) : (
-                <div className="pr-4">
+                <div className="pr-1">
                   {results.map((result) => (
                     <ResultItem
                       key={result.id}
@@ -329,7 +328,7 @@ export const LandConverter = () => {
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           </div>
         </div>
       </SheetContent>
