@@ -178,8 +178,8 @@ export const LandConverter = () => {
           <div className="space-y-4">
 
             {/* Input and State Row */}
-            <div className="flex gap-2 items-end">
-              <div className="flex-[0.8] basis-[80%] min-w-0 p-0.5">
+            <div className="flex flex-col sm:flex-row gap-4 items-end">
+              <div className="w-full sm:flex-[0.75] min-w-0 p-0.5">
                 <Label htmlFor="land-value" className="text-sm">
                   Enter Value
                 </Label>
@@ -196,7 +196,7 @@ export const LandConverter = () => {
                 />
               </div>
 
-              <div className="flex-[0.2] basis-[20%] min-w-[70px] p-0.5">
+              <div className="w-full sm:flex-[0.25] sm:min-w-[80px] p-0.5">
                 <Label className="text-sm">State</Label>
                 <Select value={selectedState} onValueChange={(v) => { setSelectedState(v); setCurrentResult(null); }}>
                   <SelectTrigger className="mt-1.5 w-full">
@@ -213,8 +213,8 @@ export const LandConverter = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-[1fr,auto,1fr] gap-2 items-end">
-              <div>
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto,1fr] gap-2 items-end">
+              <div className="w-full">
                 <Label className="text-sm">From</Label>
                 <Select value={fromUnit} onValueChange={(v) => { setFromUnit(v); setCurrentResult(null); }}>
                   <SelectTrigger className="mt-1.5">
@@ -233,17 +233,19 @@ export const LandConverter = () => {
                 </div>
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleSwapUnits}
-                className="mb-6"
-                title="Swap units"
-              >
-                <ArrowRightLeft className="w-4 h-4" />
-              </Button>
+              <div className="flex justify-center sm:block sm:mb-6">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSwapUnits}
+                  className="rotate-90 sm:rotate-0"
+                  title="Swap units"
+                >
+                  <ArrowRightLeft className="w-4 h-4" />
+                </Button>
+              </div>
 
-              <div>
+              <div className="w-full">
                 <Label className="text-sm">To</Label>
                 <Select value={toUnit} onValueChange={(v) => { setToUnit(v); setCurrentResult(null); }}>
                   <SelectTrigger className="mt-1.5">
