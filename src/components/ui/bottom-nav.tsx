@@ -10,18 +10,21 @@ import {
   LayoutDashboard,
   Building2,
   FileText,
+  HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/context/AppContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { useChatbotStore } from "@/stores/chatbotStore";
 
 export function BottomNav() {
   const pathname = usePathname();
   const { companyData } = useApp();
   const [isFabOpen, setIsFabOpen] = React.useState(false);
   const { t } = useTranslation();
-  const [show, setShow] = React.useState(true)
+  const [show, setShow] = React.useState(true);
+  const { setIsOpen: openChatbot } = useChatbotStore();
 
 
   React.useEffect(() => {
@@ -74,10 +77,11 @@ export function BottomNav() {
         href: "/my-enquiries",
         icon: FileText,
       },
+
       {
-        label: t("nav_profile"),
-        href: "/profile",
-        icon: User,
+        label: t("nav_help"),
+        isChatbot: true,
+        icon: HelpCircle,
       },
     ];
 
@@ -175,6 +179,28 @@ export function BottomNav() {
                     </motion.div>
                   </button>
                 </div>
+              );
+            }
+
+            // Handle chatbot button
+            if (item.isChatbot) {
+              const Icon = item.icon!;
+              return (
+                <button
+                  key={index}
+                  onClick={() => openChatbot(true)}
+                  className={cn(
+                    "flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors",
+                    "text-muted-foreground hover:text-primary"
+                  )}
+                >
+                  <div className="relative">
+                    <Icon className="h-6 w-6 transition-all duration-300" strokeWidth={2} />
+                  </div>
+                  <span className="transition-opacity duration-300 opacity-70">
+                    {item.label}
+                  </span>
+                </button>
               );
             }
 

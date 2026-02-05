@@ -41,6 +41,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Collapsible,
@@ -48,6 +49,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useApp } from "@/context/AppContext";
+import Image from "next/image";
 
 type SidebarNavSubItem = {
   title: string;
@@ -65,6 +67,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { companyData } = useApp();
   const { t } = useTranslation();
+  const { setOpenMobile, isMobile } = useSidebar();
+
+  const handleMenuClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   // Company Navigation
   const companyNav: SidebarNavItem[] = [
@@ -218,11 +227,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <Building2 className="size-4" />
-          </div>
+
+          <Image src={"/logo.webp"} height={52} className="rounded-full" width={52} alt="Brokwise" />
+
           <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
-            <span className="font-semibold text-lg text-sidebar-foreground">
+            <span className="font-semibold text-lg text-foreground md:text-sidebar-foreground">
               Brokwise
             </span>
             <span className="text-xs text-muted-foreground">
@@ -262,6 +271,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                 <SidebarMenuSubButton
                                   asChild
                                   isActive={pathname === subItem.url}
+                                  onClick={handleMenuClick}
                                 >
                                   <Link href={subItem.url}>
                                     <span>{subItem.title}</span>
@@ -278,6 +288,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
+                      onClick={handleMenuClick}
                       asChild
                       tooltip={item.title}
                       isActive={pathname === item.url}
@@ -299,10 +310,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarGroupLabel>{t("nav_resources")}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {/* Resources Collapsible/Dropdown could go here, but flat list is fine for sidebar */}
                 {resourcesNav.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
+                      onClick={handleMenuClick}
                       asChild
                       tooltip={item.title}
                       isActive={pathname === item.url}
@@ -324,12 +335,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <Link
               href="/privacy-policy"
+              onClick={handleMenuClick}
               className="hover:text-sidebar-foreground transition-colors"
             >
               {t("label_privacy")}
             </Link>
             <Link
               href="/terms-and-conditions"
+              onClick={handleMenuClick}
               className="hover:text-sidebar-foreground transition-colors"
             >
               {t("label_terms")}

@@ -21,15 +21,26 @@ import {
   useAcceptCompanyInvitation,
   useRejectCompanyInvitation,
 } from "@/hooks/useCompanyInvitations";
+import {
+  useGetContactRequests,
+  useRespondToContactRequest,
+  useGetPendingContactRequestsCount,
+} from "@/hooks/useContactRequest";
 import { CompanyInvitation } from "@/models/types/invitation";
-import { Bell, Check, Clock, X, Building2 } from "lucide-react";
-import { useMemo } from "react";
+import { PopulatedContactRequest } from "@/types/contact-request";
+import { Bell, Check, Clock, X, Building2, Home, Timer, UserCircle, Loader2, XCircle } from "lucide-react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useApp } from "@/context/AppContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatDistanceToNow } from "date-fns";
+import { formatCurrency } from "@/utils/helper";
+import { cn } from "@/lib/utils";
 
 export const Notifications = () => {
   const { userData } = useApp();
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
 
   const { notificationsData, isLoading: isLoadingNotifications } =
     useNotification();
@@ -43,7 +54,39 @@ export const Notifications = () => {
   const { rejectInvitation, isPending: isRejecting } =
     useRejectCompanyInvitation();
 
+  // Contact share requests
+  const {
+    requests: pendingContactRequests,
+    isLoading: isLoadingContactRequests,
+  } = useGetContactRequests(
+    { type: "received", status: "PENDING" },
+    { enabled: true }
+  );
+  const { pendingCount: contactRequestsCount } = useGetPendingContactRequestsCount();
+  const { respondToContactRequest, isPending: isRespondingContact } =
+    useRespondToContactRequest();
+
   const queryClient = useQueryClient();
+
+  const handleAcceptContactRequest = (requestId: string) => {
+    setRespondingTo(requestId);
+    respondToContactRequest(
+      { requestId, action: "ACCEPT" },
+      {
+        onSettled: () => setRespondingTo(null),
+      }
+    );
+  };
+
+  const handleRejectContactRequest = (requestId: string) => {
+    setRespondingTo(requestId);
+    respondToContactRequest(
+      { requestId, action: "REJECT" },
+      {
+        onSettled: () => setRespondingTo(null),
+      }
+    );
+  };
 
   const { unreadNotifications, readNotifications, unreadCount } =
     useMemo(() => {
@@ -65,11 +108,12 @@ export const Notifications = () => {
       };
     }, [notificationsData]);
 
-  const totalUnreadCount = unreadCount + (invitations?.length || 0);
-  const isLoading = isLoadingNotifications || isLoadingInvitations;
+  const totalUnreadCount = unreadCount + (invitations?.length || 0) + (contactRequestsCount || 0);
+  const isLoading = isLoadingNotifications || isLoadingInvitations || isLoadingContactRequests;
   const hasContent =
     (notificationsData && notificationsData.length > 0) ||
-    (invitations && invitations.length > 0);
+    (invitations && invitations.length > 0) ||
+    (pendingContactRequests && pendingContactRequests.length > 0);
 
   const handleMarkAsRead = (notification: Notification) => {
     mutate(
@@ -154,6 +198,108 @@ export const Notifications = () => {
     </Card>
   );
 
+  const ContactRequestItem = ({
+    request,
+  }: {
+    request: PopulatedContactRequest;
+  }) => {
+    const requester = request.requesterId;
+    const property = request.propertyId;
+    const expiresAt = new Date(request.expiresAt);
+    const timeLeft = formatDistanceToNow(expiresAt, { addSuffix: false });
+    const isExpiringSoon = expiresAt.getTime() - Date.now() < 12 * 60 * 60 * 1000; // Less than 12 hours
+
+    const requesterName = `${requester.firstName} ${requester.lastName}`.trim();
+    const requesterInitials = `${requester.firstName?.[0] || ""}${requester.lastName?.[0] || ""}`.toUpperCase();
+    const isResponding = isRespondingContact && respondingTo === request._id;
+
+    return (
+      <Card className="mb-2 sm:mb-3 border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 transition-all duration-200">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0">
+              <AvatarImage src={undefined} alt={requesterName} />
+              <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm font-medium">
+                {requesterInitials || <UserCircle className="h-4 w-4 sm:h-5 sm:w-5" />}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="flex-1 min-w-0 space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full flex-shrink-0" />
+                <h4 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                  Contact Request from {requesterName}
+                </h4>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-1">
+                  <Home className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                  <span className="truncate max-w-[120px] sm:max-w-[200px]">
+                    {property.propertyId || `${property.propertyCategory} - ${property.propertyType?.replace(/_/g, " ")}`}
+                  </span>
+                </div>
+                {property.totalPrice && (
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    {formatCurrency(property.totalPrice)}
+                  </span>
+                )}
+              </div>
+
+              {requester.companyName && (
+                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                  {requester.companyName}
+                </p>
+              )}
+
+              <div className={cn(
+                "flex items-center gap-1 text-[10px] sm:text-xs",
+                isExpiringSoon ? "text-red-600 dark:text-red-400" : "text-gray-500"
+              )}>
+                <Timer className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                <span>Expires in {timeLeft}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-2 mt-2 sm:mt-3 justify-end">
+            <Button
+              onClick={() => handleRejectContactRequest(request._id)}
+              variant="outline"
+              size="sm"
+              disabled={isResponding}
+              className="h-6 px-2 text-[10px] sm:h-7 sm:px-3 sm:text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              {isResponding ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <>
+                  <XCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" />
+                  Reject
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={() => handleAcceptContactRequest(request._id)}
+              size="sm"
+              disabled={isResponding}
+              className="h-6 px-2 text-[10px] sm:h-7 sm:px-3 sm:text-xs bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isResponding ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <>
+                  <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" />
+                  Accept
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   const NotificationItem = ({
     notification,
     isUnread,
@@ -225,7 +371,7 @@ export const Notifications = () => {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="max-w-[92vw] md:w-full p-4 sm:p-6 max-h-[90vh] md:max-h-[100vh] overflow-auto my-auto rounded-l-2xl">
+      <SheetContent className="max-w-[92vw] md:w-full p-4 sm:p-6 pt-[8vh] md:pt-none  overflow-auto my-auto rounded-l-2xl">
         <SheetHeader className="pb-2 sm:pb-4">
           <SheetTitle className="flex items-center gap-2 text-base sm:text-lg">
             <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -255,6 +401,30 @@ export const Notifications = () => {
             </div>
           ) : (
             <div className="space-y-4 sm:space-y-6">
+              {/* Contact Share Requests Section */}
+              {pendingContactRequests && pendingContactRequests.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2 sm:mb-4">
+                    <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      Contact Requests
+                    </h3>
+                    <Badge
+                      variant="secondary"
+                      className="text-[10px] sm:text-xs bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300"
+                    >
+                      {pendingContactRequests.length}
+                    </Badge>
+                  </div>
+                  {pendingContactRequests.map((request) => (
+                    <ContactRequestItem
+                      key={request._id}
+                      request={request}
+                    />
+                  ))}
+                  <Separator className="my-4 sm:my-6" />
+                </div>
+              )}
+
               {/* Invitations Section */}
               {invitations && invitations.length > 0 && (
                 <div>

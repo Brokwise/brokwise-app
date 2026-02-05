@@ -116,7 +116,7 @@ export function ChatbotWidget({ isOnboarding = false }: ChatbotWidgetProps) {
               onClick={handleToggle}
               size="icon"
               className={cn(
-                "h-14 w-14 rounded-full shadow-lg",
+                "h-14 w-14 rounded-full shadow-lg hidden md:block",
                 "bg-primary hover:bg-primary/90",
                 "transition-transform hover:scale-105 active:scale-95"
               )}

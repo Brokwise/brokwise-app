@@ -171,7 +171,7 @@
   "label_step_of": "स्टेप {{current}} / {{total}}",
   "label_property_categories": "प्रॉपर्टी कैटेगरीज़",
   "label_continue_draft": "जहाँ छोड़ा था वहाँ से कंटिन्यू करें और प्रॉपर्टी लिस्टिंग्स कम्प्लीट करें",
-  "label_back_to_categories": "कैटेगरीज़ पर वापस जाएं",
+  "label_back_to_categories": "वापस",
   "label_asking_rate": "आस्किंग रेट",
   "label_offer_rate": "ऑफ़र रेट",
   "label_max": "मैक्स",
