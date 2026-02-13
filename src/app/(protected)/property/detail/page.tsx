@@ -18,8 +18,6 @@ import { AxiosError } from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
-
-
 import { PropertyHeader } from "../[id]/_components/property-header";
 import { PropertyActionsBar } from "../[id]/_components/property-actions-bar";
 import { MediaCarousel } from "../[id]/_components/media-carousel";
@@ -27,13 +25,11 @@ import { PropertyFacts } from "../[id]/_components/property-facts";
 import { PropertyDescription } from "../[id]/_components/property-description";
 import { DocumentsList } from "../[id]/_components/documents-list";
 import { PropertySidebar } from "../[id]/_components/property-sidebar";
-
 import { PropertyPdfLayout } from "@/components/property-pdf/property-pdf-layout";
-import { exportElementAsPdf, makeSafeFilePart, imagesToBase64, generatePdfAsBlob } from "@/utils/pdf";
-
-
+import { exportElementAsPdf, makeSafeFilePart, imagesToBase64, imageUrlToBase64, generatePdfAsBlob } from "@/utils/pdf";
 import { FlagInAppropriate } from "../[id]/_components/flag-inappropriate";
 import { isNativeIOS } from "@/utils/helper";
+import { PropertyOffers } from "../[id]/_components/propertyOffers";
 
 const PropertyPageContent = () => {
   const searchParams = useSearchParams();
@@ -44,12 +40,12 @@ const PropertyPageContent = () => {
   const { toggleBookmarkAsync, isPending: isBookmarkPending } = useToggleBookmark();
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isFlagDialogOpen, setIsFlagDialogOpen] = useState(false);
+  const isOwner = property?.listedBy?._id === brokerData?._id;
 
   const { t } = useTranslation();
 
 
   // Check bookmark status from the correct user data (same pattern as PropertyCard)
-  const [exportedOnLabel,] = useState<string>("");
   const isCompany = userData?.userType === "company";
   const isBookmarked = property
     ? isCompany
@@ -76,8 +72,11 @@ const PropertyPageContent = () => {
         ...(property.images ?? []),
       ].filter((m) => !!m && !m.toLowerCase().endsWith(".mp4"));
 
-      // Pre-fetch and convert images to base64
-      const imageMap = await imagesToBase64(allImageUrls);
+      // Pre-fetch and convert images to base64 (including logo)
+      const [imageMap, logoBase64] = await Promise.all([
+        imagesToBase64(allImageUrls),
+        imageUrlToBase64("/logo.webp"),
+      ]);
 
       host = document.createElement("div");
       host.style.position = "fixed";
@@ -88,17 +87,16 @@ const PropertyPageContent = () => {
 
       root = createRoot(host);
       root.render(
-        <div className="w-[794px] bg-white text-black">
-          <PropertyPdfLayout
-            property={property}
-            exportedOnLabel={exportedOnLabel}
-            imageMap={imageMap}
-          />
-        </div>
+        <PropertyPdfLayout
+          property={property}
+          exportedOnLabel={exportedOnLabel}
+          imageMap={imageMap}
+          logoBase64={logoBase64}
+        />
       );
 
-      // Ensure layout is painted before capture.
-      await new Promise((r) => setTimeout(r, 300));
+      // Wait for React to render and base64 images to decode
+      await new Promise((r) => setTimeout(r, 500));
 
       const element = host.querySelector(
         "[data-property-pdf]"
@@ -106,7 +104,9 @@ const PropertyPageContent = () => {
       if (!element) {
         throw new Error("PDF layout failed to render");
       }
-      await new Promise((r) => setTimeout(r, 75));
+
+      // Extra buffer for image painting
+      await new Promise((r) => setTimeout(r, 200));
 
       const safeId = makeSafeFilePart(
         property.propertyId || property._id || "property"
@@ -117,7 +117,7 @@ const PropertyPageContent = () => {
         // For iOS native app: generate PDF as blob and use Web Share API
         const pdfBlob = await generatePdfAsBlob({ element });
         const file = new File([pdfBlob], fileName, { type: "application/pdf" });
-        
+
         // Use Web Share API with file sharing (supported on iOS Safari/WebView)
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
@@ -136,14 +136,13 @@ const PropertyPageContent = () => {
           setTimeout(() => URL.revokeObjectURL(url), 100);
         }
       } else {
-        // For web/other platforms: use standard browser download
         await exportElementAsPdf({
           element,
           fileName,
         });
       }
     } catch (e) {
-      alert(e)
+      console.error(e)
 
       toast.error("Failed to export PDF. Please try again.");
     } finally {
@@ -236,7 +235,7 @@ const PropertyPageContent = () => {
   ];
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen pb-5 md:pb-20">
       <PropertyHeader
         property={property}
         onFlag={() => setIsFlagDialogOpen(true)}
@@ -326,6 +325,7 @@ const PropertyPageContent = () => {
             <PropertySidebar property={property} />
           </div>
 
+
           <div className="order-3 lg:order-3 lg:col-span-7 space-y-8">
             <PropertyFacts property={property} />
             <PropertyDescription description={property.description} />
@@ -342,19 +342,15 @@ const PropertyPageContent = () => {
                 </div>
               </div>
             )}
+            {isOwner && property.listingStatus !== "ENQUIRY_ONLY" && property.listingStatus !== "DELETED" && (
+              <PropertyOffers property={property} />
+            )}
             <DocumentsList property={property} />
           </div>
         </div>
       </div>
 
       <FlagInAppropriate property={property} isFlagDialogOpen={isFlagDialogOpen} setIsFlagDialogOpen={setIsFlagDialogOpen} />
-
-      <div className="fixed left-[-10000px] top-0 w-[794px] bg-white text-black">
-        <PropertyPdfLayout
-          property={property}
-          exportedOnLabel={exportedOnLabel}
-        />
-      </div>
     </main >
   );
 };

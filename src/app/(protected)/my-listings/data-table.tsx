@@ -38,6 +38,8 @@ import {
   ChevronsRight,
   Loader2,
   AlertCircle,
+  Building2,
+  Plus,
 } from "lucide-react";
 import {
   Select,
@@ -46,6 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Link from "next/link";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -187,8 +190,17 @@ export function DataTable<TData, TValue>({
                 </div>
               ))}
               {table.getRowModel().rows.length === 0 && (
-                <div className="col-span-full py-20 text-center text-muted-foreground border border-dashed rounded-xl">
-                  {t("page_my_enquiries_no_match")}
+                <div className="flex justify-center items-center py-20 border border-dashed rounded-xl col-span-full  flex-col">
+                  <Building2 className="text-muted-foreground" />
+                  <div className="text-center text-muted-foreground ">
+                    {t("no_properties_listed")}
+                  </div>
+                  <Button asChild size="sm" className="h-9 sm:h-10 mt-2">
+                    <Link href="/property/createProperty">
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t("page_add_property")}
+                    </Link>
+                  </Button>
                 </div>
               )}
             </div>

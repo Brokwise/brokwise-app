@@ -127,7 +127,7 @@ export default function MyListings() {
         description="Manage your property listings and their status."
         className="w-full"
       >
-        <Button asChild size="sm" className="h-9 sm:h-10">
+        <Button asChild size="sm" className="h-9 sm:h-10 hidden md:flex">
           <Link href="/property/createProperty">
             <Plus className="h-4 w-4 mr-2" />
             {t("page_add_property")}

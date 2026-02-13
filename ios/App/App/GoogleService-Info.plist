@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>326995745735-m4tmkfb41010qau8cvhgn33nasudlo1l.apps.googleusercontent.com</string>
+	<string>326995745735-gloet1rvmm63s49bfbsbdlnob0aa4nbq.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.326995745735-m4tmkfb41010qau8cvhgn33nasudlo1l</string>
+	<string>com.googleusercontent.apps.326995745735-gloet1rvmm63s49bfbsbdlnob0aa4nbq</string>
 	<key>API_KEY</key>
 	<string>AIzaSyBxj6ClE9S1bNI2SdIlpMC6QOPq3uPpoOg</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.brokwise.com</string>
+	<string>com.brokwise.app</string>
 	<key>PROJECT_ID</key>
 	<string>brokwise-prod</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:326995745735:ios:e68b5d55f1e0415bd617e2</string>
+	<string>1:326995745735:ios:6ca0b55d2d8b3e7dd617e2</string>
 </dict>
 </plist>

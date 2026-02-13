@@ -8,7 +8,6 @@ import { Property } from "@/types/property";
 import { formatCurrency, formatAddress } from "@/utils/helper";
 import { format } from "date-fns";
 import { MakeOffer } from "./makeOffer";
-import { PropertyOffers } from "./propertyOffers";
 import { MapPin, ExternalLink, CalendarClock, Info, Coins, Loader2 } from "lucide-react";
 import { useEditProperty } from "@/hooks/useProperty";
 import {
@@ -258,7 +257,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                     )}
 
                     <AlertDialog open={showContactRequestDialog} onOpenChange={setShowContactRequestDialog}>
-                        <AlertDialogContent>
+                        <AlertDialogContent className="mx-auto max-w-[95%] md:max-w-full rounded-2xl">
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Request Contact Details?</AlertDialogTitle>
                                 <AlertDialogDescription className="space-y-2">
@@ -284,9 +283,6 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                         </AlertDialogContent>
                     </AlertDialog>
 
-                    {isOwner && property.listingStatus !== "ENQUIRY_ONLY" && property.listingStatus !== "DELETED" && (
-                        <PropertyOffers property={property} />
-                    )}
 
                     {!property.deletingStatus && property.listingStatus !== "ENQUIRY_ONLY" && property.listingStatus !== "DELETED" && (
                         <div className="space-y-3">

@@ -169,9 +169,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         ...(property.images ?? []),
       ].filter((m) => !!m && !m.toLowerCase().endsWith(".mp4"));
 
-      // Pre-fetch and convert images to base64
-      const { imagesToBase64 } = await import("@/utils/pdf");
-      const imageMap = await imagesToBase64(allImageUrls);
+      // Pre-fetch and convert images to base64 (including logo)
+      const { imagesToBase64, imageUrlToBase64 } = await import("@/utils/pdf");
+      const [imageMap, logoBase64] = await Promise.all([
+        imagesToBase64(allImageUrls),
+        imageUrlToBase64("/logo.webp"),
+      ]);
 
       host = document.createElement("div");
       host.style.position = "fixed";
@@ -182,17 +185,16 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
       root = createRoot(host);
       root.render(
-        <div className="w-[794px] bg-white text-black">
-          <PropertyPdfLayout
-            property={property}
-            exportedOnLabel={exportedOnLabel}
-            imageMap={imageMap}
-          />
-        </div>
+        <PropertyPdfLayout
+          property={property}
+          exportedOnLabel={exportedOnLabel}
+          imageMap={imageMap}
+          logoBase64={logoBase64}
+        />
       );
 
-      // Ensure layout is painted before capture.
-      await new Promise((r) => setTimeout(r, 300));
+      // Wait for React to render and base64 images to decode
+      await new Promise((r) => setTimeout(r, 500));
 
       const element = host.querySelector(
         "[data-property-pdf]"
@@ -200,6 +202,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       if (!element) {
         throw new Error("PDF layout failed to render");
       }
+
+      // Extra buffer for image painting
+      await new Promise((r) => setTimeout(r, 200));
 
       const safeId = makeSafeFilePart(
         property.propertyId || property._id || "property"
@@ -210,7 +215,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         // For iOS native app: generate PDF as blob and use Web Share API
         const pdfBlob = await generatePdfAsBlob({ element });
         const file = new File([pdfBlob], fileName, { type: "application/pdf" });
-        
+
         // Use Web Share API with file sharing (supported on iOS Safari/WebView)
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({

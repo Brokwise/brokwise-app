@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { useGetMyEnquiries } from "@/hooks/useEnquiry";
 import { useApp } from "@/context/AppContext";
 import { useTranslation } from "react-i18next";
+import ShinyText from "@/components/ui/shinnytext";
 
 interface EnquiryCardProps {
   enquiry: Enquiry | MarketplaceEnquiry;
@@ -83,7 +84,12 @@ export const EnquiryCard = ({
   }
   return (
     <Card
-      className="group relative overflow-hidden border border-border/50 bg-card dark:bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/20 cursor-pointer h-full flex flex-col"
+      className={cn(
+        "group relative overflow-hidden border transition-all duration-300 hover:shadow-lg cursor-pointer h-full flex flex-col",
+        enquiry.urgent
+          ? "border-red-200  dark:bg-red-950/10 dark:border-red-800/50 hover:border-red-300 dark:hover:border-red-700 shadow-sm"
+          : "border-border/50 bg-card dark:bg-card hover:border-primary/20"
+      )}
       onClick={() => {
         if (isCompany)
           router.push(`/company-enquiries/marketplace/detail?id=${enquiry._id}`);
@@ -102,10 +108,11 @@ export const EnquiryCard = ({
             {enquiry.urgent && (
               <Badge
                 variant="outline"
-                className="rounded-md px-2.5 py-0.5 font-medium text-xs"
+                className="rounded-md px-2.5 py-0.5 font-medium text-xs bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800 animate-pulse"
               >
-                <Flame className="h-3 w-3 mr-1 fill-white" />
-                Urgent
+                <Flame className="h-3 w-3 mr-1 fill-red-600 text-red-600 dark:fill-red-400 dark:text-red-400" />
+                <ShinyText text="Urgent" />
+
               </Badge>
             )}
             <Badge

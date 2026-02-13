@@ -52,7 +52,7 @@ const LocationSection = ({ isPending }: { isPending: boolean }) => {
     };
 
     const handleRemoveLocation = (index: number) => {
-        if (index === 0) return; // Cannot remove primary location
+        if (index === 0) return;
         remove(index);
     };
 
@@ -93,6 +93,7 @@ const LocationSection = ({ isPending }: { isPending: boolean }) => {
                                                 valueId={formField.value ?? ""}
                                                 disabled={isPending}
                                                 className="bg-background h-12 text-base flex-1"
+                                                containerClassName="flex-1 min-w-0"
                                                 onSearchError={(msg) => {
                                                     toast.error(msg);
                                                     if (index === 0) {

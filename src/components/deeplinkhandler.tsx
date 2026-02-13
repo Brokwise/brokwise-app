@@ -4,6 +4,7 @@ import { App } from "@capacitor/app";
 import { useRouter } from "next/navigation";
 import { isNativeIOS } from "@/utils/helper";
 import { Keyboard } from "@capacitor/keyboard";
+import { PrivacyScreen } from "@capacitor/privacy-screen";
 export type ContentType = "file" | "webURL" | "appContent";
 
 export function DeepLinkHandler() {
@@ -31,11 +32,9 @@ export function DeepLinkHandler() {
         }
         const navigationUrl = `/share?type=${encodeURIComponent(
           type
-        )}&url=${encodeURIComponent(sharedUrl)}${
-          title ? `&title=${encodeURIComponent(title)}` : ""
-        }${
-          description ? `&description=${encodeURIComponent(description)}` : ""
-        }`;
+        )}&url=${encodeURIComponent(sharedUrl)}${title ? `&title=${encodeURIComponent(title)}` : ""
+          }${description ? `&description=${encodeURIComponent(description)}` : ""
+          }`;
         router.push(navigationUrl);
         return;
       }
@@ -50,6 +49,7 @@ export function DeepLinkHandler() {
 
   useEffect(() => {
     if (isIOS) {
+      PrivacyScreen.enable();
       Keyboard.setAccessoryBarVisible({ isVisible: false });
       App.addListener("appUrlOpen", (data: { url: string }) => {
         handleUrl(data.url);

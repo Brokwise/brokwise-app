@@ -73,7 +73,7 @@ export type GetBrokerDetailsResponse = {
     city: string;
     officeAddress: string;
     reraNumber: string;
-    status: "approved" | "pending" | "incomplete" | "blacklisted";
+    status: "approved" | "pending" | "incomplete" | "blacklisted" | "rejected";
     companyId?: string | Company;
     recentSearches?: string[];
     bookmarkedPropertyIds?: string[];

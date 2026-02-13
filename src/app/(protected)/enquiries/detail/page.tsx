@@ -164,7 +164,7 @@ const SingleEnquiryContent = () => {
   );
 
   return (
-    <div className="px-4 md:px-6 lg:px-8 pt-[11px] md:pt-[19px] lg:pt-[27px] pb-20 md:pb-6 lg:pb-8">
+    <div className="px-4 md:px-6 lg:px-8 pt-[11px] md:pt-[19px] lg:pt-[27px] pb-20 md:pb-6 lg:pb-8 overflow-x-hidden">
       {/* Header Section */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-start md:justify-between md:space-y-0 mb-6 md:mb-8">
         <div className="space-y-3">
@@ -293,9 +293,9 @@ const SingleEnquiryContent = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 md:gap-8 lg:grid-cols-3">
+      <div className="grid gap-6 md:gap-8 lg:grid-cols-3 ">
         {/* Main Content Column */}
-        <div className="lg:col-span-2 space-y-6 md:space-y-8">
+        <div className="lg:col-span-2 space-y-6 md:space-y-8  overflow-hidden">
           {/* Requirements Card */}
           <Card className="overflow-hidden border-muted">
             <CardHeader className="bg-muted/10 pb-4">
@@ -521,11 +521,11 @@ const SingleEnquiryContent = () => {
               ) : null}
 
               {/* Action to Submit */}
-              <div className="pt-2 flex  gap-3">
+              <div className="pt-2 flex  gap-3 flex-col md:flex-row">
                 <Button
                   variant="outline"
                   size="lg"
-                  className="flex-1"
+                  className="flex-1 py-3 md:py-0"
                   disabled={!!enquiry.isInterested || isMarkingInterested}
                   onClick={() => {
                     markAsInterested(enquiry._id, {
@@ -556,7 +556,7 @@ const SingleEnquiryContent = () => {
                   onClick={() => {
                     router.push(`/enquiries/submit?id=${enquiry._id}`);
                   }}
-                  className="flex-1"
+                  className="flex-1 py-3 md:py-0"
                   size="lg"
                   disabled={
                     (typeof brokerData?.companyId === "object" &&

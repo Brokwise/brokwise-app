@@ -32,6 +32,7 @@ interface LocationPickerProps {
     context?: { id: string; text: string }[];
   }) => void;
   className?: string;
+  inputValue?: string;
 }
 
 interface SearchResult {
@@ -46,6 +47,7 @@ export const LocationPicker = ({
   onChange,
   onLocationSelect,
   className,
+  inputValue,
 }: LocationPickerProps) => {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -316,7 +318,7 @@ export const LocationPicker = ({
               aria-expanded={open}
               className="w-full justify-between"
             >
-              {searchQuery ? searchQuery : "Search for a location..."}
+              {searchQuery ? searchQuery : (inputValue || "Search for a location...")}
               <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>

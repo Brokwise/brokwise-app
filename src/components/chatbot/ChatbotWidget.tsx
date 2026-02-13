@@ -94,7 +94,7 @@ export function ChatbotWidget({ isOnboarding = false }: ChatbotWidgetProps) {
                 exit={{ opacity: 0, y: 10 }}
                 transition={{ delay: 0.5 }}
                 className={cn(
-                  "absolute bottom-full mb-3 right-0",
+                  "hidden md:absolute bottom-full mb-3 right-0",
                   isMobile ? "w-64" : "w-72",
                   "bg-primary text-primary-foreground",
                   "px-4 py-3 rounded-lg shadow-lg",
@@ -116,7 +116,7 @@ export function ChatbotWidget({ isOnboarding = false }: ChatbotWidgetProps) {
               onClick={handleToggle}
               size="icon"
               className={cn(
-                "h-14 w-14 rounded-full shadow-lg hidden md:block",
+                "h-14 w-14 rounded-full shadow-lg hidden md:flex",
                 "bg-primary hover:bg-primary/90",
                 "transition-transform hover:scale-105 active:scale-95"
               )}
@@ -125,7 +125,7 @@ export function ChatbotWidget({ isOnboarding = false }: ChatbotWidgetProps) {
             </Button>
             {/* Notification dot if there are messages */}
             {messages.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive border-2 border-background" />
+              <span className="hidden md:absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive border-2 border-background " />
             )}
           </motion.div>
         )}

@@ -115,32 +115,25 @@ export const processImageFromUrl = async (
   folder: string = "uploads"
 ): Promise<string> => {
   try {
-    // 1. Fetch via proxy to get base64/dataURL (bypasses CORS)
-    const response = await fetch(`/api/image-proxy?url=${encodeURIComponent(imageUrl)}`);
+    const response = await fetch(`https://api.brokwise.com/utils/image-proxy?url=${encodeURIComponent(imageUrl)}`);
     if (!response.ok) throw new Error("Failed to fetch image via proxy");
 
     const { dataUrl } = await response.json();
 
-    // 2. Convert dataUrl back to a Blob
     const res = await fetch(dataUrl);
     const blob = await res.blob();
 
-    // Extract a name from the URL or use a default
     const urlParts = imageUrl.split('/');
     const originalName = urlParts[urlParts.length - 1].split('?')[0] || "image_from_url";
 
     const file = new File([blob], originalName, { type: blob.type });
 
-    // 3. Convert to WebP (handles HEIC automatically now)
     const optimizedFile = await convertImageToWebP(file);
-
-    // 4. Upload to Firebase
     const path = generateFilePath(optimizedFile.name, folder);
     return await uploadFileToFirebase(optimizedFile, path);
   } catch (error) {
     console.error("Error processing image URL:", error);
-    // Fallback: Return original URL if processing fails 
-    // (browser might still fail to render if it was HEIC)
+
     return imageUrl;
   }
 };

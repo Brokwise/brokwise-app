@@ -739,7 +739,7 @@ export const MarketPlace = () => {
                 variants={containerVariants}
                 initial="hidden"
                 animate="show"
-                className="grid gap-6 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4"
+                className="grid gap-6 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
               >
                 {filteredEnquiries.length > 0 ? (
                   filteredEnquiries.map((enquiry) => {
@@ -748,7 +748,6 @@ export const MarketPlace = () => {
                     const enquiryCity =
                       enquiry.city?.toLowerCase().trim() || "";
                     const enquiryAddress = enquiry.address?.toLowerCase() || "";
-                    // Check if any preferred location matches user's city
                     const preferredLocationsMatch = enquiry.preferredLocations?.some(
                       (loc) =>
                         loc.city?.toLowerCase().trim() === normalizedUserCity ||
@@ -777,7 +776,6 @@ export const MarketPlace = () => {
         </div>
       )}
 
-      {/* Scroll to Top Button */}
       {showScrollTop && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}

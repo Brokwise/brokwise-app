@@ -216,8 +216,8 @@ function SubmitEnquiryPageContent() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
+    <div className="space-y-6 px-4">
+      <div className="flex items-start gap-4 flex-col md:flex-row justify-start">
         <Button
           variant="ghost"
           size="sm"
@@ -231,7 +231,7 @@ function SubmitEnquiryPageContent() {
           }}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {view === "message" ? "Back to Selection" : "Back to Enquiry"}
+          {view === "message" ? "Back to Selection" : "Back"}
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Submit Proposal</h1>

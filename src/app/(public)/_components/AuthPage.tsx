@@ -14,13 +14,15 @@ import {
   Check,
   Sun,
   Moon,
+  MoreVertical,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Capacitor } from "@capacitor/core";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { StatusBar, Style } from "@capacitor/status-bar";
+import { PrivacyScreen } from "@capacitor/privacy-screen";
+
 
 import { FirebaseError } from "firebase/app";
 import {
@@ -37,6 +39,14 @@ import { detectLanguage, changeLanguage } from "@/i18n";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Form,
@@ -146,30 +156,6 @@ export default function AuthPage({
     }
   }, [isMobile, searchParams, router]);
 
-  // Handle status bar based on theme
-  React.useEffect(() => {
-    if (!mounted || !Capacitor.isNativePlatform()) return;
-
-    const updateStatusBar = async () => {
-      try {
-        const currentTheme = theme === "system" ? resolvedTheme : theme;
-        
-        // Show status bar
-        await StatusBar.show();
-        
-        // Update status bar style based on theme
-        if (currentTheme === "dark") {
-          await StatusBar.setStyle({ style: Style.Dark });
-        } else {
-          await StatusBar.setStyle({ style: Style.Light });
-        }
-      } catch (error) {
-        console.error("Error updating status bar:", error);
-      }
-    };
-
-    updateStatusBar();
-  }, [mounted, theme, resolvedTheme]);
 
   const activeTheme = mounted ? resolvedTheme ?? theme : undefined;
   // const isSystemTheme = mounted && theme === "system";
@@ -367,53 +353,82 @@ export default function AuthPage({
       const isNative = Capacitor.isNativePlatform();
 
       if (isNative) {
-        // Use native Google Sign-In for Capacitor (iOS/Android)
         setLoading(true);
-        
+
+        // Disable PrivacyScreen before Google Sign-In to prevent it from
+        // presenting an overlay on top of the ASWebAuthenticationSession,
+        // which blocks the Google sign-in UI on iOS.
+        try {
+          await PrivacyScreen.disable();
+        } catch {
+          // PrivacyScreen might not be available, ignore
+        }
+
         let result;
         try {
           result = await FirebaseAuthentication.signInWithGoogle();
-        } catch (error) {
+        } catch (error: unknown) {
+          // Re-enable PrivacyScreen after sign-in failure
+          try { await PrivacyScreen.enable(); } catch { /* ignore */ }
+
+          // User cancelled the sign-in flow
+          const errMsg = error instanceof Error ? error.message : String(error);
+          if (
+            errMsg.includes("canceled") ||
+            errMsg.includes("cancelled") ||
+            errMsg.includes("The user canceled the sign-in flow")
+          ) {
+            console.log("Google sign-in cancelled by user");
+            return;
+          }
           console.error("Google sign-in error:", error);
           throw error;
         }
-        
+
+        // Re-enable PrivacyScreen after sign-in completes
+        try { await PrivacyScreen.enable(); } catch { /* ignore */ }
+
         if (!result) {
           return;
         }
-        
+
+        // With skipNativeAuth: false, the plugin signs in to Firebase natively
+        // and syncs auth state to the web SDK. We still handle the credential
+        // case as a fallback to ensure the web SDK is signed in.
+        let user: User | null = null;
+
         if (result.credential?.idToken) {
-          // Sign in with Firebase using the Google credential
           const credential = GoogleAuthProvider.credential(result.credential.idToken);
           const userCredential = await signInWithCredential(firebaseAuth, credential);
-          const user = userCredential.user;
-
-          // Wait for auth state to be properly set
-          await new Promise<void>((resolve) => {
+          user = userCredential.user;
+        } else {
+          // Native auth handled sign-in; wait for web SDK to sync
+          user = await new Promise<User>((resolve, reject) => {
             const unsubscribe = firebaseAuth.onAuthStateChanged((authUser) => {
               if (authUser) {
                 unsubscribe();
-                resolve();
+                resolve(authUser);
               }
             });
-            // Timeout after 5 seconds to prevent hanging
             setTimeout(() => {
               unsubscribe();
-              resolve();
-            }, 5000);
+              reject(new Error("Auth state sync timed out"));
+            }, 10000);
           });
-
-          // Create user in DB if first time
-          await createUserInDb(user, user.displayName ?? "");
-
-          // Clear forgot password rate limit state on successful login
-          localStorage.removeItem("brokwise_password_reset_attempts");
-
-          toast.success(t("logged_in_success"));
-          router.push("/");
-        } else {
-          throw new Error("No credential returned from Google Sign-In");
         }
+
+        if (!user) {
+          throw new Error("No user returned from Google Sign-In");
+        }
+
+        // Create user in DB if first time
+        await createUserInDb(user, user.displayName ?? "");
+
+        // Clear forgot password rate limit state on successful login
+        localStorage.removeItem("brokwise_password_reset_attempts");
+
+        toast.success(t("logged_in_success"));
+        router.push("/");
       } else {
         // Web OAuth flow
         if (!Config.googleOauthClientId) {
@@ -549,11 +564,11 @@ export default function AuthPage({
           }`}
       >
         {/* Safe area spacer - fixed at top with same background */}
-        <div 
+        <div
           className={`shrink-0 ${activeTheme === "light" ? "bg-[#FDFCF8]" : "bg-background"}`}
-          style={{ height: "env(safe-area-inset-top, 0px)" }} 
+          style={{ height: "env(safe-area-inset-top, 0px)" }}
         />
-        
+
         {isMobile && (
           <div className="absolute left-4 z-50" style={{ top: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}>
             <Button
@@ -568,40 +583,29 @@ export default function AuthPage({
         )}
 
         {/* Language and Theme Toggle - Top Right */}
-        <div className="absolute right-4 z-50 flex items-center gap-2" style={{ top: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}>
-          {/* Language Toggle */}
-          <div className="flex items-center gap-1 border rounded-full px-1 py-0.5 bg-background/80 backdrop-blur-sm">
-            <Button
-              variant={currentLang === "en" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 px-2.5 rounded-full text-xs font-medium"
-              onClick={() => changeLanguage("en")}
-            >
-              EN
-            </Button>
-            <Button
-              variant={currentLang === "hi" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 px-2.5 rounded-full text-xs font-medium"
-              onClick={() => changeLanguage("hi")}
-            >
-              हिं
-            </Button>
-          </div>
-
-          {/* Theme Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border"
-            onClick={() => setTheme(activeTheme === "light" ? "dark" : "light")}
-          >
-            {activeTheme === "light" ? (
-              <Moon className="h-4 w-4" />
-            ) : (
-              <Sun className="h-4 w-4" />
-            )}
-          </Button>
+        <div className="absolute right-4 z-50" style={{ top: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full bg-background/80 backdrop-blur-sm border">
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Appearance</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setTheme(activeTheme === "light" ? "dark" : "light")}>
+                {activeTheme === "light" ? <Moon className="mr-2 h-4 w-4" /> : <Sun className="mr-2 h-4 w-4" />}
+                {activeTheme === "light" ? "Dark Mode" : "Light Mode"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Language</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => changeLanguage("en")} className={currentLang === "en" ? "bg-accent" : ""}>
+                English
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeLanguage("hi")} className={currentLang === "hi" ? "bg-accent" : ""}>
+                हिंदी
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <div className="flex-1 w-full flex flex-col items-center px-6 lg:px-16 overflow-auto">
           {/* Fixed header area (prevents the Brokwise title from jumping when mode changes) */}

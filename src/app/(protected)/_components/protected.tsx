@@ -18,12 +18,11 @@ import WaveBackground from "@/components/ui/waveBackground";
 import { Loader2 } from "lucide-react";
 import { Loader } from "@/components/ui/loader";
 import Image from "next/image";
+import { SafeAreaWrapper } from "@/components/ui/safe-area";
 
 const AUTH_TIMEOUT_MS = 10000;
 
-const SafeAreaWrapper = ({ children }: { children: React.ReactNode }) => (
-  <div className="safe-area-container">{children}</div>
-);
+
 
 export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   const [user, loading, error] = useAuthState(firebaseAuth);
@@ -297,6 +296,12 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
             <StatusDisplay onEdit={() => setIsEditing(true)} />
           </SafeAreaWrapper>
         );
+      case "rejected":
+        return (
+          <SafeAreaWrapper>
+            <StatusDisplay onEdit={() => setIsEditing(true)} />
+          </SafeAreaWrapper>
+        );
       case "blacklisted":
         return (
           <SafeAreaWrapper>
@@ -328,10 +333,11 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
 
   if (!brokerData && !companyData) {
     return (
-      <WaveBackground>
+      <>
         <OnboardingDetails />
         <ChatbotWidget isOnboarding={true} />
-      </WaveBackground>
+      </>
+
     );
   }
 

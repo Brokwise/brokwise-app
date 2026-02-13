@@ -1,28 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { submitProfileDetails } from "@/validators/onboarding";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { useTranslation } from "react-i18next";
 import { changeLanguage } from "@/i18n";
-import { Input } from "@/components/ui/input";
+import { StatusBar, Style } from "@capacitor/status-bar";
+
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
   ArrowRight,
   Sun,
   Moon,
-  Camera,
-  User,
+  MoreVertical,
+  Languages,
+  LogOut,
+  Palette,
 } from "lucide-react";
 import { submitUserDetails, updateProfileDetails } from "@/models/api/user";
 import { useApp } from "@/context/AppContext";
@@ -33,41 +30,27 @@ import { logError } from "@/utils/errors";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { uploadFileToFirebase, generateFilePath, convertImageToWebP } from "@/utils/upload";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Capacitor } from "@capacitor/core";
+import { Step1 } from "./steps/step1";
+import { Step2 } from "./steps/step2";
+import { Step3 } from "./steps/step3";
+import { KycState } from "@/models/types/kyc";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { cities } from "@/constants/cities";
-import { COUNTRY_CODES } from "@/constants";
-import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
-import useAxios from "@/hooks/useAxios";
+  initiateDigiLockerVerification,
+  getDigiLockerStatus,
+} from "@/models/api/kyc";
 
-// Required field indicator component
-const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
-  <span className="flex items-center gap-1">
-    {children}
-    <span className="text-red-500">*</span>
-  </span>
-);
+const KYC_STORAGE_KEY = "bw_kyc_verification_id";
+const KYC_URL_STORAGE_KEY = "bw_kyc_digilocker_url";
+
+
 
 export const OnboardingDetails = ({
   isEditing = false,
@@ -79,11 +62,8 @@ export const OnboardingDetails = ({
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [imageUploading, setImageUploading] = useState(false);
+
   const [selectedCountry, setSelectedCountry] = useState("+91");
-  const [isNotifying, setIsNotifying] = useState(false);
-  const [hasNotified, setHasNotified] = useState(false);
-  const [notifyMobile, setNotifyMobile] = useState("");
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language;
 
@@ -91,12 +71,13 @@ export const OnboardingDetails = ({
 
   const { brokerData, setBrokerData } = useApp();
   const [user] = useAuthState(firebaseAuth);
-  const api = useAxios();
   const [signOut] = useSignOut(firebaseAuth);
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [openCity, setOpenCity] = useState(false);
-  const [cityQuery, setCityQuery] = useState("");
+
+  // ─── KYC State ───────────────────────────────────────────────────────────────
+  const [kycState, setKycState] = useState<KycState>({ status: "not_started" });
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -106,8 +87,8 @@ export const OnboardingDetails = ({
 
   const stepFields = {
     1: ["profilePhoto", "firstName", "lastName", "mobile"],
-    2: ["companyName", "gstin", "yearsOfExperience"],
-    3: ["city", "officeAddress", "reraNumber"],
+    2: ["companyName", "gstin", "reraNumber", "yearsOfExperience"],
+    3: ["city", "officeAddress"],
   };
 
   const form = useForm<z.infer<typeof submitProfileDetails>>({
@@ -134,10 +115,157 @@ export const OnboardingDetails = ({
     if (!isIndianNumber) {
       form.setValue("mobile", "", { shouldValidate: true, shouldDirty: true });
     }
-    // Reset notification state when country changes
-    setHasNotified(false);
-    setNotifyMobile("");
   }, [form, isIndianNumber, selectedCountry]);
+
+  // ─── Restore KYC state from localStorage on mount ────────────────────────────
+  useEffect(() => {
+    if (isEditing) return; // Skip for edit mode
+    const savedVerificationId = localStorage.getItem(KYC_STORAGE_KEY);
+    if (savedVerificationId && kycState.status === "not_started") {
+      const savedUrl = localStorage.getItem(KYC_URL_STORAGE_KEY) || undefined;
+      setKycState({
+        status: "pending",
+        verificationId: savedVerificationId,
+        digiLockerUrl: savedUrl,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditing]);
+
+  // ─── KYC Polling ─────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (kycState.status !== "pending" || !kycState.verificationId) return;
+
+    const poll = async () => {
+      try {
+        const response = await getDigiLockerStatus(kycState.verificationId!);
+        const status = response.data.status;
+
+        if (status === "AUTHENTICATED") {
+          // Clear polling & localStorage
+          if (pollingRef.current) clearInterval(pollingRef.current);
+          localStorage.removeItem(KYC_STORAGE_KEY);
+          localStorage.removeItem(KYC_URL_STORAGE_KEY);
+
+          const userDetails = response.data.userDetails;
+          setKycState({
+            status: "verified",
+            verificationId: kycState.verificationId,
+            userDetails,
+          });
+
+          // Auto-fill form fields from Aadhaar
+          if (userDetails) {
+            const nameParts = userDetails.name.trim().split(/\s+/);
+            const lastName = nameParts.length > 1 ? nameParts.pop()! : "";
+            const firstName = nameParts.join(" ");
+
+            form.setValue("firstName", firstName, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+            form.setValue("lastName", lastName, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+
+            // Extract 10-digit mobile
+            const mobile = (userDetails.mobile || "").replace(/\D/g, "").slice(-10);
+            if (mobile.length === 10) {
+              form.setValue("mobile", mobile, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
+            }
+          }
+
+          toast.success(t("kyc_verified_title"));
+        } else if (status === "EXPIRED") {
+          if (pollingRef.current) clearInterval(pollingRef.current);
+          localStorage.removeItem(KYC_STORAGE_KEY);
+          localStorage.removeItem(KYC_URL_STORAGE_KEY);
+          setKycState({ status: "expired" });
+        } else if (status === "CONSENT_DENIED" || status === "FAILURE") {
+          if (pollingRef.current) clearInterval(pollingRef.current);
+          localStorage.removeItem(KYC_STORAGE_KEY);
+          localStorage.removeItem(KYC_URL_STORAGE_KEY);
+          setKycState({ status: "failed" });
+        }
+      } catch (error) {
+        console.error("Error polling KYC status:", error);
+      }
+    };
+
+    // Initial check
+    poll();
+    // Then poll every 3 seconds
+    pollingRef.current = setInterval(poll, 3000);
+
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kycState.status, kycState.verificationId]);
+
+  const handleStartKyc = useCallback(async () => {
+    try {
+      setKycState((prev) => ({ ...prev, status: "initiating" }));
+
+      const platform = Capacitor.isNativePlatform()
+        ? Capacitor.getPlatform() === "ios"
+          ? "ios" as const
+          : "android" as const
+        : "web" as const;
+
+      const response = await initiateDigiLockerVerification(platform);
+      const { verificationId, url } = response.data;
+
+      localStorage.setItem(KYC_STORAGE_KEY, verificationId);
+      localStorage.setItem(KYC_URL_STORAGE_KEY, url);
+
+      setKycState({
+        status: "pending",
+        verificationId,
+        digiLockerUrl: url,
+      });
+
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const { Browser } = await import("@capacitor/browser");
+          await Browser.open({ url, presentationStyle: "popover" });
+        } catch {
+          window.open(url, "_blank");
+        }
+      } else {
+        window.open(url, "_blank");
+      }
+    } catch (error) {
+      console.error("Error initiating KYC:", error);
+      setKycState({ status: "failed" });
+      toast.error(t("kyc_initiate_error"));
+      logError({
+        description: "Error initiating DigiLocker KYC",
+        error: error as Error,
+        slackChannel: "frontend-errors",
+      });
+    }
+  }, [t]);
+
+  // ─── Re-open DigiLocker URL ──────────────────────────────────────────────────
+  const handleOpenDigiLocker = useCallback(() => {
+    const url =
+      kycState.digiLockerUrl ||
+      localStorage.getItem(KYC_URL_STORAGE_KEY);
+    if (url) {
+      if (Capacitor.isNativePlatform()) {
+        import("@capacitor/browser")
+          .then(({ Browser }) => Browser.open({ url }))
+          .catch(() => window.open(url, "_blank"));
+      } else {
+        window.open(url, "_blank");
+      }
+    }
+  }, [kycState.digiLockerUrl]);
 
   const onSubmitProfileDetails = async (
     data: z.infer<typeof submitProfileDetails>
@@ -204,60 +332,6 @@ export const OnboardingDetails = ({
     }
   };
 
-  const handleNotifyMe = async () => {
-    if (isNotifying || hasNotified) return;
-    setIsNotifying(true);
-    try {
-      const payload: Record<string, string> = {
-        countryCode: selectedCountry,
-        countryLabel:
-          COUNTRY_CODES.find((country) => country.value === selectedCountry)
-            ?.label ?? "",
-        source: "broker-onboarding",
-      };
-      if (user?.email) payload.email = user.email;
-      if (notifyMobile.trim()) payload.phone = notifyMobile.trim();
-      else if (user?.phoneNumber) payload.phone = user.phoneNumber;
-      if (user?.uid) payload.userId = user.uid;
-
-      await api.post("/notify", payload);
-      setHasNotified(true);
-      toast.success(t("notify_me_success"));
-    } catch (error) {
-      console.error(error);
-      toast.error(t("generic_error"));
-    } finally {
-      setIsNotifying(false);
-    }
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size should be less than 5MB");
-      return;
-    }
-
-    try {
-      setImageUploading(true);
-      const optimizedFile = await convertImageToWebP(file);
-      const path = generateFilePath(optimizedFile.name, `users/${user?.uid}/profile`);
-      const url = await uploadFileToFirebase(optimizedFile, path);
-      form.setValue("profilePhoto", url, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-      toast.success("Profile photo uploaded");
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to upload photo");
-    } finally {
-      setImageUploading(false);
-    }
-  };
-
   const variants = {
     enter: (direction: number) => ({
       x: direction > 0 ? "100%" : "-100%",
@@ -275,6 +349,18 @@ export const OnboardingDetails = ({
 
   const handleNext = async (e: React.MouseEvent) => {
     e.preventDefault();
+
+    // Require KYC for Step 1 (Indian users, non-editing mode)
+    if (
+      step === 1 &&
+      isIndianNumber &&
+      !isEditing &&
+      kycState.status !== "verified"
+    ) {
+      toast.error(t("kyc_required_error"));
+      return;
+    }
+
     const fields = stepFields[
       step as keyof typeof stepFields
     ] as (keyof z.infer<typeof submitProfileDetails>)[];
@@ -289,533 +375,197 @@ export const OnboardingDetails = ({
       setStep(step + 1);
     }
   };
+  React.useEffect(() => {
+    if (!mounted || !Capacitor.isNativePlatform()) return;
+
+    const updateStatusBar = async () => {
+      try {
+        const currentTheme = theme === "system" ? resolvedTheme : theme;
+        await StatusBar.show();
+        await StatusBar.setOverlaysWebView({ overlay: false });
+        if (currentTheme === "dark") {
+          await StatusBar.setStyle({ style: Style.Dark });
+        } else {
+          await StatusBar.setStyle({ style: Style.Light });
+        }
+      } catch (error) {
+        console.error("Error updating status bar:", error);
+      }
+    };
+
+    updateStatusBar();
+  }, [mounted, theme, resolvedTheme]);
+
 
   const handlePrev = () => {
     setDirection(-1);
     setStep(step - 1);
   };
 
-  // Calculate progress
   const totalSteps = 3;
   const progress = (step / totalSteps) * 100;
 
   return (
-    <section className="relative h-[100dvh] w-full overflow-y-auto transition-colors duration-500">
+    <section className="relative h-[100dvh] w-full overflow-hidden md:overflow-y-auto transition-colors duration-500 bg-slate-50 dark:bg-slate-950">
       {/* Theme & Language Toggles */}
-      <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
-        {/* Language Toggle */}
-        <div className="flex items-center gap-1 border rounded-full px-1 py-0.5 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-slate-200 dark:border-slate-800">
-          <Button
-            variant={currentLang === "en" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-7 px-2.5 rounded-full text-xs font-medium"
-            onClick={() => changeLanguage("en")}
-          >
-            EN
-          </Button>
-          <Button
-            variant={currentLang === "hi" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-7 px-2.5 rounded-full text-xs font-medium"
-            onClick={() => changeLanguage("hi")}
-          >
-            हिं
-          </Button>
-        </div>
+      <div className="absolute top-[calc(env(safe-area-inset-top))] right-4 z-50">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border border-slate-200 dark:border-slate-800"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>{t("onboarding_settings") || "Settings"}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
 
-        {/* Theme Toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-full bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border border-slate-200 dark:border-slate-800"
-          onClick={() => setTheme(activeTheme === "light" ? "dark" : "light")}
-        >
-          {activeTheme === "light" ? (
-            <Moon className="h-4 w-4" />
-          ) : (
-            <Sun className="h-4 w-4" />
-          )}
-        </Button>
+            {/* Language Selection */}
+            <DropdownMenuItem className="flex justify-between cursor-pointer" onSelect={(e) => e.preventDefault()}>
+              <div className="flex items-center gap-2">
+                <Languages className="h-4 w-4" />
+                <span>{t("onboarding_language") || "Language"}</span>
+              </div>
+              <div className="flex items-center gap-1 border rounded-full px-1 py-0.5 bg-slate-100 dark:bg-slate-800">
+                <Button
+                  variant={currentLang === "en" ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-6 px-2 rounded-full text-[10px] font-medium"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changeLanguage("en");
+                  }}
+                >
+                  EN
+                </Button>
+                <Button
+                  variant={currentLang === "hi" ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-6 px-2 rounded-full text-[10px] font-medium"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changeLanguage("hi");
+                  }}
+                >
+                  हिं
+                </Button>
+              </div>
+            </DropdownMenuItem>
 
-        <Button
-          variant="ghost"
-          onClick={() => (isEditing && onCancel ? onCancel() : signOut())}
-          className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-        >
-          {isEditing ? t("onboarding_cancel") : t("onboarding_logout")}
-        </Button>
+            {/* Theme Toggle */}
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => setTheme(activeTheme === "light" ? "dark" : "light")}
+            >
+              <Palette className="mr-2 h-4 w-4" />
+              <span>{activeTheme === "light" ? "Dark Mode" : "Light Mode"}</span>
+              {activeTheme === "light" ? (
+                <Moon className="ml-auto h-4 w-4" />
+              ) : (
+                <Sun className="ml-auto h-4 w-4" />
+              )}
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            {/* Logout/Cancel */}
+            <DropdownMenuItem
+              className="text-red-600 focus:text-red-600 cursor-pointer"
+              onClick={() => (isEditing && onCancel ? onCancel() : signOut())}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>{isEditing ? t("onboarding_cancel") : t("onboarding_logout")}</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="flex min-h-full items-center justify-center p-0 md:p-4">
         {/* Executive Card */}
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmitProfileDetails)}
-            className="relative max-w-2xl w-full bg-white dark:bg-[#0F172A] rounded-2xl shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col my-10"
+            className="relative w-full md:max-w-2xl bg-white dark:bg-[#0F172A] md:rounded-2xl shadow-none md:shadow-2xl md:shadow-slate-200/50 dark:shadow-none border-0 md:border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col h-[100dvh] md:h-auto md:min-h-0 my-0 md:my-10"
           >
             {/* Progress Bar */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-100 dark:bg-slate-800">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-100 dark:bg-slate-800 z-10">
               <motion.div
-                className="h-full bg-[#0F766E]"
+                className="h-full bg-primary"
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.5, ease: "circOut" }}
               />
             </div>
 
-            <div className="p-8 md:p-12 space-y-8">
-              {/* Header */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-baseline">
-                  <h1 className="text-3xl md:text-4xl text-slate-900 dark:text-slate-50">
-                    {isEditing ? (
-                      t("onboarding_update_profile")
-                    ) : (
-                      <>
-                        {t("onboarding_setup_profile").split("profile")[0]}
-                        <span className="text-[#0F766E] italic">profile</span>
-                      </>
-                    )}
-                  </h1>
-                  <span className="hidden sm:block text-xs font-bold tracking-widest text-slate-400 uppercase">
-                    {t("onboarding_step_of", { step, total: totalSteps })}
-                  </span>
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden max-w-full">
+              <div className="p-6 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:p-12 md:pt-12 space-y-8">
+                {/* Header */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-baseline">
+                    <h1 className="text-2xl md:text-4xl text-slate-900 dark:text-slate-50 font-semibold">
+                      {isEditing ? (
+                        t("onboarding_update_profile")
+                      ) : (
+                        <>
+                          {t("onboarding_setup_profile").split("profile")[0]}
+                          <span className="text-primary">profile</span>
+                        </>
+                      )}
+                    </h1>
+                    <span className="hidden sm:block text-xs font-bold tracking-widest text-slate-400 uppercase">
+                      {t("onboarding_step_of", { step, total: totalSteps })}
+                    </span>
+                  </div>
+                  <p className="text-sm md:text-base text-slate-500 dark:text-slate-400">
+                    {t("onboarding_profile_details_desc")}
+                  </p>
                 </div>
-                <p className="text-slate-500 dark:text-slate-400">
-                  {t("onboarding_profile_details_desc")}
-                </p>
+
+                {/* Form Fields */}
+                <div className="relative min-h-[300px]">
+                  <AnimatePresence custom={direction} mode="wait">
+                    <motion.div
+                      key={step}
+                      custom={direction}
+                      variants={variants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.4, ease: "circOut" }}
+                      className="space-y-6"
+                    >
+                      {step === 1 && (
+                        <Step1
+                          form={form}
+                          selectedCountry={selectedCountry}
+                          setSelectedCountry={setSelectedCountry}
+                          kycState={kycState}
+                          onStartKyc={handleStartKyc}
+                          onOpenDigiLocker={handleOpenDigiLocker}
+                          isEditing={isEditing}
+                        />
+                      )}
+
+                      {step === 2 && (
+                        <Step2 form={form} />
+                      )}
+
+                      {step === 3 && (
+                        <Step3 form={form} />
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
               </div>
+            </div>
 
-              {/* Form Fields */}
-              <div className="relative min-h-[300px]">
-                <AnimatePresence custom={direction} mode="wait">
-                  <motion.div
-                    key={step}
-                    custom={direction}
-                    variants={variants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{ duration: 0.4, ease: "circOut" }}
-                    className="space-y-6"
-                  >
-                    {step === 1 && (
-                      <div className="space-y-5">
-                        <div className="flex flex-col items-center justify-center gap-4 mb-6">
-                          <div className="relative group">
-                            <Avatar className="h-24 w-24 border-4 border-white shadow-lg dark:border-slate-800">
-                              <AvatarImage
-                                src={form.watch("profilePhoto")}
-                                className="object-cover"
-                              />
-                              <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-slate-400">
-                                <User className="h-10 w-10" />
-                              </AvatarFallback>
-                            </Avatar>
-                            <label
-                              htmlFor="profile-photo-upload"
-                              className="absolute bottom-0 right-0 p-2 bg-[#0F172A] text-white rounded-full cursor-pointer hover:bg-[#1E293B] transition-colors shadow-sm dark:bg-white dark:text-slate-900"
-                            >
-                              {imageUploading ? (
-                                <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                <Camera className="h-4 w-4" />
-                              )}
-                              <input
-                                id="profile-photo-upload"
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={handleImageUpload}
-                                disabled={imageUploading}
-                              />
-                            </label>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                              {t("onboarding_profile_photo")}
-                            </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
-                              {t("onboarding_profile_photo_hint")}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          <FormField
-                            control={form.control}
-                            name="firstName"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                  <RequiredLabel>{t("onboarding_first_name")}</RequiredLabel>
-                                </FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
-                                    placeholder="e.g. John"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="lastName"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                  <RequiredLabel>{t("onboarding_last_name")}</RequiredLabel>
-                                </FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
-                                    placeholder="e.g. Doe"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <FormField
-                          control={form.control}
-                          name="mobile"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                <RequiredLabel>{t("onboarding_mobile_number")}</RequiredLabel>
-                              </FormLabel>
-                              <FormControl>
-                                <div className="flex gap-2">
-                                  <Select
-                                    value={selectedCountry}
-                                    onValueChange={setSelectedCountry}
-                                  >
-                                    <SelectTrigger className="w-[160px] h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {COUNTRY_CODES.map((country) => (
-                                        <SelectItem
-                                          key={country.code}
-                                          value={country.value}
-                                        >
-                                          {country.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-
-                                  <Input
-                                    {...field}
-                                    type="tel"
-                                    maxLength={10}
-                                    className="flex-1 h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all disabled:opacity-60"
-                                    placeholder="e.g. 9876543210"
-                                    disabled={!isIndianNumber}
-                                    onChange={(e) => {
-                                      const value = e.target.value
-                                        .replace(/\D/g, "")
-                                        .slice(0, 10);
-                                      field.onChange(value);
-                                    }}
-                                  />
-                                </div>
-                              </FormControl>
-                              {isIndianNumber && (
-                                <FormDescription className="text-xs text-slate-500 dark:text-slate-400">
-                                  {t("mobile_aadhaar_hint")}
-                                </FormDescription>
-                              )}
-                              {!isIndianNumber && (
-                                <div className="mt-2 space-y-2">
-                                  <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400">
-                                    <p className="leading-snug">
-                                      {t("coming_soon_country")}
-                                    </p>
-                                  </div>
-                                  {hasNotified ? (
-                                    <div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400">
-                                      <Check className="h-4 w-4" />
-                                      <span>{t("notify_me_success")}</span>
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center gap-2">
-                                      <Input
-                                        type="tel"
-                                        maxLength={15}
-                                        value={notifyMobile}
-                                        onChange={(e) =>
-                                          setNotifyMobile(
-                                            e.target.value.replace(/[^\d+]/g, "")
-                                          )
-                                        }
-                                        className="flex-1 h-10 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
-                                        placeholder={t("notify_mobile_placeholder")}
-                                      />
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-10 border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950"
-                                        onClick={handleNotifyMe}
-                                        disabled={isNotifying}
-                                      >
-                                        {isNotifying ? t("submitting") : t("notify_me")}
-                                      </Button>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                              {isIndianNumber && <FormMessage />}
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    )}
-
-                    {step === 2 && (
-                      <div className="space-y-5">
-                        <FormField
-                          control={form.control}
-                          name="companyName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                {t("onboarding_company_name")}{" "}
-                                <span className="text-slate-400 text-xs ml-1 font-normal">
-                                  {t("onboarding_optional")}
-                                </span>
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
-                                  placeholder="Your agency name"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                          <FormField
-                            control={form.control}
-                            name="gstin"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                  {t("onboarding_gstin")}{" "}
-                                  <span className="text-slate-400 text-xs ml-1 font-normal">
-                                    {t("onboarding_optional")}
-                                  </span>
-                                </FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    maxLength={15}
-                                    className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all uppercase placeholder:normal-case"
-                                    placeholder={t("onboarding_gstin_number")}
-                                    onChange={(e) => {
-                                      const value = e.target.value
-                                        .toUpperCase()
-                                        .slice(0, 15);
-                                      field.onChange(value);
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="yearsOfExperience"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                  <RequiredLabel>{t("onboarding_experience")}</RequiredLabel>
-                                </FormLabel>
-                                <FormControl>
-                                  <Select
-                                    onValueChange={(e) =>
-                                      field.onChange(parseInt(e))
-                                    }
-                                    value={
-                                      field.value !== undefined
-                                        ? field.value.toString()
-                                        : undefined
-                                    }
-                                  >
-                                    <SelectTrigger className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all">
-                                      <SelectValue placeholder={t("onboarding_years")} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {[...Array(16)].map((_, index) => (
-                                        <SelectItem
-                                          key={index}
-                                          value={index.toString()}
-                                        >
-                                          {index === 15 ? "15+" : index}{" "}
-                                          {index === 1 ? t("onboarding_year") : t("onboarding_years_plural")}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {step === 3 && (
-                      <div className="space-y-5">
-                        <FormField
-                          control={form.control}
-                          name="city"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                {t("onboarding_city")}
-                              </FormLabel>
-                              <Popover open={openCity} onOpenChange={setOpenCity}>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant="outline"
-                                      role="combobox"
-                                      aria-expanded={openCity}
-                                      className={cn(
-                                        "w-full justify-between h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all",
-                                        !field.value && "text-muted-foreground"
-                                      )}
-                                    >
-                                      {field.value
-                                        ? field.value
-                                        : t("onboarding_select_city")}
-                                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                  <Command>
-                                    <CommandInput
-                                      placeholder={t("onboarding_search_city")}
-                                      onValueChange={setCityQuery}
-                                    />
-                                    <CommandList>
-                                      <CommandEmpty>
-                                        <p className="p-2 text-sm text-muted-foreground">
-                                          {t("onboarding_no_city_found")}
-                                        </p>
-                                        <Button
-                                          variant="ghost"
-                                          className="w-full justify-start h-auto p-2 text-sm"
-                                          onClick={() => {
-                                            field.onChange(cityQuery);
-                                            setOpenCity(false);
-                                          }}
-                                        >
-                                          {t("onboarding_use_city")} &quot;{cityQuery}&quot;
-                                        </Button>
-                                      </CommandEmpty>
-                                      <CommandGroup>
-                                        {cities.map((city) => (
-                                          <CommandItem
-                                            key={city}
-                                            value={city}
-                                            onSelect={(currentValue) => {
-                                              field.onChange(
-                                                currentValue === field.value
-                                                  ? ""
-                                                  : currentValue
-                                              );
-                                              setOpenCity(false);
-                                            }}
-                                          >
-                                            <Check
-                                              className={cn(
-                                                "mr-2 h-4 w-4",
-                                                field.value?.toLowerCase() ===
-                                                  city.toLowerCase()
-                                                  ? "opacity-100"
-                                                  : "opacity-0"
-                                              )}
-                                            />
-                                            {city}
-                                          </CommandItem>
-                                        ))}
-                                      </CommandGroup>
-                                    </CommandList>
-                                  </Command>
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="officeAddress"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                {t("onboarding_office_address")}
-                              </FormLabel>
-                              <FormControl>
-                                <AddressAutocomplete
-                                  valueLabel={field.value || ""}
-                                  valueId={field.value || ""}
-                                  placeholder="Search office address..."
-                                  className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
-                                  onSelect={(item) =>
-                                    field.onChange(item.place_name)
-                                  }
-                                  onClear={() => field.onChange("")}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="reraNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                {t("onboarding_rera_number")}{" "}
-                                <span className="text-slate-400 text-xs ml-1 font-normal">
-                                  {t("onboarding_optional")}
-                                </span>
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  maxLength={50}
-                                  className="h-12 bg-white border-slate-200 text-slate-900 focus:border-[#0F766E] focus:ring-[#0F766E]/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-slate-100 dark:focus:border-[#0F766E] transition-all"
-                                  placeholder={t("onboarding_rera_id")}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    )}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-
-              {/* Actions Bar */}
-              <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800/50">
+            {/* Actions Bar */}
+            <div className="p-4 md:p-12 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800/50 bg-white dark:bg-[#0F172A] z-20">
+              <div className="flex items-center justify-between">
                 {step > 1 ? (
                   <Button
                     variant="ghost"
@@ -836,7 +586,7 @@ export const OnboardingDetails = ({
                   disabled={loading || (step === 1 && !isIndianNumber)}
                   className={`
                   h-12 px-8 font-medium
-                  bg-[#0F172A] text-white hover:bg-[#1E293B]
+                  bg-primary text-white hover:bg-[#1E293B]
                   dark:bg-white dark:text-[#0F172A] dark:hover:bg-slate-200
                   transition-all duration-300
                   ${step === 3 && !isValid && !loading

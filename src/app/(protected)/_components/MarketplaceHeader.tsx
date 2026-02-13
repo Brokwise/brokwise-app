@@ -165,7 +165,6 @@ export const MarketplaceHeader = ({
     { value: "FARM_HOUSE", label: t("category_farmhouse") },
   ];
 
-  // Get property type options based on selected category
   const propertyTypeOptions = useMemo(() => {
     if (categoryFilter === "ALL") {
       return [{ value: "ALL", label: "All Types" }];
@@ -177,7 +176,7 @@ export const MarketplaceHeader = ({
     );
   }, [categoryFilter]);
 
-  // Check if BHK filter is relevant (only for Residential category)
+
   const showBhkFilter =
     categoryFilter === "ALL" || categoryFilter === "RESIDENTIAL";
 

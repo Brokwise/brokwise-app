@@ -14,6 +14,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -34,6 +41,7 @@ import {
   formatDate,
   getConversionFactor,
 } from "@/lib/landConverter";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const ResultItem = ({
   result,
@@ -89,9 +97,247 @@ const ResultItem = ({
   </Card>
 );
 
+const LandConverterContent = ({
+  inputValue,
+  fromUnit,
+  setFromUnit,
+  toUnit,
+  setToUnit,
+  selectedState,
+  setSelectedState,
+  currentResult,
+  setCurrentResult,
+  handleConvert,
+  handleSwapUnits,
+  handleInputChange,
+  handleKeyPress,
+  handleSelectResult,
+  results,
+  clearResults,
+  removeResult,
+  getAvailableUnits,
+}: {
+  inputValue: string;
+  setInputValue: (val: string) => void;
+  fromUnit: string;
+  setFromUnit: (val: string) => void;
+  toUnit: string;
+  setToUnit: (val: string) => void;
+  selectedState: string;
+  setSelectedState: (val: string) => void;
+  currentResult: number | null;
+  setCurrentResult: (val: number | null) => void;
+  handleConvert: () => void;
+  handleSwapUnits: () => void;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleKeyPress: (e: React.KeyboardEvent) => void;
+  handleSelectResult: (result: ConversionResult) => void;
+  results: ConversionResult[];
+  clearResults: () => void;
+  removeResult: (id: string) => void;
+  getAvailableUnits: (state: string) => string[];
+}) => {
+  return (
+    <div className="flex-1 overflow-y-auto min-h-0 space-y-6 px-1 py-1">
+      {/* Input Section */}
+      <div className="space-y-4">
+        {/* Input and State Row */}
+        <div className="flex flex-col-reverse sm:flex-row gap-4 items-end">
+          <div className="w-full sm:flex-[0.75] min-w-0 p-0.5">
+            <Label htmlFor="land-value" className="text-sm">
+              Enter Value
+            </Label>
+            <Input
+              id="land-value"
+              type="number"
+              placeholder="Enter land area"
+              value={inputValue}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyPress}
+              className="mt-1.5"
+              min="0"
+              step="any"
+            />
+          </div>
+
+          <div className="w-full sm:flex-[0.25] sm:min-w-[80px] p-0.5">
+            <Label className="text-sm">State</Label>
+            <Select
+              value={selectedState}
+              onValueChange={(v) => {
+                setSelectedState(v);
+                setCurrentResult(null);
+              }}
+            >
+              <SelectTrigger className="mt-1.5 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(STATE_DATA).map((stateData) => (
+                  <SelectItem key={stateData.name} value={stateData.name}>
+                    {stateData.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto,1fr] gap-2 items-end">
+          <div className="w-full">
+            <Label className="text-sm">From</Label>
+            <Select
+              value={fromUnit}
+              onValueChange={(v) => {
+                setFromUnit(v);
+                setCurrentResult(null);
+              }}
+            >
+              <SelectTrigger className="mt-1.5">
+                <SelectValue className="truncate" />
+              </SelectTrigger>
+              <SelectContent>
+                {getAvailableUnits(selectedState).map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {UNIT_LABELS[key] || key}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="text-[10px] text-muted-foreground mt-1 truncate">
+              1 {UNIT_LABELS[fromUnit]} ={" "}
+              {formatNumber(getConversionFactor(fromUnit, selectedState))} sq m
+            </div>
+          </div>
+
+          <div className="flex justify-center sm:block sm:mb-6">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSwapUnits}
+              className="rotate-90 sm:rotate-0"
+              title="Swap units"
+            >
+              <ArrowRightLeft className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="w-full">
+            <Label className="text-sm">To</Label>
+            <Select
+              value={toUnit}
+              onValueChange={(v) => {
+                setToUnit(v);
+                setCurrentResult(null);
+              }}
+            >
+              <SelectTrigger className="mt-1.5">
+                <SelectValue className="truncate" />
+              </SelectTrigger>
+              <SelectContent>
+                {getAvailableUnits(selectedState).map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {UNIT_LABELS[key] || key}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="text-[10px] text-muted-foreground mt-1 truncate">
+              1 {UNIT_LABELS[toUnit]} ={" "}
+              {formatNumber(getConversionFactor(toUnit, selectedState))} sq m
+            </div>
+          </div>
+        </div>
+
+        <Button
+          onClick={handleConvert}
+          className="w-full"
+          disabled={!inputValue}
+        >
+          Convert
+        </Button>
+
+        {/* Current Result */}
+        {currentResult !== null && (
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="p-4">
+              <div className="text-center w-full overflow-hidden">
+                <div className="text-sm text-muted-foreground">Result</div>
+                <div className="text-2xl font-bold text-primary mt-1 break-words leading-tight">
+                  {formatNumber(currentResult)}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  {UNIT_LABELS[toUnit]}
+                </div>
+                <div className="text-xs text-muted-foreground mt-2">
+                  Based on {selectedState} standards
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* History Section */}
+      <div>
+        <div className="flex items-center justify-between mb-3 sticky top-0 bg-background py-2 z-10">
+          <div className="flex items-center gap-2">
+            <History className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Recent Conversions</span>
+            {results.length > 0 && (
+              <span className="text-xs text-muted-foreground">
+                ({results.length})
+              </span>
+            )}
+          </div>
+          {results.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearResults}
+              className="h-7 text-xs text-destructive hover:text-destructive"
+            >
+              <Trash2 className="w-3 h-3 mr-1" />
+              Clear All
+            </Button>
+          )}
+        </div>
+
+        <div className="min-h-[100px]">
+          {results.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Ruler className="w-10 h-10 text-muted-foreground/30 mb-3" />
+              <p className="text-sm text-muted-foreground">
+                No conversions yet
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Your conversion history will appear here
+              </p>
+            </div>
+          ) : (
+            <div className="pr-1">
+              {results.map((result) => (
+                <ResultItem
+                  key={result.id}
+                  result={result}
+                  onRemove={() => removeResult(result.id)}
+                  onSelect={handleSelectResult}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const LandConverter = () => {
   const { results, isOpen, addResult, clearResults, removeResult, setIsOpen } =
     useLandConverterStore();
+  const isMobile = useIsMobile();
 
   const [inputValue, setInputValue] = useState<string>("");
   const [fromUnit, setFromUnit] = useState<string>("sq_ft");
@@ -102,7 +348,10 @@ export const LandConverter = () => {
   // Combine standard units with state-specific units for the dropdown
   const getAvailableUnits = (state: string) => {
     const stateUnits = STATE_DATA[state]?.units || {};
-    const allUnitKeys = new Set([...Object.keys(STANDARD_UNITS), ...Object.keys(stateUnits)]);
+    const allUnitKeys = new Set([
+      ...Object.keys(STANDARD_UNITS),
+      ...Object.keys(stateUnits),
+    ]);
     return Array.from(allUnitKeys).sort();
   };
 
@@ -156,6 +405,56 @@ export const LandConverter = () => {
     }
   };
 
+  const contentProps = {
+    inputValue,
+    setInputValue,
+    fromUnit,
+    setFromUnit,
+    toUnit,
+    setToUnit,
+    selectedState,
+    setSelectedState,
+    currentResult,
+    setCurrentResult,
+    handleConvert,
+    handleSwapUnits,
+    handleInputChange,
+    handleKeyPress,
+    handleSelectResult,
+    results,
+    clearResults,
+    removeResult,
+    getAvailableUnits,
+  };
+
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={setIsOpen}>
+        <DrawerTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="relative"
+            title="Land Converter"
+          >
+            <Ruler className="w-4 h-4" />
+          </Button>
+        </DrawerTrigger>
+        <DrawerContent className="h-[85vh]">
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Ruler className="w-4 h-4 sm:w-5 sm:h-5" />
+              Land Converter
+            </DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4 overflow-y-auto">
+            <LandConverterContent {...contentProps} />
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
@@ -175,177 +474,7 @@ export const LandConverter = () => {
             Land Converter
           </SheetTitle>
         </SheetHeader>
-
-        <div className="flex-1 overflow-y-auto min-h-0 space-y-6 px-1 py-1">
-          {/* Input Section */}
-          <div className="space-y-4">
-
-            {/* Input and State Row */}
-            <div className="flex flex-col-reverse sm:flex-row gap-4 items-end">
-              <div className="w-full sm:flex-[0.75] min-w-0 p-0.5">
-                <Label htmlFor="land-value" className="text-sm">
-                  Enter Value
-                </Label>
-                <Input
-                  id="land-value"
-                  type="number"
-                  placeholder="Enter land area"
-                  value={inputValue}
-                  onChange={handleInputChange}
-                  onKeyDown={handleKeyPress}
-                  className="mt-1.5"
-                  min="0"
-                  step="any"
-                />
-              </div>
-
-              <div className="w-full sm:flex-[0.25] sm:min-w-[80px] p-0.5">
-                <Label className="text-sm">State</Label>
-                <Select value={selectedState} onValueChange={(v) => { setSelectedState(v); setCurrentResult(null); }}>
-                  <SelectTrigger className="mt-1.5 w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(STATE_DATA).map((stateData) => (
-                      <SelectItem key={stateData.name} value={stateData.name}>
-                        {stateData.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto,1fr] gap-2 items-end">
-              <div className="w-full">
-                <Label className="text-sm">From</Label>
-                <Select value={fromUnit} onValueChange={(v) => { setFromUnit(v); setCurrentResult(null); }}>
-                  <SelectTrigger className="mt-1.5">
-                    <SelectValue className="truncate" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getAvailableUnits(selectedState).map((key) => (
-                      <SelectItem key={key} value={key}>
-                        {UNIT_LABELS[key] || key}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="text-[10px] text-muted-foreground mt-1 truncate">
-                  1 {UNIT_LABELS[fromUnit]} = {formatNumber(getConversionFactor(fromUnit, selectedState))} sq m
-                </div>
-              </div>
-
-              <div className="flex justify-center sm:block sm:mb-6">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleSwapUnits}
-                  className="rotate-90 sm:rotate-0"
-                  title="Swap units"
-                >
-                  <ArrowRightLeft className="w-4 h-4" />
-                </Button>
-              </div>
-
-              <div className="w-full">
-                <Label className="text-sm">To</Label>
-                <Select value={toUnit} onValueChange={(v) => { setToUnit(v); setCurrentResult(null); }}>
-                  <SelectTrigger className="mt-1.5">
-                    <SelectValue className="truncate" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getAvailableUnits(selectedState).map((key) => (
-                      <SelectItem key={key} value={key}>
-                        {UNIT_LABELS[key] || key}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="text-[10px] text-muted-foreground mt-1 truncate">
-                  1 {UNIT_LABELS[toUnit]} = {formatNumber(getConversionFactor(toUnit, selectedState))} sq m
-                </div>
-              </div>
-            </div>
-
-            <Button onClick={handleConvert} className="w-full" disabled={!inputValue}>
-              Convert
-            </Button>
-
-            {/* Current Result */}
-            {currentResult !== null && (
-              <Card className="bg-primary/5 border-primary/20">
-                <CardContent className="p-4">
-                  <div className="text-center w-full overflow-hidden">
-                    <div className="text-sm text-muted-foreground">Result</div>
-                    <div className="text-2xl font-bold text-primary mt-1 break-words leading-tight">
-                      {formatNumber(currentResult)}
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      {UNIT_LABELS[toUnit]}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-2">
-                      Based on {selectedState} standards
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          <Separator />
-
-          {/* History Section */}
-          <div>
-            <div className="flex items-center justify-between mb-3 sticky top-0 bg-background py-2 z-10">
-              <div className="flex items-center gap-2">
-                <History className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Recent Conversions</span>
-                {results.length > 0 && (
-                  <span className="text-xs text-muted-foreground">
-                    ({results.length})
-                  </span>
-                )}
-              </div>
-              {results.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearResults}
-                  className="h-7 text-xs text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="w-3 h-3 mr-1" />
-                  Clear All
-                </Button>
-              )}
-            </div>
-
-            <div className="min-h-[100px]">
-              {results.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <Ruler className="w-10 h-10 text-muted-foreground/30 mb-3" />
-                  <p className="text-sm text-muted-foreground">
-                    No conversions yet
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Your conversion history will appear here
-                  </p>
-                </div>
-              ) : (
-                <div className="pr-1">
-                  {results.map((result) => (
-                    <ResultItem
-                      key={result.id}
-                      result={result}
-                      onRemove={() => removeResult(result.id)}
-                      onSelect={handleSelectResult}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <LandConverterContent {...contentProps} />
       </SheetContent>
     </Sheet>
   );

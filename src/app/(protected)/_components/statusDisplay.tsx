@@ -26,6 +26,9 @@ import {
   LucideProps,
   Sun,
   Moon,
+  MoreVertical,
+  Languages,
+  Palette,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -37,6 +40,7 @@ import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "react-i18next";
 import { changeLanguage } from "@/i18n";
 import { useTheme } from "next-themes";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface StatusDisplayProps {
   onEdit?: () => void;
@@ -155,206 +159,238 @@ export const StatusDisplay = ({ onEdit, data, type }: StatusDisplayProps) => {
   );
 
   return (
-    <div className="h-screen overflow-hidden w-full flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950/50">
+
+    <div className="h-[100dvh] w-full overflow-hidden md:overflow-y-auto transition-colors duration-500 bg-slate-50 dark:bg-slate-950">
       {/* Top Bar - Language, Theme, and Logout */}
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
-        {/* Language Toggle */}
-        <div className="flex items-center gap-1 border rounded-full px-1 py-0.5 bg-background/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200 dark:border-slate-800">
-          <Button
-            variant={currentLang === "en" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-7 px-2.5 rounded-full text-xs font-medium"
-            onClick={() => changeLanguage("en")}
-          >
-            EN
-          </Button>
-          <Button
-            variant={currentLang === "hi" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-7 px-2.5 rounded-full text-xs font-medium"
-            onClick={() => changeLanguage("hi")}
-          >
-            हिं
-          </Button>
-        </div>
+      <div className="absolute top-[calc(env(safe-area-inset-top))] right-4 z-50">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border border-slate-200 dark:border-slate-800"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>{t("onboarding_settings") || "Settings"}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
 
-        {/* Theme Toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-full bg-background/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-800"
-          onClick={() => setTheme(activeTheme === "light" ? "dark" : "light")}
-        >
-          {activeTheme === "light" ? (
-            <Moon className="h-4 w-4" />
-          ) : (
-            <Sun className="h-4 w-4" />
-          )}
-        </Button>
+            {/* Language Selection */}
+            <DropdownMenuItem className="flex justify-between cursor-pointer" onSelect={(e) => e.preventDefault()}>
+              <div className="flex items-center gap-2">
+                <Languages className="h-4 w-4" />
+                <span>{t("onboarding_language") || "Language"}</span>
+              </div>
+              <div className="flex items-center gap-1 border rounded-full px-1 py-0.5 bg-slate-100 dark:bg-slate-800">
+                <Button
+                  variant={currentLang === "en" ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-6 px-2 rounded-full text-[10px] font-medium"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changeLanguage("en");
+                  }}
+                >
+                  EN
+                </Button>
+                <Button
+                  variant={currentLang === "hi" ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-6 px-2 rounded-full text-[10px] font-medium"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changeLanguage("hi");
+                  }}
+                >
+                  हिं
+                </Button>
+              </div>
+            </DropdownMenuItem>
 
-        {/* Logout Button */}
-        <Button
-          variant="ghost"
-          onClick={() => signOut()}
-          className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors gap-2 border border-transparent hover:border-red-200 dark:hover:border-red-900"
-        >
-          <LogOut className="h-4 w-4" />
-          {t("action_logout")}
-        </Button>
+            {/* Theme Toggle */}
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => setTheme(activeTheme === "light" ? "dark" : "light")}
+            >
+              <Palette className="mr-2 h-4 w-4" />
+              <span>{activeTheme === "light" ? "Dark Mode" : "Light Mode"}</span>
+              {activeTheme === "light" ? (
+                <Moon className="ml-auto h-4 w-4" />
+              ) : (
+                <Sun className="ml-auto h-4 w-4" />
+              )}
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem
+              className="text-red-600 focus:text-red-600 cursor-pointer"
+              onClick={() => (signOut())}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>{t("onboarding_logout")}</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <Card className="w-full max-w-2xl overflow-hidden border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-900">
-        <div className={`h-3 w-full bg-gradient-to-r from-transparent via-${statusConfig.color.split("-")[1]}-500/20 to-transparent`} />
+      <div className="flex min-h-full items-center justify-center p-0 md:p-4">
+        <Card className="relative w-full overflow-hidden md:max-w-2xl bg-white dark:bg-[#0F172A] md:rounded-2xl shadow-none md:shadow-2xl md:shadow-slate-200/50 dark:shadow-none border-0 md:border border-slate-200 dark:border-slate-800 flex flex-col h-[100dvh] md:h-auto md:min-h-0 my-0 md:my-10">
 
-        {/* Decorative background gradient */}
-        <div className={cn("absolute inset-0 opacity-[0.03] pointer-events-none", statusConfig.bgColor)} />
+          <div className={cn("absolute inset-0 opacity-[0.03] pointer-events-none", statusConfig.bgColor)} />
 
-        <CardHeader className="text-center pb-8 pt-8">
-          <div className="mx-auto mb-6 relative">
-            {/* Animated glow effect for pending status */}
-            <div
-              className={cn(
-                "absolute inset-0 rounded-full blur-xl opacity-50 transition-opacity duration-1000",
-                statusConfig.bgColor,
-                activeData.status === "pending" && "animate-pulse"
-              )}
-              style={{ animationDuration: activeData.status === "pending" ? "2s" : undefined }}
-            />
-            {/* Icon container with enhanced animation */}
-            <div
-              className={cn(
-                "relative flex items-center justify-center w-24 h-24 rounded-full border-[6px] bg-white dark:bg-slate-900 shadow-lg mx-auto transform transition-all duration-500 hover:scale-105",
-                statusConfig.borderColor,
-                statusConfig.color
-              )}
-            >
-              <statusConfig.icon
-                className={cn(
-                  "h-12 w-12 transition-transform duration-1000",
-                  activeData.status === "pending" && "animate-[spin_4s_ease-in-out_infinite]"
-                )}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Badge
-              variant="secondary"
-              className={cn(
-                "px-4 py-1.5 text-sm font-medium",
-                statusConfig.badgeClass
-              )}
-            >
-              {statusConfig.title}
-            </Badge>
-            <CardTitle className="text-3xl font-normal mt-4 ">
-              {isCompany
-                ? company.name
-                : `${broker.firstName} ${broker.lastName}`}
-            </CardTitle>
-            <CardDescription className="text-base  max-w-md mx-auto">
-              {statusConfig.description}
-            </CardDescription>
-          </div>
-        </CardHeader>
-
-        <Separator className="bg-slate-100 dark:bg-slate-800" />
-
-        <CardContent className="p-6 md:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {isCompany ? (
-              <>
-                <DetailItem
-                  icon={Building2}
-                  label={t("status_company_name")}
-                  value={company.name}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden max-w-full">
+            <CardHeader className="text-center pb-8 pt-[calc(env(safe-area-inset-top,0px))] md:pt-8">
+              <div className="mx-auto mb-6 relative">
+                {/* Animated glow effect for pending status */}
+                <div
+                  className={cn(
+                    "absolute inset-0 rounded-full blur-xl opacity-50 transition-opacity duration-1000",
+                    statusConfig.bgColor,
+                    activeData.status === "pending" && "animate-pulse"
+                  )}
+                  style={{ animationDuration: activeData.status === "pending" ? "2s" : undefined }}
                 />
-                <DetailItem
-                  icon={FileText}
-                  label={t("status_gstin")}
-                  value={company.gstin}
-                />
-                <DetailItem
-                  icon={Mail}
-                  label={t("status_email_address")}
-                  value={company.email}
-                />
-                <DetailItem
-                  icon={Phone}
-                  label={t("status_phone_number")}
-                  value={company.mobile}
-                />
-                <DetailItem
-                  icon={MapPin}
-                  label={t("status_headquarters")}
-                  value={company.city}
-                />
-                <DetailItem
-                  icon={Users}
-                  label={t("status_team_size")}
-                  value={company.noOfEmployees}
-                />
-              </>
-            ) : (
-              <>
-                <DetailItem
-                  icon={User}
-                  label={t("status_full_name")}
-                  value={`${broker.firstName} ${broker.lastName}`}
-                />
-                <DetailItem
-                  icon={Building2}
-                  label={t("status_company")}
-                  value={broker.companyName}
-                />
-                <DetailItem
-                  icon={Mail}
-                  label={t("status_email_address")}
-                  value={broker.email}
-                />
-                <DetailItem
-                  icon={Phone}
-                  label={t("status_phone_number")}
-                  value={broker.mobile}
-                />
-                <DetailItem
-                  icon={MapPin}
-                  label={t("status_location")}
-                  value={broker.city}
-                />
-                <DetailItem
-                  icon={Briefcase}
-                  label={t("status_experience")}
-                  value={`${broker.yearsOfExperience === 15
-                    ? "15+"
-                    : broker.yearsOfExperience
-                    } ${t("status_years")}`}
-                />
-                {broker.brokerId && (
-                  <DetailItem
-                    icon={Hash}
-                    label={t("status_broker_id")}
-                    value={broker.brokerId}
+                {/* Icon container with enhanced animation */}
+                <div
+                  className={cn(
+                    "relative flex items-center justify-center w-24 h-24 rounded-full border-[6px] bg-white dark:bg-slate-900 shadow-lg mx-auto transform transition-all duration-500 hover:scale-105",
+                    statusConfig.borderColor,
+                    statusConfig.color
+                  )}
+                >
+                  <statusConfig.icon
+                    className={cn(
+                      "h-12 w-12 transition-transform duration-1000",
+                      activeData.status === "pending" && "animate-[spin_4s_ease-in-out_infinite]"
+                    )}
                   />
-                )}
-              </>
-            )}
-          </div>
+                </div>
+              </div>
 
-          {activeData.status === "pending" && onEdit && (
-            <div className="mt-8 flex justify-center">
-              <Button
-                onClick={onEdit}
-                variant="outline"
-                className="gap-2 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
-              >
-                <Edit2 className="h-4 w-4" />
-                {t("status_edit_profile")}
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              <div className="space-y-2">
+                <Badge
+                  variant="secondary"
+                  className={cn(
+                    "px-4 py-1.5 text-sm font-medium",
+                    statusConfig.badgeClass
+                  )}
+                >
+                  {statusConfig.title}
+                </Badge>
+                <CardTitle className="text-3xl font-normal mt-4 ">
+                  {isCompany
+                    ? company.name
+                    : `${broker.firstName} ${broker.lastName}`}
+                </CardTitle>
+                <CardDescription className="text-base  max-w-md mx-auto">
+                  {statusConfig.description}
+                </CardDescription>
+              </div>
+            </CardHeader>
+
+            <Separator className="bg-slate-100 dark:bg-slate-800" />
+
+            <CardContent className="p-6 md:p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {isCompany ? (
+                  <>
+                    <DetailItem
+                      icon={Building2}
+                      label={t("status_company_name")}
+                      value={company.name}
+                    />
+                    <DetailItem
+                      icon={FileText}
+                      label={t("status_gstin")}
+                      value={company.gstin}
+                    />
+                    <DetailItem
+                      icon={Mail}
+                      label={t("status_email_address")}
+                      value={company.email}
+                    />
+                    <DetailItem
+                      icon={Phone}
+                      label={t("status_phone_number")}
+                      value={company.mobile}
+                    />
+                    <DetailItem
+                      icon={MapPin}
+                      label={t("status_headquarters")}
+                      value={company.city}
+                    />
+                    <DetailItem
+                      icon={Users}
+                      label={t("status_team_size")}
+                      value={company.noOfEmployees}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <DetailItem
+                      icon={User}
+                      label={t("status_full_name")}
+                      value={`${broker.firstName} ${broker.lastName}`}
+                    />
+                    <DetailItem
+                      icon={Building2}
+                      label={t("status_company")}
+                      value={broker.companyName}
+                    />
+                    <DetailItem
+                      icon={Mail}
+                      label={t("status_email_address")}
+                      value={broker.email}
+                    />
+                    <DetailItem
+                      icon={Phone}
+                      label={t("status_phone_number")}
+                      value={broker.mobile}
+                    />
+                    <DetailItem
+                      icon={MapPin}
+                      label={t("status_location")}
+                      value={broker.city}
+                    />
+                    <DetailItem
+                      icon={Briefcase}
+                      label={t("status_experience")}
+                      value={`${broker.yearsOfExperience === 15
+                        ? "15+"
+                        : broker.yearsOfExperience
+                        } ${t("status_years")}`}
+                    />
+                    {broker.brokerId && (
+                      <DetailItem
+                        icon={Hash}
+                        label={t("status_broker_id")}
+                        value={broker.brokerId}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+
+              {activeData.status === "pending" && onEdit && (
+                <div className="mt-8 flex justify-center pb-8 md:pb-0">
+                  <Button
+                    onClick={onEdit}
+                    variant="outline"
+                    className="gap-2 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    {t("status_edit_profile")}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </div>
+        </Card>
+      </div>
     </div>
+
   );
 };

@@ -57,10 +57,8 @@ const CreateEnquiryPage = () => {
   const form = useForm<CreateEnquiryFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createEnquirySchema) as any,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    mode: "onSubmit", // Only validate on submit
-    reValidateMode: "onChange", // Re-validate on change after first submit
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     defaultValues: {
       locationMode: "search",
       isCompany: false,
@@ -78,17 +76,14 @@ const CreateEnquiryPage = () => {
   const { reset, setValue, watch, handleSubmit } = form;
   const selectedCategory = watch("enquiryCategory");
 
-  // Sync isCompany
   useEffect(() => {
     setValue("isCompany", !!companyData);
   }, [companyData, setValue]);
 
 
-  // Reset type-specific fields when category changes
   useEffect(() => {
     if (!selectedCategory) return;
 
-    // We clear these to avoid sending incompatible data to backend
     const fieldsToReset: (keyof CreateEnquiryFormValues)[] = [
       "enquiryType", "size", "plotType", "facing",
       "frontRoadWidth", "bhk", "washrooms", "preferredFloor",
@@ -97,8 +92,6 @@ const CreateEnquiryPage = () => {
     ];
 
     fieldsToReset.forEach(field => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - straightforward reset
       setValue(field, undefined, { shouldValidate: false });
     });
 
@@ -106,30 +99,25 @@ const CreateEnquiryPage = () => {
 
 
   const handleSubmission = (data: CreateEnquiryFormValues) => {
-    // Transform to DTO
     const payload: Record<string, unknown> = {
       ...data,
       shouldUseCredits,
     };
-    // Remove internal flags
     delete payload.addressPlaceId;
     delete payload.locationMode;
     delete payload.isCompany;
-    delete payload.isCorner; // internal UI flag, though we send specific corner fields
+    delete payload.isCorner;
 
-    // If NOT corner, ensure we don't send corner specific trash data if it lingered
     if (!data.isCorner) {
       delete payload.roadFacingSides;
       delete payload.roadWidths;
     }
 
-    // Clean preferredLocations: filter out empty entries and strip placeId (internal only)
     const cleanedLocations = (data.preferredLocations ?? [])
       .filter((loc) => loc.address && loc.address.trim().length >= 3)
       .map(({ placeId, ...rest }) => rest);
     payload.preferredLocations = cleanedLocations;
 
-    // Auto-set address from first preferred location for backward compat
     if (cleanedLocations.length > 0) {
       payload.address = cleanedLocations[0].address;
     }
@@ -184,7 +172,7 @@ const CreateEnquiryPage = () => {
         <form
           id="create-enquiry-form"
           onSubmit={handleSubmit(onSubmit, onInvalid)}
-          className="space-y-6 md:space-y-8 pb-32 px-6"
+          className="space-y-6 md:space-y-8 pb-10 md:pb-32 px-2 overflow-hidden"
         >
 
           <LocationSection isPending={isPending} />

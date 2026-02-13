@@ -1,17 +1,10 @@
 export async function waitForImages(root: HTMLElement, timeoutMs = 2500) {
   const imgs = Array.from(root.querySelectorAll("img"));
-
-  // Filter out images that are already complete with naturalHeight > 0 (loaded successfully)
-  // or complete but failed (naturalHeight === 0, but complete is true).
-  // We want to wait for anything that is NOT complete.
   const pending = imgs.filter((img) => !img.complete);
-
   if (!pending.length) {
-    // Even if all are complete, give a tiny buffer for decoding
     await new Promise((r) => setTimeout(r, 100));
     return;
   }
-
   const loadPromises = pending.map(
     (img) =>
       new Promise<void>((resolve) => {
@@ -35,62 +28,133 @@ export async function waitForImages(root: HTMLElement, timeoutMs = 2500) {
   ]);
 }
 
-/**
- * Convert an image URL to a base64 data URL.
- * Uses server-side proxy to bypass CORS issues.
- */
-export async function imageUrlToBase64(url: string, timeoutMs = 10000): Promise<string | null> {
-  // Skip if already a data URL
+function blobToBase64(blob: Blob): Promise<string | null> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(blob);
+  });
+}
+
+export async function imageUrlToBase64(url: string, timeoutMs = 15000): Promise<string | null> {
   if (url.startsWith("data:")) {
     return url;
   }
-
-  // For local placeholders, return as-is
   if (url.startsWith("/")) {
-    return url;
+    try {
+      return await new Promise<string | null>((resolve) => {
+        const img = new Image();
+        const timer = setTimeout(() => resolve(url), 5000);
+
+        img.onload = () => {
+          clearTimeout(timer);
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) { resolve(url); return; }
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL("image/png"));
+          } catch {
+            resolve(url);
+          }
+        };
+
+        img.onerror = () => {
+          clearTimeout(timer);
+          resolve(url);
+        };
+
+        img.src = url;
+      });
+    } catch {
+      return url;
+    }
   }
 
   try {
-    // Use server-side proxy to fetch the image
-    const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(url)}`;
-
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const tid = setTimeout(() => controller.abort(), timeoutMs);
 
-    const response = await fetch(proxyUrl, {
-      signal: controller.signal,
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(tid);
+
+    if (response.ok) {
+      const blob = await response.blob();
+      const result = await blobToBase64(blob);
+      if (result) {
+        console.log(`[PDF] Converted via direct fetch: ${url.substring(0, 60)}…`);
+        return result;
+      }
+    }
+  } catch {
+  }
+
+  try {
+    const proxyUrl = `https://api.brokwise.com/utils/image-proxy?url=${encodeURIComponent(url)}`;
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), timeoutMs);
+
+    const response = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(tid);
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.dataUrl) {
+        console.log(`[PDF] Converted via proxy: ${url.substring(0, 60)}…`);
+        return data.dataUrl;
+      }
+    }
+  } catch {
+  }
+
+  try {
+    return await new Promise<string | null>((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+
+      const timer = setTimeout(() => {
+        console.warn(`[PDF] Canvas approach timed out: ${url.substring(0, 60)}`);
+        resolve(null);
+      }, timeoutMs);
+
+      img.onload = () => {
+        clearTimeout(timer);
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) { resolve(null); return; }
+          ctx.drawImage(img, 0, 0);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+          console.log(`[PDF] Converted via canvas: ${url.substring(0, 60)}…`);
+          resolve(dataUrl);
+        } catch (e) {
+          console.warn(`[PDF] Canvas tainted: ${url.substring(0, 60)}`, e);
+          resolve(null);
+        }
+      };
+
+      img.onerror = () => {
+        clearTimeout(timer);
+        console.warn(`[PDF] Image load failed: ${url.substring(0, 60)}`);
+        resolve(null);
+      };
+
+      img.src = url;
     });
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      console.warn(`[PDF] Proxy failed for: ${url}, status: ${response.status}`);
-      return null;
-    }
-
-    const data = await response.json();
-    if (data.dataUrl) {
-      console.log(`[PDF] Successfully converted via proxy: ${url.substring(0, 50)}...`);
-      return data.dataUrl;
-    }
-
-    console.warn(`[PDF] No dataUrl in response for: ${url}`);
-    return null;
-  } catch (err) {
-    console.warn(`[PDF] Failed to convert image via proxy: ${url}`, err);
+  } catch {
     return null;
   }
 }
 
-/**
- * Convert multiple image URLs to base64 in parallel using server-side proxy.
- * Returns a map of original URL -> base64 data URL.
- * Failed conversions are not included in the map.
- */
 export async function imagesToBase64(urls: string[]): Promise<Map<string, string>> {
-  console.log(`[PDF] Starting to convert ${urls.length} images to base64 via proxy...`);
+  console.log(`[PDF] Starting to convert ${urls.length} images to base64...`);
   const results = new Map<string, string>();
 
-  // Process in batches to avoid overwhelming the server
   const batchSize = 3;
   for (let i = 0; i < urls.length; i += batchSize) {
     const batch = urls.slice(i, i + batchSize);
@@ -133,7 +197,6 @@ export async function exportElementAsPdf(opts: {
     const elementRect = element.getBoundingClientRect();
     return {
       href: a.href,
-      // Coordinates relative to the captured element
       x: rect.left - elementRect.left,
       y: rect.top - elementRect.top,
       width: rect.width,
@@ -145,7 +208,7 @@ export async function exportElementAsPdf(opts: {
     scale: 2,
     useCORS: true,
     backgroundColor,
-    imageTimeout: 5000,
+    imageTimeout: 8000,
     logging: false,
   });
 
@@ -155,68 +218,45 @@ export async function exportElementAsPdf(opts: {
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = pdf.internal.pageSize.getHeight();
 
-  // Calculate scale factor between CSS pixels and PDF units (mm)
-  // We use element.offsetWidth because link coordinates are in CSS pixels
   const elementWidth = element.offsetWidth;
   const cssScale = pdfWidth / elementWidth;
 
-  // Aspect ratio scale for the captured image
   const imgScale = pdfWidth / canvas.width;
   const imgHeight = canvas.height * imgScale;
 
-  let heightLeft = imgHeight;
-  let position = 0;
+  // Force single-page: scale down if content exceeds page height
+  if (imgHeight > pdfHeight) {
+    const fitScale = pdfHeight / imgHeight;
+    const scaledWidth = pdfWidth * fitScale;
+    const scaledHeight = pdfHeight;
+    const xOffset = (pdfWidth - scaledWidth) / 2;
 
-  // Function to add links for the current page
-  const addLinksForPage = (offsetYr: number) => {
+    pdf.addImage(imgData, "PNG", xOffset, 0, scaledWidth, scaledHeight, undefined, "FAST");
+
+    // Add links with adjusted coordinates for scaled content
+    const adjustedCssScale = cssScale * fitScale;
     links.forEach((link) => {
-      // Calculate link position in PDF units
-      const linkX = link.x * cssScale;
-      const linkY = link.y * cssScale - offsetYr;
-      const linkW = link.width * cssScale;
-      const linkH = link.height * cssScale;
-
-      // Check if link is visible on this page
-      if (linkY >= 0 && linkY + linkH <= pdfHeight) {
-        console.log(`[PDF] Adding link at ${linkX},${linkY} on first page`);
+      const linkX = link.x * adjustedCssScale + xOffset;
+      const linkY = link.y * adjustedCssScale;
+      const linkW = link.width * adjustedCssScale;
+      const linkH = link.height * adjustedCssScale;
+      if (linkY >= 0 && linkY + linkH <= pdfHeight && link.href) {
         pdf.link(linkX, linkY, linkW, linkH, { url: link.href });
       }
     });
-  };
+  } else {
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight, undefined, "FAST");
 
-  pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
-  addLinksForPage(0); // Add links for the first page
-  heightLeft -= pdfHeight;
-
-  while (heightLeft > 0) {
-    position = position - pdfHeight;
-    pdf.addPage();
-    pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
-
-    // Add links for subsequent pages
-    // The offset in PDF units is basically the cumulative height of previous pages
-    // Since we are shifting the image up (position is negative), we need to calculate 
-    // the relative Y of the link on this new page.
-
-    // Actually, simpler logic:
-    // The captured image is one giant long image.
-    // 'position' becomes -297, -594, etc. (for A4 height ~297mm)
-    // The Y coordinate on the PDF page = (link.y * scale) + position
-
+    // Add links for single page
     links.forEach((link) => {
-      const linkY_on_canvas_scaled = link.y * cssScale;
-      const linkY_on_page = linkY_on_canvas_scaled + position; // position is negative
+      const linkX = link.x * cssScale;
+      const linkY = link.y * cssScale;
       const linkW = link.width * cssScale;
       const linkH = link.height * cssScale;
-      const linkX = link.x * cssScale;
-
-      if (linkY_on_page >= 0 && linkY_on_page + linkH <= pdfHeight) {
-        console.log(`[PDF] Adding link at ${linkX},${linkY_on_page} on page`);
-        pdf.link(linkX, linkY_on_page, linkW, linkH, { url: link.href });
+      if (linkY >= 0 && linkY + linkH <= pdfHeight && link.href) {
+        pdf.link(linkX, linkY, linkW, linkH, { url: link.href });
       }
     });
-
-    heightLeft -= pdfHeight;
   }
 
   pdf.save(fileName);
@@ -224,7 +264,7 @@ export async function exportElementAsPdf(opts: {
 
 
 /**
- * Generate PDF from element and return as Blob.
+ * Generate PDF from element and return as Blob (single page).
  * Used for iOS native apps where direct download doesn't work.
  */
 export async function generatePdfAsBlob(opts: {
@@ -241,11 +281,24 @@ export async function generatePdfAsBlob(opts: {
     import("jspdf"),
   ]);
 
+  // Capture links before rasterization
+  const links = Array.from(element.querySelectorAll("a")).map((a) => {
+    const rect = a.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+    return {
+      href: a.href,
+      x: rect.left - elementRect.left,
+      y: rect.top - elementRect.top,
+      width: rect.width,
+      height: rect.height,
+    };
+  });
+
   const canvas = await html2canvas(element, {
     scale: 2,
     useCORS: true,
     backgroundColor,
-    imageTimeout: 5000,
+    imageTimeout: 8000,
     logging: false,
   });
 
@@ -255,22 +308,44 @@ export async function generatePdfAsBlob(opts: {
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = pdf.internal.pageSize.getHeight();
 
+  const elementWidth = element.offsetWidth;
+  const cssScale = pdfWidth / elementWidth;
+
   const imgScale = pdfWidth / canvas.width;
   const imgHeight = canvas.height * imgScale;
 
-  let heightLeft = imgHeight;
-  let position = 0;
+  // Force single-page: scale down if content exceeds page height
+  if (imgHeight > pdfHeight) {
+    const fitScale = pdfHeight / imgHeight;
+    const scaledWidth = pdfWidth * fitScale;
+    const scaledHeight = pdfHeight;
+    const xOffset = (pdfWidth - scaledWidth) / 2;
 
-  pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
-  heightLeft -= pdfHeight;
+    pdf.addImage(imgData, "PNG", xOffset, 0, scaledWidth, scaledHeight, undefined, "FAST");
 
-  while (heightLeft > 0) {
-    position = position - pdfHeight;
-    pdf.addPage();
-    pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
-    heightLeft -= pdfHeight;
+    const adjustedCssScale = cssScale * fitScale;
+    links.forEach((link) => {
+      const linkX = link.x * adjustedCssScale + xOffset;
+      const linkY = link.y * adjustedCssScale;
+      const linkW = link.width * adjustedCssScale;
+      const linkH = link.height * adjustedCssScale;
+      if (linkY >= 0 && linkY + linkH <= pdfHeight && link.href) {
+        pdf.link(linkX, linkY, linkW, linkH, { url: link.href });
+      }
+    });
+  } else {
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight, undefined, "FAST");
+
+    links.forEach((link) => {
+      const linkX = link.x * cssScale;
+      const linkY = link.y * cssScale;
+      const linkW = link.width * cssScale;
+      const linkH = link.height * cssScale;
+      if (linkY >= 0 && linkY + linkH <= pdfHeight && link.href) {
+        pdf.link(linkX, linkY, linkW, linkH, { url: link.href });
+      }
+    });
   }
 
-  // Return as Blob
   return pdf.output("blob");
 }
