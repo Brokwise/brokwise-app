@@ -10,20 +10,16 @@ import {
   PlusCircle,
   Users,
   FileText,
-  Map,
-  FileDigit,
-  Calculator,
-  Gavel,
   LandPlotIcon,
   ChevronRight,
   Contact2,
   type LucideIcon,
   HomeIcon,
-  NewspaperIcon,
   Crown,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -50,6 +46,33 @@ import {
 } from "@/components/ui/collapsible";
 import { useApp } from "@/context/AppContext";
 import Image from "next/image";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DEFAULT_RESOURCE_STATE,
+  getStoredResourceState,
+  setStoredResourceState,
+  useResourceCatalog,
+} from "@/hooks/useResourceCatalog";
+import {
+  buildResourceHref,
+  isResourceActive,
+  opensInNewTab,
+  resolveResourceIcon,
+} from "@/lib/resourceCatalog";
+
+const toolTitleByKey: Record<string, string> = {
+  "land-converter": "nav_land_convertor",
+};
+
+const resourceTitleByKey: Record<string, string> = {
+  news: "nav_news",
+};
 
 type SidebarNavSubItem = {
   title: string;
@@ -65,9 +88,37 @@ type SidebarNavItem = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentResourceKey = searchParams.get("resourceKey") || undefined;
   const { companyData } = useApp();
   const { t } = useTranslation();
   const { setOpenMobile, isMobile } = useSidebar();
+
+  const [selectedState, setSelectedState] = React.useState<string>(DEFAULT_RESOURCE_STATE);
+
+  React.useEffect(() => {
+    setSelectedState(getStoredResourceState());
+  }, []);
+
+  const { catalog } = useResourceCatalog(selectedState);
+
+  React.useEffect(() => {
+    const allowed = new Set(catalog.states.map((state) => state.code));
+    if (!allowed.size) {
+      return;
+    }
+
+    if (!selectedState || !allowed.has(selectedState)) {
+      const next = catalog.selectedState || catalog.states[0]?.code || DEFAULT_RESOURCE_STATE;
+      setSelectedState(next);
+      setStoredResourceState(next);
+    }
+  }, [catalog, selectedState]);
+
+  const handleStateChange = (stateCode: string) => {
+    setSelectedState(stateCode);
+    setStoredResourceState(stateCode);
+  };
 
   const handleMenuClick = () => {
     if (isMobile) {
@@ -168,67 +219,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ];
 
-  const resourcesNav: SidebarNavItem[] = [
-    {
-      title: t("nav_news"),
-      url: "/resources/news",
-      icon: NewspaperIcon,
-    },
-    {
-      title: t("nav_land_convertor"),
-      url: "/resources/land-convertor",
-      icon: Calculator,
-    },
-    {
-      title: t("nav_dlc_rates"),
-      url: "/resources/jaipur-dlc-rates",
-      icon: FileDigit,
-    },
-    {
-      title: t("nav_jda_circulars"),
-      url: `/resources/webview?url=${encodeURIComponent(
-        "https://jda.urban.rajasthan.gov.in/content/raj/udh/jda-jaipur/en/orders-circulars.html"
-      )}&title=JDA Circulars`,
-      icon: FileText,
-    },
-    {
-      title: t("nav_gis_portal"),
-      url: `/resources/webview?url=${encodeURIComponent(
-        "https://gis.rajasthan.gov.in/"
-      )}&title=GIS Portal`,
-      icon: Map,
-    },
-    {
-      title: t("nav_apna_khata"),
-      url: `/resources/webview?url=${encodeURIComponent(
-        "https://apnakhata.rajasthan.gov.in/"
-      )}&title=Apna Khata`,
-      icon: FileText,
-    },
-    {
-      title: t("nav_bhunaksha"),
-      url: `/resources/webview?url=${encodeURIComponent(
-        "https://bhunaksha.rajasthan.gov.in/"
-      )}&title=BhuNaksha`,
-      icon: Map,
-    },
-    {
-      title: t("nav_rera"),
-      url: `/resources/webview?url=${encodeURIComponent(
-        "https://rera.rajasthan.gov.in/"
-      )}&title=RERA`,
-      icon: Gavel,
-    },
-  ];
-
   const sidebarItems: SidebarNavItem[] = companyData ? companyNav : brokerNav;
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
-
-          <Image src={"/logo.webp"} height={52} className="rounded-full" width={52} alt="Brokwise" />
+          <Image
+            src="/logo.webp"
+            height={52}
+            className="rounded-full"
+            width={52}
+            alt="Brokwise"
+          />
 
           <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
             <span className="font-semibold text-lg text-foreground md:text-sidebar-foreground">
@@ -306,28 +309,144 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
 
         {!companyData && (
-          <SidebarGroup>
-            <SidebarGroupLabel>{t("nav_resources")}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {resourcesNav.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      onClick={handleMenuClick}
-                      asChild
-                      tooltip={item.title}
-                      isActive={pathname === item.url}
-                    >
-                      <Link href={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <>
+            <SidebarGroup>
+              <SidebarGroupLabel>{t("nav_tools")}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {catalog.tools.map((item) => {
+                    const Icon = resolveResourceIcon(item);
+                    const href = buildResourceHref(item, selectedState);
+                    const active = isResourceActive(item, pathname, currentResourceKey);
+                    const newTab = opensInNewTab(item);
+                    const title = t(toolTitleByKey[item.key] || item.label, item.label);
+
+                    return (
+                      <SidebarMenuItem key={item._id}>
+                        <SidebarMenuButton
+                          onClick={handleMenuClick}
+                          asChild
+                          tooltip={title}
+                          isActive={active}
+                        >
+                          {newTab ? (
+                            <a href={href} target="_blank" rel="noopener noreferrer">
+                              <Icon />
+                              <span>{title}</span>
+                              <ExternalLink className="ml-auto size-3 opacity-70 group-data-[collapsible=icon]:hidden" />
+                            </a>
+                          ) : (
+                            <Link href={href}>
+                              <Icon />
+                              <span>{title}</span>
+                            </Link>
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>{t("nav_resources")}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <div className="px-2 pb-2 group-data-[collapsible=icon]:hidden">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1 px-2">
+                    {t("resources_select_state", "Select State")}
+                  </div>
+                  <Select value={selectedState} onValueChange={handleStateChange}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder={t("resources_select_state", "Select State")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {catalog.states.map((state) => (
+                        <SelectItem key={state._id} value={state.code}>
+                          {state.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <SidebarMenu>
+                  {catalog.commonResources.map((item) => {
+                    const Icon = resolveResourceIcon(item);
+                    const href = buildResourceHref(item, selectedState);
+                    const active = isResourceActive(item, pathname, currentResourceKey);
+                    const newTab = opensInNewTab(item);
+                    const title = t(resourceTitleByKey[item.key] || item.label, item.label);
+
+                    return (
+                      <SidebarMenuItem key={item._id}>
+                        <SidebarMenuButton
+                          onClick={handleMenuClick}
+                          asChild
+                          tooltip={title}
+                          isActive={active}
+                        >
+                          {newTab ? (
+                            <a href={href} target="_blank" rel="noopener noreferrer">
+                              <Icon />
+                              <span>{title}</span>
+                              <ExternalLink className="ml-auto size-3 opacity-70 group-data-[collapsible=icon]:hidden" />
+                            </a>
+                          ) : (
+                            <Link href={href}>
+                              <Icon />
+                              <span>{title}</span>
+                            </Link>
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+
+                  {catalog.stateResources.map((item) => {
+                    const Icon = resolveResourceIcon(item);
+                    const href = buildResourceHref(item, selectedState);
+                    const active = isResourceActive(item, pathname, currentResourceKey);
+                    const newTab = opensInNewTab(item);
+                    const title = t(resourceTitleByKey[item.key] || item.label, item.label);
+
+                    return (
+                      <SidebarMenuItem key={item._id}>
+                        <SidebarMenuButton
+                          onClick={handleMenuClick}
+                          asChild
+                          tooltip={title}
+                          isActive={active}
+                        >
+                          {newTab ? (
+                            <a href={href} target="_blank" rel="noopener noreferrer">
+                              <Icon />
+                              <span>{title}</span>
+                              <ExternalLink className="ml-auto size-3 opacity-70 group-data-[collapsible=icon]:hidden" />
+                            </a>
+                          ) : (
+                            <Link href={href}>
+                              <Icon />
+                              <span>{title}</span>
+                            </Link>
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+
+                  {catalog.stateResources.length === 0 && (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton disabled tooltip={t("resources_empty_state", "No links for selected state") }>
+                        <FileText />
+                        <span>{t("resources_empty_state", "No links for selected state")}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
         )}
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border">
