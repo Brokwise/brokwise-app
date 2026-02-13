@@ -141,6 +141,7 @@ export default function AuthPage({
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [accountType, setAccountType] = useState<AccountType>("broker");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -206,6 +207,8 @@ export default function AuthPage({
   // Reset form when switching modes
   React.useEffect(() => {
     reset();
+    setShowPassword(false);
+    setShowConfirmPassword(false);
   }, [mode, reset]);
 
   // Keep the header position stable by ensuring the scrollable area resets on mode switch
@@ -761,12 +764,32 @@ export default function AuthPage({
                               {t("confirm_password_label")}
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="••••••••"
-                                type="password"
-                                {...field}
-                                className="h-11  border-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20"
-                              />
+                              <div className="relative">
+                                <Input
+                                  placeholder="••••••••"
+                                  type={showConfirmPassword ? "text" : "password"}
+                                  {...field}
+                                  className="h-11 pr-10 border-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setShowConfirmPassword((prev) => !prev)
+                                  }
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                  aria-label={
+                                    showConfirmPassword
+                                      ? "Hide confirm password"
+                                      : "Show confirm password"
+                                  }
+                                >
+                                  {showConfirmPassword ? (
+                                    <EyeOff className="h-4 w-4" />
+                                  ) : (
+                                    <Eye className="h-4 w-4" />
+                                  )}
+                                </button>
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
