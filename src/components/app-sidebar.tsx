@@ -290,6 +290,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <SidebarMenuButton
                       onClick={handleMenuClick}
                       asChild
+                      className="hover:bg-transparent hover:text-sidebar-background"
                       tooltip={item.title}
                       isActive={pathname === item.url}
                     >

@@ -29,6 +29,8 @@ import { PropertyPdfLayout } from "@/components/property-pdf/property-pdf-layout
 import { exportElementAsPdf, makeSafeFilePart, imagesToBase64, imageUrlToBase64, generatePdfAsBlob } from "@/utils/pdf";
 import { FlagInAppropriate } from "../[id]/_components/flag-inappropriate";
 import { isNativeIOS } from "@/utils/helper";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
 import { PropertyOffers } from "../[id]/_components/propertyOffers";
 
 const PropertyPageContent = () => {
@@ -57,7 +59,7 @@ const PropertyPageContent = () => {
 
   const handleExportPdf = useCallback(async () => {
     if (!property) return;
-
+    const isNativeiOS = isNativeIOS()
     let host: HTMLDivElement | null = null;
     let root: ReturnType<typeof createRoot> | null = null;
 
@@ -113,28 +115,50 @@ const PropertyPageContent = () => {
       );
       const fileName = `Brokwise_Property_${safeId}.pdf`;
 
-      if (isNativeIOS()) {
-        // For iOS native app: generate PDF as blob and use Web Share API
+      if (isNativeiOS) {
+        // For iOS native app: write PDF to device via Capacitor Filesystem, then share
         const pdfBlob = await generatePdfAsBlob({ element });
-        const file = new File([pdfBlob], fileName, { type: "application/pdf" });
 
-        // Use Web Share API with file sharing (supported on iOS Safari/WebView)
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: `Property ${property.propertyId || "Details"}`,
-          });
-        } else {
-          // Fallback: create download link
-          const url = URL.createObjectURL(pdfBlob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = fileName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(url), 100);
-        }
+        // Convert blob to base64 string for Capacitor Filesystem
+        const base64Data = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const result = reader.result as string;
+            // Strip the data URL prefix to get raw base64
+            const base64 = result.split(",")[1];
+            if (base64) {
+              resolve(base64);
+            } else {
+              reject(new Error("Failed to convert PDF to base64"));
+            }
+          };
+          reader.onerror = () => reject(new Error("FileReader error"));
+          reader.readAsDataURL(pdfBlob);
+        });
+
+        // Write file to the device cache directory
+        const writeResult = await Filesystem.writeFile({
+          path: fileName,
+          data: base64Data,
+          directory: Directory.Cache,
+        });
+
+        // Clean up and stop loading BEFORE opening the share sheet,
+        // so the spinner doesn't persist while the share sheet is open.
+        try { root?.unmount(); } catch { /* no-op */ }
+        host?.remove();
+        host = null;
+        root = null;
+        setIsExportingPdf(false);
+
+        // Open the native iOS share sheet (non-blocking for UI)
+        Share.share({
+          title: `Property ${property.propertyId || "Details"}`,
+          url: writeResult.uri,
+          dialogTitle: "Share Property PDF",
+        }).catch(() => {
+          // User cancelled or share failed — ignore silently
+        });
       } else {
         await exportElementAsPdf({
           element,
