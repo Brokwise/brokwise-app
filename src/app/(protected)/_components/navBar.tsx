@@ -256,21 +256,35 @@ const NavBar = () => {
         <DropdownMenu>
           <DropdownMenuTrigger>
             <Button className="" variant="ghost">
-              {t("nav_resources")}
+              {t("nav_tools")}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-72">
             <DropdownMenuLabel>{t("nav_tools")}</DropdownMenuLabel>
-            {catalog.tools.map((item) => (
-              <ResourceLinkRow
-                key={item._id}
-                item={item}
-                stateCode={selectedState}
-                label={t(toolTitleByKey[item.key] || item.label, item.label)}
-              />
-            ))}
+            {catalog.tools.length ? (
+              catalog.tools.map((item) => (
+                <ResourceLinkRow
+                  key={item._id}
+                  item={item}
+                  stateCode={selectedState}
+                  label={t(toolTitleByKey[item.key] || item.label, item.label)}
+                />
+              ))
+            ) : (
+              <DropdownMenuItem disabled>
+                {t("resources_empty_state", "No links for selected state")}
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-            <DropdownMenuSeparator />
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Button className="" variant="ghost">
+              {t("nav_resources")}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-72">
             <DropdownMenuLabel>{t("resources_common_links", "Common Resources")}</DropdownMenuLabel>
             {catalog.commonResources.map((item) => (
               <ResourceLinkRow
