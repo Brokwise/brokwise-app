@@ -222,7 +222,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
       </Dialog>
 
       {/* Chat Input Bar */}
-      <div className="relative flex items-end gap-3 border-t border-border/40 bg-background/95 p-4 md:pr-24 backdrop-blur-md md:pb-4">
+      <div className="relative flex items-end border-t border-border/40 bg-background/95 px-3 py-3 backdrop-blur-md sm:px-4 sm:py-4 md:pr-44 lg:pr-52">
         <input
           type="file"
           className="hidden"
@@ -231,9 +231,9 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
           accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.xls,.ppt,.pptx"
         />
 
-        <div className="mx-auto flex max-w-4xl items-end gap-2 md:gap-3">
+        <div className="mx-auto flex w-full max-w-5xl items-end gap-2 sm:gap-3">
           {/* Input Wrapper */}
-          <div className="flex flex-1 items-end gap-2 rounded-[24px] border border-border/40 bg-muted/40 p-1.5 shadow-sm transition-all focus-within:border-primary/20 focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/10">
+          <div className="flex w-full flex-1 items-end gap-2 rounded-[26px] border border-border/40 bg-muted/40 p-2 shadow-sm transition-all focus-within:border-primary/20 focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/10 sm:p-2.5">
 
             {/* Left Actions */}
             <div className="flex shrink-0 gap-0.5 pb-0.5 pl-1">
@@ -278,7 +278,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={t("page_messages_type_message")}
-              className="min-h-[44px] max-h-[140px] flex-1 resize-none border-0 bg-transparent px-2 py-3 shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/50"
+              className="min-h-[48px] max-h-[180px] flex-1 resize-none border-0 bg-transparent px-2 py-2.5 text-sm shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/50 md:min-h-[64px] md:px-3 md:py-4 md:text-base"
               disabled={disabled || isUploading}
             />
           </div>
@@ -288,9 +288,9 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
             onClick={handleSend}
             disabled={!message.trim() || disabled || isUploading}
             size="icon"
-            className="h-[48px] w-[48px] shrink-0 rounded-full bg-primary text-primary-foreground shadow-md transition-all hover:scale-105 hover:bg-primary/90 hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+            className="h-[52px] w-[52px] shrink-0 rounded-full bg-primary text-primary-foreground shadow-md transition-all hover:scale-105 hover:bg-primary/90 hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:hover:scale-100 md:h-[56px] md:w-[56px]"
           >
-            <Send className="h-5 w-5 translate-x-0.5" />
+            <Send className="h-5 w-5 translate-x-0.5 md:h-[22px] md:w-[22px]" />
           </Button>
         </div>
       </div>

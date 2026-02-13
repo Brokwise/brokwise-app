@@ -303,6 +303,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarGroupLabel>{t("nav_tools")}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={handleMenuClick}
+                      asChild
+                      tooltip={t("nav_news")}
+                      isActive={pathname === "/resources/news"}
+                    >
+                      <Link href="/resources/news">
+                        <Newspaper />
+                        <span>{t("nav_news")}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={handleMenuClick}
+                      asChild
+                      tooltip={t("nav_resources")}
+                      isActive={pathname === "/resources"}
+                    >
+                      <Link href="/resources">
+                        <FileText />
+                        <span>{t("nav_resources")}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
                   {catalog.tools.map((item) => {
                     const isLandConverterTool =
                       item.key === "land-converter" ||
@@ -361,34 +389,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )}
-
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      onClick={handleMenuClick}
-                      asChild
-                      tooltip={t("nav_resources")}
-                      isActive={pathname === "/resources"}
-                    >
-                      <Link href="/resources">
-                        <FileText />
-                        <span>{t("nav_resources")}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      onClick={handleMenuClick}
-                      asChild
-                      tooltip={t("nav_news")}
-                      isActive={pathname === "/resources/news"}
-                    >
-                      <Link href="/resources/news">
-                        <Newspaper />
-                        <span>{t("nav_news")}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
