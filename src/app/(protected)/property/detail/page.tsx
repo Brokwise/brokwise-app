@@ -24,6 +24,9 @@ import { PropertyDescription } from "../[id]/_components/property-description";
 import { DocumentsList } from "../[id]/_components/documents-list";
 import { PropertySidebar } from "../[id]/_components/property-sidebar";
 import { FlagInAppropriate } from "../[id]/_components/flag-inappropriate";
+import { isNativeIOS } from "@/utils/helper";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
 import { PropertyOffers } from "../[id]/_components/propertyOffers";
 import {
   isSampleLandMedia,
@@ -133,9 +136,8 @@ const PropertyPageContent = () => {
       : []),
     ...property.images.map((image) => normalizeSampleLandMediaPath(image)),
   ];
-  const watermarkText = `${brokerData?.brokerId || userData?.email || "BROKWISE"} • ${
-    property.propertyId || property._id
-  }`;
+  const watermarkText = `${brokerData?.brokerId || userData?.email || "BROKWISE"} • ${property.propertyId || property._id
+    }`;
   const shouldShowSampleDisclaimer =
     property.propertyType === "LAND" && isSampleLandMedia(property.featuredMedia);
 
