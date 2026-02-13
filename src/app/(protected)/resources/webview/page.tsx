@@ -8,11 +8,18 @@ const WebViewContent = () => {
   const searchParams = useSearchParams();
   const url = searchParams.get("url");
   const title = searchParams.get("title");
+  const resourceKey = searchParams.get("resourceKey");
+  const stateCode = searchParams.get("stateCode");
 
-  if (!url) {
+  const isSafeUrl = (value: string) => {
+    if (/^javascript:/i.test(value)) return false;
+    return /^https?:\/\//i.test(value);
+  };
+
+  if (!url || !isSafeUrl(url)) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">No URL provided</p>
+        <p className="text-muted-foreground">Invalid or missing URL</p>
       </div>
     );
   }
@@ -20,9 +27,14 @@ const WebViewContent = () => {
   return (
     <div className="flex flex-col h-full min-h-0 w-full">
       <div className="flex items-center justify-between px-4 py-2 border-b bg-background">
-        <h1 className="text-lg font-bold">
-          {title || "External Resource"}
-        </h1>
+        <div>
+          <h1 className="text-lg font-bold">{title || "External Resource"}</h1>
+          {(stateCode || resourceKey) && (
+            <p className="text-xs text-muted-foreground">
+              {[stateCode, resourceKey].filter(Boolean).join(" · ")}
+            </p>
+          )}
+        </div>
         <a
           href={url}
           target="_blank"

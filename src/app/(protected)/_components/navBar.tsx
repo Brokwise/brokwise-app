@@ -12,6 +12,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -19,12 +21,98 @@ import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { useTranslation } from "react-i18next";
+import {
+  DEFAULT_RESOURCE_STATE,
+  getStoredResourceState,
+  setStoredResourceState,
+  useResourceCatalog,
+} from "@/hooks/useResourceCatalog";
+import {
+  buildResourceHref,
+  opensInNewTab,
+} from "@/lib/resourceCatalog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ResourceItem } from "@/types/resource";
+
+const toolTitleByKey: Record<string, string> = {
+  "land-converter": "nav_land_convertor",
+};
+
+const resourceTitleByKey: Record<string, string> = {
+  news: "nav_news",
+};
+
+const ResourceLinkRow = ({
+  item,
+  label,
+  stateCode,
+}: {
+  item: ResourceItem;
+  label: string;
+  stateCode?: string;
+}) => {
+  const href = buildResourceHref(item, stateCode);
+  const newTab = opensInNewTab(item);
+
+  return (
+    <DropdownMenuItem>
+      {newTab ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between w-full"
+        >
+          {label}
+          <ExternalLink className="w-4 h-4 ml-2" />
+        </a>
+      ) : (
+        <Link href={href} className="flex items-center justify-between w-full">
+          {label}
+          {item.targetType === "external" && (
+            <ExternalLink className="w-4 h-4 ml-2" />
+          )}
+        </Link>
+      )}
+    </DropdownMenuItem>
+  );
+};
 
 const NavBar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { companyData } = useApp();
   const { t } = useTranslation();
+
+  const [selectedState, setSelectedState] = React.useState<string>(
+    DEFAULT_RESOURCE_STATE
+  );
+
+  React.useEffect(() => {
+    setSelectedState(getStoredResourceState());
+  }, []);
+
+  const { catalog } = useResourceCatalog(selectedState);
+
+  React.useEffect(() => {
+    const allowed = new Set(catalog.states.map((state) => state.code));
+    if (!allowed.size) {
+      return;
+    }
+
+    if (!selectedState || !allowed.has(selectedState)) {
+      const next =
+        catalog.selectedState || catalog.states[0]?.code || DEFAULT_RESOURCE_STATE;
+      setSelectedState(next);
+      setStoredResourceState(next);
+    }
+  }, [catalog, selectedState]);
 
   // If user is a company, show simplified navbar
   if (companyData) {
@@ -62,7 +150,6 @@ const NavBar = () => {
           ))}
         </div>
         <div className="flex gap-md">
-          {/* <Notifications /> Company might need notifications later, but for now strict "only brokers" */}
           <UserAvatar />
         </div>
       </div>
@@ -85,12 +172,12 @@ const NavBar = () => {
             pathname === "/"
               ? "/"
               : pathname.includes("/enquiries")
-                ? "/enquiries"
-                : pathname.includes("/property/createProperty")
-                  ? "listProperty"
-                  : pathname.includes("/message")
-                    ? "message"
-                    : "none"
+              ? "/enquiries"
+              : pathname.includes("/property/createProperty")
+              ? "listProperty"
+              : pathname.includes("/message")
+              ? "message"
+              : "none"
           }
         >
           <TabsList className="bg-transparent">
@@ -144,73 +231,88 @@ const NavBar = () => {
             </TabsTrigger>
           </TabsList>
         </Tabs>
+
+        <div className="w-44">
+          <Select
+            value={selectedState}
+            onValueChange={(value) => {
+              setSelectedState(value);
+              setStoredResourceState(value);
+            }}
+          >
+            <SelectTrigger className="h-9 text-xs">
+              <SelectValue placeholder={t("resources_select_state", "Select State")} />
+            </SelectTrigger>
+            <SelectContent>
+              {catalog.states.map((state) => (
+                <SelectItem key={state._id} value={state.code}>
+                  {state.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Button className="" variant="ghost">
+              {t("nav_tools")}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-72">
+            <DropdownMenuLabel>{t("nav_tools")}</DropdownMenuLabel>
+            {catalog.tools.length ? (
+              catalog.tools.map((item) => (
+                <ResourceLinkRow
+                  key={item._id}
+                  item={item}
+                  stateCode={selectedState}
+                  label={t(toolTitleByKey[item.key] || item.label, item.label)}
+                />
+              ))
+            ) : (
+              <DropdownMenuItem disabled>
+                {t("resources_empty_state", "No links for selected state")}
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <DropdownMenu>
           <DropdownMenuTrigger>
             <Button className="" variant="ghost">
               {t("nav_resources")}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
-            <DropdownMenuItem>
-              <Link href="/resources/land-convertor" className="w-full">
-                {t("nav_land_convertor")}
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link href="/resources/jaipur-dlc-rates" className="w-full">
-                {t("nav_dlc_rates")}
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link
-                href={`/resources/webview?url=${encodeURIComponent(
-                  "https://jda.urban.rajasthan.gov.in/content/raj/udh/jda-jaipur/en/orders-circulars.html"
-                )}&title=JDA Circulars`}
-                className="flex items-center justify-between w-full"
-              >
-                {t("nav_jda_circulars")} <ExternalLink className="w-4 h-4 ml-2" />
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link
-                href={`/resources/webview?url=${encodeURIComponent(
-                  "https://gis.rajasthan.gov.in/"
-                )}&title=GIS Portal`}
-                className="flex items-center justify-between w-full"
-              >
-                {t("nav_gis_portal")} <ExternalLink className="w-4 h-4 ml-2" />
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link
-                href={`/resources/webview?url=${encodeURIComponent(
-                  "https://apnakhata.rajasthan.gov.in/"
-                )}&title=Apna Khata`}
-                className="flex items-center justify-between w-full"
-              >
-                {t("nav_apna_khata")} <ExternalLink className="w-4 h-4 ml-2" />
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link
-                href={`/resources/webview?url=${encodeURIComponent(
-                  "https://bhunaksha.rajasthan.gov.in/"
-                )}&title=BhuNaksha`}
-                className="flex items-center justify-between w-full"
-              >
-                {t("nav_bhunaksha")} <ExternalLink className="w-4 h-4 ml-2" />
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link
-                href={`/resources/webview?url=${encodeURIComponent(
-                  "https://rera.rajasthan.gov.in/"
-                )}&title=RERA`}
-                className="flex items-center justify-between w-full"
-              >
-                {t("nav_rera")} <ExternalLink className="w-4 h-4 ml-2" />
-              </Link>
-            </DropdownMenuItem>
+          <DropdownMenuContent className="w-72">
+            <DropdownMenuLabel>{t("resources_common_links", "Common Resources")}</DropdownMenuLabel>
+            {catalog.commonResources.map((item) => (
+              <ResourceLinkRow
+                key={item._id}
+                item={item}
+                stateCode={selectedState}
+                label={t(resourceTitleByKey[item.key] || item.label, item.label)}
+              />
+            ))}
+
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>
+              {t("resources_state_links", "State Resources")}
+            </DropdownMenuLabel>
+            {catalog.stateResources.length ? (
+              catalog.stateResources.map((item) => (
+                <ResourceLinkRow
+                  key={item._id}
+                  item={item}
+                  stateCode={selectedState}
+                  label={t(resourceTitleByKey[item.key] || item.label, item.label)}
+                />
+              ))
+            ) : (
+              <DropdownMenuItem disabled>
+                {t("resources_empty_state", "No links for selected state")}
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

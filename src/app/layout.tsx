@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import Script from "next/script";
 import "../globals.css";
 import { QueryClientProviderWrapper } from "@/providers/queryClientProvider";
@@ -8,10 +8,11 @@ import { Providers } from "@/providers/themeProvider";
 import { PostHogProvider } from "./providers";
 import { DeepLinkHandler } from "@/components/deeplinkhandler";
 
-const inter = Inter({
-  subsets: ["latin"],
+const inter = localFont({
+  src: "./fonts/InterVariable.woff2",
   variable: "--font-inter",
   display: "swap",
+  weight: "100 900",
 });
 
 export const metadata: Metadata = {
@@ -34,9 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.variable} antialiased`}
-      >
+      <body className={`${inter.variable} antialiased`}>
         <Script
           src="https://t.contentsquare.net/uxa/43df6114dc031.js"
           strategy="beforeInteractive"
