@@ -7,7 +7,19 @@ import {
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MapPin, Eye, PhoneCall, CheckCheck } from "lucide-react";
+import {
+  Loader2,
+  MapPin,
+  Eye,
+  PhoneCall,
+  CheckCheck,
+  Home,
+  Maximize2,
+  IndianRupee,
+  BedDouble,
+  Bath,
+  Compass,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PropertyPreviewModal } from "./PropertyPreviewModal";
 import { Enquiry, EnquirySubmission } from "@/models/types/enquiry";
@@ -15,6 +27,7 @@ import { Property } from "@/types/property";
 import { ShareContactDialog } from "./share-contact-dialog";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
+import { formatPrice } from "@/utils/helper";
 const isPopulatedProperty = (value: unknown): value is Property => {
   return (
     value !== null &&
@@ -126,8 +139,6 @@ export const ReceivedProperties = ({
       </div>
     );
   }
-  console.log(receivedProperties);
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -141,7 +152,62 @@ export const ReceivedProperties = ({
         {sortedProperties.map((submission) => {
           const propertyIdStr = getPropertyId(submission);
           const property = getPopulatedProperty(submission);
-
+          const sizeValue = property?.size
+            ? `${property.size} ${property.sizeUnit?.toLowerCase().replace(/_/g, " ") || ""}`.trim()
+            : null;
+          const rateValue = property?.rate
+            ? property.sizeUnit
+              ? `${formatPrice(property.rate)}/${property.sizeUnit.toLowerCase().replace(/_/g, " ")}`
+              : formatPrice(property.rate)
+            : null;
+          const propertyHighlights: {
+            label: string;
+            value: string;
+            icon: React.JSX.Element;
+          }[] = [];
+          if (property?.propertyType) {
+            propertyHighlights.push({
+              label: "Type",
+              value: property.propertyType.replace(/_/g, " "),
+              icon: <Home className="h-3 w-3 text-muted-foreground" />,
+            });
+          }
+          if (sizeValue) {
+            propertyHighlights.push({
+              label: t("page_enquiry_detail_size"),
+              value: sizeValue,
+              icon: <Maximize2 className="h-3 w-3 text-muted-foreground" />,
+            });
+          }
+          if (rateValue) {
+            propertyHighlights.push({
+              label: t("label_asking_rate"),
+              value: rateValue,
+              icon: <IndianRupee className="h-3 w-3 text-muted-foreground" />,
+            });
+          }
+          if (property?.bhk) {
+            propertyHighlights.push({
+              label: t("page_enquiry_detail_bhk"),
+              value: `${property.bhk}`,
+              icon: <BedDouble className="h-3 w-3 text-muted-foreground" />,
+            });
+          }
+          if (property?.washrooms) {
+            propertyHighlights.push({
+              label: t("page_enquiry_detail_washrooms"),
+              value: `${property.washrooms}`,
+              icon: <Bath className="h-3 w-3 text-muted-foreground" />,
+            });
+          }
+          if (property?.facing) {
+            propertyHighlights.push({
+              label: t("page_enquiry_detail_facing"),
+              value: property.facing.toLowerCase().replace(/_/g, " "),
+              icon: <Compass className="h-3 w-3 text-muted-foreground" />,
+            });
+          }
+          const topHighlights = propertyHighlights.slice(0, 5);
           return (
             <Card
               key={submission._id || submission._id}
@@ -181,6 +247,20 @@ export const ReceivedProperties = ({
                     {property?.address?.city || t("page_enquiry_detail_click_view_location")}
                   </span>
                 </div>
+                {topHighlights.length > 0 && (
+                  <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+                    {topHighlights.map((highlight) => (
+                      <div
+                        key={`${submission._id}-${highlight.label}`}
+                        className="flex items-center gap-1.5 rounded-md border bg-muted/20 px-1.5 py-1 text-[11px] text-muted-foreground"
+                      >
+                        {highlight.icon}
+                        <span className="font-medium">{highlight.label}:</span>
+                        <span className="truncate text-foreground">{highlight.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {enquiry?.preferredLocations && enquiry.preferredLocations.length > 1 && (
                   <div className="flex items-center text-xs">
                     <Badge variant="outline" className="text-[10px] h-5 px-1.5">

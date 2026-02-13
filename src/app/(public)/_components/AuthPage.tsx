@@ -15,6 +15,8 @@ import {
   Sun,
   Moon,
   MoreVertical,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -138,6 +140,7 @@ export default function AuthPage({
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [accountType, setAccountType] = useState<AccountType>("broker");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -720,12 +723,28 @@ export default function AuthPage({
                             {t("password_label")}
                           </FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="••••••••"
-                              type="password"
-                              {...field}
-                              className="h-11 border-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20"
-                            />
+                            <div className="relative">
+                              <Input
+                                placeholder="••••••••"
+                                type={showPassword ? "text" : "password"}
+                                {...field}
+                                className="h-11 pr-10 border-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                aria-label={
+                                  showPassword ? "Hide password" : "Show password"
+                                }
+                              >
+                                {showPassword ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </button>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>

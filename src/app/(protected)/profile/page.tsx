@@ -718,24 +718,26 @@ const ProfilePage = () => {
               label={t("page_profile_label_first_name")}
               value={brokerProfile.firstName}
               icon={<User className="h-4 w-4" />}
-              isEditing={editingField === "firstName"}
-              onEdit={() => setEditingField("firstName")}
-              onSave={(value) => handleUpdateField("firstName", value)}
-              onCancel={() => setEditingField(null)}
+              isEditing={false}
+              editable={false}
+              onEdit={() => { }}
+              onSave={() => { }}
+              onCancel={() => { }}
               placeholder={t("page_profile_placeholder_first_name")}
-              loading={loading && editingField === "firstName"}
+              loading={false}
             />
 
             <EditableField
               label={t("page_profile_label_last_name")}
               value={brokerProfile.lastName}
               icon={<User className="h-4 w-4" />}
-              isEditing={editingField === "lastName"}
-              onEdit={() => setEditingField("lastName")}
-              onSave={(value) => handleUpdateField("lastName", value)}
-              onCancel={() => setEditingField(null)}
+              isEditing={false}
+              editable={false}
+              onEdit={() => { }}
+              onSave={() => { }}
+              onCancel={() => { }}
               placeholder={t("page_profile_placeholder_last_name")}
-              loading={loading && editingField === "lastName"}
+              loading={false}
             />
 
             <EditableField
@@ -743,23 +745,25 @@ const ProfilePage = () => {
               value={brokerProfile.email}
               icon={<Mail className="h-4 w-4" />}
               isEditing={false}
+              editable={false}
               onEdit={() => { }}
               onSave={() => { }}
               onCancel={() => { }}
-              editable={false}
+
             />
 
             <EditableField
               label={t("page_profile_label_mobile")}
               value={brokerProfile.mobile}
               icon={<Phone className="h-4 w-4" />}
-              isEditing={editingField === "mobile"}
-              onEdit={() => setEditingField("mobile")}
-              onSave={(value) => handleUpdateField("mobile", value)}
-              onCancel={() => setEditingField(null)}
+              isEditing={false}
+              editable={false}
+              onEdit={() => { }}
+              onSave={() => { }}
+              onCancel={() => { }}
               placeholder={t("page_profile_placeholder_mobile")}
               maxLength={10}
-              loading={loading && editingField === "mobile"}
+              loading={false}
             />
           </div>
         </CardContent>

@@ -54,8 +54,8 @@ export const ResidentialProperySpecs: React.FC<
     }
   }, [effectiveSize, rate, totalPrice, lastEditedPriceField, form]);
 
-  const roadWidthOptionsMeters = [3.75, 5.5, 7.0, 10.5, 14.0, 21.0];
-  const roadWidthOptionsFeet = [12, 18, 23, 35, 46, 70];
+  const roadWidthOptionsFeet = [30, 40, 60, 80, 100, 120, 160, 180, 200, 300, 250];
+  const roadWidthOptionsMeters = [9, 12, 18, 24, 30, 37, 49, 55, 61, 91, 76];
   const roadWidthOptions = roadWidthUnit === "FEET" ? roadWidthOptionsFeet : roadWidthOptionsMeters;
   const roadWidthUnitLabel = roadWidthUnit === "FEET" ? "ft" : "m";
   // const facingOptions = [
@@ -542,6 +542,7 @@ export const ResidentialProperySpecs: React.FC<
                         Road Width <span className="text-destructive">*</span>
                       </div>
                       <FormField
+                        defaultValue={roadWidthUnit}
                         control={form.control}
                         name="roadWidthUnit"
                         render={({ field }) => (

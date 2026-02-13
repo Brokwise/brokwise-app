@@ -87,7 +87,7 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[70vh] md:max-h-[92vh] overflow-hidden p-0 gap-0">
+      <DialogContent className="md:max-w-4xl max-h-[90vh] md:max-h-[92vh] overflow-hidden p-0 gap-0">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 pr-12 border-b bg-gradient-to-r from-background to-muted/30">
           <DialogTitle className="text-base font-semibold flex items-center gap-2">
@@ -489,11 +489,7 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
                         Listed: {format(new Date(property.createdAt), "dd MMM yyyy")}
                       </span>
                     </div>
-                    {property.listedBy && (
-                      <span>
-                        By: {property.listedBy.firstName} {property.listedBy.lastName}
-                      </span>
-                    )}
+
                   </div>
                 </div>
               </>
