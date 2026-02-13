@@ -18,6 +18,16 @@ import {
   Clock,
   MessageSquare,
   Flame,
+  Ruler,
+  Compass,
+  ArrowLeftRight,
+  Layers,
+  Hotel,
+  Target,
+  Map,
+  LayoutGrid,
+  Home,
+  IndianRupee,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -135,9 +145,6 @@ export const EnquiryCard = ({
         </div>
 
         <div className="space-y-1.5">
-          <h3 className="font-semibold text-lg leading-tight tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
-            {enquiry.description || t("label_untitled_enquiry")}
-          </h3>
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-[11px] font-medium text-muted-foreground shrink-0">
               {t("label_enquiry_id")}:
@@ -182,13 +189,21 @@ export const EnquiryCard = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-3 text-sm flex-wrap">
+        <div className="flex items-center gap-2 text-sm flex-wrap">
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
             <Building2 className="h-3.5 w-3.5" />
             <span className="font-medium capitalize text-xs">
               {enquiry.enquiryCategory.toLowerCase()}
             </span>
           </div>
+          {enquiry.size && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+              <Ruler className="h-3.5 w-3.5" />
+              <span className="font-medium text-xs">
+                {enquiry.size.min} - {enquiry.size.max} {enquiry.size.unit.replace(/_/g, " ").toLowerCase()}
+              </span>
+            </div>
+          )}
           {enquiry.bhk && (
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
               <BedDouble className="h-3.5 w-3.5" />
@@ -201,6 +216,68 @@ export const EnquiryCard = ({
               <span className="font-medium text-xs">
                 {enquiry.washrooms} {t("label_bath")}
               </span>
+            </div>
+          )}
+          {enquiry.preferredFloor && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+              <Layers className="h-3.5 w-3.5" />
+              <span className="font-medium text-xs">{enquiry.preferredFloor}</span>
+            </div>
+          )}
+          {enquiry.society && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+              <Home className="h-3.5 w-3.5" />
+              <span className="font-medium text-xs">{enquiry.society}</span>
+            </div>
+          )}
+          {enquiry.plotType && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span className="font-medium text-xs capitalize">{enquiry.plotType.toLowerCase()}</span>
+            </div>
+          )}
+          {enquiry.facing && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+              <Compass className="h-3.5 w-3.5" />
+              <span className="font-medium text-xs capitalize">{enquiry.facing.replace(/_/g, " ").toLowerCase()}</span>
+            </div>
+          )}
+          {enquiry.frontRoadWidth && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+              <ArrowLeftRight className="h-3.5 w-3.5" />
+              <span className="font-medium text-xs">{enquiry.frontRoadWidth} ft road</span>
+            </div>
+          )}
+          {enquiry.rooms && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+              <Hotel className="h-3.5 w-3.5" />
+              <span className="font-medium text-xs">{enquiry.rooms} Rooms</span>
+            </div>
+          )}
+          {enquiry.beds && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+              <BedDouble className="h-3.5 w-3.5" />
+              <span className="font-medium text-xs">{enquiry.beds} Beds</span>
+            </div>
+          )}
+          {enquiry.rentalIncome && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+              <IndianRupee className="h-3.5 w-3.5" />
+              <span className="font-medium text-xs">
+                {formatCurrencyEnquiry(enquiry.rentalIncome.min)} - {formatCurrencyEnquiry(enquiry.rentalIncome.max)} rent
+              </span>
+            </div>
+          )}
+          {enquiry.purpose && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+              <Target className="h-3.5 w-3.5" />
+              <span className="font-medium text-xs line-clamp-1">{enquiry.purpose}</span>
+            </div>
+          )}
+          {enquiry.areaType && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
+              <Map className="h-3.5 w-3.5" />
+              <span className="font-medium text-xs capitalize">{enquiry.areaType.replace(/_/g, " ").toLowerCase()}</span>
             </div>
           )}
         </div>

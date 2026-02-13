@@ -47,13 +47,6 @@ import {
 import { useApp } from "@/context/AppContext";
 import Image from "next/image";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   DEFAULT_RESOURCE_STATE,
   getStoredResourceState,
   setStoredResourceState,
@@ -68,10 +61,6 @@ import {
 
 const toolTitleByKey: Record<string, string> = {
   "land-converter": "nav_land_convertor",
-};
-
-const resourceTitleByKey: Record<string, string> = {
-  news: "nav_news",
 };
 
 type SidebarNavSubItem = {
@@ -115,15 +104,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   }, [catalog, selectedState]);
 
-  const handleStateChange = (stateCode: string) => {
-    setSelectedState(stateCode);
-    setStoredResourceState(stateCode);
-  };
-
   const handleMenuClick = () => {
     if (isMobile) {
       setOpenMobile(false);
     }
+  };
+
+  const isMenuItemActive = (url: string) => {
+    if (url === "/resources") {
+      return pathname === url || pathname.startsWith(`${url}/`);
+    }
+    return pathname === url;
   };
 
   // Company Navigation
@@ -213,6 +204,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: LandPlotIcon,
     },
     {
+      title: t("nav_resources"),
+      url: "/resources",
+      icon: FileText,
+    },
+    {
       title: t("nav_subscription"),
       url: "/subscription",
       icon: Crown,
@@ -294,7 +290,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       onClick={handleMenuClick}
                       asChild
                       tooltip={item.title}
-                      isActive={pathname === item.url}
+                      isActive={isMenuItemActive(item.url)}
                     >
                       <Link href={item.url}>
                         <item.icon />
@@ -345,104 +341,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       </SidebarMenuItem>
                     );
                   })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            <SidebarGroup>
-              <SidebarGroupLabel>{t("nav_resources")}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <div className="px-2 pb-2 group-data-[collapsible=icon]:hidden">
-                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1 px-2">
-                    {t("resources_select_state", "Select State")}
-                  </div>
-                  <Select value={selectedState} onValueChange={handleStateChange}>
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder={t("resources_select_state", "Select State")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {catalog.states.map((state) => (
-                        <SelectItem key={state._id} value={state.code}>
-                          {state.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <SidebarMenu>
-                  {catalog.commonResources.map((item) => {
-                    const Icon = resolveResourceIcon(item);
-                    const href = buildResourceHref(item, selectedState);
-                    const active = isResourceActive(item, pathname, currentResourceKey);
-                    const newTab = opensInNewTab(item);
-                    const title = t(resourceTitleByKey[item.key] || item.label, item.label);
-
-                    return (
-                      <SidebarMenuItem key={item._id}>
-                        <SidebarMenuButton
-                          onClick={handleMenuClick}
-                          asChild
-                          tooltip={title}
-                          isActive={active}
-                        >
-                          {newTab ? (
-                            <a href={href} target="_blank" rel="noopener noreferrer">
-                              <Icon />
-                              <span>{title}</span>
-                              <ExternalLink className="ml-auto size-3 opacity-70 group-data-[collapsible=icon]:hidden" />
-                            </a>
-                          ) : (
-                            <Link href={href}>
-                              <Icon />
-                              <span>{title}</span>
-                            </Link>
-                          )}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-
-                  {catalog.stateResources.map((item) => {
-                    const Icon = resolveResourceIcon(item);
-                    const href = buildResourceHref(item, selectedState);
-                    const active = isResourceActive(item, pathname, currentResourceKey);
-                    const newTab = opensInNewTab(item);
-                    const title = t(resourceTitleByKey[item.key] || item.label, item.label);
-
-                    return (
-                      <SidebarMenuItem key={item._id}>
-                        <SidebarMenuButton
-                          onClick={handleMenuClick}
-                          asChild
-                          tooltip={title}
-                          isActive={active}
-                        >
-                          {newTab ? (
-                            <a href={href} target="_blank" rel="noopener noreferrer">
-                              <Icon />
-                              <span>{title}</span>
-                              <ExternalLink className="ml-auto size-3 opacity-70 group-data-[collapsible=icon]:hidden" />
-                            </a>
-                          ) : (
-                            <Link href={href}>
-                              <Icon />
-                              <span>{title}</span>
-                            </Link>
-                          )}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-
-                  {catalog.stateResources.length === 0 && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton disabled tooltip={t("resources_empty_state", "No links for selected state") }>
-                        <FileText />
-                        <span>{t("resources_empty_state", "No links for selected state")}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
