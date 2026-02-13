@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   Building2,
   Bookmark,
+  Calculator,
   Home,
   LayoutDashboard,
   MessageSquare,
@@ -17,6 +18,7 @@ import {
   HomeIcon,
   Crown,
   ExternalLink,
+  Newspaper,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -58,10 +60,6 @@ import {
   opensInNewTab,
   resolveResourceIcon,
 } from "@/lib/resourceCatalog";
-
-const toolTitleByKey: Record<string, string> = {
-  "land-converter": "nav_land_convertor",
-};
 
 type SidebarNavSubItem = {
   title: string;
@@ -204,11 +202,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: LandPlotIcon,
     },
     {
-      title: t("nav_resources"),
-      url: "/resources",
-      icon: FileText,
-    },
-    {
       title: t("nav_subscription"),
       url: "/subscription",
       icon: Crown,
@@ -311,11 +304,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {catalog.tools.map((item) => {
+                    const isLandConverterTool =
+                      item.key === "land-converter" ||
+                      item.target === "/resources/land-convertor";
+                    if (!isLandConverterTool) {
+                      return null;
+                    }
+
                     const Icon = resolveResourceIcon(item);
                     const href = buildResourceHref(item, selectedState);
                     const active = isResourceActive(item, pathname, currentResourceKey);
                     const newTab = opensInNewTab(item);
-                    const title = t(toolTitleByKey[item.key] || item.label, item.label);
+                    const title = t("nav_land_convertor");
 
                     return (
                       <SidebarMenuItem key={item._id}>
@@ -341,6 +341,54 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       </SidebarMenuItem>
                     );
                   })}
+
+                  {!catalog.tools.some(
+                    (item) =>
+                      item.key === "land-converter" ||
+                      item.target === "/resources/land-convertor"
+                  ) && (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        onClick={handleMenuClick}
+                        asChild
+                        tooltip={t("nav_land_convertor")}
+                        isActive={pathname === "/resources/land-convertor"}
+                      >
+                        <Link href="/resources/land-convertor">
+                          <Calculator />
+                          <span>{t("nav_land_convertor")}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={handleMenuClick}
+                      asChild
+                      tooltip={t("nav_resources")}
+                      isActive={pathname === "/resources"}
+                    >
+                      <Link href="/resources">
+                        <FileText />
+                        <span>{t("nav_resources")}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={handleMenuClick}
+                      asChild
+                      tooltip={t("nav_news")}
+                      isActive={pathname === "/resources/news"}
+                    >
+                      <Link href="/resources/news">
+                        <Newspaper />
+                        <span>{t("nav_news")}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
