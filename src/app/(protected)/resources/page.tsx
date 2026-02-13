@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ExternalLink, Loader2, MapPinned } from "lucide-react";
+import { ChevronRight, ExternalLink, Loader2, MapPinned } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { PageHeader, PageShell } from "@/components/ui/layout";
@@ -94,8 +94,8 @@ const LinksList = ({
 
   if (!hasLinks) {
     return (
-      <div className="rounded-lg border border-dashed border-border/70 bg-muted/30 px-4 py-6 text-sm text-muted-foreground">
-        {emptyLabel}
+      <div className="flex min-h-40 items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/20 px-4 py-8 text-center text-sm text-muted-foreground">
+        <span className="max-w-sm">{emptyLabel}</span>
       </div>
     );
   }
@@ -241,7 +241,7 @@ const ResourcesContent = () => {
               {t("resources_state_cards_hint", "Tap a card to open links for that state.")}
             </p>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-2.5">
             {catalog.states.length === 0 && (
               <p className="text-sm text-muted-foreground">
                 {t("resources_no_states", "No states available right now.")}
@@ -255,16 +255,22 @@ const ResourcesContent = () => {
                   type="button"
                   onClick={() => onSelectState(state.code)}
                   className={cn(
-                    "flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors",
+                    "group flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left transition-all duration-200",
                     isSelected
-                      ? "border-primary bg-primary/10 text-foreground"
-                      : "border-border bg-card hover:bg-muted/60"
+                      ? "border-primary bg-primary/10 text-foreground shadow-sm ring-1 ring-primary/30"
+                      : "border-border bg-card hover:bg-muted/60 hover:translate-x-0.5"
                   )}
                 >
-                  <span className="font-medium">{state.name}</span>
-                  <span className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
-                    {state.code}
-                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{state.name}</p>
+                    <p className="text-xs text-muted-foreground">{state.code}</p>
+                  </div>
+                  <ChevronRight
+                    className={cn(
+                      "size-4 shrink-0 text-muted-foreground transition-transform",
+                      isSelected ? "translate-x-0.5 text-primary" : "group-hover:translate-x-0.5"
+                    )}
+                  />
                 </button>
               );
             })}
@@ -278,7 +284,7 @@ const ResourcesContent = () => {
               <span>{selectedStateMeta?.name || selectedState}</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="pb-5">
+          <CardContent className="min-h-[420px] pb-5">
             <LinksList
               commonResources={commonResources}
               stateResources={stateResources}
@@ -303,12 +309,15 @@ const ResourcesContent = () => {
             <DrawerTitle>{selectedStateMeta?.name || selectedState}</DrawerTitle>
             <DrawerDescription>
               {t(
-                "resources_mobile_hint",
-                "Explore all available links for this state."
+                "resources_mobile_hint_state",
+                {
+                  state: selectedStateMeta?.name || selectedState,
+                  defaultValue: "Explore all available links for {{state}}.",
+                }
               )}
             </DrawerDescription>
           </DrawerHeader>
-          <div className="overflow-auto px-4 pb-6">
+          <div className="overflow-auto px-4 pb-8">
             <LinksList
               commonResources={commonResources}
               stateResources={stateResources}
@@ -333,8 +342,9 @@ const ResourcesContent = () => {
 const ResourcesPage = () => (
   <React.Suspense
     fallback={
-      <div className="flex h-full w-full items-center justify-center py-10">
+      <div className="flex min-h-[50vh] w-full flex-col items-center justify-center gap-3 py-10">
         <Loader2 className="size-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Loading resources...</p>
       </div>
     }
   >
