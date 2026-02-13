@@ -170,10 +170,14 @@ const ResourcesContent = () => {
     if (!allowed.size) return;
 
     const storedState = getStoredResourceState();
+    const candidates = [
+      requestedStateCode,
+      storedState,
+      catalog.selectedState,
+      catalog.states[0]?.code,
+    ].filter((code): code is string => typeof code === "string" && code.length > 0);
     const nextState =
-      [requestedStateCode, storedState, catalog.selectedState, catalog.states[0]?.code]
-        .filter(Boolean)
-        .find((code): code is string => allowed.has(code)) || DEFAULT_RESOURCE_STATE;
+      candidates.find((code) => allowed.has(code)) || DEFAULT_RESOURCE_STATE;
 
     setSelectedState((prev) => (prev === nextState ? prev : nextState));
 
