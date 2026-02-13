@@ -44,7 +44,9 @@ export class PushNotificationsService {
         console.log("Push action performed", JSON.stringify(event));
         const data = event.notification.data;
         if (data && (data as { route?: string }).route) {
-          window.location.hash = (data as { route: string }).route;
+          const route = (data as { route: string }).route;
+          const target = route.startsWith("/") ? route : `/${route}`;
+          window.location.href = target;
         }
       }
     );

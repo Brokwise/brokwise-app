@@ -162,6 +162,10 @@ export default function AuthPage({
 
 
   const activeTheme = mounted ? resolvedTheme ?? theme : undefined;
+  const authMenuItemClass =
+    "focus:bg-muted focus:text-foreground data-[highlighted]:bg-muted data-[highlighted]:text-foreground";
+  const authMenuSelectedItemClass =
+    "bg-muted text-foreground font-semibold focus:bg-muted data-[highlighted]:bg-muted data-[highlighted]:text-foreground";
   // const isSystemTheme = mounted && theme === "system";
 
   const contentConfig = useMemo(() => {
@@ -598,16 +602,27 @@ export default function AuthPage({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Appearance</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setTheme(activeTheme === "light" ? "dark" : "light")}>
+              <DropdownMenuItem
+                onClick={() =>
+                  setTheme(activeTheme === "light" ? "dark" : "light")
+                }
+                className={authMenuItemClass}
+              >
                 {activeTheme === "light" ? <Moon className="mr-2 h-4 w-4" /> : <Sun className="mr-2 h-4 w-4" />}
                 {activeTheme === "light" ? "Dark Mode" : "Light Mode"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Language</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => changeLanguage("en")} className={currentLang === "en" ? "bg-accent" : ""}>
+              <DropdownMenuItem
+                onClick={() => changeLanguage("en")}
+                className={`${authMenuItemClass} ${currentLang === "en" ? authMenuSelectedItemClass : ""}`}
+              >
                 English
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeLanguage("hi")} className={currentLang === "hi" ? "bg-accent" : ""}>
+              <DropdownMenuItem
+                onClick={() => changeLanguage("hi")}
+                className={`${authMenuItemClass} ${currentLang === "hi" ? authMenuSelectedItemClass : ""}`}
+              >
                 हिंदी
               </DropdownMenuItem>
             </DropdownMenuContent>
