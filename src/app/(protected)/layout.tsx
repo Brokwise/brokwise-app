@@ -1,11 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import { Newspaper } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { ProtectedPage } from "./_components/protected";
-import { AppProvider, useApp } from "@/context/AppContext";
+import { AppProvider } from "@/context/AppContext";
 import { UndoDeleteProvider } from "@/context/UndoDeleteContext";
 import { AppSidebar } from "@/components/app-sidebar";
 import { BottomNav } from "@/components/ui/bottom-nav";
@@ -25,28 +22,6 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import { useTheme } from "next-themes";
 import { SwipeBackProvider } from "@/components/SwipeBackProvider";
 import { getCookie } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-
-const HeaderActions = () => {
-  const { companyData } = useApp();
-  const { t } = useTranslation();
-
-  return (
-    <div className="flex items-center gap-2">
-      <CreditsBadge />
-      <LandConverter />
-      {!companyData && (
-        <Button asChild variant="ghost" size="icon" aria-label={t("nav_news")}>
-          <Link href="/resources/news">
-            <Newspaper className="size-4" />
-          </Link>
-        </Button>
-      )}
-      <Notifications />
-      <UserAvatar />
-    </div>
-  );
-};
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [defaultSidebarOpen, setDefaultSidebarOpen] = useState(true);
@@ -99,7 +74,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                       <Separator orientation="vertical" className="mr-2 h-4" />
                     </div>
 
-                    <HeaderActions />
+                    <div className="flex items-center gap-2">
+                      <CreditsBadge />
+                      <LandConverter />
+                      <Notifications />
+                      <UserAvatar />
+                    </div>
                   </header>
                 </div>
 
