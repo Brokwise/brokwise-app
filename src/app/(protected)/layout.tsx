@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Newspaper } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ProtectedPage } from "./_components/protected";
-import { AppProvider } from "@/context/AppContext";
+import { AppProvider, useApp } from "@/context/AppContext";
 import { UndoDeleteProvider } from "@/context/UndoDeleteContext";
 import { AppSidebar } from "@/components/app-sidebar";
 import { BottomNav } from "@/components/ui/bottom-nav";
@@ -27,12 +27,31 @@ import { SwipeBackProvider } from "@/components/SwipeBackProvider";
 import { getCookie } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
+const HeaderActions = () => {
+  const { companyData } = useApp();
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex items-center gap-2">
+      <CreditsBadge />
+      <LandConverter />
+      {!companyData && (
+        <Button asChild variant="ghost" size="icon" aria-label={t("nav_news")}>
+          <Link href="/resources/news">
+            <Newspaper className="size-4" />
+          </Link>
+        </Button>
+      )}
+      <Notifications />
+      <UserAvatar />
+    </div>
+  );
+};
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [defaultSidebarOpen, setDefaultSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
   const { theme, resolvedTheme } = useTheme();
-  const { t } = useTranslation();
 
   useEffect(() => {
     const sidebarCookie = getCookie("sidebar_state");
@@ -80,17 +99,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                       <Separator orientation="vertical" className="mr-2 h-4" />
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <CreditsBadge />
-                      <LandConverter />
-                      <Button asChild variant="ghost" size="icon" aria-label={t("nav_news")}>
-                        <Link href="/resources/news">
-                          <Newspaper className="size-4" />
-                        </Link>
-                      </Button>
-                      <Notifications />
-                      <UserAvatar />
-                    </div>
+                    <HeaderActions />
                   </header>
                 </div>
 

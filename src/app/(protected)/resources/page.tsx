@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ExternalLink, MapPinned } from "lucide-react";
+import { ExternalLink, Loader2, MapPinned } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { PageHeader, PageShell } from "@/components/ui/layout";
@@ -131,7 +131,7 @@ const LinksList = ({
   );
 };
 
-const ResourcesPage = () => {
+const ResourcesContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTranslation();
@@ -175,9 +175,7 @@ const ResourcesPage = () => {
         .filter(Boolean)
         .find((code): code is string => allowed.has(code)) || DEFAULT_RESOURCE_STATE;
 
-    if (nextState !== selectedState) {
-      setSelectedState(nextState);
-    }
+    setSelectedState((prev) => (prev === nextState ? prev : nextState));
 
     if (storedState !== nextState) {
       setStoredResourceState(nextState);
@@ -190,7 +188,6 @@ const ResourcesPage = () => {
     catalog.selectedState,
     catalog.states,
     requestedStateCode,
-    selectedState,
     syncStateInUrl,
   ]);
 
@@ -332,5 +329,17 @@ const ResourcesPage = () => {
     </PageShell>
   );
 };
+
+const ResourcesPage = () => (
+  <React.Suspense
+    fallback={
+      <div className="flex h-full w-full items-center justify-center py-10">
+        <Loader2 className="size-8 animate-spin text-primary" />
+      </div>
+    }
+  >
+    <ResourcesContent />
+  </React.Suspense>
+);
 
 export default ResourcesPage;

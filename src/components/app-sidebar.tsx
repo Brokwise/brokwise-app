@@ -110,6 +110,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   };
 
+  const isMenuItemActive = (url: string) => {
+    if (url === "/resources") {
+      return pathname === url || pathname.startsWith(`${url}/`);
+    }
+    return pathname === url;
+  };
+
   // Company Navigation
   const companyNav: SidebarNavItem[] = [
     {
@@ -283,7 +290,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       onClick={handleMenuClick}
                       asChild
                       tooltip={item.title}
-                      isActive={pathname === item.url}
+                      isActive={isMenuItemActive(item.url)}
                     >
                       <Link href={item.url}>
                         <item.icon />
