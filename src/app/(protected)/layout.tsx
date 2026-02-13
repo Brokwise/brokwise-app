@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { Newspaper } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ProtectedPage } from "./_components/protected";
 import { AppProvider } from "@/context/AppContext";
 import { UndoDeleteProvider } from "@/context/UndoDeleteContext";
@@ -22,12 +25,14 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import { useTheme } from "next-themes";
 import { SwipeBackProvider } from "@/components/SwipeBackProvider";
 import { getCookie } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [defaultSidebarOpen, setDefaultSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
   const { theme, resolvedTheme } = useTheme();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const sidebarCookie = getCookie("sidebar_state");
@@ -78,6 +83,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <div className="flex items-center gap-2">
                       <CreditsBadge />
                       <LandConverter />
+                      <Button asChild variant="ghost" size="icon" aria-label={t("nav_news")}>
+                        <Link href="/resources/news">
+                          <Newspaper className="size-4" />
+                        </Link>
+                      </Button>
                       <Notifications />
                       <UserAvatar />
                     </div>
