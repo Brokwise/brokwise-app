@@ -28,6 +28,8 @@ import { useCredits, useGetCreditPrices } from "@/hooks/useCredits";
 import { useGetRemainingQuota } from "@/hooks/useSubscription";
 import { useQueryClient } from "@tanstack/react-query";
 import { EnquiryCreateUseCredits } from "@/components/ui/enquiry-create-use-credits";
+import { DisclaimerAcknowledge } from "@/components/ui/disclaimer-acknowledge";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 import { createEnquirySchema, CreateEnquiryFormValues, BUDGET_MIN, BUDGET_MAX } from "@/models/schemas/enquirySchema";
 import LocationSection from "./_components/LocationSection";
@@ -51,6 +53,8 @@ const CreateEnquiryPage = () => {
   const isPending = companyData ? isCompanyPending : isBrokerPending;
   const [showUrgentConfirmation, setShowUrgentConfirmation] = useState(false);
   const [shouldUseCredits, setShouldUseCredits] = useState(false);
+  const [isEnquiryDisclaimerAccepted, setIsEnquiryDisclaimerAccepted] =
+    useState(false);
   const [pendingSubmissionData, setPendingSubmissionData] =
     useState<CreateEnquiryFormValues | null>(null);
 
@@ -102,6 +106,7 @@ const CreateEnquiryPage = () => {
     const payload: Record<string, unknown> = {
       ...data,
       shouldUseCredits,
+      enquiryDisclaimerAccepted: isEnquiryDisclaimerAccepted,
     };
     delete payload.addressPlaceId;
     delete payload.locationMode;
@@ -144,6 +149,11 @@ const CreateEnquiryPage = () => {
   };
 
   const onSubmit = (data: CreateEnquiryFormValues) => {
+    if (!isEnquiryDisclaimerAccepted) {
+      toast.error(DISCLAIMER_TEXT.mandatoryLabel);
+      return;
+    }
+
     if (data.urgent) {
       if (balance < prices.MARK_ENQUIRY_AS_URGENT) {
         toast.error("Insufficient credits to mark as Urgent");
@@ -189,6 +199,15 @@ const CreateEnquiryPage = () => {
               shouldUseCredits={shouldUseCredits}
               setShouldUseCredits={setShouldUseCredits}
             />
+            <div className="w-full max-w-2xl">
+              <DisclaimerAcknowledge
+                text={DISCLAIMER_TEXT.enquiryProposal}
+                checked={isEnquiryDisclaimerAccepted}
+                onCheckedChange={setIsEnquiryDisclaimerAccepted}
+                checkboxLabel={DISCLAIMER_TEXT.acknowledgeLabel}
+                showRequiredMessage
+              />
+            </div>
             <div className="inline-flex items-center bg-background/95 backdrop-blur-xl backdrop-saturate-150 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-full p-1.5 gap-2 ring-1 ring-black/5 dark:ring-white/10">
               <Button
                 type="button"
@@ -203,7 +222,12 @@ const CreateEnquiryPage = () => {
               <Button
                 type="submit"
                 className="rounded-full px-6 h-9 text-sm font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 bg-primary"
-                disabled={isPending || isQuotaLoading || (remaining?.enquiry_listing === 0 && !shouldUseCredits)}
+                disabled={
+                  isPending ||
+                  isQuotaLoading ||
+                  !isEnquiryDisclaimerAccepted ||
+                  (remaining?.enquiry_listing === 0 && !shouldUseCredits)
+                }
               >
                 {isPending && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
                 {isPending ? t("submitting") : t("action_submit_enquiry")}

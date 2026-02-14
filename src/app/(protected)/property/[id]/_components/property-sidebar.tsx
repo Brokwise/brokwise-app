@@ -29,6 +29,8 @@ import { useTranslation } from "react-i18next";
 import useCredits, { useGetCreditPrices } from "@/hooks/useCredits";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCheckContactRequestStatus, useCreateContactRequest } from "@/hooks/useContactRequest";
+import { DisclaimerAcknowledge } from "@/components/ui/disclaimer-acknowledge";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 interface PropertySidebarProps {
     property: Property;
@@ -46,6 +48,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
     const hasSufficientCredits = (balance || 0) >= FEATURED_COST;
     const [showFeatureDialog, setShowFeatureDialog] = useState(false);
     const [showContactRequestDialog, setShowContactRequestDialog] = useState(false);
+    const [isContactRequestDisclaimerAccepted, setIsContactRequestDisclaimerAccepted] = useState(false);
 
     // Contact request hooks
     const { createContactRequest, isPending: isCreatingContactRequest } = useCreateContactRequest();
@@ -238,7 +241,10 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                                             className="w-full font-medium"
                                             size="lg"
                                             disabled={!canRequestContact || isCreatingContactRequest}
-                                            onClick={() => setShowContactRequestDialog(true)}
+                                            onClick={() => {
+                                                setIsContactRequestDisclaimerAccepted(false);
+                                                setShowContactRequestDialog(true);
+                                            }}
                                         >
                                             {isCreatingContactRequest && (
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -269,12 +275,24 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                                     </p>
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
+                            <DisclaimerAcknowledge
+                                text={DISCLAIMER_TEXT.contactSharing}
+                                checked={isContactRequestDisclaimerAccepted}
+                                onCheckedChange={setIsContactRequestDisclaimerAccepted}
+                                checkboxLabel={DISCLAIMER_TEXT.acknowledgeLabel}
+                                showRequiredMessage
+                            />
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
+                                    disabled={!isContactRequestDisclaimerAccepted}
                                     onClick={() => {
-                                        createContactRequest({ propertyId: property._id });
+                                        createContactRequest({
+                                            propertyId: property._id,
+                                            disclaimerAccepted: true,
+                                        });
                                         setShowContactRequestDialog(false);
+                                        setIsContactRequestDisclaimerAccepted(false);
                                     }}
                                 >
                                     Confirm Request

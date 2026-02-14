@@ -3,6 +3,8 @@
 import React, { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { DisclaimerNotice } from "@/components/ui/disclaimer-notice";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 const WebViewContent = () => {
   const searchParams = useSearchParams();
@@ -43,6 +45,9 @@ const WebViewContent = () => {
         >
           Open in new tab
         </a>
+      </div>
+      <div className="p-3 border-b bg-background">
+        <DisclaimerNotice text={DISCLAIMER_TEXT.resourcesExternal} />
       </div>
       <div className="flex-1 w-full relative">
         <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground -z-10 bg-muted/20">

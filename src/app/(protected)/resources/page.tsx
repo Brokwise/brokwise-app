@@ -22,6 +22,8 @@ import {
   setStoredResourceState,
   useResourceCatalog,
 } from "@/hooks/useResourceCatalog";
+import { DisclaimerNotice } from "@/components/ui/disclaimer-notice";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 import {
   buildResourceHref,
   opensInNewTab,
@@ -236,6 +238,7 @@ const ResourcesContent = () => {
           "Pick a state to quickly access relevant government and market resources."
         )}
       />
+      <DisclaimerNotice text={DISCLAIMER_TEXT.resourcesExternal} />
 
       <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
         <Card className="h-fit">

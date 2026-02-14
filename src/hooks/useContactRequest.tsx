@@ -28,10 +28,13 @@ export const useCreateContactRequest = () => {
   const { mutate, mutateAsync, isPending, error } = useMutation<
     CreateContactRequestResponse,
     AxiosError<{ message: string }>,
-    { propertyId: string }
+    { propertyId: string; disclaimerAccepted?: boolean }
   >({
-    mutationFn: async ({ propertyId }) => {
-      const response = await api.post("/contact-requests", { propertyId });
+    mutationFn: async ({ propertyId, disclaimerAccepted }) => {
+      const response = await api.post("/contact-requests", {
+        propertyId,
+        disclaimerAccepted,
+      });
       return response.data.data;
     },
     onSuccess: (data, variables) => {
@@ -71,11 +74,16 @@ export const useRespondToContactRequest = () => {
   const { mutate, mutateAsync, isPending, error } = useMutation<
     RespondContactRequestResponse,
     AxiosError<{ message: string }>,
-    { requestId: string; action: "ACCEPT" | "REJECT" }
+    {
+      requestId: string;
+      action: "ACCEPT" | "REJECT";
+      disclaimerAccepted?: boolean;
+    }
   >({
-    mutationFn: async ({ requestId, action }) => {
+    mutationFn: async ({ requestId, action, disclaimerAccepted }) => {
       const response = await api.patch(`/contact-requests/${requestId}/respond`, {
         action,
+        disclaimerAccepted,
       });
       return response.data.data;
     },

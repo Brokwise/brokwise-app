@@ -28,6 +28,8 @@ import { PropertyPreviewModal } from "../[id]/_components/PropertyPreviewModal";
 import { formatEnquiryLocation } from "@/utils/helper";
 import { FilteredProperties } from "../[id]/submit/filteredProperties";
 import { Property } from "@/types/property";
+import { DisclaimerAcknowledge } from "@/components/ui/disclaimer-acknowledge";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 
 type View = "select" | "create" | "message";
@@ -62,6 +64,10 @@ function SubmitEnquiryPageContent() {
   const [bidCredits, setBidCredits] = useState<number | null>(null);
   const [shouldUseCredits, setShouldUseCredits] = useState(false);
   const [selectedLocationIndex, setSelectedLocationIndex] = useState<number>(0);
+  const [isExistingProposalDisclaimerAccepted, setIsExistingProposalDisclaimerAccepted] =
+    useState(false);
+  const [isFreshProposalDisclaimerAccepted, setIsFreshProposalDisclaimerAccepted] =
+    useState(false);
 
   const hasMultipleLocations =
     (enquiry?.preferredLocations?.length ?? 0) > 1;
@@ -102,7 +108,7 @@ function SubmitEnquiryPageContent() {
     );
   }
   const handleExistingSubmit = async () => {
-    if (!selectedPropertyId) return;
+    if (!selectedPropertyId || !isExistingProposalDisclaimerAccepted) return;
 
     const trimmedMessage = message.trim();
 
@@ -113,6 +119,7 @@ function SubmitEnquiryPageContent() {
         privateMessage: trimmedMessage || undefined,
         bidCredits: bidCredits ?? undefined,
         shouldUseCredits,
+        enquiryDisclaimerAccepted: isExistingProposalDisclaimerAccepted,
         preferredLocationIndex: hasMultipleLocations ? selectedLocationIndex : undefined,
       },
       {
@@ -121,6 +128,7 @@ function SubmitEnquiryPageContent() {
           setSelectedPropertyId(null);
           setBidCredits(null);
           setShouldUseCredits(false);
+          setIsExistingProposalDisclaimerAccepted(false);
           toast.success("Property submitted successfully");
           router.push(`/enquiries/detail?id=${id}`);
         },
@@ -135,7 +143,7 @@ function SubmitEnquiryPageContent() {
   };
 
   const handleFreshPropertySubmit = async () => {
-    if (!freshPropertyData) return;
+    if (!freshPropertyData || !isFreshProposalDisclaimerAccepted) return;
 
     const trimmedMessage = message.trim();
 
@@ -145,6 +153,7 @@ function SubmitEnquiryPageContent() {
         payload: {
           ...freshPropertyData,
           privateMessage: trimmedMessage || undefined,
+          enquiryDisclaimerAccepted: isFreshProposalDisclaimerAccepted,
           preferredLocationIndex: hasMultipleLocations ? selectedLocationIndex : undefined,
         },
         bidCredits: bidCredits ?? undefined,
@@ -154,6 +163,7 @@ function SubmitEnquiryPageContent() {
           setMessage("");
           setFreshPropertyData(null);
           setBidCredits(null);
+          setIsFreshProposalDisclaimerAccepted(false);
           toast.success("New property created and submitted successfully");
           router.push(`/enquiries/detail?id=${id}`);
         },
@@ -347,17 +357,27 @@ function SubmitEnquiryPageContent() {
             {/* Boost proposal with bidding */}
 
 
+            <DisclaimerAcknowledge
+              text={DISCLAIMER_TEXT.enquiryProposal}
+              checked={isFreshProposalDisclaimerAccepted}
+              onCheckedChange={setIsFreshProposalDisclaimerAccepted}
+              checkboxLabel={DISCLAIMER_TEXT.acknowledgeLabel}
+              showRequiredMessage
+            />
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button
                 variant="outline"
-                onClick={() => setView("select")}
+                onClick={() => {
+                  setView("select");
+                  setIsFreshProposalDisclaimerAccepted(false);
+                }}
                 disabled={isSubmittingFresh}
               >
                 Back
               </Button>
               <Button
                 onClick={handleFreshPropertySubmit}
-                disabled={isSubmittingFresh}
+                disabled={isSubmittingFresh || !isFreshProposalDisclaimerAccepted}
                 size="lg"
               >
                 {isSubmittingFresh && (
@@ -398,6 +418,8 @@ function SubmitEnquiryPageContent() {
                     onBidChange={setBidCredits}
                     shouldUseCredits={shouldUseCredits}
                     setShouldUseCredits={setShouldUseCredits}
+                    enquiryDisclaimerAccepted={isExistingProposalDisclaimerAccepted}
+                    setEnquiryDisclaimerAccepted={setIsExistingProposalDisclaimerAccepted}
                   />
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-center p-12 min-h-[400px]">

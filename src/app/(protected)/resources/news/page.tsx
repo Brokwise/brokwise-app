@@ -25,6 +25,8 @@ import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 import { format, formatDistanceToNow } from "date-fns";
 import { PageShell, PageHeader } from "@/components/ui/layout";
+import { DisclaimerNotice } from "@/components/ui/disclaimer-notice";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 // Category options for filtering
 const CATEGORIES = [
@@ -304,6 +306,7 @@ const NewsPage = () => {
         title="Real Estate News"
         description="Stay updated with the latest real estate news, market trends, and property insights."
       />
+      <DisclaimerNotice text={DISCLAIMER_TEXT.news} />
 
       {/* Search and Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

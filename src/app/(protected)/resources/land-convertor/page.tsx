@@ -27,6 +27,8 @@ import {
   useLandConverterStore,
   ConversionResult,
 } from "@/stores/landConverterStore";
+import { DisclaimerNotice } from "@/components/ui/disclaimer-notice";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 const ResultItem = ({
   result,
@@ -154,6 +156,7 @@ export default function LandConvertorPage() {
         title="Land Area Converter"
         description="Convert between Indian and global land area units instantly."
       />
+      <DisclaimerNotice text={DISCLAIMER_TEXT.landConverter} />
 
       <div className="space-y-8 mt-6">
         {/* Main Converter Card */}
