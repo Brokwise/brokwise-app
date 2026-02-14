@@ -1,6 +1,8 @@
 import { formatIndianNumber, getRoadWidthUnitLabel } from "@/utils/helper";
 import React from "react";
 import useCredits, { useGetCreditPrices } from "@/hooks/useCredits";
+import { getPlotTypeLabel } from "@/lib/plotType";
+import { useTranslation } from "react-i18next";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   FormControl,
@@ -18,6 +20,7 @@ interface ResortReviewProps {
 }
 
 const ResortReview: React.FC<ResortReviewProps> = ({ form, isEnquiry }) => {
+  const { t } = useTranslation();
   const { balance, isLoading: isCreditsLoading } = useCredits();
   const { prices } = useGetCreditPrices();
   const FEATURED_COST = prices.MARK_PROPERTY_AS_FEATURED;
@@ -77,7 +80,7 @@ const ResortReview: React.FC<ResortReviewProps> = ({ form, isEnquiry }) => {
           </div>
           <div>
             <strong>Plot Type:</strong>{" "}
-            {form.watch("plotType") || "Not selected"}
+            {getPlotTypeLabel(t, form.watch("plotType"), "verbose") || "Not selected"}
           </div>
           <div>
             <strong>Front Road Width:</strong>{" "}

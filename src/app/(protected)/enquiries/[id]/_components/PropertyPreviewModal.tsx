@@ -40,6 +40,8 @@ import {
 import { formatCurrency, formatAddress } from "@/utils/helper";
 import { format } from "date-fns";
 import { AxiosError } from "axios";
+import { getPlotTypeLabel } from "@/lib/plotType";
+import { useTranslation } from "react-i18next";
 
 type PropertyPreviewModalProps = {
   propertyId: string | null;
@@ -52,6 +54,7 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
   open,
   onOpenChange,
 }) => {
+  const { t } = useTranslation();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const { property, isLoading, error } = useGetProperty(propertyId ?? "", {
@@ -399,7 +402,7 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
                             {property.plotType && (
                               <DetailRow
                                 label="Plot Type"
-                                value={property.plotType}
+                                value={getPlotTypeLabel(t, property.plotType, "verbose")}
                               />
                             )}
                             {property.rentalIncome && (

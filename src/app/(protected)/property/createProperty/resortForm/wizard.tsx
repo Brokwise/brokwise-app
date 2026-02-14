@@ -166,7 +166,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
           propertyStatus: "Property status is required",
           size: "Resort area is required",
           sizeUnit: "Please select an area unit",
-          plotType: "Please select a plot type",
+          plotType: "Please select plot access type (single-side or corner)",
           facing: "Please select front facing direction",
           frontRoadWidth: "Front road width is required",
           sideFacing: "Please select side facing direction",

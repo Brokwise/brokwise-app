@@ -351,8 +351,8 @@ const PropertyDetailsSection = () => {
                                                     <SelectTrigger className="h-11 bg-background"><SelectValue placeholder={t("form_select_plot_type")} /></SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="ROAD">{t("label_road")}</SelectItem>
-                                                    <SelectItem value="CORNER">{t("label_corner")}</SelectItem>
+                                                    <SelectItem value="ROAD">{t("plot_type_road_compact")}</SelectItem>
+                                                    <SelectItem value="CORNER">{t("plot_type_corner_compact")}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />

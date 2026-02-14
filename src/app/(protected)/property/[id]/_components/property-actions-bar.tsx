@@ -31,9 +31,13 @@ export const PropertyActionsBar = ({
 }: PropertyActionsBarProps) => {
     const { t } = useTranslation();
 
-    const handleCopyLink = () => {
-        navigator.clipboard.writeText(shareUrl);
-        toast.success(t("toast_link_copied"));
+    const handleCopyLink = async () => {
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            toast.success(t("toast_link_copied"));
+        } catch {
+            toast.error(t("toast_error_copy_link"));
+        }
     };
 
     const handleNativeShare = async () => {
@@ -50,7 +54,7 @@ export const PropertyActionsBar = ({
             }
         } else {
             // Fallback to copy link if native share not supported
-            handleCopyLink();
+            await handleCopyLink();
         }
     };
 

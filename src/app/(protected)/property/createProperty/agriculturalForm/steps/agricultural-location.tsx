@@ -10,6 +10,8 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { DirectionCompassField } from "@/components/property/direction-compass-field";
 import { RoadWidthField } from "@/components/property/road-width-field";
+import { getPlotTypeOptions } from "@/lib/plotType";
+import { useTranslation } from "react-i18next";
 
 interface AgriculturalLocationProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,6 +21,7 @@ interface AgriculturalLocationProps {
 export const AgriculturalLocation: React.FC<AgriculturalLocationProps> = ({
   form,
 }) => {
+  const { t } = useTranslation();
   const plotType = form.watch("plotType");
   const roadWidthUnit = form.watch("roadWidthUnit") || "FEET";
   const showFrontDetails = plotType === "ROAD" || plotType === "CORNER";
@@ -41,10 +44,7 @@ export const AgriculturalLocation: React.FC<AgriculturalLocationProps> = ({
                 )}
                 data-field="plotType"
               >
-                {[
-                  { value: "ROAD", label: "Road Facing" },
-                  { value: "CORNER", label: "Corner Plot" },
-                ].map((item) => (
+                {getPlotTypeOptions(t).map((item) => (
                   <Button
                     key={item.value}
                     type="button"
@@ -57,12 +57,14 @@ export const AgriculturalLocation: React.FC<AgriculturalLocationProps> = ({
                       }
                     }}
                     className={cn(
+                      "flex-col items-start h-auto py-2 px-3",
                       field.value === item.value
                         ? "bg-primary text-primary-foreground"
                         : ""
                     )}
                   >
-                    {item.label}
+                    <span className="font-medium">{item.label}</span>
+                    <span className={cn("text-xs", field.value === item.value ? "text-primary-foreground/70" : "text-muted-foreground")}>{item.description}</span>
                   </Button>
                 ))}
               </div>

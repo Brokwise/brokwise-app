@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { DirectionCompassField } from "@/components/property/direction-compass-field";
 import { RoadWidthField } from "@/components/property/road-width-field";
 import { NumberInput } from "@/components/ui/number-input";
+import { getPlotTypeOptions } from "@/lib/plotType";
+import { useTranslation } from "react-i18next";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   formatIndianNumber,
@@ -41,6 +43,7 @@ interface CommercialPropertySpecsProps {
 export const CommercialPropertySpecs: React.FC<
   CommercialPropertySpecsProps
 > = ({ form, enquiry, propertyType }) => {
+  const { t } = useTranslation();
   const [lastEditedPriceField, setLastEditedPriceField] = useState<
     "rate" | "totalPrice"
   >("rate");
@@ -389,10 +392,7 @@ export const CommercialPropertySpecs: React.FC<
                     )}
                     data-field="plotType"
                   >
-                    {[
-                      { value: "ROAD", label: "Road Facing" },
-                      { value: "CORNER", label: "Corner Plot" },
-                    ].map((item) => (
+                    {getPlotTypeOptions(t).map((item) => (
                       <Button
                         key={item.value}
                         type="button"
@@ -405,12 +405,14 @@ export const CommercialPropertySpecs: React.FC<
                           }
                         }}
                         className={cn(
+                          "flex-col items-start h-auto py-2 px-3",
                           field.value === item.value
                             ? "bg-primary text-primary-foreground"
                             : ""
                         )}
                       >
-                        {item.label}
+                        <span className="font-medium">{item.label}</span>
+                        <span className={cn("text-xs", field.value === item.value ? "text-primary-foreground/70" : "text-muted-foreground")}>{item.description}</span>
                       </Button>
                     ))}
                   </div>
@@ -420,59 +422,60 @@ export const CommercialPropertySpecs: React.FC<
             )}
           />
 
-          {/* Front Road Details Card */}
-          <div className="space-y-4 p-4 rounded-xl bg-muted/30 border">
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              <span className="w-1 h-4 bg-primary rounded-full" />
-              Front Road Details
-            </h3>
+          {(plotType === "ROAD" || plotType === "CORNER") && (
+            <div className="space-y-4 p-4 rounded-xl bg-muted/30 border">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <span className="w-1 h-4 bg-primary rounded-full" />
+                Front Road Details
+              </h3>
 
-            <FormField
-              control={form.control}
-              name="facing"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormControl>
-                    <DirectionCompassField
-                      label="Facing Direction"
-                      required
-                      value={field.value}
-                      onChange={field.onChange}
-                      error={!!fieldState.error}
-                      dataField="facing"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="facing"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormControl>
+                      <DirectionCompassField
+                        label="Facing Direction"
+                        required
+                        value={field.value}
+                        onChange={field.onChange}
+                        error={!!fieldState.error}
+                        dataField="facing"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="frontRoadWidth"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormControl>
-                    <RoadWidthField
-                      label="Road Width"
-                      required
-                      value={field.value}
-                      onChange={field.onChange}
-                      unit={roadWidthUnit}
-                      onUnitChange={(value) => {
-                        form.setValue("roadWidthUnit", value);
-                        form.setValue("frontRoadWidth", undefined);
-                        form.setValue("sideRoadWidth", undefined);
-                      }}
-                      error={!!fieldState.error}
-                      dataField="frontRoadWidth"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+              <FormField
+                control={form.control}
+                name="frontRoadWidth"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormControl>
+                      <RoadWidthField
+                        label="Road Width"
+                        required
+                        value={field.value}
+                        onChange={field.onChange}
+                        unit={roadWidthUnit}
+                        onUnitChange={(value) => {
+                          form.setValue("roadWidthUnit", value);
+                          form.setValue("frontRoadWidth", undefined);
+                          form.setValue("sideRoadWidth", undefined);
+                        }}
+                        error={!!fieldState.error}
+                        dataField="frontRoadWidth"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
 
           {plotType === "CORNER" && (
             <div className="space-y-4 p-4 rounded-xl bg-muted/30 border">

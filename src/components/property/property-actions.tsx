@@ -37,6 +37,7 @@ import { PropertyStatusBadge } from "./property-status-badge";
 import { useTranslation } from "react-i18next";
 import { PROPERTY_DELETION_REASONS } from "@/constants";
 import { getCategoryLabelKey } from "@/lib/i18nKeys";
+import { getPropertyMediaSrc } from "@/lib/property-media";
 
 
 const formatDate = (dateString: string) => {
@@ -115,11 +116,7 @@ export function PropertyActions({ property }: { property: Property }) {
             <div className="relative h-48 w-full overflow-hidden rounded-lg bg-muted">
               {property.featuredMedia ? (
                 <Image
-                  src={
-                    property.featuredMedia.includes("firebasestorage.googleapis.com")
-                      ? property.featuredMedia
-                      : "/images/placeholder.webp"
-                  }
+                  src={getPropertyMediaSrc(property.featuredMedia)}
                   alt="Featured"
                   fill
                   className="object-cover"

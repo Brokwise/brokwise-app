@@ -169,7 +169,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
           propertyStatus: "Property status is required",
           size: "Property area is required",
           sizeUnit: "Please select an area unit",
-          plotType: "Please select a plot type",
+          plotType: "Please select plot access type (single-side or corner)",
           facing: "Please select front facing direction",
           frontRoadWidth: "Front road width is required",
           sideFacing: "Please select side facing direction",

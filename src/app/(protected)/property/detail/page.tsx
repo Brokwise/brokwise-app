@@ -25,6 +25,11 @@ import { DocumentsList } from "../[id]/_components/documents-list";
 import { PropertySidebar } from "../[id]/_components/property-sidebar";
 import { FlagInAppropriate } from "../[id]/_components/flag-inappropriate";
 import { PropertyOffers } from "../[id]/_components/propertyOffers";
+import {
+  isSampleLandMedia,
+  normalizeSampleLandMediaPath,
+  SAMPLE_LAND_MEDIA_DISCLAIMER,
+} from "@/lib/property-media";
 
 const PropertyPageContent = () => {
   const searchParams = useSearchParams();
@@ -123,12 +128,16 @@ const PropertyPageContent = () => {
   }
 
   const allImages = [
-    ...(property.featuredMedia ? [property.featuredMedia] : []),
-    ...property.images,
+    ...(property.featuredMedia
+      ? [normalizeSampleLandMediaPath(property.featuredMedia)]
+      : []),
+    ...property.images.map((image) => normalizeSampleLandMediaPath(image)),
   ];
   const watermarkText = `${brokerData?.brokerId || userData?.email || "BROKWISE"} • ${
     property.propertyId || property._id
   }`;
+  const shouldShowSampleDisclaimer =
+    property.propertyType === "LAND" && isSampleLandMedia(property.featuredMedia);
 
   return (
     <main className="min-h-screen pb-5 md:pb-20">
@@ -154,6 +163,11 @@ const PropertyPageContent = () => {
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
           <div className="order-1 lg:order-1 lg:col-span-7">
             <MediaCarousel images={allImages} property={property} />
+            {shouldShowSampleDisclaimer && (
+              <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                {SAMPLE_LAND_MEDIA_DISCLAIMER}
+              </div>
+            )}
           </div>
 
           <div className="order-2 lg:order-2 lg:col-span-3 lg:row-span-2 space-y-4">

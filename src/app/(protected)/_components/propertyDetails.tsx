@@ -1,6 +1,8 @@
 import { Property } from "@/types/property";
 import React from "react";
 import { formatCurrency, formatAddress } from "@/utils/helper";
+import { getPlotTypeLabel } from "@/lib/plotType";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +25,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 import Link from "next/link";
+import { getPropertyMediaSrc } from "@/lib/property-media";
 
 interface PropertyDetailsProps {
   property: Property;
@@ -33,6 +36,7 @@ export const PropertyDetails = ({
   property,
   onClose,
 }: PropertyDetailsProps) => {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col bg-background overflow-hidden max-h-full h-auto">
       {/* Header */}
@@ -62,14 +66,7 @@ export const PropertyDetails = ({
           {/* Compact Image with Price & Badges */}
           <div className="aspect-[2.5/1] w-full relative rounded-lg overflow-hidden bg-muted border">
             <Image
-              src={
-                property.featuredMedia &&
-                  property.featuredMedia.includes(
-                    "firebasestorage.googleapis.com"
-                  )
-                  ? property.featuredMedia
-                  : "/images/placeholder.webp"
-              }
+              src={getPropertyMediaSrc(property.featuredMedia)}
               alt="Property"
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -197,7 +194,7 @@ export const PropertyDetails = ({
             {property.plotType && (
               <div className="flex items-center gap-1 text-muted-foreground truncate">
                 <Home className="h-2.5 w-2.5 text-accent/70 shrink-0" />
-                <span className="truncate"><span className="text-foreground font-medium">{property.plotType}</span> Plot</span>
+                <span className="truncate"><span className="text-foreground font-medium">{getPlotTypeLabel(t, property.plotType)}</span></span>
               </div>
             )}
             {property.frontRoadWidth && (

@@ -17,6 +17,7 @@ import {
 import { format } from "date-fns";
 import { formatCurrency } from "@/utils/helper";
 import { useTranslation } from "react-i18next";
+import { getPlotTypeLabel } from "@/lib/plotType";
 
 interface PropertyFactsProps {
     property: Property;
@@ -40,7 +41,7 @@ export const PropertyFacts = ({ property }: PropertyFactsProps) => {
         },
         {
             label: t("property_plot_type"),
-            value: property.plotType,
+            value: getPlotTypeLabel(t, property.plotType, "verbose"),
             icon: Layers,
             show: !!property.plotType,
         },

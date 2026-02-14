@@ -40,6 +40,7 @@ import { useState } from "react";
 import { formatAddress, formatPrice } from "@/utils/helper";
 import { useTranslation } from "react-i18next";
 import { PROPERTY_DELETION_REASONS } from "@/constants";
+import { getPropertyMediaSrc } from "@/lib/property-media";
 
 const getStatusBadge = (status: ListingStatus) => {
   const variants: Record<
@@ -129,11 +130,7 @@ export const columns: ColumnDef<Property>[] = [
         <div className="relative h-10 w-16 overflow-hidden rounded-md">
           {image ? (
             <Image
-              src={
-                image.includes("firebasestorage.googleapis.com")
-                  ? image
-                  : "/images/placeholder.webp"
-              }
+              src={getPropertyMediaSrc(image)}
               alt="Property"
               fill
               className="object-cover"
