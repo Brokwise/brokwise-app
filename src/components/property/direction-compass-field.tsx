@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { FormLabel } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { Facing } from "@/types/property";
 
@@ -43,10 +44,10 @@ export const DirectionCompassField: React.FC<DirectionCompassFieldProps> = ({
 }) => {
   return (
     <div className={cn("space-y-2", className)}>
-      <p className="text-sm font-medium">
+      <FormLabel>
         {label}
         {required ? <span className="text-destructive"> *</span> : null}
-      </p>
+      </FormLabel>
       <div
         className={cn(
           "p-3 rounded-lg transition-colors",

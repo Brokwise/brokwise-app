@@ -84,11 +84,12 @@ const AgriculturalReview: React.FC<AgriculturalReviewProps> = ({ form, isEnquiry
               <strong>Side Facing:</strong> {form.watch("sideFacing")}
             </div>
           )}
-          {form.watch("sideRoadWidth") && (
+          {form.watch("sideRoadWidth") !== undefined &&
+            form.watch("sideRoadWidth") !== null && (
             <div>
               <strong>Side Road Width:</strong> {form.watch("sideRoadWidth")} ft
             </div>
-          )}
+            )}
           <div>
             <strong>Jamabandi URL:</strong>{" "}
             {form.watch("jamabandiUrl") ? "Provided" : "Not provided"}
