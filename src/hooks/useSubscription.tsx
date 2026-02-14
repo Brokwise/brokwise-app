@@ -19,7 +19,7 @@ import {
   VerifyActivationPayload,
   ActivationPurchaseResponse,
 } from "@/models/types/subscription";
-import { getRazorpayPlan } from "@/config/tier_limits";
+import { getRazorpayPlan, getActivationPlan } from "@/config/tier_limits";
 
 interface CreateSubscriptionResponse {
   subscription: SubscriptionResponse;
@@ -378,9 +378,15 @@ export const useSubscription = () => {
     userInfo: { name: string; email: string; phone: string }
   ): Promise<boolean> => {
     try {
-      const result = await purchaseActivation({ tier: selectedTier });
+      const activationPlan = getActivationPlan(selectedTier);
+      if (!activationPlan?.planId) {
+        toast.error("Invalid activation plan configuration");
+        return false;
+      }
 
-      const { orderId, amount, currency, keyId } = result;
+      const result = await purchaseActivation({ plan_id: activationPlan.planId });
+
+      const { orderId, amount, currency, keyId } = result.payment;
 
       return new Promise((resolve) => {
         const options = {

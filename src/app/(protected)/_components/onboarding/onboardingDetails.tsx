@@ -59,6 +59,7 @@ import {
   ACTIVATION_PLANS,
   ACTIVATION_TIER_INFO,
   ACTIVATION_LIMITS,
+  getActivationPlan,
 } from "@/config/tier_limits";
 import { usePurchaseActivation, useVerifyActivation } from "@/hooks/useSubscription";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -548,8 +549,9 @@ export const OnboardingDetails = ({
       });
 
       // 2. Initiate activation payment via Razorpay
-      const activationResult = await purchaseActivation({ tier: selectedTier });
-      const { orderId, amount, currency, keyId } = activationResult;
+      const activationPlan = getActivationPlan(selectedTier);
+      const activationResult = await purchaseActivation({ plan_id: activationPlan.planId });
+      const { orderId, amount, currency, keyId } = activationResult.payment;
 
       // 3. Open Razorpay checkout
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

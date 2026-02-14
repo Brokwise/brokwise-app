@@ -158,7 +158,7 @@ export interface CreateSubscriptionPayload {
 }
 
 export interface PurchaseActivationPayload {
-  tier: TIER;
+  plan_id: string;
 }
 
 export interface VerifyActivationPayload {
@@ -168,11 +168,24 @@ export interface VerifyActivationPayload {
 }
 
 export interface ActivationPurchaseResponse {
-  orderId: string;
-  amount: number;
-  currency: string;
-  keyId: string;
-  tier: TIER;
+  subscription: {
+    tier: TIER;
+    phase: SubscriptionPhase;
+    duration: SubscriptionDuration;
+    status: SubscriptionStatus;
+  };
+  payment: {
+    orderId: string;
+    amount: number;
+    currency: string;
+    keyId: string;
+  };
+  activationDetails: {
+    credits: number;
+    limits: TierLimits;
+    durationDays: number;
+  };
+  message: string;
 }
 
 export interface LinkRazorpayPayload {
@@ -193,6 +206,7 @@ export interface RazorpayPlanConfig {
 }
 
 export interface ActivationPlanConfig {
+  planId: string;
   tier: TIER;
   /** GST-inclusive amount charged via Razorpay */
   amount: number;

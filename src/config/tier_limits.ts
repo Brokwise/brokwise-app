@@ -76,6 +76,7 @@ export const getLimitsByPhase = (
 
 const ACTIVATION_PLANS_STAGING: Record<TIER, ActivationPlanConfig> = {
     BASIC: {
+        planId: "plan_SFw0GQfVdevBoR",      // TODO: replace with actual Razorpay plan ID
         tier: "BASIC",
         amount: 499,
         displayAmount: 499,
@@ -83,6 +84,7 @@ const ACTIVATION_PLANS_STAGING: Record<TIER, ActivationPlanConfig> = {
         credits: 40,
     },
     ESSENTIAL: {
+        planId: "plan_SFw0UppkIkY4Ae",   // TODO: replace with actual Razorpay plan ID
         tier: "ESSENTIAL",
         amount: 699,
         displayAmount: 699,
@@ -90,6 +92,7 @@ const ACTIVATION_PLANS_STAGING: Record<TIER, ActivationPlanConfig> = {
         credits: 100,
     },
     PRO: {
+        planId: "plan_SFw0i28ww5du9F",         // TODO: replace with actual Razorpay plan ID
         tier: "PRO",
         amount: 999,
         displayAmount: 999,
@@ -100,6 +103,7 @@ const ACTIVATION_PLANS_STAGING: Record<TIER, ActivationPlanConfig> = {
 
 const ACTIVATION_PLANS_PRODUCTION: Record<TIER, ActivationPlanConfig> = {
     BASIC: {
+        planId: "plan_SFt6ZxwHVyh12Z",          // TODO: replace with actual Razorpay plan ID
         tier: "BASIC",
         amount: 589,            // GST-inclusive
         displayAmount: 499,     // ex-GST
@@ -107,6 +111,7 @@ const ACTIVATION_PLANS_PRODUCTION: Record<TIER, ActivationPlanConfig> = {
         credits: 40,
     },
     ESSENTIAL: {
+        planId: "plan_SFt7MRewCPEs6K",      // TODO: replace with actual Razorpay plan ID
         tier: "ESSENTIAL",
         amount: 1179,           // GST-inclusive
         displayAmount: 999,     // ex-GST
@@ -114,6 +119,7 @@ const ACTIVATION_PLANS_PRODUCTION: Record<TIER, ActivationPlanConfig> = {
         credits: 100,
     },
     PRO: {
+        planId: "plan_SFt873dHKP5Lgg",            // TODO: replace with actual Razorpay plan ID
         tier: "PRO",
         amount: 2123,           // GST-inclusive
         displayAmount: 1799,    // ex-GST
