@@ -154,6 +154,10 @@ export default function AuthPage({
     return target;
   }, []);
   const targetPath = getSafeTarget(searchParams.get("target"));
+  const welcomePath =
+    targetPath && targetPath !== "/"
+      ? `/welcome?target=${encodeURIComponent(targetPath)}`
+      : "/welcome";
 
   React.useEffect(() => {
     detectLanguage();
@@ -162,13 +166,9 @@ export default function AuthPage({
 
   React.useEffect(() => {
     if (isMobile === true && searchParams.get("fromWelcome") !== "true") {
-      const nextUrl =
-        targetPath && targetPath !== "/"
-          ? `/welcome?target=${encodeURIComponent(targetPath)}`
-          : "/welcome";
-      router.replace(nextUrl);
+      router.replace(welcomePath);
     }
-  }, [isMobile, searchParams, router, targetPath]);
+  }, [isMobile, searchParams, router, welcomePath]);
 
 
   const activeTheme = mounted ? resolvedTheme ?? theme : undefined;
@@ -594,7 +594,7 @@ export default function AuthPage({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => router.push("/welcome")}
+              onClick={() => router.push(welcomePath)}
               className="rounded-full"
             >
               <ArrowLeft className="h-6 w-6" />
