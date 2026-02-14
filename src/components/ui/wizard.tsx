@@ -85,7 +85,7 @@ export const Wizard: React.FC<WizardProps> = ({
     }
 
     const protectedScrollContainer = document.querySelector(
-      ".flex-1.overflow-auto.scrollbar-hide"
+      '[data-scroll-container="protected-main"]'
     ) as HTMLElement | null;
 
     if (protectedScrollContainer) {

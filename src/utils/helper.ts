@@ -178,7 +178,7 @@ export const parseFloorInput = (value: string) => {
   return parseIntegerWithMax(value, PROPERTY_LIMITS.MAX_FLOOR);
 };
 
-// Parse front road width with max validation (300 feet)
+// Parse road width with max validation (300 units in the currently selected unit)
 export const parseRoadWidthInput = (value: string) => {
   return parseIntegerWithMax(value, PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH);
 };

@@ -167,7 +167,7 @@ export const ResortMedia: React.FC<ResortMediaProps> = ({
               <FormControl>
                 <div className="space-y-2">
                   {!field.value ? (
-                    <div className="relative group cursor-pointer flex flex-col items-center justify-center w-full max-w-md h-40 rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
+                    <div className="relative group cursor-pointer flex flex-col items-center justify-center w-full max-w-md h-32 rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
                       <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground group-hover:text-primary transition-colors">
                         <div className="p-4 rounded-full bg-background shadow-sm ring-1 ring-border group-hover:scale-110 transition-transform duration-200">
                           {uploading["featuredMedia"] ? (
@@ -196,7 +196,7 @@ export const ResortMedia: React.FC<ResortMediaProps> = ({
                       />
                     </div>
                   ) : (
-                    <div className="relative w-full max-w-md h-40 rounded-xl border bg-muted overflow-hidden group">
+                    <div className="relative w-full max-w-md h-32 rounded-xl border bg-muted overflow-hidden group">
                       <Image
                         width={400}
                         height={225}
@@ -233,7 +233,7 @@ export const ResortMedia: React.FC<ResortMediaProps> = ({
               <FormControl>
                 <div className="space-y-4">
                   {!field.value || field.value.length === 0 ? (
-                    <div className="relative group cursor-pointer flex flex-col items-center justify-center w-full max-w-md h-40 rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
+                    <div className="relative group cursor-pointer flex flex-col items-center justify-center w-full max-w-md h-32 rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
                       <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground group-hover:text-primary transition-colors">
                         <div className="p-4 rounded-full bg-background shadow-sm ring-1 ring-border group-hover:scale-110 transition-transform duration-200">
                           {uploading["images"] ? (
@@ -331,7 +331,7 @@ export const ResortMedia: React.FC<ResortMediaProps> = ({
               <FormControl>
                 <div className="space-y-4">
                   {!field.value || field.value.length === 0 ? (
-                    <div className="relative group cursor-pointer flex flex-col items-center justify-center w-full max-w-md h-40 rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
+                    <div className="relative group cursor-pointer flex flex-col items-center justify-center w-full max-w-md h-32 rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
                       <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
                         <div className="p-2 rounded-full bg-background shadow-sm ring-1 ring-border group-hover:scale-110 transition-transform duration-200">
                           {uploading["floorPlans"] ? (
