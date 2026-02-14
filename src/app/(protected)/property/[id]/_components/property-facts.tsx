@@ -125,7 +125,12 @@ export const PropertyFacts = ({ property }: PropertyFactsProps) => {
                             <item.icon className="h-4 w-4 text-primary/70" />
                             <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">{item.label}</span>
                         </div>
-                        <p className="font-medium text-sm truncate" title={String(item.value)}>{item.value}</p>
+                        <p
+                            className="font-medium text-sm leading-snug whitespace-normal break-words"
+                            title={String(item.value)}
+                        >
+                            {item.value}
+                        </p>
                     </div>
                 ))}
             </div>

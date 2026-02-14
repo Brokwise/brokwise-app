@@ -522,7 +522,9 @@ const SpecCard = ({
       <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
-      <p className="text-sm font-semibold truncate">{value}</p>
+      <p className="text-sm font-semibold leading-snug whitespace-normal break-words">
+        {value}
+      </p>
     </div>
   </div>
 );

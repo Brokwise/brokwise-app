@@ -162,7 +162,7 @@ const CreateEnquiryPage = () => {
   };
 
   return (
-    <PageShell>
+    <PageShell className="flex-none pb-6 md:pb-8">
       <PageHeader
         title={t("page_create_enquiry_title")}
         description={t("page_create_enquiry_subtitle")}
@@ -172,7 +172,7 @@ const CreateEnquiryPage = () => {
         <form
           id="create-enquiry-form"
           onSubmit={handleSubmit(onSubmit, onInvalid)}
-          className="space-y-6 md:space-y-8 pb-2 md:pb-6 px-2 overflow-hidden"
+          className="space-y-6 md:space-y-8 px-2 pb-2 md:pb-4"
         >
 
           <LocationSection isPending={isPending} />
