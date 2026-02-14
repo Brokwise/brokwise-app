@@ -121,7 +121,7 @@ export const RoadWidthField: React.FC<RoadWidthFieldProps> = ({
             placeholder="Custom width"
             value={value ?? ""}
             onChange={(e) => onChange(parseRoadWidthValue(e.target.value, max))}
-            className="max-w-[140px]!"
+            className="w-[150px] sm:w-[170px]"
           />
 
           <span className="text-sm text-muted-foreground">{resolvedUnitLabel}</span>
