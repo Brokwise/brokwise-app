@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Conversation } from "@/models/types/chat";
 import { useTranslation } from "react-i18next";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const MessagePage = () => {
   const { conversations, isLoadingConversations } = useGetConversations();
@@ -24,11 +24,22 @@ const MessagePage = () => {
   >(null);
   const isMobile = useIsMobile();
   const { t } = useTranslation();
+  const searchParams = useSearchParams();
+  const conversationIdFromQuery = searchParams.get("conversationId");
 
   const currentUserId = brokerData?._id || companyData?._id;
 
   const router = useRouter()
   useEffect(() => {
+    if (
+      conversationIdFromQuery &&
+      conversations?.some((c) => c._id === conversationIdFromQuery) &&
+      selectedConversationId !== conversationIdFromQuery
+    ) {
+      setSelectedConversationId(conversationIdFromQuery);
+      return;
+    }
+
     if (
       !isMobile &&
       conversations &&
@@ -37,7 +48,7 @@ const MessagePage = () => {
     ) {
       setSelectedConversationId(conversations[0]._id);
     }
-  }, [conversations, selectedConversationId, isMobile]);
+  }, [conversations, selectedConversationId, isMobile, conversationIdFromQuery]);
 
   const handleStartChat = () => {
     if (!currentUserId) return;

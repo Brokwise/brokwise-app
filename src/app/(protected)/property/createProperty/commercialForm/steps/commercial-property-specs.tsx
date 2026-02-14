@@ -16,6 +16,8 @@ import { NumberInput } from "@/components/ui/number-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   formatIndianNumber,
+  formatRoadWidthConversion,
+  getRoadWidthUnitLabel,
   parseIntegerWithMax,
   parseRoadWidthInput,
 } from "@/utils/helper";
@@ -48,12 +50,12 @@ export const CommercialPropertySpecs: React.FC<
   const rate = form.watch("rate");
   const totalPrice = form.watch("totalPrice");
   const plotType = form.watch("plotType");
-  const roadWidthUnit = form.watch("roadWidthUnit") || "METER";
+  const roadWidthUnit = form.watch("roadWidthUnit") || "FEET";
 
-  const roadWidthOptionsFeet = [30, 40, 60, 80, 100, 120, 160, 180, 200, 300, 250];
-  const roadWidthOptionsMeters = [9, 12, 18, 24, 30, 37, 49, 55, 61, 91, 76];
+  const roadWidthOptionsFeet = [30, 40, 60, 80, 100, 120, 160, 180, 200, 250, 300];
+  const roadWidthOptionsMeters = [9, 12, 18, 24, 30, 37, 49, 55, 61, 76, 91];
   const roadWidthOptions = roadWidthUnit === "FEET" ? roadWidthOptionsFeet : roadWidthOptionsMeters;
-  const roadWidthUnitLabel = roadWidthUnit === "FEET" ? "ft" : "m";
+  const roadWidthUnitLabel = getRoadWidthUnitLabel(roadWidthUnit);
 
   const effectiveSize = size && size > 0 ? size : 0;
 
@@ -431,8 +433,8 @@ export const CommercialPropertySpecs: React.FC<
                 <FormControl>
                   <div className="inline-flex rounded-full border bg-muted p-1">
                     {[
-                      { value: "METER", label: "Meters" },
                       { value: "FEET", label: "Feet" },
+                      { value: "METER", label: "Metre" },
                     ].map((item) => (
                       <button
                         key={item.value}
@@ -672,6 +674,18 @@ export const CommercialPropertySpecs: React.FC<
                         <span className="text-sm text-muted-foreground">
                           {roadWidthUnitLabel}
                         </span>
+                        {(() => {
+                          const conversion = formatRoadWidthConversion(
+                            field.value,
+                            roadWidthUnit
+                          );
+                          if (!conversion) return null;
+                          return (
+                            <span className="text-xs text-muted-foreground">
+                              ({conversion})
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
                   </FormControl>
@@ -891,6 +905,18 @@ export const CommercialPropertySpecs: React.FC<
                           <span className="text-sm text-muted-foreground">
                             {roadWidthUnitLabel}
                           </span>
+                          {(() => {
+                            const conversion = formatRoadWidthConversion(
+                              field.value,
+                              roadWidthUnit
+                            );
+                            if (!conversion) return null;
+                            return (
+                              <span className="text-xs text-muted-foreground">
+                                ({conversion})
+                              </span>
+                            );
+                          })()}
                         </div>
                       </div>
                     </FormControl>

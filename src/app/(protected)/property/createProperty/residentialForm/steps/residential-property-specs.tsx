@@ -15,7 +15,12 @@ import { Input } from "@/components/ui/input";
 
 import { NumberInput } from "@/components/ui/number-input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { formatIndianNumber, PROPERTY_LIMITS } from "@/utils/helper";
+import {
+  formatIndianNumber,
+  formatRoadWidthConversion,
+  getRoadWidthUnitLabel,
+  PROPERTY_LIMITS,
+} from "@/utils/helper";
 interface ResidentialProperySpecsProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: any;
@@ -25,7 +30,6 @@ interface ResidentialProperySpecsProps {
 export const ResidentialProperySpecs: React.FC<
   ResidentialProperySpecsProps
 > = ({ form, enquiry, propertyType }) => {
-  console.log(propertyType)
   const [lastEditedPriceField, setLastEditedPriceField] = useState<
     "rate" | "totalPrice"
   >("rate");
@@ -34,7 +38,7 @@ export const ResidentialProperySpecs: React.FC<
   const rate = form.watch("rate");
   const totalPrice = form.watch("totalPrice");
   const plotType = form.watch("plotType");
-  const roadWidthUnit = form.watch("roadWidthUnit") || "METER";
+  const roadWidthUnit = form.watch("roadWidthUnit") || "FEET";
 
   const effectiveSize =
     size && size > 0 ? size : projectArea && projectArea > 0 ? projectArea : 0;
@@ -54,10 +58,10 @@ export const ResidentialProperySpecs: React.FC<
     }
   }, [effectiveSize, rate, totalPrice, lastEditedPriceField, form]);
 
-  const roadWidthOptionsFeet = [30, 40, 60, 80, 100, 120, 160, 180, 200, 300, 250];
-  const roadWidthOptionsMeters = [9, 12, 18, 24, 30, 37, 49, 55, 61, 91, 76];
+  const roadWidthOptionsFeet = [30, 40, 60, 80, 100, 120, 160, 180, 200, 250, 300];
+  const roadWidthOptionsMeters = [9, 12, 18, 24, 30, 37, 49, 55, 61, 76, 91];
   const roadWidthOptions = roadWidthUnit === "FEET" ? roadWidthOptionsFeet : roadWidthOptionsMeters;
-  const roadWidthUnitLabel = roadWidthUnit === "FEET" ? "ft" : "m";
+  const roadWidthUnitLabel = getRoadWidthUnitLabel(roadWidthUnit);
   // const facingOptions = [
   //   { value: "NORTH", label: "North" },
   //   { value: "SOUTH", label: "South" },
@@ -551,8 +555,8 @@ export const ResidentialProperySpecs: React.FC<
                             <FormControl>
                               <div className="inline-flex rounded-full border bg-muted p-[0.5px]">
                                 {[
-                                  { value: "METER", label: "Meters" },
                                   { value: "FEET", label: "Feet" },
+                                  { value: "METER", label: "Metre" },
                                 ].map((item) => (
                                   <button
                                     key={item.value}
@@ -626,6 +630,18 @@ export const ResidentialProperySpecs: React.FC<
                           <span className="text-sm text-muted-foreground">
                             {roadWidthUnitLabel}
                           </span>
+                          {(() => {
+                            const conversion = formatRoadWidthConversion(
+                              field.value,
+                              roadWidthUnit
+                            );
+                            if (!conversion) return null;
+                            return (
+                              <span className="text-xs text-muted-foreground">
+                                ({conversion})
+                              </span>
+                            );
+                          })()}
                         </div>
                       </div>
                     </FormControl>
@@ -852,6 +868,18 @@ export const ResidentialProperySpecs: React.FC<
                             <span className="text-sm text-muted-foreground">
                               {roadWidthUnitLabel}
                             </span>
+                            {(() => {
+                              const conversion = formatRoadWidthConversion(
+                                field.value,
+                                roadWidthUnit
+                              );
+                              if (!conversion) return null;
+                              return (
+                                <span className="text-xs text-muted-foreground">
+                                  ({conversion})
+                                </span>
+                              );
+                            })()}
                           </div>
                         </div>
                       </FormControl>

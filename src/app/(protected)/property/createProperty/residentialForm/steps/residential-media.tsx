@@ -166,7 +166,7 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
               <FormControl>
                 <div className="space-y-2">
                   {!field.value ? (
-                    <div className="relative group cursor-pointer flex flex-col items-center justify-center w-full max-w-sm aspect-video rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
+                    <div className="relative group cursor-pointer flex flex-col items-center justify-center w-full max-w-md h-32 rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
                       <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground group-hover:text-primary transition-colors">
                         <div className="p-4 rounded-full bg-background shadow-sm ring-1 ring-border group-hover:scale-110 transition-transform duration-200">
                           {uploading["featuredMedia"] ? (
@@ -195,7 +195,7 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
                       />
                     </div>
                   ) : (
-                    <div className="relative w-full max-w-sm aspect-video rounded-xl border bg-muted overflow-hidden group">
+                    <div className="relative w-full max-w-md h-32 rounded-xl border bg-muted overflow-hidden group">
                       <Image
                         width={400}
                         height={225}
@@ -232,7 +232,7 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
               <FormControl>
                 <div className="space-y-4">
                   {!field.value || field.value.length === 0 ? (
-                    <div className="relative group cursor-pointer flex flex-col items-center justify-center w-full h-48 rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
+                    <div className="relative group cursor-pointer flex flex-col items-center justify-center w-full max-w-md h-32 rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
                       <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground group-hover:text-primary transition-colors">
                         <div className="p-4 rounded-full bg-background shadow-sm ring-1 ring-border group-hover:scale-110 transition-transform duration-200">
                           {uploading["images"] ? (
@@ -262,9 +262,9 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
                       />
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                       {/* Upload Button */}
-                      <div className="relative aspect-square rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary cursor-pointer group">
+                      <div className="relative aspect-[4/3] rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary cursor-pointer group">
                         <div className="p-3 rounded-full bg-background shadow-sm ring-1 ring-border group-hover:scale-110 transition-transform duration-200">
                           {uploading["images"] ? (
                             <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -288,7 +288,7 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
                       {field.value?.map((url: string, index: number) => (
                         <div
                           key={index}
-                          className="relative aspect-square rounded-xl border bg-muted overflow-hidden group"
+                          className="relative aspect-[4/3] rounded-xl border bg-muted overflow-hidden group"
                         >
                           <Image
                             width={200}
@@ -330,7 +330,7 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
               <FormControl>
                 <div className="space-y-4">
                   {!field.value || field.value.length === 0 ? (
-                    <div className="relative group cursor-pointer flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
+                    <div className="relative group cursor-pointer flex flex-col items-center justify-center w-full max-w-md h-32 rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
                       <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
                         <div className="p-2 rounded-full bg-background shadow-sm ring-1 ring-border group-hover:scale-110 transition-transform duration-200">
                           {uploading["floorPlans"] ? (
@@ -357,9 +357,9 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
                       />
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                       {/* Upload Button */}
-                      <div className="relative aspect-square rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary cursor-pointer group">
+                      <div className="relative aspect-[4/3] rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary cursor-pointer group">
                         <div className="p-3 rounded-full bg-background shadow-sm ring-1 ring-border group-hover:scale-110 transition-transform duration-200">
                           {uploading["floorPlans"] ? (
                             <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -383,7 +383,7 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
                       {field.value?.map((url: string, index: number) => (
                         <div
                           key={index}
-                          className="relative aspect-square rounded-xl border bg-muted overflow-hidden group"
+                          className="relative aspect-[4/3] rounded-xl border bg-muted overflow-hidden group"
                         >
                           <Image
                             src={url}

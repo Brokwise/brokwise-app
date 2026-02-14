@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { formatIndianNumber } from "@/utils/helper";
+import { formatIndianNumber, getRoadWidthUnitLabel } from "@/utils/helper";
 import { UseFormReturn } from "react-hook-form";
 import { CommercialPropertyFormData } from "@/validators/property";
 import useCredits, { useGetCreditPrices } from "@/hooks/useCredits";
@@ -37,6 +37,7 @@ export const CommercialReview: React.FC<CommercialReviewProps> = ({
   const { prices } = useGetCreditPrices();
   const FEATURED_COST = prices.MARK_PROPERTY_AS_FEATURED;
   const hasSufficientCredits = (balance || 0) >= FEATURED_COST;
+  const roadWidthUnitLabel = getRoadWidthUnitLabel(form.watch("roadWidthUnit"));
 
   return (
     <div className="space-y-6">
@@ -134,7 +135,7 @@ export const CommercialReview: React.FC<CommercialReviewProps> = ({
               <div>
                 <strong>Front Road Width:</strong>{" "}
                 {form.watch("frontRoadWidth")
-                  ? `${form.watch("frontRoadWidth")} m`
+                  ? `${form.watch("frontRoadWidth")} ${roadWidthUnitLabel}`
                   : "Not provided"}
               </div>
               {form.watch("plotType") === "CORNER" && (
@@ -146,7 +147,7 @@ export const CommercialReview: React.FC<CommercialReviewProps> = ({
                   <div>
                     <strong>Side Road Width:</strong>{" "}
                     {form.watch("sideRoadWidth")
-                      ? `${form.watch("sideRoadWidth")} m`
+                      ? `${form.watch("sideRoadWidth")} ${roadWidthUnitLabel}`
                       : "Not provided"}
                   </div>
                 </>

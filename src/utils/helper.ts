@@ -178,9 +178,46 @@ export const parseFloorInput = (value: string) => {
   return parseIntegerWithMax(value, PROPERTY_LIMITS.MAX_FLOOR);
 };
 
-// Parse front road width with max validation (300 feet)
+// Parse road width with max validation (300 units in the currently selected unit)
 export const parseRoadWidthInput = (value: string) => {
   return parseIntegerWithMax(value, PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH);
+};
+
+export const ROAD_WIDTH_CONVERSION = {
+  FEET_TO_METER: 0.3048,
+  METER_TO_FEET: 3.28084,
+} as const;
+
+export const convertRoadWidth = (
+  value: number,
+  fromUnit: "FEET" | "METER"
+) => {
+  if (!Number.isFinite(value)) return undefined;
+
+  if (fromUnit === "FEET") {
+    return value * ROAD_WIDTH_CONVERSION.FEET_TO_METER;
+  }
+
+  return value * ROAD_WIDTH_CONVERSION.METER_TO_FEET;
+};
+
+export const formatRoadWidthConversion = (
+  value: number | undefined,
+  fromUnit: "FEET" | "METER"
+) => {
+  if (value === undefined) return undefined;
+
+  const convertedValue = convertRoadWidth(value, fromUnit);
+  if (convertedValue === undefined) return undefined;
+
+  const targetUnit = fromUnit === "FEET" ? "m" : "ft";
+  return `${convertedValue.toFixed(2)} ${targetUnit}`;
+};
+
+export const getRoadWidthUnitLabel = (
+  unit: "FEET" | "METER" | undefined
+) => {
+  return unit === "FEET" ? "ft" : "m";
 };
 
 // Sanitize and limit pincode to 6 numeric digits
