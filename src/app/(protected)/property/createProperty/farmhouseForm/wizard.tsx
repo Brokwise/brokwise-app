@@ -74,6 +74,9 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
       description: "",
       isPriceNegotiable: false,
       isFeatured: false,
+      roadWidthUnit: "FEET",
+      sideFacing: undefined,
+      sideRoadWidth: undefined,
       location: {
         type: "Point",
         coordinates: [0, 0],
@@ -86,6 +89,8 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
     },
     mode: "onChange",
   });
+
+  const plotType = form.watch("plotType");
 
   const onSubmit = async (data: FarmHousePropertyFormData, shouldUseCredits: boolean) => {
     if (onSubmitProp) {
@@ -121,6 +126,9 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
         "propertyStatus",
         "size",
         "sizeUnit",
+        "plotType",
+        ...(plotType ? ["facing", "frontRoadWidth"] : []),
+        ...(plotType === "CORNER" ? ["sideFacing", "sideRoadWidth"] : []),
         "rate",
       ],
       1: ["description", "featuredMedia", "floorPlans"],
@@ -161,6 +169,11 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
           propertyStatus: "Property status is required",
           size: "Property area is required",
           sizeUnit: "Please select an area unit",
+          plotType: "Please select a plot type",
+          facing: "Please select front facing direction",
+          frontRoadWidth: "Front road width is required",
+          sideFacing: "Please select side facing direction",
+          sideRoadWidth: "Side road width is required",
           rate: "Rate per unit is required",
           description: "Description is required",
           featuredMedia: "Featured media is required",

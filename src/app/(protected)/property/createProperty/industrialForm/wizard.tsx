@@ -75,6 +75,9 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
       description: "",
       isPriceNegotiable: false,
       isFeatured: false,
+      roadWidthUnit: "FEET",
+      sideFacing: undefined,
+      sideRoadWidth: undefined,
       location: {
         type: "Point",
         coordinates: [0, 0],
@@ -90,6 +93,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
 
   const watchedPropertyType = form.watch("propertyType");
   const propertyType = watchedPropertyType || "WAREHOUSE";
+  const plotType = form.watch("plotType");
 
   React.useEffect(() => {
     if (!watchedPropertyType) {
@@ -130,6 +134,9 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
         "address.pincode",
         "size",
         "sizeUnit",
+        "plotType",
+        ...(plotType ? ["facing", "frontRoadWidth"] : []),
+        ...(plotType === "CORNER" ? ["sideFacing", "sideRoadWidth"] : []),
         "rate",
       ],
       1: ["description", "featuredMedia", "floorPlans"],
@@ -168,6 +175,11 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
           "address.pincode": "Pincode is required",
           size: "Property size is required",
           sizeUnit: "Please select a size unit",
+          plotType: "Please select a plot type",
+          facing: "Please select front facing direction",
+          frontRoadWidth: "Front road width is required",
+          sideFacing: "Please select side facing direction",
+          sideRoadWidth: "Side road width is required",
           rate: "Rate per unit is required",
           description: "Description is required",
           featuredMedia: "Featured media is required",

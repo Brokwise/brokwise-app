@@ -16,6 +16,7 @@ import {
   coerceStringArray,
   parseRoadWidthInput,
 } from "@/utils/helper";
+import { DirectionCompassField } from "@/components/property/direction-compass-field";
 
 interface ResortFeaturesProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,108 +24,185 @@ interface ResortFeaturesProps {
 }
 
 export const ResortFeatures: React.FC<ResortFeaturesProps> = ({ form }) => {
+  const plotType = form.watch("plotType");
+  const showFrontDetails = plotType === "ROAD" || plotType === "CORNER";
+
   return (
     <div className="space-y-6">
-      {/* Facing and Plot Type */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="facing"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Facing Direction</FormLabel>
-              <FormControl>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: "NORTH", label: "North" },
-                    { value: "SOUTH", label: "South" },
-                    { value: "EAST", label: "East" },
-                    { value: "WEST", label: "West" },
-                    { value: "NORTH_EAST", label: "North East" },
-                    { value: "NORTH_WEST", label: "North West" },
-                    { value: "SOUTH_EAST", label: "South East" },
-                    { value: "SOUTH_WEST", label: "South West" },
-                  ].map((item) => (
-                    <Button
-                      key={item.value}
-                      type="button"
-                      variant="selection"
-                      onClick={() => field.onChange(item.value)}
-                      className={cn(
-                        field.value === item.value
-                          ? "bg-primary text-primary-foreground"
-                          : ""
-                      )}
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="plotType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Plot Type</FormLabel>
-              <FormControl>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: "ROAD", label: "Road Facing" },
-                    { value: "CORNER", label: "Corner Plot" },
-                  ].map((item) => (
-                    <Button
-                      key={item.value}
-                      type="button"
-                      variant="selection"
-                      onClick={() => field.onChange(item.value)}
-                      className={cn(
-                        field.value === item.value
-                          ? "bg-primary text-primary-foreground"
-                          : ""
-                      )}
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-
       <FormField
         control={form.control}
-        name="frontRoadWidth"
-        render={({ field }) => (
+        name="plotType"
+        render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Front Road Width (in feet)</FormLabel>
+            <FormLabel>
+              Plot Type <span className="text-destructive">*</span>
+            </FormLabel>
             <FormControl>
-              <Input
-                type="text"
-                inputMode="numeric"
-                placeholder={`Enter road width (max ${PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)`}
-                value={field.value ?? ""}
-                onChange={(e) =>
-                  field.onChange(parseRoadWidthInput(e.target.value))
-                }
-              />
+              <div
+                className={cn(
+                  "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
+                  fieldState.error && "bg-destructive/10 ring-1 ring-destructive"
+                )}
+                data-field="plotType"
+              >
+                {[
+                  { value: "ROAD", label: "Road Facing" },
+                  { value: "CORNER", label: "Corner Plot" },
+                ].map((item) => (
+                  <Button
+                    key={item.value}
+                    type="button"
+                    variant="selection"
+                    onClick={() => {
+                      field.onChange(item.value);
+                      if (item.value === "ROAD") {
+                        form.setValue("sideFacing", undefined);
+                        form.setValue("sideRoadWidth", undefined);
+                      }
+                    }}
+                    className={cn(
+                      field.value === item.value
+                        ? "bg-primary text-primary-foreground"
+                        : ""
+                    )}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </div>
             </FormControl>
-            <FormDescription>
-              Width of the main access road to the resort (max{" "}
-              {PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)
-            </FormDescription>
             <FormMessage />
           </FormItem>
         )}
       />
+
+      {showFrontDetails && (
+        <div className="space-y-4 p-4 rounded-xl bg-muted/30 border">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <span className="w-1 h-4 bg-primary rounded-full" />
+            Front Details
+          </h3>
+
+          <FormField
+            control={form.control}
+            name="facing"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormControl>
+                  <DirectionCompassField
+                    label="Facing Direction"
+                    required
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={!!fieldState.error}
+                    dataField="facing"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="frontRoadWidth"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel>
+                  Front Road Width (in feet){" "}
+                  <span className="text-destructive">*</span>
+                </FormLabel>
+                <FormControl>
+                  <div
+                    className={cn(
+                      "rounded-lg transition-colors",
+                      fieldState.error && "bg-destructive/10 ring-1 ring-destructive p-2"
+                    )}
+                    data-field="frontRoadWidth"
+                  >
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder={`Enter road width (max ${PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)`}
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(parseRoadWidthInput(e.target.value))
+                      }
+                    />
+                  </div>
+                </FormControl>
+                <FormDescription>
+                  Width of the main access road to the resort (max{" "}
+                  {PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      )}
+
+      {plotType === "CORNER" && (
+        <div className="space-y-4 p-4 rounded-xl bg-muted/30 border">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <span className="w-1 h-4 bg-primary rounded-full" />
+            Side Details
+          </h3>
+
+          <FormField
+            control={form.control}
+            name="sideFacing"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormControl>
+                  <DirectionCompassField
+                    label="Side Facing Direction"
+                    required
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={!!fieldState.error}
+                    dataField="sideFacing"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="sideRoadWidth"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel>
+                  Side Road Width (in feet){" "}
+                  <span className="text-destructive">*</span>
+                </FormLabel>
+                <FormControl>
+                  <div
+                    className={cn(
+                      "rounded-lg transition-colors",
+                      fieldState.error && "bg-destructive/10 ring-1 ring-destructive p-2"
+                    )}
+                    data-field="sideRoadWidth"
+                  >
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder={`Enter side road width (max ${PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)`}
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(parseRoadWidthInput(e.target.value))
+                      }
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      )}
 
       <div className="pt-6 border-t">
         <FormField

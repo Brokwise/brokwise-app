@@ -82,6 +82,16 @@ const ResortReview: React.FC<ResortReviewProps> = ({ form, isEnquiry }) => {
               ? `${form.watch("frontRoadWidth")} ft`
               : "Not provided"}
           </div>
+          {form.watch("sideFacing") && (
+            <div>
+              <strong>Side Facing:</strong> {form.watch("sideFacing")}
+            </div>
+          )}
+          {form.watch("sideRoadWidth") && (
+            <div>
+              <strong>Side Road Width:</strong> {form.watch("sideRoadWidth")} ft
+            </div>
+          )}
           <div className="col-span-2">
             <strong>Amenities:</strong>{" "}
             {(() => {

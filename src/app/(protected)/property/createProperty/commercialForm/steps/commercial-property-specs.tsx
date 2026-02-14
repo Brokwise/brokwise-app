@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DirectionCompassField } from "@/components/property/direction-compass-field";
 import { NumberInput } from "@/components/ui/number-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -473,151 +474,15 @@ export const CommercialPropertySpecs: React.FC<
               name="facing"
               render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>
-                    Facing Direction <span className="text-destructive">*</span>
-                  </FormLabel>
                   <FormControl>
-                    <div
-                      className={cn(
-                        "p-3 rounded-lg transition-colors",
-                        fieldState.error &&
-                        "bg-destructive/10 ring-1 ring-destructive"
-                      )}
-                      data-field="facing"
-                    >
-                      {/* Compass Visual Selector */}
-                      <div className="flex flex-col items-start gap-1">
-                        {/* North row */}
-                        <div className="flex gap-1">
-                          <Button
-                            type="button"
-                            variant="selection"
-                            size="sm"
-                            onClick={() => field.onChange("NORTH_WEST")}
-                            className={cn(
-                              "w-12 h-9 text-xs",
-                              field.value === "NORTH_WEST"
-                                ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                : ""
-                            )}
-                          >
-                            NW
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="selection"
-                            size="sm"
-                            onClick={() => field.onChange("NORTH")}
-                            className={cn(
-                              "w-12 h-9 text-xs",
-                              field.value === "NORTH"
-                                ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                : ""
-                            )}
-                          >
-                            N
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="selection"
-                            size="sm"
-                            onClick={() => field.onChange("NORTH_EAST")}
-                            className={cn(
-                              "w-12 h-9 text-xs",
-                              field.value === "NORTH_EAST"
-                                ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                : ""
-                            )}
-                          >
-                            NE
-                          </Button>
-                        </div>
-
-                        {/* Middle row */}
-                        <div className="flex items-center gap-1">
-                          <Button
-                            type="button"
-                            variant="selection"
-                            size="sm"
-                            onClick={() => field.onChange("WEST")}
-                            className={cn(
-                              "w-12 h-9 text-xs",
-                              field.value === "WEST"
-                                ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                : ""
-                            )}
-                          >
-                            W
-                          </Button>
-
-                          {/* Compass center indicator */}
-                          <div className="w-12 h-9 rounded-md border-2 border-muted-foreground/20 flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-primary" />
-                          </div>
-
-                          <Button
-                            type="button"
-                            variant="selection"
-                            size="sm"
-                            onClick={() => field.onChange("EAST")}
-                            className={cn(
-                              "w-12 h-9 text-xs",
-                              field.value === "EAST"
-                                ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                : ""
-                            )}
-                          >
-                            E
-                          </Button>
-                        </div>
-
-                        {/* South row */}
-                        <div className="flex gap-1">
-                          <Button
-                            type="button"
-                            variant="selection"
-                            size="sm"
-                            onClick={() => field.onChange("SOUTH_WEST")}
-                            className={cn(
-                              "w-12 h-9 text-xs",
-                              field.value === "SOUTH_WEST"
-                                ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                : ""
-                            )}
-                          >
-                            SW
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="selection"
-                            size="sm"
-                            onClick={() => field.onChange("SOUTH")}
-                            className={cn(
-                              "w-12 h-9 text-xs",
-                              field.value === "SOUTH"
-                                ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                : ""
-                            )}
-                          >
-                            S
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="selection"
-                            size="sm"
-                            onClick={() => field.onChange("SOUTH_EAST")}
-                            className={cn(
-                              "w-12 h-9 text-xs",
-                              field.value === "SOUTH_EAST"
-                                ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                : ""
-                            )}
-                          >
-                            SE
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+                    <DirectionCompassField
+                      label="Facing Direction"
+                      required
+                      value={field.value}
+                      onChange={field.onChange}
+                      error={!!fieldState.error}
+                      dataField="facing"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -707,148 +572,15 @@ export const CommercialPropertySpecs: React.FC<
                 name="sideFacing"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>
-                      Facing Direction <span className="text-destructive">*</span>
-                    </FormLabel>
                     <FormControl>
-                      <div
-                        className={cn(
-                          "p-3 rounded-lg transition-colors",
-                          fieldState.error &&
-                          "bg-destructive/10 ring-1 ring-destructive"
-                        )}
-                        data-field="sideFacing"
-                      >
-                        {/* Compass Visual Selector */}
-                        <div className="flex flex-col items-start justify-start gap-1">
-                          {/* North row */}
-                          <div className="flex gap-1">
-                            <Button
-                              type="button"
-                              variant="selection"
-                              size="sm"
-                              onClick={() => field.onChange("NORTH_WEST")}
-                              className={cn(
-                                "w-12 h-9 text-xs",
-                                field.value === "NORTH_WEST"
-                                  ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                  : ""
-                              )}
-                            >
-                              NW
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="selection"
-                              size="sm"
-                              onClick={() => field.onChange("NORTH")}
-                              className={cn(
-                                "w-12 h-9 text-xs",
-                                field.value === "NORTH"
-                                  ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                  : ""
-                              )}
-                            >
-                              N
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="selection"
-                              size="sm"
-                              onClick={() => field.onChange("NORTH_EAST")}
-                              className={cn(
-                                "w-12 h-9 text-xs",
-                                field.value === "NORTH_EAST"
-                                  ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                  : ""
-                              )}
-                            >
-                              NE
-                            </Button>
-                          </div>
-
-                          {/* Middle row */}
-                          <div className="flex items-center gap-1">
-                            <Button
-                              type="button"
-                              variant="selection"
-                              size="sm"
-                              onClick={() => field.onChange("WEST")}
-                              className={cn(
-                                "w-12 h-9 text-xs",
-                                field.value === "WEST"
-                                  ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                  : ""
-                              )}
-                            >
-                              W
-                            </Button>
-                            <div className="w-12 h-9 rounded-md border-2 border-muted-foreground/20 flex items-center justify-center">
-                              <div className="w-2 h-2 rounded-full bg-primary" />
-                            </div>
-                            <Button
-                              type="button"
-                              variant="selection"
-                              size="sm"
-                              onClick={() => field.onChange("EAST")}
-                              className={cn(
-                                "w-12 h-9 text-xs",
-                                field.value === "EAST"
-                                  ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                  : ""
-                              )}
-                            >
-                              E
-                            </Button>
-                          </div>
-
-                          {/* South row */}
-                          <div className="flex gap-1">
-                            <Button
-                              type="button"
-                              variant="selection"
-                              size="sm"
-                              onClick={() => field.onChange("SOUTH_WEST")}
-                              className={cn(
-                                "w-12 h-9 text-xs",
-                                field.value === "SOUTH_WEST"
-                                  ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                  : ""
-                              )}
-                            >
-                              SW
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="selection"
-                              size="sm"
-                              onClick={() => field.onChange("SOUTH")}
-                              className={cn(
-                                "w-12 h-9 text-xs",
-                                field.value === "SOUTH"
-                                  ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                  : ""
-                              )}
-                            >
-                              S
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="selection"
-                              size="sm"
-                              onClick={() => field.onChange("SOUTH_EAST")}
-                              className={cn(
-                                "w-12 h-9 text-xs",
-                                field.value === "SOUTH_EAST"
-                                  ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
-                                  : ""
-                              )}
-                            >
-                              SE
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
+                      <DirectionCompassField
+                        label="Facing Direction"
+                        required
+                        value={field.value}
+                        onChange={field.onChange}
+                        error={!!fieldState.error}
+                        dataField="sideFacing"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

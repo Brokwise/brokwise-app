@@ -251,6 +251,8 @@ export const industrialPropertySchema = basePropertySchema.extend({
     )
     .optional(),
   roadWidthUnit: RoadWidthUnitEnum.optional(),
+  sideFacing: FacingEnum.optional(),
+  sideRoadWidth: z.number().min(0).optional(),
 });
 
 // Agricultural Property Schema
@@ -271,6 +273,8 @@ export const agriculturalPropertySchema = basePropertySchema.extend({
     )
     .optional(),
   roadWidthUnit: RoadWidthUnitEnum.optional(),
+  sideFacing: FacingEnum.optional(),
+  sideRoadWidth: z.number().min(0).optional(),
 });
 
 // Resort Property Schema
@@ -289,6 +293,8 @@ export const resortPropertySchema = basePropertySchema.extend({
     )
     .optional(),
   roadWidthUnit: RoadWidthUnitEnum.optional(),
+  sideFacing: FacingEnum.optional(),
+  sideRoadWidth: z.number().min(0).optional(),
 });
 
 // Farm House Property Schema
@@ -307,6 +313,8 @@ export const farmHousePropertySchema = basePropertySchema.extend({
     )
     .optional(),
   roadWidthUnit: RoadWidthUnitEnum.optional(),
+  sideFacing: FacingEnum.optional(),
+  sideRoadWidth: z.number().min(0).optional(),
 });
 
 // Union type for all property schemas
