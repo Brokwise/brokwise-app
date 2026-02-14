@@ -22,6 +22,7 @@ import { PropertyCategory } from "@/models/types/property";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Home, Factory, Tractor, Palmtree } from "lucide-react";
+import { getCategoryLabelKey } from "@/lib/i18nKeys";
 
 const FACING_OPTIONS = [
     "NORTH", "SOUTH", "EAST", "WEST",
@@ -91,7 +92,7 @@ const PropertyDetailsSection = () => {
                                     <SelectContent>
                                         {Object.keys(CATEGORY_TYPE_MAP).map((cat) => (
                                             <SelectItem key={cat} value={cat}>
-                                                {t("category_" + cat.toLowerCase())}
+                                                {t(getCategoryLabelKey(cat))}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

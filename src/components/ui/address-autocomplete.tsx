@@ -41,6 +41,7 @@ type Props = {
   containerClassName?: string;
   disabled?: boolean;
   searchPlaceholder?: string;
+  showClearButton?: boolean;
 };
 
 export function AddressAutocomplete({
@@ -54,6 +55,7 @@ export function AddressAutocomplete({
   className,
   containerClassName,
   disabled,
+  showClearButton = true,
 }: Props) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -208,7 +210,7 @@ export function AddressAutocomplete({
         </PopoverContent>
       </Popover>
 
-      {!!valueId && !!onClear && (
+      {showClearButton && !!valueId && !!onClear && (
         <Button
           type="button"
           variant="ghost"

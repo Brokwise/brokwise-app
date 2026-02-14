@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { Property } from "@/types/property";
 import { Typography } from "@/components/ui/typography";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -11,7 +11,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -23,11 +22,9 @@ import {
   Building2,
   Share2,
   Link2,
-  Download,
   CheckCircle2,
   Loader2,
   Bookmark,
-  MessageCircle,
   Map,
   Sparkles,
 } from "lucide-react";
@@ -35,12 +32,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatCurrency, formatAddress, formatPriceShort } from "@/utils/helper";
 import { toast } from "sonner";
-import { createRoot } from "react-dom/client";
-import { format } from "date-fns";
-import { PropertyPdfLayout } from "@/components/property-pdf/property-pdf-layout";
-import { exportElementAsPdf, makeSafeFilePart, generatePdfAsBlob } from "@/utils/pdf";
 import { useTranslation } from "react-i18next";
-import { isNativeIOS } from "@/utils/helper";
 
 interface PropertyCardProps {
   property: Property;
@@ -59,7 +51,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   actionSlot,
   isSameCity = false,
 }) => {
-  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const { userData, brokerData, setBrokerData, companyData, setCompanyData } =
     useApp();
   const { toggleBookmarkAsync, isPending: isBookmarkPending } =
@@ -73,11 +64,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       ? `${formatPriceShort(property.rate)}/${property.sizeUnit.toLowerCase().replace(/_/g, " ")}`
       : null;
 
-  // Check if property is private/enquiry-only
-  const isPrivateProperty =
-    property.listingStatus === "ENQUIRY_ONLY" ||
-    !!property.submittedForEnquiryId;
-  const canShareExternally = !hideShare && !isPrivateProperty;
+  const canShare = !hideShare;
 
   // Check bookmark status from the correct user data
   const isBookmarked = isCompany
@@ -123,138 +110,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     } else {
       // Fallback: copy to clipboard
       await handleCopyLink(e);
-    }
-  };
-
-  const handleShareWhatsApp = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const propertyTitle = `${property.bhk ? `${property.bhk} BHK ` : ""
-      }${property.propertyType.replace(/_/g, " ")}`;
-
-    // Using Unicode escapes to ensure emojis render correctly regardless of file encoding
-    // \uD83C\uDFE0 = House
-    // \uD83D\uDCCD = Round Pushpin
-    // \uD83D\uDCB0 = Money Bag
-    // \uD83D\uDD17 = Link Symbol
-
-    const message = `\uD83C\uDFE0 *${propertyTitle}*\n\n\uD83D\uDCCD ${formatAddress(
-      property.address
-    )}\n\uD83D\uDCB0 ${formatCurrency(
-      property.totalPrice
-    )}\n\n\uD83D\uDD17 ${propertyUrl}`;
-
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-  };
-
-  const handleExportPdf = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isExportingPdf) return;
-
-    let host: HTMLDivElement | null = null;
-    let root: ReturnType<typeof createRoot> | null = null;
-
-    const toastId = toast.loading("Generating PDF…");
-
-    try {
-      setIsExportingPdf(true);
-
-      const exportedOnLabel = format(new Date(), "PPP p");
-
-      // Collect all image URLs for pre-fetching
-      const allImageUrls = [
-        ...(property.featuredMedia ? [property.featuredMedia] : []),
-        ...(property.images ?? []),
-      ].filter((m) => !!m && !m.toLowerCase().endsWith(".mp4"));
-
-      // Pre-fetch and convert images to base64 (including logo)
-      const { imagesToBase64, imageUrlToBase64 } = await import("@/utils/pdf");
-      const [imageMap, logoBase64] = await Promise.all([
-        imagesToBase64(allImageUrls),
-        imageUrlToBase64("/logo.webp"),
-      ]);
-
-      host = document.createElement("div");
-      host.style.position = "fixed";
-      host.style.left = "-10000px";
-      host.style.top = "0";
-      host.style.zIndex = "2147483647";
-      document.body.appendChild(host);
-
-      root = createRoot(host);
-      root.render(
-        <PropertyPdfLayout
-          property={property}
-          exportedOnLabel={exportedOnLabel}
-          imageMap={imageMap}
-          logoBase64={logoBase64}
-        />
-      );
-
-      // Wait for React to render and base64 images to decode
-      await new Promise((r) => setTimeout(r, 500));
-
-      const element = host.querySelector(
-        "[data-property-pdf]"
-      ) as HTMLElement | null;
-      if (!element) {
-        throw new Error("PDF layout failed to render");
-      }
-
-      // Extra buffer for image painting
-      await new Promise((r) => setTimeout(r, 200));
-
-      const safeId = makeSafeFilePart(
-        property.propertyId || property._id || "property"
-      );
-      const fileName = `Brokwise_Property_${safeId}.pdf`;
-
-      if (isNativeIOS()) {
-        // For iOS native app: generate PDF as blob and use Web Share API
-        const pdfBlob = await generatePdfAsBlob({ element });
-        const file = new File([pdfBlob], fileName, { type: "application/pdf" });
-
-        // Use Web Share API with file sharing (supported on iOS Safari/WebView)
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: `Property ${property.propertyId || "Details"}`,
-          });
-        } else {
-          // Fallback: create download link
-          const url = URL.createObjectURL(pdfBlob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = fileName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(url), 100);
-        }
-
-        toast.success(t("toast_pdf_downloaded"), { id: toastId });
-      } else {
-        // For web/other platforms: use standard browser download
-        await exportElementAsPdf({
-          element,
-          fileName,
-        });
-
-        toast.success(t("toast_pdf_downloaded"), { id: toastId });
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error(t("toast_error_pdf_export"), { id: toastId });
-    } finally {
-      try {
-        root?.unmount();
-      } catch {
-        // no-op
-      }
-      host?.remove();
-      setIsExportingPdf(false);
     }
   };
 
@@ -414,17 +269,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 variant="secondary"
                 className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-md hover:bg-background shadow-sm"
                 onClick={(e) => e.stopPropagation()}
-                title={canShareExternally ? "Share" : "Export PDF"}
+                title="Share"
               >
-                {canShareExternally ? (
-                  <Share2 className="h-4 w-4 text-foreground/70" />
-                ) : (
-                  <Download className="h-4 w-4 text-foreground/70" />
-                )}
+                <Share2 className="h-4 w-4 text-foreground/70" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {canShareExternally && (
+              {canShare && (
                 <>
                   <DropdownMenuItem
                     onClick={handleCopyLink}
@@ -434,34 +285,14 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                     Copy Link
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={handleShareWhatsApp}
-                    className="cursor-pointer"
-                  >
-                    <MessageCircle className="mr-2 h-4 w-4" />
-                    Share via WhatsApp
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
                     onClick={handleShareNative}
                     className="cursor-pointer"
                   >
                     <Share2 className="mr-2 h-4 w-4" />
                     Share Property
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
                 </>
               )}
-              <DropdownMenuItem
-                onClick={handleExportPdf}
-                disabled={isExportingPdf}
-                className="cursor-pointer"
-              >
-                {isExportingPdf ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="mr-2 h-4 w-4" />
-                )}
-                {isExportingPdf ? "Exporting…" : "Export as PDF"}
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

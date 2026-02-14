@@ -22,11 +22,13 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import { useTheme } from "next-themes";
 import { SwipeBackProvider } from "@/components/SwipeBackProvider";
 import { getCookie } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [defaultSidebarOpen, setDefaultSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
   const { theme, resolvedTheme } = useTheme();
+  const pathname = usePathname();
 
   useEffect(() => {
     const sidebarCookie = getCookie("sidebar_state");
@@ -52,6 +54,34 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
     updateStatusBar();
   }, [mounted, theme, resolvedTheme]);
+
+  useEffect(() => {
+    if (!pathname.startsWith("/property/detail")) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      const isPrintShortcut =
+        (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "p";
+      if (isPrintShortcut) {
+        event.preventDefault();
+      }
+    };
+
+    const onContextMenu = (event: MouseEvent) => {
+      event.preventDefault();
+    };
+
+    const originalPrint = window.print;
+    window.print = () => undefined;
+
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("contextmenu", onContextMenu);
+
+    return () => {
+      window.print = originalPrint;
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("contextmenu", onContextMenu);
+    };
+  }, [pathname]);
 
   if (!mounted) {
     return null;

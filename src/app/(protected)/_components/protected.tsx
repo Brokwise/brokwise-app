@@ -2,7 +2,7 @@
 import { firebaseAuth } from "@/config/firebase";
 import { setCookie } from "@/utils/helper";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useAuthState, useSignOut } from "react-firebase-hooks/auth";
 import pkg from "../../../../package.json";
 import { Verification } from "@/app/(protected)/_components/verification";
@@ -40,13 +40,19 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   const [authTimedOut, setAuthTimedOut] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const getLoginUrlWithTarget = useCallback(() => {
+    if (typeof window === "undefined") return "/login";
+    const target = `${window.location.pathname}${window.location.search}`;
+    return `/login?target=${encodeURIComponent(target)}`;
+  }, []);
+
 
   useEffect(() => {
     if (loading || brokerDataLoading || companyDataLoading) {
       timeoutRef.current = setTimeout(() => {
         console.warn("Auth/data loading timed out, redirecting to login");
         setAuthTimedOut(true);
-        router.push("/login");
+        router.push(getLoginUrlWithTarget());
       }, AUTH_TIMEOUT_MS);
     } else {
       if (timeoutRef.current) {
@@ -60,7 +66,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [loading, brokerDataLoading, companyDataLoading, router]);
+  }, [loading, brokerDataLoading, companyDataLoading, router, getLoginUrlWithTarget]);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -106,7 +112,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
                 await signOut();
                 localStorage.clear();
                 sessionStorage.clear();
-                router.push("/login");
+                router.push(getLoginUrlWithTarget());
                 break;
               }
             }
@@ -116,7 +122,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
         if (!loading && !user) {
           setTimeout(() => {
             if (!firebaseAuth.currentUser) {
-              router.push("/login");
+              router.push(getLoginUrlWithTarget());
             }
           }, 100);
         }
@@ -128,7 +134,7 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
         });
       }
     })();
-  }, [user, loading, error, signOut, router]);
+  }, [user, loading, error, signOut, router, getLoginUrlWithTarget]);
 
   useEffect(() => {
     if (companyData && companyData.status === "approved") {

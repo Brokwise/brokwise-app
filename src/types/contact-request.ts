@@ -31,6 +31,7 @@ export interface PopulatedContactRequest extends Omit<ContactRequest, "requester
   propertyId: Pick<Property, "_id" | "propertyId" | "propertyCategory" | "propertyType" | "address" | "featuredMedia" | "totalPrice">;
   propertyListerId: PopulatedBroker;
   requestType: ContactRequestType;
+  requesterLabel?: string;
 }
 
 // API Response types

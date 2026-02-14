@@ -11,16 +11,14 @@ import React, { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Enquiry } from "@/models/types/enquiry";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { DirectionCompassField } from "@/components/property/direction-compass-field";
+import { RoadWidthField } from "@/components/property/road-width-field";
+import { Input } from "@/components/ui/input";
 
 import { NumberInput } from "@/components/ui/number-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   formatIndianNumber,
-  formatRoadWidthConversion,
-  getRoadWidthUnitLabel,
-  PROPERTY_LIMITS,
 } from "@/utils/helper";
 interface ResidentialProperySpecsProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -58,30 +56,6 @@ export const ResidentialProperySpecs: React.FC<
       form.setValue("rate", calculatedRate, { shouldValidate: true });
     }
   }, [effectiveSize, rate, totalPrice, lastEditedPriceField, form]);
-
-  const roadWidthOptionsFeet = [30, 40, 60, 80, 100, 120, 160, 180, 200, 250, 300];
-  const roadWidthOptionsMeters = [9, 12, 18, 24, 30, 37, 49, 55, 61, 76, 91];
-  const roadWidthOptions = roadWidthUnit === "FEET" ? roadWidthOptionsFeet : roadWidthOptionsMeters;
-  const roadWidthUnitLabel = getRoadWidthUnitLabel(roadWidthUnit);
-  // const facingOptions = [
-  //   { value: "NORTH", label: "North" },
-  //   { value: "SOUTH", label: "South" },
-  //   { value: "EAST", label: "East" },
-  //   { value: "WEST", label: "West" },
-  //   { value: "NORTH_EAST", label: "North East" },
-  //   { value: "NORTH_WEST", label: "North West" },
-  //   { value: "SOUTH_EAST", label: "South East" },
-  //   { value: "SOUTH_WEST", label: "South West" },
-  // ];
-  const parseRoadWidthMetersInput = (value: string) => {
-    if (!value) return undefined;
-    const sanitized = value.replace(/[^0-9.]/g, "");
-    const normalized = sanitized.replace(/(\..*)\./g, "$1");
-    if (!normalized || normalized === ".") return undefined;
-    const num = Number(normalized);
-    if (Number.isNaN(num)) return undefined;
-    return Math.min(num, PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH);
-  };
 
   return (
     <div className="space-y-6">
@@ -408,109 +382,21 @@ export const ResidentialProperySpecs: React.FC<
                 name="frontRoadWidth"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2 justify-between md:justify-start">
-                      <div>
-                        Road Width <span className="text-destructive">*</span>
-                      </div>
-                      <FormField
-                        defaultValue={roadWidthUnit}
-                        control={form.control}
-                        name="roadWidthUnit"
-                        render={({ field }) => (
-                          <FormItem className="">
-
-                            <FormControl>
-                              <div className="inline-flex rounded-full border bg-muted p-[0.5px]">
-                                {[
-                                  { value: "FEET", label: "Feet" },
-                                  { value: "METER", label: "Metre" },
-                                ].map((item) => (
-                                  <button
-                                    key={item.value}
-                                    type="button"
-                                    onClick={() => {
-                                      field.onChange(item.value);
-                                      form.setValue("frontRoadWidth", undefined);
-                                      form.setValue("sideRoadWidth", undefined);
-                                    }}
-                                    className={cn(
-                                      "px-2 py-1 text-sm font-medium rounded-full transition-all",
-                                      field.value === item.value
-                                        ? "bg-background text-foreground shadow-sm"
-                                        : "text-muted-foreground hover:text-foreground"
-                                    )}
-                                  >
-                                    {item.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </FormLabel>
                     <FormControl>
-                      <div className="space-y-3">
-                        <div
-                          className={cn(
-                            "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
-                            fieldState.error &&
-                            "bg-destructive/10 ring-1 ring-destructive"
-                          )}
-                          data-field="frontRoadWidth"
-                        >
-                          {roadWidthOptions.map((width) => (
-                            <Button
-                              key={width}
-                              type="button"
-                              variant="selection"
-                              size="sm"
-                              onClick={() => field.onChange(width)}
-                              className={cn(
-                                "min-w-[70px]",
-                                field.value === width
-                                  ? "bg-primary text-primary-foreground"
-                                  : ""
-                              )}
-                            >
-                              {width} {roadWidthUnitLabel}
-                            </Button>
-                          ))}
-                        </div>
-                        <div className="flex items-center justify-start gap-2">
-                          <div>
-                            <Input
-                              type="text"
-                              inputMode="decimal"
-                              placeholder="Custom width"
-                              value={field.value ?? ""}
-                              onChange={(e) =>
-                                field.onChange(
-                                  parseRoadWidthMetersInput(e.target.value)
-                                )
-                              }
-                              className="max-w-[140px]!"
-                            />
-
-                          </div>
-                          <span className="text-sm text-muted-foreground">
-                            {roadWidthUnitLabel}
-                          </span>
-                          {(() => {
-                            const conversion = formatRoadWidthConversion(
-                              field.value,
-                              roadWidthUnit
-                            );
-                            if (!conversion) return null;
-                            return (
-                              <span className="text-xs text-muted-foreground">
-                                ({conversion})
-                              </span>
-                            );
-                          })()}
-                        </div>
-                      </div>
+                      <RoadWidthField
+                        label="Road Width"
+                        required
+                        value={field.value}
+                        onChange={field.onChange}
+                        unit={roadWidthUnit}
+                        onUnitChange={(value) => {
+                          form.setValue("roadWidthUnit", value);
+                          form.setValue("frontRoadWidth", undefined);
+                          form.setValue("sideRoadWidth", undefined);
+                        }}
+                        error={!!fieldState.error}
+                        dataField="frontRoadWidth"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -551,70 +437,17 @@ export const ResidentialProperySpecs: React.FC<
                   name="sideRoadWidth"
                   render={({ field, fieldState }) => (
                     <FormItem>
-                      <FormLabel>
-                        Road Width <span className="text-destructive">*</span>
-                      </FormLabel>
                       <FormControl>
-                        <div className="space-y-3">
-                          <div
-                            className={cn(
-                              "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
-                              fieldState.error &&
-                              "bg-destructive/10 ring-1 ring-destructive"
-                            )}
-                            data-field="sideRoadWidth"
-                          >
-                            {roadWidthOptions.map((width) => (
-                              <Button
-                                key={width}
-                                type="button"
-                                variant="selection"
-                                size="sm"
-                                onClick={() => field.onChange(width)}
-                                className={cn(
-                                  "min-w-[70px]",
-                                  field.value === width
-                                    ? "bg-primary text-primary-foreground"
-                                    : ""
-                                )}
-                              >
-                                {width} {roadWidthUnitLabel}
-                              </Button>
-                            ))}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div>
-
-                              <Input
-                                type="text"
-                                inputMode="decimal"
-                                placeholder="Custom width"
-                                value={field.value ?? ""}
-                                onChange={(e) =>
-                                  field.onChange(
-                                    parseRoadWidthMetersInput(e.target.value)
-                                  )
-                                }
-                                className="max-w-[140px]!"
-                              />
-                            </div>
-                            <span className="text-sm text-muted-foreground">
-                              {roadWidthUnitLabel}
-                            </span>
-                            {(() => {
-                              const conversion = formatRoadWidthConversion(
-                                field.value,
-                                roadWidthUnit
-                              );
-                              if (!conversion) return null;
-                              return (
-                                <span className="text-xs text-muted-foreground">
-                                  ({conversion})
-                                </span>
-                              );
-                            })()}
-                          </div>
-                        </div>
+                        <RoadWidthField
+                          label="Road Width"
+                          required
+                          value={field.value}
+                          onChange={field.onChange}
+                          unit={roadWidthUnit}
+                          error={!!fieldState.error}
+                          dataField="sideRoadWidth"
+                          showUnitToggle={false}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

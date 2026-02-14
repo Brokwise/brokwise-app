@@ -148,6 +148,12 @@ export default function AuthPage({
   const isMobile = useIsMobile();
   const scrollAreaRef = React.useRef<HTMLDivElement | null>(null);
   const currentLang = i18n.language;
+  const getSafeTarget = React.useCallback((target: string | null) => {
+    if (!target || typeof target !== "string") return "/";
+    if (!target.startsWith("/") || target.startsWith("//")) return "/";
+    return target;
+  }, []);
+  const targetPath = getSafeTarget(searchParams.get("target"));
 
   React.useEffect(() => {
     detectLanguage();
@@ -156,9 +162,13 @@ export default function AuthPage({
 
   React.useEffect(() => {
     if (isMobile === true && searchParams.get("fromWelcome") !== "true") {
-      router.replace("/welcome");
+      const nextUrl =
+        targetPath && targetPath !== "/"
+          ? `/welcome?target=${encodeURIComponent(targetPath)}`
+          : "/welcome";
+      router.replace(nextUrl);
     }
-  }, [isMobile, searchParams, router]);
+  }, [isMobile, searchParams, router, targetPath]);
 
 
   const activeTheme = mounted ? resolvedTheme ?? theme : undefined;
@@ -350,7 +360,7 @@ export default function AuthPage({
           ? t("account_created_success")
           : t("logged_in_success")
       );
-      router.push("/");
+      router.push(targetPath);
     } catch (err) {
       handleAuthError(err as FirebaseError);
     } finally {
@@ -438,7 +448,7 @@ export default function AuthPage({
         localStorage.removeItem("brokwise_password_reset_attempts");
 
         toast.success(t("logged_in_success"));
-        router.push("/");
+        router.push(targetPath);
       } else {
         // Web OAuth flow
         if (!Config.googleOauthClientId) {
@@ -446,7 +456,7 @@ export default function AuthPage({
           return;
         }
 
-        const target = searchParams.get("target") ?? "/";
+        const target = targetPath;
         const redirectUrlStr = `${Config.frontendUrl}/google-oauth`;
         const redirectUri = encodeURIComponent(redirectUrlStr);
 

@@ -92,6 +92,7 @@ const LocationSection = ({ isPending }: { isPending: boolean }) => {
                                                 valueLabel={preferredLocations[index]?.address ?? ""}
                                                 valueId={formField.value ?? ""}
                                                 disabled={isPending}
+                                                showClearButton={index === 0}
                                                 className="bg-background h-12 text-base flex-1"
                                                 containerClassName="flex-1 min-w-0"
                                                 onSearchError={(msg) => {

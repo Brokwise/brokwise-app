@@ -212,49 +212,10 @@ h6 {
 }
 
 @media print {
-
-  /* Hide sidebar, header, and non-content elements */
-  header,
-  aside,
-  nav,
-  button,
-  .overflow-hidden,
-  /* Often used for sidebars/modals */
-  [role="dialog"],
-  [data-radix-popper-content-wrapper] {
-    display: none !important;
-  }
-
-  /* Ensure main content is visible and takes full width */
-  main,
-  .print:block {
-    display: block !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important;
-  }
-
-  /* Reset body/html for print */
+  html,
   body,
-  html {
-    background: white !important;
-    color: black !important;
-    height: auto !important;
-    width: 100% !important;
-    overflow: visible !important;
-  }
-
-  /* Ensure text colors are dark for readability */
-  * {
-    color: black !important;
-    text-shadow: none !important;
-    box-shadow: none !important;
-  }
-
-  /* Show links for reference if needed */
-  a {
-    text-decoration: underline;
-    color: black !important;
+  body * {
+    display: none !important;
+    visibility: hidden !important;
   }
 }

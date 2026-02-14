@@ -831,28 +831,34 @@ const SubscriptionPage = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-wrap gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {(
                         Object.keys(SUBSCRIPTION_DURATION_LABELS) as SubscriptionDuration[]
                       ).map((duration) => {
                         const savingsInfo = DURATION_SAVINGS[duration];
+                        const isSelected = selectedDuration === duration;
                         return (
                           <Button
                             key={duration}
-                            variant={
-                              selectedDuration === duration ? "default" : "outline"
-                            }
+                            variant="outline"
                             onClick={() => setSelectedDuration(duration)}
-                            className="flex-1 min-w-[120px]"
+                            className={cn(
+                              "h-auto min-h-[76px] rounded-2xl border px-4 py-3 flex flex-col items-center justify-center gap-1",
+                              isSelected
+                                ? "border-primary bg-primary/10 text-primary shadow-sm"
+                                : "border-border bg-background text-foreground hover:bg-muted/50"
+                            )}
                           >
-                            <div className="flex flex-col items-center">
-                              <span>{t(`label_${duration.toLowerCase()}`)}</span>
-                              {savingsInfo.savingsPercent && (
-                                <span className="text-xs opacity-75">
-                                  {t("page_subscription_save_percent", { percent: savingsInfo.savingsPercent })}
-                                </span>
-                              )}
-                            </div>
+                            <span className="text-lg font-semibold leading-none">
+                              {t(`label_${duration.toLowerCase()}`)}
+                            </span>
+                            {savingsInfo.savingsPercent && (
+                              <span className="text-sm text-muted-foreground">
+                                {t("page_subscription_save_percent", {
+                                  percent: savingsInfo.savingsPercent,
+                                })}
+                              </span>
+                            )}
                           </Button>
                         );
                       })}

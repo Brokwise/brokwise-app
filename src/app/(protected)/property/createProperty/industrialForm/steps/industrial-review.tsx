@@ -1,4 +1,4 @@
-import { formatIndianNumber } from "@/utils/helper";
+import { formatIndianNumber, getRoadWidthUnitLabel } from "@/utils/helper";
 import React from "react";
 import useCredits, { useGetCreditPrices } from "@/hooks/useCredits";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,6 +27,9 @@ const IndustrialReview: React.FC<IndustrialReviewProps> = ({
   const { prices } = useGetCreditPrices();
   const FEATURED_COST = prices.MARK_PROPERTY_AS_FEATURED;
   const hasSufficientCredits = (balance || 0) >= FEATURED_COST;
+  const roadWidthUnitLabel = getRoadWidthUnitLabel(
+    form.watch("roadWidthUnit") || "FEET"
+  );
 
   return (
     <div className="space-y-6">
@@ -87,7 +90,7 @@ const IndustrialReview: React.FC<IndustrialReviewProps> = ({
           <div>
             <strong>Front Road Width:</strong>{" "}
             {form.watch("frontRoadWidth")
-              ? `${form.watch("frontRoadWidth")} ft`
+              ? `${form.watch("frontRoadWidth")} ${roadWidthUnitLabel}`
               : "Not provided"}
           </div>
           {form.watch("sideFacing") && (
@@ -98,7 +101,7 @@ const IndustrialReview: React.FC<IndustrialReviewProps> = ({
           {form.watch("sideRoadWidth") !== undefined &&
             form.watch("sideRoadWidth") !== null && (
             <div>
-              <strong>Side Road Width:</strong> {form.watch("sideRoadWidth")} ft
+              <strong>Side Road Width:</strong> {form.watch("sideRoadWidth")} {roadWidthUnitLabel}
             </div>
             )}
           <div>
