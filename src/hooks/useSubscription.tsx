@@ -350,7 +350,7 @@ export const useSubscription = () => {
     useCancelSubscription();
   const { purchaseActivation, isPending: activationPending } =
     usePurchaseActivation();
-  const { verifyActivation, isPending: verifyPending } =
+  const { isPending: verifyPending } =
     useVerifyActivation();
 
   const queryClient = useQueryClient();
