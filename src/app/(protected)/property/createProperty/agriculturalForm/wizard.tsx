@@ -75,6 +75,9 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
       description: "",
       isPriceNegotiable: false,
       isFeatured: false,
+      roadWidthUnit: "FEET",
+      sideFacing: undefined,
+      sideRoadWidth: undefined,
       location: {
         type: "Point",
         coordinates: [0, 0],
@@ -87,6 +90,8 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
     },
     mode: "onChange",
   });
+
+  const plotType = form.watch("plotType");
 
   const onSubmit = async (data: AgriculturalPropertyFormData, shouldUseCredits: boolean) => {
     if (onSubmitProp) {
@@ -120,9 +125,12 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
         "address.address",
         "size",
         "sizeUnit",
+        "plotType",
+        ...(plotType ? ["facing", "frontRoadWidth"] : []),
+        ...(plotType === "CORNER" ? ["sideFacing", "sideRoadWidth"] : []),
         "rate",
       ],
-      1: ["description", "featuredMedia", "images"],
+      1: ["description", "featuredMedia", "images", "floorPlans"],
       2: [], // Review step
     };
 
@@ -157,10 +165,16 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
           "address.pincode": "Pincode is required",
           size: "Land size is required",
           sizeUnit: "Please select a size unit",
+          plotType: "Please select a plot type",
+          facing: "Please select front facing direction",
+          frontRoadWidth: "Front road width is required",
+          sideFacing: "Please select side facing direction",
+          sideRoadWidth: "Side road width is required",
           rate: "Rate per unit is required",
           description: "Description is required",
           featuredMedia: "Featured media is required",
           images: "At least one image is required",
+          floorPlans: "At least one layout plan/site plan/map is mandatory",
         };
 
         form.setError(field as keyof AgriculturalPropertyFormData, {

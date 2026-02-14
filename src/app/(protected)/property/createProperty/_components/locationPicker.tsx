@@ -42,6 +42,14 @@ interface SearchResult {
   context?: { id: string; text: string }[];
 }
 
+const normalizeAddressSeparators = (placeName: string): string =>
+  placeName
+    .replace(/[،﹐﹑，]/g, ",")
+    .replace(/[·•]/g, ",")
+    .replace(/\s*,\s*/g, ", ")
+    .replace(/\s+/g, " ")
+    .trim();
+
 export const LocationPicker = ({
   value,
   onChange,
@@ -74,8 +82,14 @@ export const LocationPicker = ({
         const response = await api.get(
           `/utils/places?q=${encodeURIComponent(searchQuery)}`
         );
-        const data = await response.data
-        setSearchResults(data.features || []);
+        const data = await response.data;
+        const normalizedResults = (data.features || []).map(
+          (result: SearchResult) => ({
+            ...result,
+            place_name: normalizeAddressSeparators(result.place_name),
+          })
+        );
+        setSearchResults(normalizedResults);
       } catch (error) {
         console.error("Error searching location:", error);
       } finally {
@@ -129,7 +143,7 @@ export const LocationPicker = ({
           const feature = data.features[0];
           const pincode = extractPincode(feature.context, feature.place_name);
           return {
-            place_name: feature.place_name,
+            place_name: normalizeAddressSeparators(feature.place_name),
             context: feature.context,
             pincode,
           };
@@ -297,7 +311,7 @@ export const LocationPicker = ({
         fetchedPincode || extractPincode(result.context, result.place_name);
       onLocationSelect({
         coordinates: [lng, lat],
-        placeName: result.place_name,
+        placeName: normalizeAddressSeparators(result.place_name),
         pincode,
         context: result.context,
       });

@@ -70,7 +70,9 @@ const basePropertySchema = z.object({
   images: z.array(z.string().url()).optional(),
 
   // Required common fields
-  floorPlans: z.array(z.string().url()).min(1, "At least one floor plan/site plan is required"),
+  floorPlans: z
+    .array(z.string().url())
+    .min(1, "At least one layout plan/site plan/map is mandatory"),
   isFeatured: z.boolean().optional(),
   isPriceNegotiable: z.boolean().optional(),
   size: z.number().min(0).optional(),
@@ -249,6 +251,8 @@ export const industrialPropertySchema = basePropertySchema.extend({
     )
     .optional(),
   roadWidthUnit: RoadWidthUnitEnum.optional(),
+  sideFacing: FacingEnum.optional(),
+  sideRoadWidth: z.number().min(0).optional(),
 });
 
 // Agricultural Property Schema
@@ -269,6 +273,8 @@ export const agriculturalPropertySchema = basePropertySchema.extend({
     )
     .optional(),
   roadWidthUnit: RoadWidthUnitEnum.optional(),
+  sideFacing: FacingEnum.optional(),
+  sideRoadWidth: z.number().min(0).optional(),
 });
 
 // Resort Property Schema
@@ -287,6 +293,8 @@ export const resortPropertySchema = basePropertySchema.extend({
     )
     .optional(),
   roadWidthUnit: RoadWidthUnitEnum.optional(),
+  sideFacing: FacingEnum.optional(),
+  sideRoadWidth: z.number().min(0).optional(),
 });
 
 // Farm House Property Schema
@@ -305,6 +313,8 @@ export const farmHousePropertySchema = basePropertySchema.extend({
     )
     .optional(),
   roadWidthUnit: RoadWidthUnitEnum.optional(),
+  sideFacing: FacingEnum.optional(),
+  sideRoadWidth: z.number().min(0).optional(),
 });
 
 // Union type for all property schemas
