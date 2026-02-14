@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { isNativeIOS } from "@/utils/helper";
 import { Keyboard } from "@capacitor/keyboard";
 import { PrivacyScreen } from "@capacitor/privacy-screen";
+import { Capacitor } from "@capacitor/core";
 export type ContentType = "file" | "webURL" | "appContent";
 
 export function DeepLinkHandler() {
   const router = useRouter();
   const isIOS = isNativeIOS();
+  const isNative = Capacitor.isNativePlatform();
 
   const handleUrl = useCallback(
     (url?: string) => {
@@ -48,9 +50,11 @@ export function DeepLinkHandler() {
   );
 
   useEffect(() => {
-    if (isIOS) {
+    if (isNative) {
       PrivacyScreen.enable();
-      Keyboard.setAccessoryBarVisible({ isVisible: false });
+      if (isIOS) {
+        Keyboard.setAccessoryBarVisible({ isVisible: false });
+      }
       App.addListener("appUrlOpen", (data: { url: string }) => {
         handleUrl(data.url);
       });
@@ -58,11 +62,11 @@ export function DeepLinkHandler() {
       App.getLaunchUrl().then((data) => handleUrl(data?.url));
     }
     return () => {
-      if (isIOS) {
+      if (isNative) {
         App.removeAllListeners();
       }
     };
-  }, [router, isIOS, handleUrl]);
+  }, [router, isIOS, isNative, handleUrl]);
 
   return null;
 }

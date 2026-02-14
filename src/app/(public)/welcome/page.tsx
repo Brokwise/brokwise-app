@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,15 @@ import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
+import { useSearchParams } from "next/navigation";
 
-const WelcomeScreen = () => {
+const WelcomeScreenContent = () => {
   const { t, i18n } = useTranslation();
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const currentLang = i18n.language;
+  const searchParams = useSearchParams();
+  const target = searchParams.get("target") ?? undefined;
 
   useEffect(() => setMounted(true), []);
 
@@ -102,7 +105,12 @@ const WelcomeScreen = () => {
             asChild
             className="w-full h-12 text-base font-semibold bg-white text-black hover:bg-white/90"
           >
-            <Link href="/login?fromWelcome=true">
+            <Link
+              href={{
+                pathname: "/login",
+                query: { fromWelcome: "true", ...(target ? { target } : {}) },
+              }}
+            >
               {t("signin_button") || "Log In"}
             </Link>
           </Button>
@@ -112,7 +120,12 @@ const WelcomeScreen = () => {
             variant="outline"
             className="w-full h-12 text-base font-semibold bg-transparent border-white text-white hover:bg-white/10 hover:text-white"
           >
-            <Link href="/create-account?fromWelcome=true">
+            <Link
+              href={{
+                pathname: "/create-account",
+                query: { fromWelcome: "true", ...(target ? { target } : {}) },
+              }}
+            >
               {t("create_account_button") || "Create Account"}
             </Link>
           </Button>
@@ -126,4 +139,14 @@ const WelcomeScreen = () => {
   );
 };
 
-export default WelcomeScreen;
+const WelcomeScreenFallback = () => (
+  <div className="h-dvh w-full bg-black" />
+);
+
+export default function WelcomeScreen() {
+  return (
+    <Suspense fallback={<WelcomeScreenFallback />}>
+      <WelcomeScreenContent />
+    </Suspense>
+  );
+}

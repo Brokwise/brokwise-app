@@ -23,6 +23,11 @@ const GoogleOauthPage = () => {
   const searchParams = useSearchParams();
 
   const hasAttemptedLoginRef = React.useRef(false);
+  const sanitizeTarget = useCallback((target: string | null | undefined) => {
+    if (!target || typeof target !== "string") return "/";
+    if (!target.startsWith("/") || target.startsWith("//")) return "/";
+    return target;
+  }, []);
   const redirectUser = useCallback(
     ({
       isDesktopApp,
@@ -175,28 +180,45 @@ const GoogleOauthPage = () => {
         });
       }
       const accessToken = params.get("access_token");
-      const splits = params?.get("state")?.split("---");
-      const isDesktopRequested = splits?.[0] === "true";
-      // const target = splits?.[1];
       const stateParam = params.get("state");
+      let isDesktopRequested = false;
+      let target = "/";
       const isNativePlatform =
         typeof window !== "undefined" && Capacitor.isNativePlatform();
-      const shouldOpenNativeApp = isDesktopRequested && !isNativePlatform;
-
       let accountType: "broker" | "company" | undefined = "broker";
 
       if (stateParam) {
-        try {
-          const state = JSON.parse(decodeURIComponent(stateParam));
-          accountType = state.accountType;
-        } catch {
-          // fallback to raw string check if legacy or simple string
-          if (stateParam === "true" || stateParam === "false") {
-            // legacy behavior, assume broker
-            accountType = "broker";
+        const decodedState = decodeURIComponent(stateParam);
+        if (decodedState.includes("---")) {
+          const [desktopFlag, ...targetParts] = decodedState.split("---");
+          isDesktopRequested = desktopFlag === "true";
+          target = sanitizeTarget(targetParts.join("---"));
+        } else {
+          try {
+            const state = JSON.parse(decodedState);
+            if (state && typeof state === "object") {
+              if (typeof state.accountType === "string") {
+                if (state.accountType === "broker" || state.accountType === "company") {
+                  accountType = state.accountType;
+                }
+              }
+              if (typeof state.target === "string") {
+                target = sanitizeTarget(state.target);
+              }
+              if (typeof state.isDesktopApp === "boolean") {
+                isDesktopRequested = state.isDesktopApp;
+              } else if (typeof state.desktop === "boolean") {
+                isDesktopRequested = state.desktop;
+              }
+            }
+          } catch {
+            if (decodedState === "true" || decodedState === "false") {
+              isDesktopRequested = decodedState === "true";
+            }
           }
         }
       }
+      const shouldOpenNativeApp = isDesktopRequested && !isNativePlatform;
 
       if (!accessToken) {
         setMessage("Invalid Credentials! Please try again.");
@@ -226,7 +248,7 @@ const GoogleOauthPage = () => {
         redirectUser({
           isDesktopApp: shouldOpenNativeApp,
           isError: false,
-          target: "/",
+          target,
           delay: 0,
         });
       }, 200);
@@ -238,7 +260,7 @@ const GoogleOauthPage = () => {
       });
       setMessage("Something went wrong");
     }
-  }, [redirectUser, verifyGoogleUser, searchParams]);
+  }, [redirectUser, verifyGoogleUser, searchParams, sanitizeTarget]);
 
   useEffect(() => {
     if (hasAttemptedLoginRef.current) return;

@@ -36,6 +36,7 @@ import { formatAddress, formatPrice } from "@/utils/helper";
 import { PropertyStatusBadge } from "./property-status-badge";
 import { useTranslation } from "react-i18next";
 import { PROPERTY_DELETION_REASONS } from "@/constants";
+import { getCategoryLabelKey } from "@/lib/i18nKeys";
 
 
 const formatDate = (dateString: string) => {
@@ -87,7 +88,7 @@ export function PropertyActions({ property }: { property: Property }) {
           // Trigger global undo overlay
           showUndo({
             propertyId: property._id,
-            propertyTitle: `${t(`category_${property.propertyCategory.toLowerCase()}`)} - ${t(`type_${property.propertyType.toLowerCase()}`)}`,
+            propertyTitle: `${t(getCategoryLabelKey(property.propertyCategory))} - ${t(`type_${property.propertyType.toLowerCase()}`)}`,
           });
         },
       }
@@ -347,4 +348,3 @@ export function PropertyActions({ property }: { property: Property }) {
     </>
   );
 }
-

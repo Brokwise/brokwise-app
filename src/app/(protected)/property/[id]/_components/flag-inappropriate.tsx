@@ -23,9 +23,12 @@ export const FlagInAppropriate = ({
     const [flagReason, setFlagReason] = useState("");
     const [flagNotes, setFlagNotes] = useState("");
     const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
+    const trimmedNotes = flagNotes.trim();
+    const isDetailsValid = trimmedNotes.length >= 10;
+    const isSubmitDisabled = !flagReason || !isDetailsValid || isSubmittingFlag;
 
     const handleSubmitFlag = useCallback(async () => {
-        if (!flagReason || !property) return;
+        if (!flagReason || !isDetailsValid || !property) return;
         setIsSubmittingFlag(true);
         try {
             await new Promise((resolve) => setTimeout(resolve, 900));
@@ -39,7 +42,7 @@ export const FlagInAppropriate = ({
         } finally {
             setIsSubmittingFlag(false);
         }
-    }, [flagReason, property, setIsFlagDialogOpen]);
+    }, [flagReason, isDetailsValid, property, setIsFlagDialogOpen]);
 
     return <Dialog open={isFlagDialogOpen} onOpenChange={setIsFlagDialogOpen}>
         <DialogContent>
@@ -73,7 +76,9 @@ export const FlagInAppropriate = ({
                     </Select>
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="flag-notes">Additional details</Label>
+                    <Label htmlFor="flag-notes">
+                        Additional details <span className="text-destructive">*</span>
+                    </Label>
                     <Textarea
                         id="flag-notes"
                         value={flagNotes}
@@ -81,6 +86,11 @@ export const FlagInAppropriate = ({
                         placeholder="Share any details that help us investigate."
                         className="min-h-[96px]"
                     />
+                    {flagNotes.length > 0 && !isDetailsValid && (
+                        <p className="text-sm text-destructive">
+                            Please provide at least 10 characters.
+                        </p>
+                    )}
                 </div>
             </div>
             <DialogFooter>
@@ -93,7 +103,7 @@ export const FlagInAppropriate = ({
                 </Button>
                 <Button
                     onClick={handleSubmitFlag}
-                    disabled={!flagReason || isSubmittingFlag}
+                    disabled={isSubmitDisabled}
                 >
                     {isSubmittingFlag ? "Submitting..." : "Submit report"}
                 </Button>

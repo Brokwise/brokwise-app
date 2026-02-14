@@ -9,14 +9,12 @@ import {
 import { cn } from "@/lib/utils";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  PROPERTY_LIMITS,
   coerceStringArray,
-  parseRoadWidthInput,
 } from "@/utils/helper";
 import { DirectionCompassField } from "@/components/property/direction-compass-field";
+import { RoadWidthField } from "@/components/property/road-width-field";
 
 interface ResortFeaturesProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,6 +23,7 @@ interface ResortFeaturesProps {
 
 export const ResortFeatures: React.FC<ResortFeaturesProps> = ({ form }) => {
   const plotType = form.watch("plotType");
+  const roadWidthUnit = form.watch("roadWidthUnit") || "FEET";
   const showFrontDetails = plotType === "ROAD" || plotType === "CORNER";
 
   return (
@@ -108,33 +107,23 @@ export const ResortFeatures: React.FC<ResortFeaturesProps> = ({ form }) => {
             name="frontRoadWidth"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel>
-                  Front Road Width (in feet){" "}
-                  <span className="text-destructive">*</span>
-                </FormLabel>
                 <FormControl>
-                  <div
-                    className={cn(
-                      "rounded-lg transition-colors",
-                      fieldState.error && "bg-destructive/10 ring-1 ring-destructive p-2"
-                    )}
-                    data-field="frontRoadWidth"
-                  >
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder={`Enter road width (max ${PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)`}
-                      value={field.value ?? ""}
-                      onChange={(e) =>
-                        field.onChange(parseRoadWidthInput(e.target.value))
-                      }
-                    />
-                  </div>
+                  <RoadWidthField
+                    label="Front Road Width"
+                    required
+                    value={field.value}
+                    onChange={field.onChange}
+                    unit={roadWidthUnit}
+                    onUnitChange={(value) => {
+                      form.setValue("roadWidthUnit", value);
+                      form.setValue("frontRoadWidth", undefined);
+                      form.setValue("sideRoadWidth", undefined);
+                    }}
+                    error={!!fieldState.error}
+                    dataField="frontRoadWidth"
+                    description="Width of the main access road to the resort (max 300 ft)"
+                  />
                 </FormControl>
-                <FormDescription>
-                  Width of the main access road to the resort (max{" "}
-                  {PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -174,28 +163,17 @@ export const ResortFeatures: React.FC<ResortFeaturesProps> = ({ form }) => {
             name="sideRoadWidth"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel>
-                  Side Road Width (in feet){" "}
-                  <span className="text-destructive">*</span>
-                </FormLabel>
                 <FormControl>
-                  <div
-                    className={cn(
-                      "rounded-lg transition-colors",
-                      fieldState.error && "bg-destructive/10 ring-1 ring-destructive p-2"
-                    )}
-                    data-field="sideRoadWidth"
-                  >
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder={`Enter side road width (max ${PROPERTY_LIMITS.MAX_FRONT_ROAD_WIDTH} ft)`}
-                      value={field.value ?? ""}
-                      onChange={(e) =>
-                        field.onChange(parseRoadWidthInput(e.target.value))
-                      }
-                    />
-                  </div>
+                  <RoadWidthField
+                    label="Side Road Width"
+                    required
+                    value={field.value}
+                    onChange={field.onChange}
+                    unit={roadWidthUnit}
+                    error={!!fieldState.error}
+                    dataField="sideRoadWidth"
+                    showUnitToggle={false}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

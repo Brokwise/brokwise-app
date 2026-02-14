@@ -772,34 +772,27 @@ const PendingRequestCard = ({
   onReject,
   isResponding,
 }: PendingRequestCardProps) => {
-  const requester = request.requesterId;
   const property = request.propertyId;
   const expiresAt = new Date(request.expiresAt);
   const timeLeft = formatDistanceToNow(expiresAt, { addSuffix: false });
   const isExpiringSoon = expiresAt.getTime() - Date.now() < 12 * 60 * 60 * 1000; // Less than 12 hours
 
-  const requesterName = `${requester.firstName} ${requester.lastName}`.trim();
-  const requesterInitials = `${requester.firstName?.[0] || ""}${requester.lastName?.[0] || ""}`.toUpperCase();
+  const requesterLabel = request.requesterLabel || "A broker";
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-background border border-border/50 shadow-sm">
       <div className="flex items-start gap-3 min-w-0 flex-1">
         <Avatar className="h-10 w-10 shrink-0">
-          <AvatarImage src={undefined} alt={requesterName} />
+          <AvatarImage src={undefined} alt={requesterLabel} />
           <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-            {requesterInitials || <UserCircle className="h-5 w-5" />}
+            <UserCircle className="h-5 w-5" />
           </AvatarFallback>
         </Avatar>
 
         <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Typography variant="small" as="span" className="font-semibold truncate">{requesterName}</Typography>
-            {requester.companyName && (
-              <span className="text-xs text-muted-foreground truncate">
-                • {requester.companyName}
-              </span>
-            )}
-          </div>
+          <Typography variant="small" as="span" className="font-semibold truncate">
+            {requesterLabel}
+          </Typography>
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
