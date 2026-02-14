@@ -291,11 +291,8 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
           </WaveBackground>
         );
       case "pending":
-        return (
-          <SafeAreaWrapper>
-            <StatusDisplay onEdit={() => setIsEditing(true)} />
-          </SafeAreaWrapper>
-        );
+        // Direct approval: treat pending as approved (no admin review needed)
+        break;
       case "rejected":
         return (
           <SafeAreaWrapper>
@@ -320,7 +317,8 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
 
   }
 
-  if (brokerData?.status === "approved") return children;
+  // Direct approval: both "approved" and "pending" statuses proceed to main app
+  if (brokerData?.status === "approved" || brokerData?.status === "pending") return children;
 
   if (userData?.userType === "company") {
     return (

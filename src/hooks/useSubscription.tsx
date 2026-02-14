@@ -6,7 +6,7 @@ import { AxiosError } from "axios";
 import { toast } from "sonner";
 import {
   TIER,
-  SubscriptionDuration,
+  RegularDuration,
   SubscriptionWithLimitsResponse,
   UsageWithLimits,
   RemainingQuotaResponse,
@@ -15,6 +15,9 @@ import {
   CreateSubscriptionPayload,
   LinkRazorpayPayload,
   SubscriptionResponse,
+  PurchaseActivationPayload,
+  VerifyActivationPayload,
+  ActivationPurchaseResponse,
 } from "@/models/types/subscription";
 import { getRazorpayPlan } from "@/config/tier_limits";
 
@@ -43,6 +46,8 @@ export const useGetPlans = () => {
   return {
     plans: data?.plans || [],
     durations: data?.durations || [],
+    activationPlans: data?.activationPlans || [],
+    regularPlans: data?.regularPlans || [],
     isLoading,
     error,
   };
@@ -154,7 +159,7 @@ export const useGetUsageHistory = (
 };
 
 /**
- * Hook to create/upgrade subscription
+ * Hook to create/upgrade regular subscription (Phase 2)
  */
 export const useCreateSubscription = () => {
   const api = useAxios();
@@ -184,6 +189,67 @@ export const useCreateSubscription = () => {
   });
 
   return { createSubscription: mutateAsync, isPending, error };
+};
+
+/**
+ * Hook to purchase activation pack (Phase 1 - one-time Razorpay order)
+ */
+export const usePurchaseActivation = () => {
+  const api = useAxios();
+
+  const { mutateAsync, isPending, error } = useMutation<
+    ActivationPurchaseResponse,
+    AxiosError<{ message: string }>,
+    PurchaseActivationPayload
+  >({
+    mutationFn: async (payload) => {
+      const response = await api.post("/subscription/activate", payload);
+      return response.data.data;
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to initiate activation purchase";
+      toast.error(errorMessage);
+    },
+  });
+
+  return { purchaseActivation: mutateAsync, isPending, error };
+};
+
+/**
+ * Hook to verify activation payment after Razorpay checkout
+ */
+export const useVerifyActivation = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending, error } = useMutation<
+    { message: string; subscription: SubscriptionResponse },
+    AxiosError<{ message: string }>,
+    VerifyActivationPayload
+  >({
+    mutationFn: async (payload) => {
+      const response = await api.post("/subscription/activate/verify", payload);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["current-subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["usage"] });
+      queryClient.invalidateQueries({ queryKey: ["remaining-quota"] });
+      toast.success("Activation pack purchased successfully!");
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to verify activation payment";
+      toast.error(errorMessage);
+    },
+  });
+
+  return { verifyActivation: mutateAsync, isPending, error };
 };
 
 /**
@@ -240,7 +306,7 @@ export const useCancelSubscription = () => {
       queryClient.invalidateQueries({ queryKey: ["current-subscription"] });
       queryClient.invalidateQueries({ queryKey: ["usage"] });
       queryClient.invalidateQueries({ queryKey: ["remaining-quota"] });
-      toast.success("Subscription cancelled. You are now on the Starter plan.");
+      toast.success("Subscription cancelled.");
     },
     onError: (error) => {
       const errorMessage =
@@ -258,7 +324,7 @@ export const useCancelSubscription = () => {
  * Combined hook for subscription management with Razorpay integration
  */
 export const useSubscription = () => {
-  const { plans, durations, isLoading: plansLoading } = useGetPlans();
+  const { plans, durations, activationPlans, regularPlans, isLoading: plansLoading } = useGetPlans();
   const {
     subscription,
     limits,
@@ -282,19 +348,96 @@ export const useSubscription = () => {
     useLinkRazorpaySubscription();
   const { cancelSubscription, isPending: cancelPending } =
     useCancelSubscription();
+  const { purchaseActivation, isPending: activationPending } =
+    usePurchaseActivation();
+  const { verifyActivation, isPending: verifyPending } =
+    useVerifyActivation();
 
   const queryClient = useQueryClient();
 
+  // Determine current phase
+  const currentPhase = subscription?.phase || null;
+  const hasCompletedActivation = !!subscription?.activationCompletedAt;
+  const needsActivation = !subscription || (!subscription.phase);
+
   /**
-   * Initiate subscription purchase with Razorpay
+   * Initiate activation pack purchase (Phase 1 - one-time order)
+   */
+  const initiateActivation = async (
+    selectedTier: TIER,
+    userInfo: { name: string; email: string; phone: string }
+  ): Promise<boolean> => {
+    try {
+      const result = await purchaseActivation({ tier: selectedTier });
+
+      const { orderId, amount, currency, keyId } = result;
+
+      return new Promise((resolve) => {
+        const options = {
+          key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: amount,
+          currency: currency,
+          order_id: orderId,
+          name: "Brokwise",
+          description: `${selectedTier} Activation Pack`,
+          prefill: {
+            name: userInfo.name,
+            email: userInfo.email,
+            contact: userInfo.phone,
+          },
+          theme: {
+            color: "#3399cc",
+          },
+          handler: async function (response: {
+            razorpay_payment_id: string;
+            razorpay_order_id: string;
+            razorpay_signature: string;
+          }) {
+            try {
+              await verifyActivation({
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpaySignature: response.razorpay_signature,
+              });
+              queryClient.invalidateQueries({ queryKey: ["current-subscription"] });
+              queryClient.invalidateQueries({ queryKey: ["usage"] });
+              queryClient.invalidateQueries({ queryKey: ["remaining-quota"] });
+              resolve(true);
+            } catch {
+              toast.error("Payment successful but verification failed. Please contact support.");
+              resolve(false);
+            }
+          },
+          modal: {
+            ondismiss: function () {
+              toast.info("Activation purchase cancelled");
+              resolve(false);
+            },
+          },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rzp = new (window as any).Razorpay(options);
+        rzp.on("payment.failed", function (response: { error: { description: string } }) {
+          toast.error(`Payment failed: ${response.error.description}`);
+          resolve(false);
+        });
+        rzp.open();
+      });
+    } catch {
+      return false;
+    }
+  };
+
+  /**
+   * Initiate regular subscription purchase (Phase 2)
    */
   const initiateSubscription = async (
     selectedTier: TIER,
-    selectedDuration: SubscriptionDuration,
+    selectedDuration: RegularDuration,
     userInfo: { name: string; email: string; phone: string }
   ) => {
     try {
-      // Get the Razorpay plan configuration
       const razorpayPlan = getRazorpayPlan(selectedTier, selectedDuration);
 
       if (!razorpayPlan) {
@@ -302,21 +445,17 @@ export const useSubscription = () => {
         return;
       }
 
-      // Create the subscription on our backend - this creates a Razorpay subscription
-      // and returns the subscription_id (sub_xxx) to use for checkout
       const result = await createSubscription({
         tier: selectedTier,
         duration: selectedDuration,
         razorpayPlanId: razorpayPlan.planId,
       });
 
-      // Use the subscription_id from the backend response, NOT the plan_id
       const { subscriptionId, keyId } = result.razorpay;
 
-      // Open Razorpay checkout for subscription
       const options = {
         key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        subscription_id: subscriptionId, // Use sub_xxx from backend, NOT plan_xxx
+        subscription_id: subscriptionId,
         name: "Brokwise",
         description: `${selectedTier} Plan - ${selectedDuration.replace("_", " ")}`,
         prefill: {
@@ -332,12 +471,10 @@ export const useSubscription = () => {
           razorpay_payment_id: string;
           razorpay_signature: string;
         }) {
-          // Link the subscription after successful payment
           try {
             await linkRazorpaySubscription({
               razorpaySubscriptionId: response.razorpay_subscription_id,
             });
-            // Invalidate all related queries
             queryClient.invalidateQueries({ queryKey: ["current-subscription"] });
             queryClient.invalidateQueries({ queryKey: ["usage"] });
             queryClient.invalidateQueries({ queryKey: ["remaining-quota"] });
@@ -398,14 +535,24 @@ export const useSubscription = () => {
     periodEnd,
     plans,
     durations,
+    activationPlans,
+    regularPlans,
+
+    // Phase info
+    currentPhase,
+    hasCompletedActivation,
+    needsActivation,
 
     // Loading states
     isLoading: plansLoading || subscriptionLoading || usageLoading,
     createPending,
     linkPending,
     cancelPending,
+    activationPending,
+    verifyPending,
 
     // Actions
+    initiateActivation,
     initiateSubscription,
     cancelSubscription,
     refetchSubscription,

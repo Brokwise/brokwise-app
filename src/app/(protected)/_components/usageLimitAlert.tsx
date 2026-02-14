@@ -56,7 +56,7 @@ export const UsageLimitAlert: React.FC<UsageLimitAlertProps> = ({
             ? `You've reached your ${tier} plan limit for ${usageTypeLabels[usageType]}.`
             : `You have ${remainingCount} ${usageTypeLabels[usageType]} remaining.`}
         </span>
-        {showUpgradePrompt && tier !== "ELITE" && (
+        {showUpgradePrompt && tier !== "PRO" && (
           <Button size="sm" variant={isAtLimit ? "default" : "outline"} asChild>
             <Link href="/subscription">
               <Rocket className="mr-2 h-4 w-4" />
@@ -86,7 +86,7 @@ export const UsageLimitDialog: React.FC<UsageLimitDialogProps> = ({
   const { tier } = useGetRemainingQuota();
   const { subscription } = useGetCurrentSubscription();
 
-  const currentTier = subscription?.tier || tier || "STARTER";
+  const currentTier = subscription?.tier || tier || "BASIC";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -104,12 +104,12 @@ export const UsageLimitDialog: React.FC<UsageLimitDialogProps> = ({
 
         <div className="space-y-4 py-4">
           <p className="text-sm text-muted-foreground">
-            {currentTier === "ELITE"
+            {currentTier === "PRO"
               ? "You're on the highest plan. Your limits will reset at the start of your next billing period."
               : "Upgrade your subscription to get more capacity and continue using this feature."}
           </p>
 
-          {currentTier !== "ELITE" && (
+          {currentTier !== "PRO" && (
             <div className="bg-muted p-4 rounded-lg">
               <p className="text-sm font-medium mb-2">
                 Upgrade benefits include:
@@ -129,7 +129,7 @@ export const UsageLimitDialog: React.FC<UsageLimitDialogProps> = ({
             <X className="mr-2 h-4 w-4" />
             Close
           </Button>
-          {currentTier !== "ELITE" && (
+          {currentTier !== "PRO" && (
             <Button asChild>
               <Link href="/subscription">
                 <Rocket className="mr-2 h-4 w-4" />

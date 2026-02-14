@@ -18,21 +18,21 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
 const tierIcons: Record<TIER, React.ReactNode> = {
-  STARTER: <Zap className="h-4 w-4" />,
+  BASIC: <Zap className="h-4 w-4" />,
   ESSENTIAL: <Rocket className="h-4 w-4" />,
-  ELITE: <Crown className="h-4 w-4" />,
+  PRO: <Crown className="h-4 w-4" />,
 };
 
 const tierColors: Record<TIER, string> = {
-  STARTER: "text-gray-500",
+  BASIC: "text-gray-500",
   ESSENTIAL: "text-blue-500",
-  ELITE: "text-amber-500",
+  PRO: "text-amber-500",
 };
 
 const tierBgColors: Record<TIER, string> = {
-  STARTER: "bg-gray-100",
+  BASIC: "bg-gray-100",
   ESSENTIAL: "bg-blue-100",
-  ELITE: "bg-amber-100",
+  PRO: "bg-amber-100",
 };
 
 export const SubscriptionBadge = () => {
@@ -41,7 +41,7 @@ export const SubscriptionBadge = () => {
   const { t } = useTranslation();
 
   const isLoading = subscriptionLoading || quotaLoading;
-  const tier: TIER = subscription?.tier || "STARTER";
+  const tier: TIER = subscription?.tier || "BASIC";
 
   return (
     <TooltipProvider>
@@ -85,7 +85,7 @@ export const SubscriptionBadge = () => {
                 </ul>
               </div>
             )}
-            {tier !== "ELITE" && (
+            {tier !== "PRO" && (
               <p className="text-xs text-primary">{t("page_subscription_click_upgrade")}</p>
             )}
           </div>
@@ -98,7 +98,7 @@ export const SubscriptionBadge = () => {
 // Compact version for mobile or tight spaces
 export const SubscriptionBadgeCompact = () => {
   const { subscription, isLoading } = useGetCurrentSubscription();
-  const tier: TIER = subscription?.tier || "STARTER";
+  const tier: TIER = subscription?.tier || "BASIC";
 
   return (
     <Link href="/subscription">
