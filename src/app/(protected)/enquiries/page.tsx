@@ -95,9 +95,18 @@ const EnquiryPage = () => {
       result = fuse.search(filters.search).map((res) => res.item);
     }
 
-    return [...result].sort(
-      (a, b) => Number(Boolean(b.urgent)) - Number(Boolean(a.urgent))
-    );
+    return [...result].sort((a, b) => {
+      const urgentOrder = Number(Boolean(b.urgent)) - Number(Boolean(a.urgent));
+      if (urgentOrder !== 0) return urgentOrder;
+
+      const recommendedOrder =
+        Number(Boolean(b.isRecommended)) - Number(Boolean(a.isRecommended));
+      if (recommendedOrder !== 0) return recommendedOrder;
+
+      return (
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    });
   }, [marketPlaceEnquiries, filters]);
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {

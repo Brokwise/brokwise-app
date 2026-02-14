@@ -325,11 +325,18 @@ export const MarketPlace = () => {
       const urgentOrder = Number(Boolean(b.urgent)) - Number(Boolean(a.urgent));
       if (urgentOrder !== 0) return urgentOrder;
 
+      // Then prioritize admin-forwarded recommendations.
+      const recommendedOrder =
+        Number(Boolean(b.isRecommended)) - Number(Boolean(a.isRecommended));
+      if (recommendedOrder !== 0) return recommendedOrder;
+
       // Keep same-city ordering as secondary preference.
       const sameCityOrder = Number(isSameCityEnquiry(b)) - Number(isSameCityEnquiry(a));
       if (sameCityOrder !== 0) return sameCityOrder;
 
-      return 0;
+      return (
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
     });
   }, [
     marketPlaceEnquiries,
