@@ -86,6 +86,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         coordinates: [0, 0],
       },
       featuredMedia: "",
+      roadWidthUnit: "FEET",
       ...initialData,
       propertyType: initialData?.propertyType || "SHOP",
       images: coerceStringArray(initialData?.images),

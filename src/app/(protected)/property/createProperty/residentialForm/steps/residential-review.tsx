@@ -1,5 +1,5 @@
 import useCredits, { useGetCreditPrices } from "@/hooks/useCredits";
-import { formatIndianNumber } from "@/utils/helper";
+import { formatIndianNumber, getRoadWidthUnitLabel } from "@/utils/helper";
 import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -27,6 +27,7 @@ const ResidentialReview: React.FC<ResidentialReviewProps> = ({
   const { prices } = useGetCreditPrices();
   const FEATURED_COST = prices.MARK_PROPERTY_AS_FEATURED;
   const hasSufficientCredits = (balance || 0) >= FEATURED_COST;
+  const roadWidthUnitLabel = getRoadWidthUnitLabel(form.watch("roadWidthUnit"));
 
   return (
     <div className="space-y-6">
@@ -122,14 +123,14 @@ const ResidentialReview: React.FC<ResidentialReviewProps> = ({
               <div>
                 <strong>Front Road Width:</strong>{" "}
                 {form.watch("frontRoadWidth")
-                  ? `${form.watch("frontRoadWidth")} m`
+                  ? `${form.watch("frontRoadWidth")} ${roadWidthUnitLabel}`
                   : "Not provided"}
               </div>
               {form.watch("plotType") === "CORNER" && (
                 <div>
                   <strong>Side Road Width:</strong>{" "}
                   {form.watch("sideRoadWidth")
-                    ? `${form.watch("sideRoadWidth")} m`
+                    ? `${form.watch("sideRoadWidth")} ${roadWidthUnitLabel}`
                     : "Not provided"}
                 </div>
               )}

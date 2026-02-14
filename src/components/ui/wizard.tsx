@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -63,9 +63,41 @@ export const Wizard: React.FC<WizardProps> = ({
   const canSaveDraft = !isDraftLimitReached;
   const [shouldUseCredits, setShouldUseCredits] = useState(false)
   const { remaining, isLoading: isQuotaLoading } = useGetRemainingQuota()
+  const wizardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let currentNode = wizardRef.current?.parentElement ?? null;
+    while (currentNode) {
+      const computedStyle = window.getComputedStyle(currentNode);
+      const canScrollY =
+        (computedStyle.overflowY === "auto" ||
+          computedStyle.overflowY === "scroll") &&
+        currentNode.scrollHeight > currentNode.clientHeight;
+
+      if (canScrollY) {
+        currentNode.scrollTo({ top: 0, behavior: "auto" });
+        return;
+      }
+
+      currentNode = currentNode.parentElement;
+    }
+
+    const protectedScrollContainer = document.querySelector(
+      ".flex-1.overflow-auto.scrollbar-hide"
+    ) as HTMLElement | null;
+
+    if (protectedScrollContainer) {
+      protectedScrollContainer.scrollTo({ top: 0, behavior: "auto" });
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [currentStep]);
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div ref={wizardRef} className="space-y-4 md:space-y-6">
       <div className="space-y-2">
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>

@@ -80,6 +80,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         coordinates: [0, 0],
       },
       featuredMedia: "",
+      roadWidthUnit: "FEET",
       ...initialData,
       propertyType: initialData?.propertyType || "FLAT",
       images: coerceStringArray(initialData?.images),
