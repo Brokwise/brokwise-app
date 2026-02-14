@@ -2,7 +2,7 @@
 
 import React from "react";
 import Script from "next/script";
-import { useGetCurrentSubscription, usePurchaseActivation, useVerifyActivation } from "@/hooks/useSubscription";
+import { useGetCurrentSubscription, usePurchaseActivation, useLinkRazorpaySubscription } from "@/hooks/useSubscription";
 import { useApp } from "@/context/AppContext";
 import { Loader } from "@/components/ui/loader";
 import Image from "next/image";
@@ -51,7 +51,7 @@ export const ActivationPendingGate = ({
   const { brokerData } = useApp();
   const { subscription, isLoading } = useGetCurrentSubscription();
   const { purchaseActivation, isPending: purchasePending } = usePurchaseActivation();
-  const { verifyActivation, isPending: verifyPending } = useVerifyActivation();
+  const { linkRazorpaySubscription, isPending: verifyPending } = useLinkRazorpaySubscription();
   const { setBrokerData } = useApp();
 
   // Still loading subscription data — show spinner
@@ -95,14 +95,12 @@ export const ActivationPendingGate = ({
     try {
       const activationPlan = getActivationPlan(tier);
       const result = await purchaseActivation({ tier, razorpayPlanId: activationPlan.planId });
-      const { orderId, amount, currency, keyId } = result.payment;
+      const { subscriptionId, keyId } = result.razorpay;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rzp = new (window as any).Razorpay({
         key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount,
-        currency,
-        order_id: orderId,
+        subscription_id: subscriptionId,
         name: "Brokwise",
         description: `${tier} Activation Pack`,
         prefill: {
@@ -112,15 +110,13 @@ export const ActivationPendingGate = ({
         },
         theme: { color: "#3399cc" },
         handler: async function (response: {
+          razorpay_subscription_id: string;
           razorpay_payment_id: string;
-          razorpay_order_id: string;
           razorpay_signature: string;
         }) {
           try {
-            await verifyActivation({
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpayOrderId: response.razorpay_order_id,
-              razorpaySignature: response.razorpay_signature,
+            await linkRazorpaySubscription({
+              razorpaySubscriptionId: response.razorpay_subscription_id,
             });
             toast.success("Activation successful! Welcome to Brokwise.");
             // Force a full page reload to refresh all state

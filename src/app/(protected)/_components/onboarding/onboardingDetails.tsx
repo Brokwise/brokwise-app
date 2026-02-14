@@ -61,7 +61,7 @@ import {
   ACTIVATION_LIMITS,
   getActivationPlan,
 } from "@/config/tier_limits";
-import { usePurchaseActivation, useVerifyActivation } from "@/hooks/useSubscription";
+import { usePurchaseActivation, useLinkRazorpaySubscription } from "@/hooks/useSubscription";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -322,7 +322,7 @@ export const OnboardingDetails = ({
 
   // Activation hooks
   const { purchaseActivation, isPending: activationPending } = usePurchaseActivation();
-  const { verifyActivation, isPending: verifyPending } = useVerifyActivation();
+  const { linkRazorpaySubscription, isPending: verifyPending } = useLinkRazorpaySubscription();
 
   // ─── KYC State ───────────────────────────────────────────────────────────────
   const [kycState, setKycState] = useState<KycState>({ status: "not_started" });
@@ -551,15 +551,13 @@ export const OnboardingDetails = ({
       // 2. Initiate activation payment via Razorpay
       const activationPlan = getActivationPlan(selectedTier);
       const activationResult = await purchaseActivation({ tier: selectedTier, razorpayPlanId: activationPlan.planId });
-      const { orderId, amount, currency, keyId } = activationResult.payment;
+      const { subscriptionId, keyId } = activationResult.razorpay;
 
       // 3. Open Razorpay checkout
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rzp = new (window as any).Razorpay({
         key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: amount,
-        currency: currency,
-        order_id: orderId,
+        subscription_id: subscriptionId,
         name: "Brokwise",
         description: `${selectedTier} Activation Pack`,
         prefill: {
@@ -569,15 +567,13 @@ export const OnboardingDetails = ({
         },
         theme: { color: "#3399cc" },
         handler: async function (response: {
+          razorpay_subscription_id: string;
           razorpay_payment_id: string;
-          razorpay_order_id: string;
           razorpay_signature: string;
         }) {
           try {
-            await verifyActivation({
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpayOrderId: response.razorpay_order_id,
-              razorpaySignature: response.razorpay_signature,
+            await linkRazorpaySubscription({
+              razorpaySubscriptionId: response.razorpay_subscription_id,
             });
             // Clean up
             localStorage.removeItem(SELECTED_TIER_KEY);

@@ -371,7 +371,7 @@ export const useSubscription = () => {
       (subscription.status === "expired" || subscription.status === "cancelled"));
 
   /**
-   * Initiate activation pack purchase (Phase 1 - one-time order)
+   * Initiate activation pack purchase (Phase 1 - Razorpay subscription)
    */
   const initiateActivation = async (
     selectedTier: TIER,
@@ -386,14 +386,12 @@ export const useSubscription = () => {
 
       const result = await purchaseActivation({ tier: selectedTier, razorpayPlanId: activationPlan.planId });
 
-      const { orderId, amount, currency, keyId } = result.payment;
+      const { subscriptionId, keyId } = result.razorpay;
 
       return new Promise((resolve) => {
         const options = {
           key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          amount: amount,
-          currency: currency,
-          order_id: orderId,
+          subscription_id: subscriptionId,
           name: "Brokwise",
           description: `${selectedTier} Activation Pack`,
           prefill: {
@@ -405,15 +403,13 @@ export const useSubscription = () => {
             color: "#3399cc",
           },
           handler: async function (response: {
+            razorpay_subscription_id: string;
             razorpay_payment_id: string;
-            razorpay_order_id: string;
             razorpay_signature: string;
           }) {
             try {
-              await verifyActivation({
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpayOrderId: response.razorpay_order_id,
-                razorpaySignature: response.razorpay_signature,
+              await linkRazorpaySubscription({
+                razorpaySubscriptionId: response.razorpay_subscription_id,
               });
               queryClient.invalidateQueries({ queryKey: ["current-subscription"] });
               queryClient.invalidateQueries({ queryKey: ["usage"] });

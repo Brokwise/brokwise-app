@@ -174,11 +174,12 @@ export interface ActivationPurchaseResponse {
     phase: SubscriptionPhase;
     duration: SubscriptionDuration;
     status: SubscriptionStatus;
+    razorpayPlanId: string;
+    razorpaySubscriptionId: string;
   };
-  payment: {
-    orderId: string;
-    amount: number;
-    currency: string;
+  razorpay: {
+    subscriptionId: string;
+    shortUrl: string;
     keyId: string;
   };
   activationDetails: {
