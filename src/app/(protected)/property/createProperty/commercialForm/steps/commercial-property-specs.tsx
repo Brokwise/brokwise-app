@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { DirectionCompassField } from "@/components/property/direction-compass-field";
 import { RoadWidthField } from "@/components/property/road-width-field";
 import { NumberInput } from "@/components/ui/number-input";
+import { getPlotTypeOptions } from "@/lib/plotType";
+import { useTranslation } from "react-i18next";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   formatIndianNumber,
@@ -41,6 +43,7 @@ interface CommercialPropertySpecsProps {
 export const CommercialPropertySpecs: React.FC<
   CommercialPropertySpecsProps
 > = ({ form, enquiry, propertyType }) => {
+  const { t } = useTranslation();
   const [lastEditedPriceField, setLastEditedPriceField] = useState<
     "rate" | "totalPrice"
   >("rate");

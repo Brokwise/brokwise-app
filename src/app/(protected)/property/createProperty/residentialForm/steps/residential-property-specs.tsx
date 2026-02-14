@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { DirectionCompassField } from "@/components/property/direction-compass-field";
 import { RoadWidthField } from "@/components/property/road-width-field";
 import { Input } from "@/components/ui/input";
+import { getPlotTypeOptions } from "@/lib/plotType";
+import { useTranslation } from "react-i18next";
 
 import { NumberInput } from "@/components/ui/number-input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,6 +31,7 @@ interface ResidentialProperySpecsProps {
 export const ResidentialProperySpecs: React.FC<
   ResidentialProperySpecsProps
 > = ({ form, enquiry, propertyType }) => {
+  const { t } = useTranslation();
   const [lastEditedPriceField, setLastEditedPriceField] = useState<
     "rate" | "totalPrice"
   >("rate");

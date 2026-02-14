@@ -19,6 +19,8 @@ import { UseFormReturn } from "react-hook-form";
 import { FarmHousePropertyFormData } from "@/validators/property";
 import { DirectionCompassField } from "@/components/property/direction-compass-field";
 import { RoadWidthField } from "@/components/property/road-width-field";
+import { getPlotTypeOptions } from "@/lib/plotType";
+import { useTranslation } from "react-i18next";
 
 interface FarmhouseFeaturesProps {
   form: UseFormReturn<FarmHousePropertyFormData>;
@@ -44,6 +46,7 @@ const FARMHOUSE_AMENITIES: AmenityOption[] = [
 export const FarmhouseFeatures: React.FC<FarmhouseFeaturesProps> = ({
   form,
 }) => {
+  const { t } = useTranslation();
   const plotType = form.watch("plotType");
   const roadWidthUnit = form.watch("roadWidthUnit") || "FEET";
   const showFrontDetails = plotType === "ROAD" || plotType === "CORNER";

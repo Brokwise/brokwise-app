@@ -15,6 +15,8 @@ import {
 } from "@/utils/helper";
 import { DirectionCompassField } from "@/components/property/direction-compass-field";
 import { RoadWidthField } from "@/components/property/road-width-field";
+import { getPlotTypeOptions } from "@/lib/plotType";
+import { useTranslation } from "react-i18next";
 
 interface ResortFeaturesProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,6 +24,7 @@ interface ResortFeaturesProps {
 }
 
 export const ResortFeatures: React.FC<ResortFeaturesProps> = ({ form }) => {
+  const { t } = useTranslation();
   const plotType = form.watch("plotType");
   const roadWidthUnit = form.watch("roadWidthUnit") || "FEET";
   const showFrontDetails = plotType === "ROAD" || plotType === "CORNER";
