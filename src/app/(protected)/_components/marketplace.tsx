@@ -296,28 +296,41 @@ export const MarketPlace = () => {
       return matchesSource && matchesCategory && matchesPrice && matchesBhk;
     });
 
-    // Sort same-city enquiries first
-    if (userCity) {
-      const normalizedUserCity = userCity.toLowerCase().trim();
-      return filtered.sort((a, b) => {
-        // Check city field first, then address for city match
-        const aCity = a.city?.toLowerCase().trim() || "";
-        const bCity = b.city?.toLowerCase().trim() || "";
-        const aAddress = a.address?.toLowerCase() || "";
-        const bAddress = b.address?.toLowerCase() || "";
+    const normalizedUserCity = userCity?.toLowerCase().trim() || "";
+    const isSameCityEnquiry = (enquiry: (typeof filtered)[number]) => {
+      if (!normalizedUserCity) return false;
 
-        const aIsSameCity =
-          aCity === normalizedUserCity || aAddress.includes(normalizedUserCity);
-        const bIsSameCity =
-          bCity === normalizedUserCity || bAddress.includes(normalizedUserCity);
+      const enquiryCity = enquiry.city?.toLowerCase().trim() || "";
+      const enquiryAddress = enquiry.address?.toLowerCase() || "";
+      const preferredLocationsMatch =
+        enquiry.preferredLocations?.some((loc) => {
+          const locationCity = loc.city?.toLowerCase().trim() || "";
+          const locationAddress = loc.address?.toLowerCase() || "";
 
-        if (aIsSameCity && !bIsSameCity) return -1;
-        if (!aIsSameCity && bIsSameCity) return 1;
-        return 0;
-      });
-    }
+          return (
+            locationCity === normalizedUserCity ||
+            locationAddress.includes(normalizedUserCity)
+          );
+        }) ?? false;
 
-    return filtered;
+      return (
+        enquiryCity === normalizedUserCity ||
+        enquiryAddress.includes(normalizedUserCity) ||
+        preferredLocationsMatch
+      );
+    };
+
+    return [...filtered].sort((a, b) => {
+      // Always prioritize urgent enquiries first.
+      const urgentOrder = Number(Boolean(b.urgent)) - Number(Boolean(a.urgent));
+      if (urgentOrder !== 0) return urgentOrder;
+
+      // Keep same-city ordering as secondary preference.
+      const sameCityOrder = Number(isSameCityEnquiry(b)) - Number(isSameCityEnquiry(a));
+      if (sameCityOrder !== 0) return sameCityOrder;
+
+      return 0;
+    });
   }, [
     marketPlaceEnquiries,
     debouncedSearchQuery,

@@ -95,7 +95,9 @@ const EnquiryPage = () => {
       result = fuse.search(filters.search).map((res) => res.item);
     }
 
-    return result;
+    return [...result].sort(
+      (a, b) => Number(Boolean(b.urgent)) - Number(Boolean(a.urgent))
+    );
   }, [marketPlaceEnquiries, filters]);
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {
