@@ -122,7 +122,7 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
         "sizeUnit",
         "rate",
       ],
-      1: ["description", "featuredMedia", "images"],
+      1: ["description", "featuredMedia", "images", "floorPlans"],
       2: [], // Review step
     };
 
@@ -161,6 +161,7 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
           description: "Description is required",
           featuredMedia: "Featured media is required",
           images: "At least one image is required",
+          floorPlans: "At least one layout plan/site plan/map is mandatory",
         };
 
         form.setError(field as keyof AgriculturalPropertyFormData, {
