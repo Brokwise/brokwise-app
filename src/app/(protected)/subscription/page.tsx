@@ -770,6 +770,7 @@ const SubscriptionPage = () => {
   const [selectedDuration, setSelectedDuration] =
     useState<RegularDuration>("3_MONTHS");
   const [isIOSNative, setIsIOSNative] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("overview");
 
   const { t } = useTranslation();
 
@@ -781,11 +782,25 @@ const SubscriptionPage = () => {
   const currentTier = subscription?.tier || tier || "BASIC";
   const WEB_APP_URL = "https://app.brokwise.com";
 
+  // Whether the broker has any usable subscription right now
+  const hasActiveSubscription =
+    !!subscription &&
+    (subscription.status === "active" ||
+      subscription.status === "authenticated" ||
+      subscription.status === "created");
+
   // Determine if the user should see activation plans or regular plans
-  const showActivationPlans = needsActivation || (!hasCompletedActivation && !subscription);
+  const showActivationPlans = needsActivation;
   const showRegularPlans = hasCompletedActivation || currentPhase === "regular";
   // If user is in activation phase and it hasn't expired, show regular plans for "after activation"
   const isInActivation = currentPhase === "activation" && subscription?.status === "active";
+
+  // Auto-switch to plans tab when broker has no active subscription
+  useEffect(() => {
+    if (!isLoading && !hasActiveSubscription) {
+      setActiveTab("plans");
+    }
+  }, [isLoading, hasActiveSubscription]);
 
   const handleActivationPurchase = async () => {
     if (!selectedTier || !brokerData) return;
@@ -835,7 +850,7 @@ const SubscriptionPage = () => {
           <Crown className="h-8 w-8 text-primary" />
         </PageHeader>
 
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
@@ -850,7 +865,7 @@ const SubscriptionPage = () => {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             {/* Activation Required Banner */}
-            {(showActivationPlans && !subscription) && (
+            {(showActivationPlans && !hasActiveSubscription) && (
               <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 dark:border-purple-800">
                 <CardContent className="pt-6">
                   <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -859,22 +874,15 @@ const SubscriptionPage = () => {
                     </div>
                     <div className="flex-1 text-center sm:text-left">
                       <h3 className="font-semibold text-lg">
-                        {t("page_subscription_activate_title") || "Activate Your Account"}
+                        {t("page_subscription_activate_title", "Activate Your Account")}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {t("page_subscription_activate_desc") || "Purchase an activation pack to start using the platform"}
+                        {t("page_subscription_activate_desc", "Purchase an activation pack to start using the platform")}
                       </p>
                     </div>
-                    <Button
-                      onClick={() => {
-                        const tab = document.querySelector(
-                          '[data-state="inactive"][value="plans"]'
-                        ) as HTMLButtonElement;
-                        tab?.click();
-                      }}
-                    >
+                    <Button onClick={() => setActiveTab("plans")}>
                       <CreditCard className="mr-2 h-4 w-4" />
-                      {t("page_subscription_get_started") || "Get Started"}
+                      {t("page_subscription_get_started", "Get Started")}
                     </Button>
                   </div>
                 </CardContent>
@@ -909,23 +917,16 @@ const SubscriptionPage = () => {
                     onClick={() => window.open(WEB_APP_URL, "_blank")}
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />
-                    {t("page_subscription_visit_website") || "Visit Website"}
+                    {t("page_subscription_visit_website", "Visit Website")}
                   </Button>
                 ) : (
                   <>
                     {/* Show upgrade/plans button */}
-                    <Button
-                      onClick={() => {
-                        const tab = document.querySelector(
-                          '[data-state="inactive"][value="plans"]'
-                        ) as HTMLButtonElement;
-                        tab?.click();
-                      }}
-                    >
+                    <Button onClick={() => setActiveTab("plans")}>
                       <Rocket className="mr-2 h-4 w-4" />
                       {showActivationPlans
-                        ? (t("page_subscription_activate_now") || "Activate Now")
-                        : t("page_subscription_upgrade_plan")}
+                        ? (t("page_subscription_activate_now", "Activate Now"))
+                        : t("page_subscription_upgrade_plan", "Upgrade Plan")}
                     </Button>
 
                     {/* Cancel button for active regular subscriptions */}
@@ -935,20 +936,20 @@ const SubscriptionPage = () => {
                           <AlertDialogTrigger asChild>
                             <Button variant="outline" className="text-red-500">
                               <X className="mr-2 h-4 w-4" />
-                              {t("page_subscription_cancel_sub_btn")}
+                              {t("page_subscription_cancel_sub_btn", "Cancel Subscription")}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>
-                                {t("page_subscription_cancel_title")}
+                                {t("page_subscription_cancel_title", "Cancel Subscription")}
                               </AlertDialogTitle>
                               <AlertDialogDescription>
-                                {t("page_subscription_cancel_desc")}
+                                {t("page_subscription_cancel_desc", "Are you sure you want to cancel your subscription?")}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>{t("page_subscription_keep_sub")}</AlertDialogCancel>
+                              <AlertDialogCancel>{t("page_subscription_keep_sub", "Keep Subscription")}</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={handleCancelSubscription}
                                 className="bg-red-500 hover:bg-red-600"
@@ -957,10 +958,10 @@ const SubscriptionPage = () => {
                                 {cancelPending ? (
                                   <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    {t("page_subscription_cancelling")}
+                                    {t("page_subscription_cancelling", "Cancelling...")}
                                   </>
                                 ) : (
-                                  t("page_subscription_yes_cancel")
+                                  t("page_subscription_yes_cancel", "Yes, Cancel")
                                 )}
                               </AlertDialogAction>
                             </AlertDialogFooter>
@@ -990,10 +991,10 @@ const SubscriptionPage = () => {
                       <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">
                           <Star className="h-5 w-5 text-purple-600" />
-                          {t("page_subscription_activation_packs") || "Activation Packs"}
+                          {t("page_subscription_activation_packs", "Activation Packs")}
                         </CardTitle>
                         <CardDescription>
-                          {t("page_subscription_activation_desc") || "Start with a 1-month activation pack to explore the platform with reduced limits"}
+                          {t("page_subscription_activation_desc", "Start with a 1-month activation pack to explore the platform with reduced limits")}
                         </CardDescription>
                       </CardHeader>
                     </Card>
@@ -1016,10 +1017,10 @@ const SubscriptionPage = () => {
                           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div className="space-y-1">
                               <p className="font-semibold text-lg">
-                                {ACTIVATION_TIER_INFO[selectedTier].name} Activation Pack
+                                {ACTIVATION_TIER_INFO[selectedTier].name} {t("page_subscription_activation_pack", "Activation Pack")}
                               </p>
                               <p className="text-muted-foreground">
-                                ₹{ACTIVATION_PLANS[selectedTier].amount} for 1 month
+                                ₹{ACTIVATION_PLANS[selectedTier].amount} {t("page_subscription_1_month_access", "for 1 month")}
                               </p>
                             </div>
                             <Button
@@ -1031,12 +1032,12 @@ const SubscriptionPage = () => {
                               {(activationPending || verifyPending) ? (
                                 <>
                                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  {t("page_subscription_processing")}
+                                  {t("page_subscription_processing", "Processing...")}
                                 </>
                               ) : (
                                 <>
                                   <CreditCard className="mr-2 h-4 w-4" />
-                                  {t("page_subscription_activate_now") || "Activate Now"}
+                                  {t("page_subscription_activate_now", "Activate Now")}
                                 </>
                               )}
                             </Button>
@@ -1045,7 +1046,7 @@ const SubscriptionPage = () => {
                         <CardFooter className="text-xs text-muted-foreground border-t pt-4">
                           <div className="flex items-center gap-2">
                             <Shield className="h-4 w-4" />
-                            {t("page_subscription_secure_payment")}
+                            {t("page_subscription_secure_payment", "Secure Payment")}
                           </div>
                         </CardFooter>
                       </Card>
@@ -1063,10 +1064,10 @@ const SubscriptionPage = () => {
                         <CardHeader>
                           <CardTitle className="text-lg flex items-center gap-2">
                             <Rocket className="h-5 w-5 text-blue-600" />
-                            {t("page_subscription_regular_plans") || "Regular Plans"}
+                            {t("page_subscription_regular_plans", "Regular Plans")}
                           </CardTitle>
                           <CardDescription>
-                            {t("page_subscription_regular_desc") || "After your activation period ends, choose a regular plan to continue with higher limits"}
+                            {t("page_subscription_regular_desc", "After your activation period ends, choose a regular plan to continue with higher limits")}
                           </CardDescription>
                         </CardHeader>
                       </Card>
@@ -1077,10 +1078,10 @@ const SubscriptionPage = () => {
                       <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">
                           <Calendar className="h-5 w-5" />
-                          {t("page_subscription_select_duration")}
+                          {t("page_subscription_select_duration", "Select Duration")}
                         </CardTitle>
                         <CardDescription>
-                          {t("page_subscription_duration_desc")}
+                          {t("page_subscription_duration_desc", "Choose your billing cycle. Longer durations offer better savings.")}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>

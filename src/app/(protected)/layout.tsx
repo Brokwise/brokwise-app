@@ -15,6 +15,7 @@ import { Notifications } from "./_components/notification/notifications";
 import { UserAvatar } from "./_components/userAvatar";
 import { CreditsBadge } from "./_components/creditsBadge";
 import { LandConverter } from "./_components/landConverter";
+import { SubscriptionGate } from "./_components/subscriptionGate";
 import { Separator } from "@/components/ui/separator";
 import { ChatbotWidget } from "@/components/chatbot";
 import ScrollToTop from "@/components/ui/scroll-to-top";
@@ -118,7 +119,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   className="flex-1 overflow-auto overscroll-y-contain scrollbar-hide"
                 >
                   <main className="flex-1 min-h-0 flex flex-col w-full">
-                    {children}
+                    <SubscriptionGate>
+                      {children}
+                    </SubscriptionGate>
                   </main>
                 </div>
 

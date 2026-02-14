@@ -806,17 +806,17 @@ export const OnboardingDetails = ({
   const getNextButtonLabel = () => {
     if (isEditing) {
       if (step === 4) {
-        return loading ? t("onboarding_updating") : t("onboarding_update_profile_btn");
+        return loading ? t("onboarding_updating", "Updating...") : t("onboarding_update_profile_btn", "Update Profile");
       }
-      return t("onboarding_continue") || "Continue";
+      return t("onboarding_continue", "Continue");
     }
     switch (step) {
       case 5:
         return loading || activationPending || verifyPending
-          ? (t("onboarding_processing") || "Processing...")
-          : `${t("onboarding_proceed_to_pay") || "Proceed to Pay"} ₹${selectedTier ? ACTIVATION_PLANS[selectedTier].amount : ""}`;
+          ? (t("onboarding_processing", "Processing..."))
+          : `${t("onboarding_proceed_to_pay", "Proceed to Pay")} ₹${selectedTier ? ACTIVATION_PLANS[selectedTier].amount : ""}`;
       default:
-        return t("onboarding_continue") || "Continue";
+        return t("onboarding_continue", "Continue");
     }
   };
 
@@ -838,7 +838,7 @@ export const OnboardingDetails = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>{t("onboarding_settings") || "Settings"}</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("onboarding_settings", "Settings")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
 
             <DropdownMenuItem className="flex justify-between cursor-pointer" onSelect={(e) => e.preventDefault()}>

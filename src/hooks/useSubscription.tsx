@@ -358,7 +358,17 @@ export const useSubscription = () => {
   // Determine current phase
   const currentPhase = subscription?.phase || null;
   const hasCompletedActivation = !!subscription?.activationCompletedAt;
-  const needsActivation = !subscription || (!subscription.phase);
+
+  // Broker needs activation if:
+  // - No subscription at all
+  // - Subscription exists but has no phase set (legacy/incomplete)
+  // - Subscription was cancelled/expired before completing activation
+  const needsActivation =
+    !subscription ||
+    !subscription.phase ||
+    (subscription.phase === "activation" &&
+      !subscription.activationCompletedAt &&
+      (subscription.status === "expired" || subscription.status === "cancelled"));
 
   /**
    * Initiate activation pack purchase (Phase 1 - one-time order)
