@@ -7,7 +7,6 @@ import {
   useGetDashboardStats,
   useGetPropertyDistribution,
   useGetEnquiryAnalytics,
-  useGetBrokerPerformance,
   useGetPropertyTrends,
   useGetEnquiryTrends,
   useGetRecentActivity,
@@ -25,15 +24,11 @@ import {
   Building2,
   MessageSquare,
   Users,
-  Download,
   RefreshCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageShell, PageHeader } from "@/components/ui/layout";
 import { Typography } from "@/components/ui/typography";
-
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 export default function CompanyDashboard() {
   const router = useRouter();
@@ -45,7 +40,6 @@ export default function CompanyDashboard() {
       query.queryKey[0].startsWith("company-"),
   });
 
-  const [brokerTimeFrame] = useState<TimeFrame>("MONTH");
   const [trendsTimeFrame, setTrendsTimeFrame] = useState<TimeFrame>("MONTH");
 
   // Fetch all dashboard data
@@ -54,8 +48,6 @@ export default function CompanyDashboard() {
   const { data: propertyDistribution, isLoading: isLoadingDistribution } =
     useGetPropertyDistribution();
   useGetEnquiryAnalytics();
-  const { data: brokerPerformance } =
-    useGetBrokerPerformance(brokerTimeFrame);
   const { data: propertyTrends, isLoading: isLoadingPropertyTrends } =
     useGetPropertyTrends(trendsTimeFrame);
   const { data: enquiryTrends, isLoading: isLoadingEnquiryTrends } =
@@ -73,107 +65,6 @@ export default function CompanyDashboard() {
     });
   };
 
-  const handleExport = () => {
-    const doc = new jsPDF();
-
-    // Title
-    doc.setFontSize(20);
-    doc.text("Company Dashboard Report", 14, 22);
-
-    // Date
-    doc.setFontSize(10);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
-
-    let yPos = 40;
-
-    // Overview Section
-    if (dashboardStats) {
-      doc.setFontSize(14);
-      doc.text("Overview Stats", 14, yPos);
-      yPos += 10;
-
-      const statsData = [
-        ["Total Brokers", dashboardStats.overview.totalBrokers],
-        ["Active Brokers", dashboardStats.overview.activeBrokers],
-        ["Total Properties", dashboardStats.overview.totalProperties],
-        ["Active Properties", dashboardStats.overview.activeProperties],
-        ["Total Enquiries", dashboardStats.overview.totalEnquiries],
-        ["Active Enquiries", dashboardStats.overview.activeEnquiries],
-      ];
-
-      autoTable(doc, {
-        startY: yPos,
-        head: [["Metric", "Value"]],
-        body: statsData,
-        theme: "striped",
-        headStyles: { fillColor: [66, 66, 66] },
-      });
-
-      // @ts-expect-error - jsPDF autotable types are incomplete
-      yPos = doc.lastAutoTable.finalY + 20;
-    }
-
-    // Broker Performance Section
-    if (brokerPerformance && brokerPerformance.brokers.length > 0) {
-      doc.setFontSize(14);
-      doc.text("Broker Performance", 14, yPos);
-      yPos += 10;
-
-      const brokerData = brokerPerformance.brokers.map((broker) => [
-        broker.brokerName,
-        broker.totalProperties,
-        broker.soldProperties,
-        broker.totalEnquiries,
-        broker.status,
-      ]);
-
-      autoTable(doc, {
-        startY: yPos,
-        head: [
-          ["Broker Name", "Total Properties", "Sold", "Enquiries", "Status"],
-        ],
-        body: brokerData,
-        theme: "striped",
-        headStyles: { fillColor: [66, 66, 66] },
-      });
-
-      // @ts-expect-error - jsPDF autotable types are incomplete
-      yPos = doc.lastAutoTable.finalY + 20;
-    }
-
-    // Recent Activity Section
-    if (recentActivity && recentActivity.length > 0) {
-      // Check if we need a new page
-      if (yPos > 250) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      doc.setFontSize(14);
-      doc.text("Recent Activity", 14, yPos);
-      yPos += 10;
-
-      const activityData = recentActivity.map((activity) => [
-        activity.type === "property" ? "Property" : "Enquiry",
-        activity.status,
-        new Date(activity.createdAt).toLocaleDateString(),
-        activity.type === "property"
-          ? activity.propertyType || "-"
-          : activity.enquiryType || "-",
-      ]);
-
-      autoTable(doc, {
-        startY: yPos,
-        head: [["Type", "Status", "Date", "Details"]],
-        body: activityData,
-        theme: "striped",
-        headStyles: { fillColor: [66, 66, 66] },
-      });
-    }
-
-    doc.save(`company-dashboard-${new Date().toISOString().split("T")[0]}.pdf`);
-  };
-
   return (
     <PageShell>
       <PageHeader
@@ -181,14 +72,6 @@ export default function CompanyDashboard() {
         description="Welcome back, here's what's happening today."
       >
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            className="gap-2 hidden sm:flex"
-            onClick={handleExport}
-          >
-            <Download className="h-4 w-4" />
-            Export Report
-          </Button>
           <Button
             variant="default"
             size="icon"
@@ -262,10 +145,6 @@ export default function CompanyDashboard() {
           <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={() => router.push('/company-enquiries')}>
             <MessageSquare className="h-6 w-6" />
             View Enquiries
-          </Button>
-          <Button variant="outline" className="h-full flex-col gap-2 hover:border-primary hover:text-primary transition-all shadow-sm border-dashed" onClick={handleExport}>
-            <Download className="h-6 w-6" />
-            Export Report
           </Button>
         </motion.div>
 
