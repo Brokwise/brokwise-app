@@ -47,16 +47,23 @@ import {
   Sparkles,
   ExternalLink,
   Smartphone,
+  CreditCard,
+  Star,
 } from "lucide-react";
 import {
   TIER,
-  SubscriptionDuration,
-  SUBSCRIPTION_DURATION_LABELS,
+  RegularDuration,
+  REGULAR_DURATION_LABELS,
 } from "@/models/types/subscription";
 import {
   TIER_INFO,
+  ACTIVATION_TIER_INFO,
+  ACTIVATION_PLANS,
   DURATION_SAVINGS,
   getRazorpayPlan,
+  ACTIVATION_LIMITS,
+  REGULAR_LIMITS,
+  REGULAR_CREDITS,
 } from "@/config/tier_limits";
 import { cn } from "@/lib/utils";
 import { PageShell, PageHeader } from "@/components/ui/layout";
@@ -112,31 +119,25 @@ const WebAppInfoCard = () => {
 
 // Tier icons mapping
 const tierIcons: Record<TIER, React.ReactNode> = {
-  STARTER: <Zap className="h-6 w-6" />,
+  BASIC: <Zap className="h-6 w-6" />,
   ESSENTIAL: <Rocket className="h-6 w-6" />,
-  ELITE: <Crown className="h-6 w-6" />,
+  PRO: <Crown className="h-6 w-6" />,
 };
 
 // Tier colors mapping
 const tierColors: Record<TIER, string> = {
-  STARTER: "from-gray-500 to-gray-600",
+  BASIC: "from-gray-500 to-gray-600",
   ESSENTIAL: "from-blue-500 to-blue-600",
-  ELITE: "from-amber-500 to-amber-600",
+  PRO: "from-amber-500 to-amber-600",
 };
 
 const tierBorderColors: Record<TIER, string> = {
-  STARTER: "border-gray-200",
+  BASIC: "border-gray-200",
   ESSENTIAL: "border-blue-200",
-  ELITE: "border-amber-200",
+  PRO: "border-amber-200",
 };
 
-// const tierBadgeColors: Record<TIER, string> = {
-//   STARTER: "bg-gray-100 text-gray-800",
-//   ESSENTIAL: "bg-blue-100 text-blue-800",
-//   ELITE: "bg-amber-100 text-amber-800",
-// };
 
-// Status badge variants
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "active":
@@ -174,6 +175,25 @@ const getStatusBadge = (status: string) => {
   }
 };
 
+const getPhaseBadge = (phase: string | null) => {
+  if (phase === "activation") {
+    return (
+      <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">
+        <Star className="h-3 w-3 mr-1" />
+        Activation
+      </Badge>
+    );
+  }
+  if (phase === "regular") {
+    return (
+      <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+        Regular
+      </Badge>
+    );
+  }
+  return null;
+};
+
 // Current Subscription Card
 const CurrentSubscriptionCard = ({
   subscription,
@@ -184,9 +204,11 @@ const CurrentSubscriptionCard = ({
   subscription?: {
     tier: TIER;
     status: string;
+    phase?: string;
     currentPeriodStart: Date | string;
     currentPeriodEnd: Date | string;
-    duration?: SubscriptionDuration;
+    duration?: string;
+    activationCompletedAt?: Date | string;
   };
   tier?: TIER;
   isLoading: boolean;
@@ -197,7 +219,7 @@ const CurrentSubscriptionCard = ({
   };
 }) => {
   const { t } = useTranslation();
-  const currentTier = subscription?.tier || tier || "STARTER";
+  const currentTier = subscription?.tier || tier || "BASIC";
 
 
   const formatDate = (date: Date | string) => {
@@ -253,7 +275,10 @@ const CurrentSubscriptionCard = ({
               <CardDescription>{t(`page_subscription_tier_${currentTier.toLowerCase()}_desc`)}</CardDescription>
             </div>
           </div>
-          {subscription && getStatusBadge(subscription.status)}
+          <div className="flex flex-col items-end gap-1">
+            {subscription && getStatusBadge(subscription.status)}
+            {subscription && getPhaseBadge(subscription.phase || null)}
+          </div>
         </div>
       </CardHeader>
 
@@ -270,6 +295,16 @@ const CurrentSubscriptionCard = ({
               <Clock className="h-4 w-4" />
               <span>{t("page_subscription_renews")}: {formatDate(subscription.currentPeriodEnd)}</span>
             </div>
+          </div>
+        )}
+
+        {/* Activation phase notice */}
+        {subscription?.phase === "activation" && (
+          <div className="p-3 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-lg text-sm">
+            <p className="text-purple-700 dark:text-purple-300">
+              <Star className="h-4 w-4 inline mr-1" />
+              {t("page_subscription_activation_notice", 'You are on the activation plan. After this period ends, choose a regular plan to continue.')}
+            </p>
           </div>
         )}
 
@@ -431,8 +466,90 @@ const UsageStatsCard = ({
   );
 };
 
-// Plan Selection Card
-const PlanCard = ({
+// ─── Activation Plan Card (for users who need to activate) ───────────────────
+const ActivationPlanCard = ({
+  tier,
+  onSelect,
+  isSelected,
+}: {
+  tier: TIER;
+  onSelect: () => void;
+  isSelected: boolean;
+}) => {
+  const info = ACTIVATION_TIER_INFO[tier];
+  const plan = ACTIVATION_PLANS[tier];
+
+  return (
+    <Card
+      className={cn(
+        "relative cursor-pointer transition-all duration-200",
+        isSelected && "ring-2 ring-primary shadow-lg",
+        info.recommended && "border-2 border-primary"
+      )}
+      onClick={onSelect}
+    >
+      {info.recommended && !isSelected && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <Badge className="bg-primary text-primary-foreground flex items-center gap-1">
+            <Sparkles className="h-3 w-3" />
+            Popular
+          </Badge>
+        </div>
+      )}
+
+      <CardHeader className="text-center pt-8">
+        <div
+          className={cn(
+            "w-12 h-12 mx-auto rounded-full flex items-center justify-center bg-gradient-to-r text-white mb-2",
+            tierColors[tier]
+          )}
+        >
+          {tierIcons[tier]}
+        </div>
+        <CardTitle className="text-xl">{info.name}</CardTitle>
+        <CardDescription className="min-h-[40px]">
+          {info.description}
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="text-center space-y-4">
+        <div>
+          <div className="text-4xl font-bold">₹{plan.amount}</div>
+          <div className="text-sm text-muted-foreground">1 Month Activation</div>
+        </div>
+
+        <ul className="space-y-2 text-sm text-left">
+          {info.features.map((feature, index) => (
+            <li key={index} className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+
+      <CardFooter>
+        <Button
+          className="w-full"
+          variant={isSelected ? "default" : "outline"}
+        >
+          {isSelected ? (
+            <>
+              Selected <Check className="ml-2 h-4 w-4" />
+            </>
+          ) : (
+            <>
+              Select Plan <ChevronRight className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+};
+
+// ─── Regular Plan Card (for users who completed activation) ──────────────────
+const RegularPlanCard = ({
   tier,
   isCurrentPlan,
   selectedDuration,
@@ -441,13 +558,14 @@ const PlanCard = ({
 }: {
   tier: TIER;
   isCurrentPlan: boolean;
-  selectedDuration: SubscriptionDuration;
+  selectedDuration: RegularDuration;
   onSelect: () => void;
   isSelected: boolean;
 }) => {
   const tierInfo = TIER_INFO[tier];
-  const plan = tier !== "STARTER" ? getRazorpayPlan(tier, selectedDuration) : null;
-  const savingsInfo = DURATION_SAVINGS[selectedDuration];
+  const plan = getRazorpayPlan(tier, selectedDuration);
+  const credits = REGULAR_CREDITS[tier]?.[selectedDuration] || 0;
+  const savingsInfo = DURATION_SAVINGS[selectedDuration] || { savingsPercent: 0 };
 
   return (
     <Card
@@ -459,7 +577,6 @@ const PlanCard = ({
       )}
       onClick={onSelect}
     >
-      {/* Badges */}
       {tierInfo.recommended && !isCurrentPlan && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
           <Badge className="bg-primary text-primary-foreground flex items-center gap-1">
@@ -490,28 +607,26 @@ const PlanCard = ({
       </CardHeader>
 
       <CardContent className="text-center space-y-4">
-        {/* Pricing */}
         <div>
-          {tier === "STARTER" ? (
-            <div className="text-4xl font-bold">Free</div>
-          ) : (
-            <>
-              <div className="text-4xl font-bold">
-                ₹{plan?.amount.toLocaleString()}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {SUBSCRIPTION_DURATION_LABELS[selectedDuration]}
-              </div>
-              {savingsInfo.savingsPercent && (
-                <Badge variant="secondary" className="mt-2">
-                  Save {savingsInfo.savingsPercent}%
-                </Badge>
-              )}
-            </>
+          <div className="text-4xl font-bold">
+            ₹{plan?.amount.toLocaleString()}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {REGULAR_DURATION_LABELS[selectedDuration]}
+          </div>
+          {savingsInfo.savingsPercent && (
+            <Badge variant="secondary" className="mt-2">
+              Save {savingsInfo.savingsPercent}%
+            </Badge>
+          )}
+          {credits > 0 && (
+            <div className="mt-2 text-xs text-muted-foreground">
+              <CreditCard className="h-3 w-3 inline mr-1" />
+              {credits} Credits included
+            </div>
           )}
         </div>
 
-        {/* Features */}
         <ul className="space-y-2 text-sm text-left">
           {tierInfo.features.map((feature, index) => (
             <li key={index} className="flex items-center gap-2">
@@ -526,7 +641,7 @@ const PlanCard = ({
         <Button
           className="w-full"
           variant={isSelected ? "default" : "outline"}
-          disabled={isCurrentPlan && tier !== "STARTER"}
+          disabled={isCurrentPlan}
         >
           {isCurrentPlan ? (
             "Current Plan"
@@ -545,7 +660,89 @@ const PlanCard = ({
   );
 };
 
-// Main Subscription Page Component
+// ─── Feature Comparison Table ────────────────────────────────────────────────
+const FeatureComparisonTable = ({
+  phase,
+}: {
+  phase: "activation" | "regular";
+}) => {
+  const { t } = useTranslation();
+  const limits = phase === "activation" ? ACTIVATION_LIMITS : REGULAR_LIMITS;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">{t("page_subscription_feature_comparison")}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-3 px-4">{t("page_subscription_feature_col")}</th>
+                <th className="text-center py-3 px-4">Basic</th>
+                <th className="text-center py-3 px-4">Essential</th>
+                <th className="text-center py-3 px-4">Pro</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b">
+                <td className="py-3 px-4">{t("page_subscription_feature_property_listing")}</td>
+                <td className="text-center py-3 px-4">{limits.BASIC.PROPERTY_LISTING}</td>
+                <td className="text-center py-3 px-4">{limits.ESSENTIAL.PROPERTY_LISTING}</td>
+                <td className="text-center py-3 px-4">{limits.PRO.PROPERTY_LISTING}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-3 px-4">{t("page_subscription_feature_enquiry_listing")}</td>
+                <td className="text-center py-3 px-4">{limits.BASIC.ENQUIRY_LISTING}</td>
+                <td className="text-center py-3 px-4">{limits.ESSENTIAL.ENQUIRY_LISTING}</td>
+                <td className="text-center py-3 px-4">{limits.PRO.ENQUIRY_LISTING}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-3 px-4">{t("page_subscription_feature_property_submission")}</td>
+                <td className="text-center py-3 px-4">{limits.BASIC.SUBMIT_PROPERTY_ENQUIRY}</td>
+                <td className="text-center py-3 px-4">{limits.ESSENTIAL.SUBMIT_PROPERTY_ENQUIRY}</td>
+                <td className="text-center py-3 px-4">{limits.PRO.SUBMIT_PROPERTY_ENQUIRY}</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-3 px-4">Support</td>
+                <td className="text-center py-3 px-4">Basic</td>
+                <td className="text-center py-3 px-4">Priority</td>
+                <td className="text-center py-3 px-4">Premium</td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-3 px-4">Analytics</td>
+                <td className="text-center py-3 px-4">
+                  <X className="h-4 w-4 mx-auto text-red-500" />
+                </td>
+                <td className="text-center py-3 px-4">
+                  <Check className="h-4 w-4 mx-auto text-green-500" />
+                </td>
+                <td className="text-center py-3 px-4">
+                  <Check className="h-4 w-4 mx-auto text-green-500" />
+                </td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4">Team Collaboration</td>
+                <td className="text-center py-3 px-4">
+                  <X className="h-4 w-4 mx-auto text-red-500" />
+                </td>
+                <td className="text-center py-3 px-4">
+                  <X className="h-4 w-4 mx-auto text-red-500" />
+                </td>
+                <td className="text-center py-3 px-4">
+                  <Check className="h-4 w-4 mx-auto text-green-500" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ─── Main Subscription Page Component ────────────────────────────────────────
 const SubscriptionPage = () => {
   const { brokerData, brokerDataLoading } = useApp();
   const {
@@ -559,13 +756,19 @@ const SubscriptionPage = () => {
     isLoading,
     createPending,
     cancelPending,
+    activationPending,
+    verifyPending,
+    currentPhase,
+    hasCompletedActivation,
+    needsActivation,
+    initiateActivation,
     initiateSubscription,
     cancelSubscription,
   } = useSubscription();
 
   const [selectedTier, setSelectedTier] = useState<TIER | null>(null);
   const [selectedDuration, setSelectedDuration] =
-    useState<SubscriptionDuration>("3_MONTHS");
+    useState<RegularDuration>("3_MONTHS");
   const [isIOSNative, setIsIOSNative] = useState(false);
 
   const { t } = useTranslation();
@@ -575,11 +778,27 @@ const SubscriptionPage = () => {
     setIsIOSNative(isNativeIOS());
   }, []);
 
-  const currentTier = subscription?.tier || tier || "STARTER";
+  const currentTier = subscription?.tier || tier || "BASIC";
   const WEB_APP_URL = "https://app.brokwise.com";
 
+  // Determine if the user should see activation plans or regular plans
+  const showActivationPlans = needsActivation || (!hasCompletedActivation && !subscription);
+  const showRegularPlans = hasCompletedActivation || currentPhase === "regular";
+  // If user is in activation phase and it hasn't expired, show regular plans for "after activation"
+  const isInActivation = currentPhase === "activation" && subscription?.status === "active";
+
+  const handleActivationPurchase = async () => {
+    if (!selectedTier || !brokerData) return;
+
+    await initiateActivation(selectedTier, {
+      name: `${brokerData.firstName} ${brokerData.lastName}`,
+      email: brokerData.email,
+      phone: brokerData.mobile,
+    });
+  };
+
   const handleUpgrade = async () => {
-    if (!selectedTier || !brokerData || selectedTier === "STARTER") return;
+    if (!selectedTier || !brokerData) return;
 
     await initiateSubscription(selectedTier, selectedDuration, {
       name: `${brokerData.firstName} ${brokerData.lastName}`,
@@ -630,6 +849,38 @@ const SubscriptionPage = () => {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
+            {/* Activation Required Banner */}
+            {(showActivationPlans && !subscription) && (
+              <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 dark:border-purple-800">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="p-3 bg-purple-100 dark:bg-purple-900/40 rounded-full">
+                      <Star className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div className="flex-1 text-center sm:text-left">
+                      <h3 className="font-semibold text-lg">
+                        {t("page_subscription_activate_title") || "Activate Your Account"}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {t("page_subscription_activate_desc") || "Purchase an activation pack to start using the platform"}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        const tab = document.querySelector(
+                          '[data-state="inactive"][value="plans"]'
+                        ) as HTMLButtonElement;
+                        tab?.click();
+                      }}
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      {t("page_subscription_get_started") || "Get Started"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <CurrentSubscriptionCard
                 subscription={subscription}
@@ -653,7 +904,6 @@ const SubscriptionPage = () => {
               </CardHeader>
               <CardContent className="flex flex-wrap gap-4">
                 {isIOSNative ? (
-                  /* iOS: Generic "Visit Website" button - no purchase/upgrade language */
                   <Button
                     variant="outline"
                     onClick={() => window.open(WEB_APP_URL, "_blank")}
@@ -662,22 +912,24 @@ const SubscriptionPage = () => {
                     {t("page_subscription_visit_website") || "Visit Website"}
                   </Button>
                 ) : (
-                  /* Web/Android: Full functionality */
                   <>
-                    {currentTier !== "ELITE" && (
-                      <Button
-                        onClick={() => {
-                          const tab = document.querySelector(
-                            '[data-state="inactive"][value="plans"]'
-                          ) as HTMLButtonElement;
-                          tab?.click();
-                        }}
-                      >
-                        <Rocket className="mr-2 h-4 w-4" />
-                        {t("page_subscription_upgrade_plan")}
-                      </Button>
-                    )}
-                    {currentTier !== "STARTER" &&
+                    {/* Show upgrade/plans button */}
+                    <Button
+                      onClick={() => {
+                        const tab = document.querySelector(
+                          '[data-state="inactive"][value="plans"]'
+                        ) as HTMLButtonElement;
+                        tab?.click();
+                      }}
+                    >
+                      <Rocket className="mr-2 h-4 w-4" />
+                      {showActivationPlans
+                        ? (t("page_subscription_activate_now") || "Activate Now")
+                        : t("page_subscription_upgrade_plan")}
+                    </Button>
+
+                    {/* Cancel button for active regular subscriptions */}
+                    {currentPhase === "regular" &&
                       subscription?.status === "active" && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -727,294 +979,205 @@ const SubscriptionPage = () => {
             {isIOSNative ? (
               <>
                 <WebAppInfoCard />
-                
-                {/* Feature Comparison - still show on iOS for information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{t("page_subscription_feature_comparison")}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left py-3 px-4">{t("page_subscription_feature_col")}</th>
-                            <th className="text-center py-3 px-4">{t("page_subscription_tier_starter_name")}</th>
-                            <th className="text-center py-3 px-4">{t("page_subscription_tier_essential_name")}</th>
-                            <th className="text-center py-3 px-4">{t("page_subscription_tier_elite_name")}</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr className="border-b">
-                            <td className="py-3 px-4">{t("page_subscription_feature_property_listing")}</td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.PROPERTY_LISTING ?? "-"}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.PROPERTY_LISTING ?? "-"}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.PROPERTY_LISTING ?? "-"}
-                            </td>
-                          </tr>
-                          <tr className="border-b">
-                            <td className="py-3 px-4">{t("page_subscription_feature_enquiry_listing")}</td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.ENQUIRY_LISTING ?? "-"}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.ENQUIRY_LISTING ?? "-"}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.ENQUIRY_LISTING ?? "-"}
-                            </td>
-                          </tr>
-                          <tr className="border-b">
-                            <td className="py-3 px-4">{t("page_subscription_feature_property_submission")}</td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
-                            </td>
-                          </tr>
-                          <tr className="border-b">
-                            <td className="py-3 px-4">Support</td>
-                            <td className="text-center py-3 px-4">Basic</td>
-                            <td className="text-center py-3 px-4">Priority</td>
-                            <td className="text-center py-3 px-4">Premium</td>
-                          </tr>
-                          <tr className="border-b">
-                            <td className="py-3 px-4">Analytics</td>
-                            <td className="text-center py-3 px-4">
-                              <X className="h-4 w-4 mx-auto text-red-500" />
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              <Check className="h-4 w-4 mx-auto text-green-500" />
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              <Check className="h-4 w-4 mx-auto text-green-500" />
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="py-3 px-4">Team Collaboration</td>
-                            <td className="text-center py-3 px-4">
-                              <X className="h-4 w-4 mx-auto text-red-500" />
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              <X className="h-4 w-4 mx-auto text-red-500" />
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              <Check className="h-4 w-4 mx-auto text-green-500" />
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </CardContent>
-                </Card>
+                <FeatureComparisonTable phase={showActivationPlans ? "activation" : "regular"} />
               </>
             ) : (
               <>
-                {/* Duration Selection */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      {t("page_subscription_select_duration")}
-                    </CardTitle>
-                    <CardDescription>
-                      {t("page_subscription_duration_desc")}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {(
-                        Object.keys(SUBSCRIPTION_DURATION_LABELS) as SubscriptionDuration[]
-                      ).map((duration) => {
-                        const savingsInfo = DURATION_SAVINGS[duration];
-                        const isSelected = selectedDuration === duration;
-                        return (
-                          <Button
-                            key={duration}
-                            variant="outline"
-                            onClick={() => setSelectedDuration(duration)}
-                            className={cn(
-                              "h-auto min-h-[76px] rounded-2xl border px-4 py-3 flex flex-col items-center justify-center gap-1",
-                              isSelected
-                                ? "border-primary bg-primary/10 text-primary shadow-sm"
-                                : "border-border bg-background text-foreground hover:bg-muted/50"
-                            )}
-                          >
-                            <span className="text-lg font-semibold leading-none">
-                              {t(`label_${duration.toLowerCase()}`)}
-                            </span>
-                            {savingsInfo.savingsPercent && (
-                              <span className="text-sm text-muted-foreground">
-                                {t("page_subscription_save_percent", {
-                                  percent: savingsInfo.savingsPercent,
-                                })}
-                              </span>
-                            )}
-                          </Button>
-                        );
-                      })}
+                {/* ─── Activation Plans (for new users) ──────────────── */}
+                {(showActivationPlans && !isInActivation) && (
+                  <>
+                    <Card className="border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/10">
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Star className="h-5 w-5 text-purple-600" />
+                          {t("page_subscription_activation_packs") || "Activation Packs"}
+                        </CardTitle>
+                        <CardDescription>
+                          {t("page_subscription_activation_desc") || "Start with a 1-month activation pack to explore the platform with reduced limits"}
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {(["BASIC", "ESSENTIAL", "PRO"] as TIER[]).map((planTier) => (
+                        <ActivationPlanCard
+                          key={planTier}
+                          tier={planTier}
+                          onSelect={() => setSelectedTier(planTier)}
+                          isSelected={selectedTier === planTier}
+                        />
+                      ))}
                     </div>
-                  </CardContent>
-                </Card>
 
-                {/* Plan Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {(["STARTER", "ESSENTIAL", "ELITE"] as TIER[]).map((planTier) => (
-                    <PlanCard
-                      key={planTier}
-                      tier={planTier}
-                      isCurrentPlan={currentTier === planTier}
-                      selectedDuration={selectedDuration}
-                      onSelect={() => setSelectedTier(planTier)}
-                      isSelected={selectedTier === planTier}
-                    />
-                  ))}
-                </div>
+                    {/* Activation Checkout */}
+                    {selectedTier && (
+                      <Card className="border-primary">
+                        <CardContent className="pt-6">
+                          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="space-y-1">
+                              <p className="font-semibold text-lg">
+                                {ACTIVATION_TIER_INFO[selectedTier].name} Activation Pack
+                              </p>
+                              <p className="text-muted-foreground">
+                                ₹{ACTIVATION_PLANS[selectedTier].amount} for 1 month
+                              </p>
+                            </div>
+                            <Button
+                              size="lg"
+                              onClick={handleActivationPurchase}
+                              disabled={activationPending || verifyPending}
+                              className="w-full sm:w-auto"
+                            >
+                              {(activationPending || verifyPending) ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  {t("page_subscription_processing")}
+                                </>
+                              ) : (
+                                <>
+                                  <CreditCard className="mr-2 h-4 w-4" />
+                                  {t("page_subscription_activate_now") || "Activate Now"}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </CardContent>
+                        <CardFooter className="text-xs text-muted-foreground border-t pt-4">
+                          <div className="flex items-center gap-2">
+                            <Shield className="h-4 w-4" />
+                            {t("page_subscription_secure_payment")}
+                          </div>
+                        </CardFooter>
+                      </Card>
+                    )}
 
-                {/* Checkout Card */}
-                {selectedTier && selectedTier !== "STARTER" && selectedTier !== currentTier && (
-                  <Card className="border-primary">
-                    <CardContent className="pt-6">
-                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="space-y-1">
-                          <p className="font-semibold text-lg">
-                            {t("page_subscription_upgrade_to", { plan: t(`page_subscription_tier_${selectedTier.toLowerCase()}_name`) })}
-                          </p>
-                          <p className="text-muted-foreground">
-                            ₹
-                            {getRazorpayPlan(
-                              selectedTier,
-                              selectedDuration
-                            )?.amount.toLocaleString()}{" "}
-                            for {t(`label_${selectedDuration?.toLowerCase()}`)}
-                          </p>
-                        </div>
-                        <Button
-                          size="lg"
-                          onClick={handleUpgrade}
-                          disabled={createPending}
-                          className="w-full sm:w-auto"
-                        >
-                          {createPending ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              {t("page_subscription_processing")}
-                            </>
-                          ) : (
-                            <>
-                              <Rocket className="mr-2 h-4 w-4" />
-                              {t("page_subscription_upgrade_now")}
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="text-xs text-muted-foreground border-t pt-4">
-                      <div className="flex items-center gap-2">
-                        <Shield className="h-4 w-4" />
-                        {t("page_subscription_secure_payment")}
-                      </div>
-                    </CardFooter>
-                  </Card>
+                    <FeatureComparisonTable phase="activation" />
+                  </>
                 )}
 
-                {/* Feature Comparison */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{t("page_subscription_feature_comparison")}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left py-3 px-4">{t("page_subscription_feature_col")}</th>
-                            <th className="text-center py-3 px-4">{t("page_subscription_tier_starter_name")}</th>
-                            <th className="text-center py-3 px-4">{t("page_subscription_tier_essential_name")}</th>
-                            <th className="text-center py-3 px-4">{t("page_subscription_tier_elite_name")}</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr className="border-b">
-                            <td className="py-3 px-4">{t("page_subscription_feature_property_listing")}</td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.PROPERTY_LISTING ?? "-"}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.PROPERTY_LISTING ?? "-"}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.PROPERTY_LISTING ?? "-"}
-                            </td>
-                          </tr>
-                          <tr className="border-b">
-                            <td className="py-3 px-4">{t("page_subscription_feature_enquiry_listing")}</td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.ENQUIRY_LISTING ?? "-"}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.ENQUIRY_LISTING ?? "-"}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.ENQUIRY_LISTING ?? "-"}
-                            </td>
-                          </tr>
-                          <tr className="border-b">
-                            <td className="py-3 px-4">{t("page_subscription_feature_property_submission")}</td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              {limits?.SUBMIT_PROPERTY_ENQUIRY ?? "-"}
-                            </td>
-                          </tr>
-                          <tr className="border-b">
-                            <td className="py-3 px-4">Support</td>
-                            <td className="text-center py-3 px-4">Basic</td>
-                            <td className="text-center py-3 px-4">Priority</td>
-                            <td className="text-center py-3 px-4">Premium</td>
-                          </tr>
-                          <tr className="border-b">
-                            <td className="py-3 px-4">Analytics</td>
-                            <td className="text-center py-3 px-4">
-                              <X className="h-4 w-4 mx-auto text-red-500" />
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              <Check className="h-4 w-4 mx-auto text-green-500" />
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              <Check className="h-4 w-4 mx-auto text-green-500" />
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="py-3 px-4">Team Collaboration</td>
-                            <td className="text-center py-3 px-4">
-                              <X className="h-4 w-4 mx-auto text-red-500" />
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              <X className="h-4 w-4 mx-auto text-red-500" />
-                            </td>
-                            <td className="text-center py-3 px-4">
-                              <Check className="h-4 w-4 mx-auto text-green-500" />
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
+                {/* ─── Regular Plans (after activation or for upgrade) ── */}
+                {(showRegularPlans || isInActivation) && (
+                  <>
+                    {isInActivation && (
+                      <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/10">
+                        <CardHeader>
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <Rocket className="h-5 w-5 text-blue-600" />
+                            {t("page_subscription_regular_plans") || "Regular Plans"}
+                          </CardTitle>
+                          <CardDescription>
+                            {t("page_subscription_regular_desc") || "After your activation period ends, choose a regular plan to continue with higher limits"}
+                          </CardDescription>
+                        </CardHeader>
+                      </Card>
+                    )}
+
+                    {/* Duration Selection */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Calendar className="h-5 w-5" />
+                          {t("page_subscription_select_duration")}
+                        </CardTitle>
+                        <CardDescription>
+                          {t("page_subscription_duration_desc")}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-wrap gap-4">
+                          {(
+                            Object.keys(REGULAR_DURATION_LABELS) as RegularDuration[]
+                          ).map((duration) => {
+                            const savingsInfo = DURATION_SAVINGS[duration];
+                            return (
+                              <Button
+                                key={duration}
+                                variant={
+                                  selectedDuration === duration ? "default" : "outline"
+                                }
+                                onClick={() => setSelectedDuration(duration)}
+                                className="flex-1 min-w-[120px]"
+                              >
+                                <div className="flex flex-col items-center">
+                                  <span>{REGULAR_DURATION_LABELS[duration]}</span>
+                                  {savingsInfo.savingsPercent && (
+                                    <span className="text-xs opacity-75">
+                                      Save {savingsInfo.savingsPercent}%
+                                    </span>
+                                  )}
+                                </div>
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Regular Plan Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {(["BASIC", "ESSENTIAL", "PRO"] as TIER[]).map((planTier) => (
+                        <RegularPlanCard
+                          key={planTier}
+                          tier={planTier}
+                          isCurrentPlan={
+                            currentPhase === "regular" && currentTier === planTier
+                          }
+                          selectedDuration={selectedDuration}
+                          onSelect={() => setSelectedTier(planTier)}
+                          isSelected={selectedTier === planTier}
+                        />
+                      ))}
                     </div>
-                  </CardContent>
-                </Card>
+
+                    {/* Regular Checkout Card */}
+                    {selectedTier &&
+                      !(currentPhase === "regular" && currentTier === selectedTier) && (
+                        <Card className="border-primary">
+                          <CardContent className="pt-6">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                              <div className="space-y-1">
+                                <p className="font-semibold text-lg">
+                                  {t("page_subscription_upgrade_to", { plan: TIER_INFO[selectedTier].name })}
+                                </p>
+                                <p className="text-muted-foreground">
+                                  ₹{getRazorpayPlan(selectedTier, selectedDuration)?.amount.toLocaleString()}{" "}
+                                  for {REGULAR_DURATION_LABELS[selectedDuration]}
+                                </p>
+                              </div>
+                              <Button
+                                size="lg"
+                                onClick={handleUpgrade}
+                                disabled={createPending}
+                                className="w-full sm:w-auto"
+                              >
+                                {createPending ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    {t("page_subscription_processing")}
+                                  </>
+                                ) : (
+                                  <>
+                                    <Rocket className="mr-2 h-4 w-4" />
+                                    {isInActivation
+                                      ? (t("page_subscription_subscribe_now", "Subscribe Now"))
+                                      : t("page_subscription_upgrade_now")}
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          </CardContent>
+                          <CardFooter className="text-xs text-muted-foreground border-t pt-4">
+                            <div className="flex items-center gap-2">
+                              <Shield className="h-4 w-4" />
+                              {t("page_subscription_secure_payment", "Secure Payment")}
+                            </div>
+                          </CardFooter>
+                        </Card>
+                      )}
+
+                    <FeatureComparisonTable phase="regular" />
+                  </>
+                )}
               </>
             )}
           </TabsContent>
