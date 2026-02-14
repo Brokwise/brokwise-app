@@ -194,7 +194,7 @@ export const residentialPropertySchema = basePropertySchema
       return true;
     },
     {
-      message: "Project area must be greater than or equal to property area",
+      message: "validation_project_area_gte_size",
       path: ["projectArea"],
     }
   );
@@ -275,7 +275,7 @@ export const commercialPropertySchema = basePropertySchema
       return true;
     },
     {
-      message: "Project area must be greater than or equal to property area",
+      message: "validation_project_area_gte_size",
       path: ["projectArea"],
     }
   );

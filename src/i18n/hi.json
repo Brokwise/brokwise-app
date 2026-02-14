@@ -634,6 +634,7 @@
   "property_side_road": "साइड रोड",
   "property_possession": "पज़ेशन",
   "property_project_area": "प्रोजेक्ट एरिया",
+  "validation_project_area_gte_size": "प्रोजेक्ट एरिया, प्रॉपर्टी एरिया से बड़ा या बराबर होना चाहिए",
   "property_society": "सोसाइटी",
   "property_rental_income": "रेंटल इनकम",
   "property_copy_link": "लिंक कॉपी करें",

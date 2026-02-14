@@ -635,6 +635,7 @@
   "property_side_road": "Side Road",
   "property_possession": "Possession",
   "property_project_area": "Project Area",
+  "validation_project_area_gte_size": "Project area must be greater than or equal to property area",
   "property_society": "Society",
   "property_rental_income": "Rental Income",
   "property_copy_link": "Copy Link",

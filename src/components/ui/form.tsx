@@ -12,6 +12,7 @@ import {
   type FieldValues,
 } from "react-hook-form"
 
+import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 
@@ -155,8 +156,9 @@ const FormMessage = React.forwardRef<
   const { error, formMessageId, isDirty, isTouched } = useFormField()
   const { formState } = useFormContext()
 
+  const { t } = useTranslation()
   const shouldShowError = !!error && (isDirty || isTouched || formState.isSubmitted)
-  const body = shouldShowError ? String(error?.message ?? "") : children
+  const body = shouldShowError ? t(String(error?.message ?? "")) : children
 
   if (!body) {
     return null
