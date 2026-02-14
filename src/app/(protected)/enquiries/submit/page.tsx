@@ -357,6 +357,13 @@ function SubmitEnquiryPageContent() {
             {/* Boost proposal with bidding */}
 
 
+            <DisclaimerAcknowledge
+              text={DISCLAIMER_TEXT.enquiryProposal}
+              checked={isFreshProposalDisclaimerAccepted}
+              onCheckedChange={setIsFreshProposalDisclaimerAccepted}
+              checkboxLabel={DISCLAIMER_TEXT.acknowledgeLabel}
+              showRequiredMessage
+            />
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button
                 variant="outline"
@@ -379,13 +386,6 @@ function SubmitEnquiryPageContent() {
                 Create & Submit Proposal
               </Button>
             </div>
-            <DisclaimerAcknowledge
-              text={DISCLAIMER_TEXT.enquiryProposal}
-              checked={isFreshProposalDisclaimerAccepted}
-              onCheckedChange={setIsFreshProposalDisclaimerAccepted}
-              checkboxLabel={DISCLAIMER_TEXT.acknowledgeLabel}
-              showRequiredMessage
-            />
           </CardContent>
         ) : (
           <Tabs

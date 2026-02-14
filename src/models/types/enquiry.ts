@@ -231,5 +231,5 @@ export interface CreateEnquiryDTO {
   areaType?: AreaType;
   urgent?: boolean;
   shouldUseCredits?: boolean;
-  enquiryDisclaimerAccepted?: boolean;
+  enquiryDisclaimerAccepted: true;
 }
