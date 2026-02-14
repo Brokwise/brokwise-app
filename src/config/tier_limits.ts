@@ -12,7 +12,7 @@ import {
 // If your staging build also uses NODE_ENV=production, switch
 // to a custom env var like NEXT_PUBLIC_APP_ENV instead.
 // ──────────────────────────────────────────────────────────
-const IS_PRODUCTION = process.env.NODE_ENV === "production";
+const IS_PRODUCTION = process.env.NEXT_PUBLIC_ENV === "production";
 
 // ──────────────────────────────────────────────────────────
 // Phase 1: Activation Pack Limits (lower – first month)
