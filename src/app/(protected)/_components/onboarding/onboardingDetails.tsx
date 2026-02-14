@@ -362,8 +362,8 @@ export const OnboardingDetails = ({
       reraNumber: brokerData?.reraNumber || "",
     },
   });
-  const { formState } = form;
-  const { isValid } = formState;
+
+
 
   useEffect(() => {
     if (!isIndianNumber) {
