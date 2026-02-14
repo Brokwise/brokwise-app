@@ -314,7 +314,13 @@ export const ResidentialProperySpecs: React.FC<
                       key={type.value}
                       type="button"
                       variant="selection"
-                      onClick={() => field.onChange(type.value)}
+                      onClick={() => {
+                        field.onChange(type.value);
+                        if (type.value === "ROAD") {
+                          form.setValue("sideFacing", undefined);
+                          form.setValue("sideRoadWidth", undefined);
+                        }
+                      }}
                       className={cn(
                         field.value === type.value
                           ? "bg-primary text-primary-foreground"

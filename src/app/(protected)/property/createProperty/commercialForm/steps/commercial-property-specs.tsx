@@ -397,7 +397,13 @@ export const CommercialPropertySpecs: React.FC<
                         key={item.value}
                         type="button"
                         variant="selection"
-                        onClick={() => field.onChange(item.value)}
+                        onClick={() => {
+                          field.onChange(item.value);
+                          if (item.value === "ROAD") {
+                            form.setValue("sideFacing", undefined);
+                            form.setValue("sideRoadWidth", undefined);
+                          }
+                        }}
                         className={cn(
                           field.value === item.value
                             ? "bg-primary text-primary-foreground"

@@ -27,7 +27,9 @@ const ResidentialReview: React.FC<ResidentialReviewProps> = ({
   const { prices } = useGetCreditPrices();
   const FEATURED_COST = prices.MARK_PROPERTY_AS_FEATURED;
   const hasSufficientCredits = (balance || 0) >= FEATURED_COST;
-  const roadWidthUnitLabel = getRoadWidthUnitLabel(form.watch("roadWidthUnit"));
+  const roadWidthUnitLabel = getRoadWidthUnitLabel(
+    form.watch("roadWidthUnit") || "FEET"
+  );
 
   return (
     <div className="space-y-6">
@@ -129,7 +131,8 @@ const ResidentialReview: React.FC<ResidentialReviewProps> = ({
               {form.watch("plotType") === "CORNER" && (
                 <div>
                   <strong>Side Road Width:</strong>{" "}
-                  {form.watch("sideRoadWidth")
+                  {form.watch("sideRoadWidth") !== undefined &&
+                  form.watch("sideRoadWidth") !== null
                     ? `${form.watch("sideRoadWidth")} ${roadWidthUnitLabel}`
                     : "Not provided"}
                 </div>
