@@ -384,7 +384,7 @@ export const useSubscription = () => {
         return false;
       }
 
-      const result = await purchaseActivation({ plan_id: activationPlan.planId });
+      const result = await purchaseActivation({ tier: selectedTier, razorpayPlanId: activationPlan.planId });
 
       const { orderId, amount, currency, keyId } = result.payment;
 

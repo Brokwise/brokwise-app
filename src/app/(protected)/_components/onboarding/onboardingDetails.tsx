@@ -550,7 +550,7 @@ export const OnboardingDetails = ({
 
       // 2. Initiate activation payment via Razorpay
       const activationPlan = getActivationPlan(selectedTier);
-      const activationResult = await purchaseActivation({ plan_id: activationPlan.planId });
+      const activationResult = await purchaseActivation({ tier: selectedTier, razorpayPlanId: activationPlan.planId });
       const { orderId, amount, currency, keyId } = activationResult.payment;
 
       // 3. Open Razorpay checkout

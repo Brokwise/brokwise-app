@@ -94,7 +94,7 @@ export const ActivationPendingGate = ({
 
     try {
       const activationPlan = getActivationPlan(tier);
-      const result = await purchaseActivation({ plan_id: activationPlan.planId });
+      const result = await purchaseActivation({ tier, razorpayPlanId: activationPlan.planId });
       const { orderId, amount, currency, keyId } = result.payment;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

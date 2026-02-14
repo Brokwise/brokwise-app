@@ -158,7 +158,8 @@ export interface CreateSubscriptionPayload {
 }
 
 export interface PurchaseActivationPayload {
-  plan_id: string;
+  tier: TIER;
+  razorpayPlanId: string;
 }
 
 export interface VerifyActivationPayload {
