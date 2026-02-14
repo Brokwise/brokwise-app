@@ -840,7 +840,7 @@ const SubscriptionPage = () => {
 
   return (
     <>
-      {/* Only load Razorpay script on non-iOS platforms */}
+
       {!isIOSNative && <Script src="https://checkout.razorpay.com/v1/checkout.js" />}
       <PageShell className="max-w-6xl">
         <PageHeader

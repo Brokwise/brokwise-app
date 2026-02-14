@@ -87,9 +87,11 @@ interface AccountTypeCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
+  disabled?: boolean;
 }
 
 const AccountTypeCard = ({
+  disabled = false,
   selected,
   onSelect,
   icon,
@@ -98,7 +100,8 @@ const AccountTypeCard = ({
 }: AccountTypeCardProps) => (
   <button
     type="button"
-    onClick={onSelect}
+    onClick={disabled ? undefined : onSelect}
+    disabled={disabled}
     className={`
       relative flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 w-full
       ${selected
@@ -120,6 +123,7 @@ const AccountTypeCard = ({
     >
       {icon}
     </div>
+    <p className="text-xs text-muted-foreground mt-1">{disabled ? "Coming Soon" : ""}</p>
     <p
       className={`text-sm font-semibold ${selected ? "text-primary" : "text-foreground"
         }`}
@@ -706,6 +710,7 @@ export default function AuthPage({
                       description={t("account_type_broker_desc")}
                     />
                     <AccountTypeCard
+                      disabled={true}
                       type="company"
                       selected={accountType === "company"}
                       onSelect={() => setAccountType("company")}

@@ -169,14 +169,14 @@ export const Step1: React.FC<Step1Props> = ({
             </div>
 
             {/* ─── KYC Verification Section (Indian users, non-editing) ── */}
-            {isIndianNumber && !isEditing && (
+            {/* {isIndianNumber && !isEditing && (
                 <KycVerificationCard
                     kycState={kycState}
                     onStartKyc={onStartKyc}
                     onOpenDigiLocker={onOpenDigiLocker}
                     t={t}
                 />
-            )}
+            )} */}
 
             {/* ─── Locked fields hint ───────────────────────────────────── */}
             {isFieldLocked && (

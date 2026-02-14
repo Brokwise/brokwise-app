@@ -518,6 +518,7 @@ export const OnboardingDetails = ({
   // ─── Submit profile + initiate activation payment ─────────────────────────
   const handleCompleteOnboarding = async () => {
     if (!user || !brokerData || !selectedTier) {
+      console.log("Missing required data", user, brokerData, selectedTier);
       toast.error("Missing required data");
       return;
     }
