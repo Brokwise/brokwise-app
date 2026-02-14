@@ -185,7 +185,19 @@ export const residentialPropertySchema = basePropertySchema
       return true;
     }
     return true;
-  });
+  })
+  .refine(
+    (data) => {
+      if (data.projectArea != null && data.size != null && data.size > 0) {
+        return data.projectArea >= data.size;
+      }
+      return true;
+    },
+    {
+      message: "Project area must be greater than or equal to property area",
+      path: ["projectArea"],
+    }
+  );
 
 // Commercial Property Schema
 export const commercialPropertySchema = basePropertySchema
@@ -253,6 +265,18 @@ export const commercialPropertySchema = basePropertySchema
     {
       message: "Number of beds is required for hostels",
       path: ["beds"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.projectArea != null && data.size != null && data.size > 0) {
+        return data.projectArea >= data.size;
+      }
+      return true;
+    },
+    {
+      message: "Project area must be greater than or equal to property area",
+      path: ["projectArea"],
     }
   );
 
