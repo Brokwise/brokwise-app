@@ -103,8 +103,7 @@ const ACTIVATION_PLANS_STAGING: Record<TIER, ActivationPlanConfig> = {
 
 const ACTIVATION_PLANS_PRODUCTION: Record<TIER, ActivationPlanConfig> = {
     BASIC: {
-        // planId: "plan_SFt6ZxwHVyh12Z",          // TODO: replace with actual Razorpay plan ID
-        planId: "plan_SGD9Ca5rmMknL0",          // TODO: replace with actual Razorpay plan ID
+        planId: "plan_SGD9Ca5rmMknL0",
         tier: "BASIC",
         amount: 589,            // GST-inclusive
         displayAmount: 499,     // ex-GST
