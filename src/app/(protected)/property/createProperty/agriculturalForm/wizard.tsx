@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,6 +58,8 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
     useSavePropertyAsDraft();
   const [draftId, setDraftId] = useState<string | undefined>(initialData?._id);
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
+  const [isLegalDocsDisclaimerAccepted, setIsLegalDocsDisclaimerAccepted] =
+    useState(false);
 
   const form = useForm<AgriculturalPropertyFormData>({
     resolver: zodResolver(agriculturalPropertySchema),
@@ -92,6 +94,14 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
   });
 
   const plotType = form.watch("plotType");
+  const jamabandiUrl = form.watch("jamabandiUrl");
+  const khasraPlanUrl = form.watch("khasraPlanUrl");
+
+  useEffect(() => {
+    if (!jamabandiUrl && !khasraPlanUrl) {
+      setIsLegalDocsDisclaimerAccepted(false);
+    }
+  }, [jamabandiUrl, khasraPlanUrl]);
 
   const onSubmit = async (data: AgriculturalPropertyFormData, shouldUseCredits: boolean) => {
     if (onSubmitProp) {
@@ -370,7 +380,11 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
       component: (
         <div className="space-y-8">
           <div className="space-y-4">
-            <AgriculturalLegalDocs form={form} />
+            <AgriculturalLegalDocs
+              form={form}
+              disclaimerAccepted={isLegalDocsDisclaimerAccepted}
+              onDisclaimerAcceptedChange={setIsLegalDocsDisclaimerAccepted}
+            />
           </div>
           <div className="w-full h-px bg-border" />
           <div className="space-y-4">
@@ -409,7 +423,10 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
         submitLabel={submitLabel}
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
-        canProceed={!Object.values(uploading).some(Boolean)}
+        canProceed={
+          !Object.values(uploading).some(Boolean) &&
+          (currentStep !== 1 || isLegalDocsDisclaimerAccepted)
+        }
         isLoading={externalIsLoading ?? isLoading}
         isSubmitting={isSubmitting}
         draftCount={draftCount}

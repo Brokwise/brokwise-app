@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { DisclaimerNotice } from "@/components/ui/disclaimer-notice";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 interface JdaForm {
   _id: string;
@@ -54,6 +56,7 @@ export default function JDAFormsPage() {
           Access and download essential JDA forms and documents.
         </p>
       </div>
+      <DisclaimerNotice text={DISCLAIMER_TEXT.resourcesExternal} />
 
       {formsData && formsData.length > 0 ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

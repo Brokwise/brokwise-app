@@ -9,6 +9,8 @@ import { Property } from "@/types/property";
 import { BidBoost } from "./_components/BidBoost";
 import { SubmitPropertyUseCredits } from "@/components/ui/submit-property-use-credits";
 import { useGetRemainingQuota } from "@/hooks/useSubscription";
+import { DisclaimerAcknowledge } from "@/components/ui/disclaimer-acknowledge";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 interface FilteredPropertiesProps {
   isPropertiesLoading: boolean;
@@ -25,6 +27,8 @@ interface FilteredPropertiesProps {
   onBidChange?: (bidCredits: number | null) => void;
   shouldUseCredits: boolean;
   setShouldUseCredits: Dispatch<SetStateAction<boolean>>;
+  enquiryDisclaimerAccepted: boolean;
+  setEnquiryDisclaimerAccepted: Dispatch<SetStateAction<boolean>>;
 }
 
 export const FilteredProperties = ({
@@ -42,6 +46,8 @@ export const FilteredProperties = ({
   onBidChange,
   shouldUseCredits,
   setShouldUseCredits,
+  enquiryDisclaimerAccepted,
+  setEnquiryDisclaimerAccepted,
 }: FilteredPropertiesProps) => {
   const { remaining, isLoading: isQuotaLoading } = useGetRemainingQuota();
   return (
@@ -194,6 +200,13 @@ export const FilteredProperties = ({
           />
         </div>
         <div className="pt-6 border-t mt-4 flex flex-col gap-4">
+          <DisclaimerAcknowledge
+            text={DISCLAIMER_TEXT.enquiryProposal}
+            checked={enquiryDisclaimerAccepted}
+            onCheckedChange={setEnquiryDisclaimerAccepted}
+            checkboxLabel={DISCLAIMER_TEXT.acknowledgeLabel}
+            showRequiredMessage
+          />
           <div className="self-end">
             <SubmitPropertyUseCredits
               shouldUseCredits={shouldUseCredits}
@@ -210,7 +223,12 @@ export const FilteredProperties = ({
             )}
             size="lg"
             onClick={handleExistingSubmit}
-            disabled={isSubmittingExisting || isQuotaLoading || (remaining?.submit_property_enquiry === 0 && !shouldUseCredits)}
+            disabled={
+              isSubmittingExisting ||
+              isQuotaLoading ||
+              !enquiryDisclaimerAccepted ||
+              (remaining?.submit_property_enquiry === 0 && !shouldUseCredits)
+            }
           >
             {isSubmittingExisting && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

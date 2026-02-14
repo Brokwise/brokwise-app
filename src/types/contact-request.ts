@@ -68,10 +68,12 @@ export interface ProcessExpiredResponse {
 // Request DTOs
 export interface CreateContactRequestDTO {
   propertyId: string;
+  disclaimerAccepted?: boolean;
 }
 
 export interface RespondContactRequestDTO {
   action: "ACCEPT" | "REJECT";
+  disclaimerAccepted?: boolean;
 }
 
 export interface ListContactRequestsParams {

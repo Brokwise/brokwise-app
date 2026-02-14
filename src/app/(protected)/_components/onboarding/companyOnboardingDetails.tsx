@@ -45,6 +45,8 @@ import { toast } from "sonner";
 import { logError } from "@/utils/errors";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
+import { DisclaimerNotice } from "@/components/ui/disclaimer-notice";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 export const CompanyOnboardingDetails = ({
   isEditing = false,
@@ -265,6 +267,13 @@ export const CompanyOnboardingDetails = ({
   // Calculate progress
   const totalSteps = 2;
   const progress = (step / totalSteps) * 100;
+  const watchedCompanyName = form.watch("name");
+  const watchedMobile = form.watch("mobile");
+  const shouldShowReverificationWarning =
+    isEditing &&
+    !!companyData &&
+    (watchedCompanyName !== (companyData.name || "") ||
+      watchedMobile !== (companyData.mobile || ""));
 
   return (
     <section className="min-h-screen flex items-center justify-center p-4  transition-colors duration-500">
@@ -636,53 +645,58 @@ export const CompanyOnboardingDetails = ({
             </div>
 
             {/* Actions Bar */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800/50">
-              {step > 1 ? (
-                <Button
-                  variant="ghost"
-                  type="button"
-                  onClick={handlePrev}
-                  className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-              ) : (
-                <div /> // Spacer
+            <div className="space-y-3">
+              {shouldShowReverificationWarning && (
+                <DisclaimerNotice text={DISCLAIMER_TEXT.profileReverification} />
               )}
-
-              <Button
-                onClick={handleNext}
-                type="button"
-                disabled={loading || (step === 1 && !isIndianNumber)}
-                className={`
-                  h-12 px-8 font-medium
-                  bg-[#0F172A] text-white hover:bg-[#1E293B]
-                  dark:bg-white dark:text-[#0F172A] dark:hover:bg-slate-200
-                  transition-all duration-300
-                  ${
-                    step === 2 && !isValid && !loading
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:shadow-lg hover:-translate-y-0.5"
-                  }
-                `}
-              >
-                {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    {isEditing ? "Updating..." : "Submitting..."}
-                  </div>
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800/50">
+                {step > 1 ? (
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    onClick={handlePrev}
+                    className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    {step === 2
-                      ? isEditing
-                        ? "Update Profile"
-                        : "Complete Setup"
-                      : "Continue"}
-                    {step < 2 && <ArrowRight className="h-4 w-4" />}
-                  </div>
+                  <div />
                 )}
-              </Button>
+
+                <Button
+                  onClick={handleNext}
+                  type="button"
+                  disabled={loading || (step === 1 && !isIndianNumber)}
+                  className={`
+                    h-12 px-8 font-medium
+                    bg-[#0F172A] text-white hover:bg-[#1E293B]
+                    dark:bg-white dark:text-[#0F172A] dark:hover:bg-slate-200
+                    transition-all duration-300
+                    ${
+                      step === 2 && !isValid && !loading
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:shadow-lg hover:-translate-y-0.5"
+                    }
+                  `}
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      {isEditing ? "Updating..." : "Submitting..."}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {step === 2
+                        ? isEditing
+                          ? "Update Profile"
+                          : "Complete Setup"
+                        : "Continue"}
+                      {step < 2 && <ArrowRight className="h-4 w-4" />}
+                    </div>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </form>

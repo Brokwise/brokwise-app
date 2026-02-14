@@ -41,6 +41,8 @@ import {
   formatDate,
   getConversionFactor,
 } from "@/lib/landConverter";
+import { DisclaimerNotice } from "@/components/ui/disclaimer-notice";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const ResultItem = ({
@@ -139,6 +141,7 @@ const LandConverterContent = ({
 }) => {
   return (
     <div className="flex-1 overflow-y-auto min-h-0 space-y-6 px-1 py-1">
+      <DisclaimerNotice text={DISCLAIMER_TEXT.landConverter} />
       {/* Input Section */}
       <div className="space-y-4">
         {/* Input and State Row */}

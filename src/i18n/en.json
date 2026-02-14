@@ -1163,5 +1163,15 @@
   "onboarding_select_plan_error":"Please select an activation plan",
   "onboarding_fill_required":"Please fill in all required fields",
   "onboarding_complete_your":"Complete your",
-  "onboarding_per_month":"per month"
+  "onboarding_per_month":"per month",
+  "disclaimer_title":"Disclaimer",
+  "disclaimer_acknowledge_label":"I understand and agree to this disclaimer.",
+  "disclaimer_mandatory_error":"Disclaimer acknowledgment is required to continue.",
+  "disclaimer_contact_sharing":"Brokwise is only an intermediary platform and does not verify listings or representations. Please conduct your own due diligence before proceeding or entering into any transaction.",
+  "disclaimer_enquiry_proposal":"Brokwise is only an intermediary platform. All enquiries and proposals are submitted at the User's own risk and responsibility.",
+  "disclaimer_document_upload":"By uploading, you confirm you are authorised to share this document and accept full responsibility for its legality and accuracy.",
+  "disclaimer_resources_external":"This link redirects to an independent third-party authority portal. Brokwise is not responsible for the content, updates, accuracy, or functioning of such external websites.",
+  "disclaimer_land_converter":"Results are indicative only. Brokwise does not warrant accuracy. Please independently verify all measurements before relying on them.",
+  "disclaimer_news":"News content may be sourced from third parties and is provided for informational purposes only. Brokwise does not verify or endorse such content and shall not be responsible for its accuracy or reliance thereon.",
+  "disclaimer_reverification":"For security reasons, any change to your name, email, or mobile number will require mandatory re-verification."
 }

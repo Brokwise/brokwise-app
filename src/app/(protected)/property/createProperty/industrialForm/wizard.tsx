@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,6 +58,8 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
     useSavePropertyAsDraft();
   const [draftId, setDraftId] = useState<string | undefined>(initialData?._id);
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
+  const [isLegalDocsDisclaimerAccepted, setIsLegalDocsDisclaimerAccepted] =
+    useState(false);
 
   const form = useForm<IndustrialPropertyFormData>({
     resolver: zodResolver(industrialPropertySchema),
@@ -94,6 +96,14 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
   const watchedPropertyType = form.watch("propertyType");
   const propertyType = watchedPropertyType || "WAREHOUSE";
   const plotType = form.watch("plotType");
+  const jamabandiUrl = form.watch("jamabandiUrl");
+  const khasraPlanUrl = form.watch("khasraPlanUrl");
+
+  useEffect(() => {
+    if (!jamabandiUrl && !khasraPlanUrl) {
+      setIsLegalDocsDisclaimerAccepted(false);
+    }
+  }, [jamabandiUrl, khasraPlanUrl]);
 
   React.useEffect(() => {
     if (!watchedPropertyType) {
@@ -381,7 +391,11 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
       component: (
         <div className="space-y-8">
           <div className="space-y-4">
-            <IndustrialLegalDocs form={form} />
+            <IndustrialLegalDocs
+              form={form}
+              disclaimerAccepted={isLegalDocsDisclaimerAccepted}
+              onDisclaimerAcceptedChange={setIsLegalDocsDisclaimerAccepted}
+            />
           </div>
           <div className="w-full h-px bg-border" />
           <div className="space-y-4">
@@ -420,7 +434,10 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
         submitLabel={submitLabel}
         onSaveDraft={handleSaveDraft}
         isSavingDraft={isSavingDraft}
-        canProceed={!Object.values(uploading).some(Boolean)}
+        canProceed={
+          !Object.values(uploading).some(Boolean) &&
+          (currentStep !== 1 || isLegalDocsDisclaimerAccepted)
+        }
         isLoading={externalIsLoading ?? isLoading}
         isSubmitting={isSubmitting}
         draftCount={draftCount}

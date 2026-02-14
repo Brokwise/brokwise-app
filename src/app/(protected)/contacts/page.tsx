@@ -88,6 +88,8 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { PageShell, PageHeader } from "@/components/ui/layout";
+import { DisclaimerAcknowledge } from "@/components/ui/disclaimer-acknowledge";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 type FilterTab = "all" | "ENQUIRY_SUBMISSION" | "PROPERTY_INQUIRY";
 
@@ -99,6 +101,9 @@ const ContactsPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [requestToAccept, setRequestToAccept] = useState<PopulatedContactRequest | null>(null);
+  const [showAcceptDisclaimerDialog, setShowAcceptDisclaimerDialog] = useState(false);
+  const [isAcceptDisclaimerChecked, setIsAcceptDisclaimerChecked] = useState(false);
   const { t } = useTranslation();
 
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -151,7 +156,7 @@ const ContactsPage = () => {
   const handleAcceptRequest = (requestId: string) => {
     setRespondingTo(requestId);
     respondToContactRequest(
-      { requestId, action: "ACCEPT" },
+      { requestId, action: "ACCEPT", disclaimerAccepted: true },
       {
         onSettled: () => setRespondingTo(null),
       }
@@ -166,6 +171,20 @@ const ContactsPage = () => {
         onSettled: () => setRespondingTo(null),
       }
     );
+  };
+
+  const openAcceptDisclaimerDialog = (request: PopulatedContactRequest) => {
+    setRequestToAccept(request);
+    setIsAcceptDisclaimerChecked(false);
+    setShowAcceptDisclaimerDialog(true);
+  };
+
+  const handleConfirmAcceptWithDisclaimer = () => {
+    if (!requestToAccept) return;
+    handleAcceptRequest(requestToAccept._id);
+    setShowAcceptDisclaimerDialog(false);
+    setRequestToAccept(null);
+    setIsAcceptDisclaimerChecked(false);
   };
 
   // Determine which contacts to display
@@ -307,7 +326,7 @@ const ContactsPage = () => {
                 <PendingRequestCard
                   key={request._id}
                   request={request}
-                  onAccept={handleAcceptRequest}
+                  onAccept={openAcceptDisclaimerDialog}
                   onReject={handleRejectRequest}
                   isResponding={isResponding && respondingTo === request._id}
                 />
@@ -491,6 +510,49 @@ const ContactsPage = () => {
                 </>
               ) : (
                 t("action_delete")
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showAcceptDisclaimerDialog}
+        onOpenChange={(isOpen) => {
+          setShowAcceptDisclaimerDialog(isOpen);
+          if (!isOpen) {
+            setRequestToAccept(null);
+            setIsAcceptDisclaimerChecked(false);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Accept Contact Request?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Accepting this request shares your contact details with the requester.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <DisclaimerAcknowledge
+            text={DISCLAIMER_TEXT.contactSharing}
+            checked={isAcceptDisclaimerChecked}
+            onCheckedChange={setIsAcceptDisclaimerChecked}
+            checkboxLabel={DISCLAIMER_TEXT.acknowledgeLabel}
+            showRequiredMessage
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isResponding}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAcceptWithDisclaimer}
+              disabled={!isAcceptDisclaimerChecked || isResponding}
+            >
+              {isResponding ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Accepting...
+                </>
+              ) : (
+                "Accept Request"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -761,7 +823,7 @@ const ContactCardSkeleton = () => (
 // Pending Request Card Component
 interface PendingRequestCardProps {
   request: PopulatedContactRequest;
-  onAccept: (requestId: string) => void;
+  onAccept: (request: PopulatedContactRequest) => void;
   onReject: (requestId: string) => void;
   isResponding: boolean;
 }
@@ -837,7 +899,7 @@ const PendingRequestCard = ({
         </Button>
         <Button
           size="sm"
-          onClick={() => onAccept(request._id)}
+          onClick={() => onAccept(request)}
           disabled={isResponding}
           className="bg-green-600 hover:bg-green-700 text-white"
         >

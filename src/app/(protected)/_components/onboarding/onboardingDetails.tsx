@@ -64,6 +64,8 @@ import { usePurchaseActivation, useVerifyActivation } from "@/hooks/useSubscript
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { DisclaimerNotice } from "@/components/ui/disclaimer-notice";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 import { Separator } from "@/components/ui/separator";
 
 const KYC_STORAGE_KEY = "bw_kyc_verification_id";
@@ -755,6 +757,15 @@ export const OnboardingDetails = ({
 
   // For edit mode, map steps 2-4 to display steps 1-3
   const displayStep = isEditing ? step - 1 : step;
+  const watchedFirstName = form.watch("firstName");
+  const watchedLastName = form.watch("lastName");
+  const watchedMobile = form.watch("mobile");
+  const shouldShowReverificationWarning =
+    isEditing &&
+    !!brokerData &&
+    (watchedFirstName !== (brokerData.firstName || "") ||
+      watchedLastName !== (brokerData.lastName || "") ||
+      watchedMobile !== (brokerData.mobile || ""));
   const progress = (displayStep / totalSteps) * 100;
 
   const getStepTitle = () => {
@@ -993,6 +1004,11 @@ export const OnboardingDetails = ({
 
             {/* Actions Bar */}
             <div className="p-4 md:p-12 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800/50 bg-white dark:bg-[#0F172A] z-20">
+              {shouldShowReverificationWarning && (
+                <div className="mb-4">
+                  <DisclaimerNotice text={DISCLAIMER_TEXT.profileReverification} />
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 {((step > 1 && !isEditing) || (isEditing && step > 2)) ? (
                   <Button

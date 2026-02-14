@@ -12,6 +12,16 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   useNotification,
   useUpdateNotification,
   Notification,
@@ -39,11 +49,19 @@ import { formatCurrency } from "@/utils/helper";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { resolveNotificationRoute } from "@/lib/notificationNavigation";
+import { DisclaimerAcknowledge } from "@/components/ui/disclaimer-acknowledge";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 export const Notifications = () => {
   const { userData } = useApp();
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [requestToAccept, setRequestToAccept] =
+    useState<PopulatedContactRequest | null>(null);
+  const [showAcceptDisclaimerDialog, setShowAcceptDisclaimerDialog] =
+    useState(false);
+  const [isAcceptDisclaimerChecked, setIsAcceptDisclaimerChecked] =
+    useState(false);
   const router = useRouter();
 
   const { notificationsData, isLoading: isLoadingNotifications } =
@@ -75,7 +93,7 @@ export const Notifications = () => {
   const handleAcceptContactRequest = (requestId: string) => {
     setRespondingTo(requestId);
     respondToContactRequest(
-      { requestId, action: "ACCEPT" },
+      { requestId, action: "ACCEPT", disclaimerAccepted: true },
       {
         onSettled: () => setRespondingTo(null),
       }
@@ -90,6 +108,20 @@ export const Notifications = () => {
         onSettled: () => setRespondingTo(null),
       }
     );
+  };
+
+  const openAcceptDisclaimerDialog = (request: PopulatedContactRequest) => {
+    setRequestToAccept(request);
+    setIsAcceptDisclaimerChecked(false);
+    setShowAcceptDisclaimerDialog(true);
+  };
+
+  const handleConfirmAcceptWithDisclaimer = () => {
+    if (!requestToAccept) return;
+    handleAcceptContactRequest(requestToAccept._id);
+    setShowAcceptDisclaimerDialog(false);
+    setRequestToAccept(null);
+    setIsAcceptDisclaimerChecked(false);
   };
 
   const { unreadNotifications, readNotifications, unreadCount } =
@@ -317,7 +349,7 @@ export const Notifications = () => {
               )}
             </Button>
             <Button
-              onClick={() => handleAcceptContactRequest(request._id)}
+              onClick={() => openAcceptDisclaimerDialog(request)}
               size="sm"
               disabled={isResponding}
               className="h-6 px-2 text-[10px] sm:h-7 sm:px-3 sm:text-xs bg-green-600 hover:bg-green-700 text-white"
@@ -407,7 +439,8 @@ export const Notifications = () => {
   );
 
   return (
-    <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+    <>
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
       <SheetTrigger asChild>
         <Button variant="outline" size="icon" className="relative">
           <Bell className="w-4 h-4" />
@@ -553,6 +586,49 @@ export const Notifications = () => {
           )}
         </ScrollArea>
       </SheetContent>
-    </Sheet>
+      </Sheet>
+      <AlertDialog
+        open={showAcceptDisclaimerDialog}
+        onOpenChange={(isOpen) => {
+          setShowAcceptDisclaimerDialog(isOpen);
+          if (!isOpen) {
+            setRequestToAccept(null);
+            setIsAcceptDisclaimerChecked(false);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Accept Contact Request?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Accepting this request shares your contact details with the requester.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <DisclaimerAcknowledge
+            text={DISCLAIMER_TEXT.contactSharing}
+            checked={isAcceptDisclaimerChecked}
+            onCheckedChange={setIsAcceptDisclaimerChecked}
+            checkboxLabel={DISCLAIMER_TEXT.acknowledgeLabel}
+            showRequiredMessage
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRespondingContact}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAcceptWithDisclaimer}
+              disabled={!isAcceptDisclaimerChecked || isRespondingContact}
+            >
+              {isRespondingContact ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Accepting...
+                </>
+              ) : (
+                "Accept Request"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };

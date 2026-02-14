@@ -11,14 +11,20 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { uploadFileToFirebase, generateFilePath, convertImageToWebP } from "@/utils/upload";
 import { Loader2, Upload, X, FileText } from "lucide-react";
+import { DisclaimerAcknowledge } from "@/components/ui/disclaimer-acknowledge";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 interface IndustrialLegalDocsProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: any;
+  disclaimerAccepted: boolean;
+  onDisclaimerAcceptedChange: (accepted: boolean) => void;
 }
 
 export const IndustrialLegalDocs: React.FC<IndustrialLegalDocsProps> = ({
   form,
+  disclaimerAccepted,
+  onDisclaimerAcceptedChange,
 }) => {
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
 
@@ -215,6 +221,13 @@ export const IndustrialLegalDocs: React.FC<IndustrialLegalDocsProps> = ({
           )}
         />
       </div>
+      <DisclaimerAcknowledge
+        text={DISCLAIMER_TEXT.documentUpload}
+        checked={disclaimerAccepted}
+        onCheckedChange={onDisclaimerAcceptedChange}
+        checkboxLabel={DISCLAIMER_TEXT.acknowledgeLabel}
+        showRequiredMessage
+      />
     </div>
   );
 };
