@@ -16,7 +16,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { TIER } from "@/models/types/subscription";
-import { ACTIVATION_PLANS, ACTIVATION_TIER_INFO } from "@/config/tier_limits";
+import { ACTIVATION_PLANS, ACTIVATION_TIER_INFO, getActivationPlan } from "@/config/tier_limits";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -93,8 +93,9 @@ export const ActivationPendingGate = ({
     if (!brokerData) return;
 
     try {
-      const result = await purchaseActivation({ tier });
-      const { orderId, amount, currency, keyId } = result;
+      const activationPlan = getActivationPlan(tier);
+      const result = await purchaseActivation({ plan_id: activationPlan.planId });
+      const { orderId, amount, currency, keyId } = result.payment;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rzp = new (window as any).Razorpay({
