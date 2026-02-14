@@ -19,6 +19,12 @@ import {
 import { Loader2, Wand2Icon, X, Plus, Upload } from "lucide-react";
 import { useState } from "react";
 import useAxios from "@/hooks/useAxios";
+import {
+  getPropertyMediaSrc,
+  isSampleLandMedia,
+  SAMPLE_LAND_MEDIA_DISCLAIMER,
+  SAMPLE_LAND_MEDIA_PATH,
+} from "@/lib/property-media";
 interface ResidentialMediaProps {
   uploading: { [key: string]: boolean };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,6 +44,7 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
   propertyType,
 }) => {
   // Dynamic label based on property type
+  const isLandProperty = propertyType === "LAND";
   const floorPlanLabel = propertyType === "LAND" ? "Site Plan" : "Floor Plans";
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const api = useAxios();
@@ -161,10 +168,39 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Featured Media <span className="text-destructive">*</span>
+                Featured Media{" "}
+                {!isLandProperty && <span className="text-destructive">*</span>}
               </FormLabel>
               <FormControl>
                 <div className="space-y-2">
+                  {isLandProperty && (
+                    <div className="max-w-md rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2">
+                      <p className="text-sm font-medium text-amber-900">
+                        No real media? Use sample land image
+                      </p>
+                      <p className="text-xs text-amber-800">
+                        {SAMPLE_LAND_MEDIA_DISCLAIMER}
+                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={
+                          isSampleLandMedia(field.value)
+                            ? "default"
+                            : "outline"
+                        }
+                        onClick={() =>
+                          form.setValue("featuredMedia", SAMPLE_LAND_MEDIA_PATH, {
+                            shouldValidate: true,
+                          })
+                        }
+                      >
+                        {isSampleLandMedia(field.value)
+                          ? "Sample image selected"
+                          : "Use sample image"}
+                      </Button>
+                    </div>
+                  )}
                   {!field.value ? (
                     <div className="relative group cursor-pointer flex flex-col items-center justify-center w-full max-w-md h-32 rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
                       <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground group-hover:text-primary transition-colors">
@@ -199,7 +235,7 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
                       <Image
                         width={400}
                         height={225}
-                        src={field.value}
+                        src={getPropertyMediaSrc(field.value)}
                         alt="Featured Media"
                         className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                       />
@@ -218,6 +254,12 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
                   )}
                 </div>
               </FormControl>
+              {isLandProperty && (
+                <FormDescription>
+                  Featured media is optional for land. You can upload your own
+                  photo or use the sample image.
+                </FormDescription>
+              )}
               <FormMessage />
             </FormItem>
           )}

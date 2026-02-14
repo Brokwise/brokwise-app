@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isSampleLandMedia } from "@/lib/property-media";
 
 export const PROPERTY_VALIDATION_LIMITS = {
   PINCODE_LENGTH: 6,
@@ -58,6 +59,10 @@ const addressSchema = z.object({
     .regex(/^\d+$/, "Pincode must be numeric"),
 });
 
+const isHttpUrl = (value: string) => /^https?:\/\//i.test(value);
+const isValidFeaturedMedia = (value: string) =>
+  isHttpUrl(value) || isSampleLandMedia(value);
+
 // Base fields required for all properties
 const basePropertySchema = z.object({
   _id: z.string().optional(),
@@ -107,6 +112,14 @@ export const residentialPropertySchema = basePropertySchema
     society: z.string().optional(),
     projectArea: z.number().min(0).optional(),
     possessionDate: z.union([z.string(), z.date()]).optional(),
+    featuredMedia: z
+      .union([
+        z.literal(""),
+        z.string().refine(isValidFeaturedMedia, {
+          message: "Featured media must be a valid URL or the sample land image",
+        }),
+      ])
+      .optional(),
 
     // Villa/Land specific
     facing: FacingEnum.optional(),
@@ -152,6 +165,18 @@ export const residentialPropertySchema = basePropertySchema
     {
       message: "BHK is required for residential flats",
       path: ["bhk"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.propertyType === "FLAT" || data.propertyType === "VILLA") {
+        return !!data.featuredMedia;
+      }
+      return true;
+    },
+    {
+      message: "Featured media is required for this property type",
+      path: ["featuredMedia"],
     }
   )
   .refine((data) => {

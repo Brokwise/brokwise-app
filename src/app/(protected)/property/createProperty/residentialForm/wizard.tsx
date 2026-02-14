@@ -131,6 +131,11 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   }, [currentStep, propertyType]);
 
   const validateCurrentStep = async (): Promise<boolean> => {
+    const mediaStepFields =
+      propertyType === "LAND"
+        ? ["description", "floorPlans"]
+        : ["description", "featuredMedia", "floorPlans"];
+
     const stepRequiredFields: { [key: number]: string[] } = {
       0: [
         "propertyType",
@@ -151,7 +156,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           : []),
         "rate",
       ],
-      1: ["description", "featuredMedia", "floorPlans"],
+      1: mediaStepFields,
       2: [],
     };
 
@@ -196,7 +201,10 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           sideRoadWidth: "Side road width is required",
           rate: "Rate per unit is required",
           description: "Description is required",
-          featuredMedia: "Featured media is required",
+          featuredMedia:
+            propertyType === "LAND"
+              ? "Featured media is optional for land"
+              : "Featured media is required",
           floorPlans: propertyType === "LAND" ? "Site plan is required" : "Floor plans are required",
         };
 

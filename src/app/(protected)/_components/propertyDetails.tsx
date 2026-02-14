@@ -23,6 +23,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 import Link from "next/link";
+import { getPropertyMediaSrc } from "@/lib/property-media";
 
 interface PropertyDetailsProps {
   property: Property;
@@ -62,14 +63,7 @@ export const PropertyDetails = ({
           {/* Compact Image with Price & Badges */}
           <div className="aspect-[2.5/1] w-full relative rounded-lg overflow-hidden bg-muted border">
             <Image
-              src={
-                property.featuredMedia &&
-                  property.featuredMedia.includes(
-                    "firebasestorage.googleapis.com"
-                  )
-                  ? property.featuredMedia
-                  : "/images/placeholder.webp"
-              }
+              src={getPropertyMediaSrc(property.featuredMedia)}
               alt="Property"
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"

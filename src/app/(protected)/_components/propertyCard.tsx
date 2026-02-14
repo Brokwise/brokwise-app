@@ -33,6 +33,7 @@ import Link from "next/link";
 import { formatCurrency, formatAddress, formatPriceShort } from "@/utils/helper";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { getPropertyMediaSrc, isSampleLandMedia } from "@/lib/property-media";
 
 interface PropertyCardProps {
   property: Property;
@@ -65,6 +66,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       : null;
 
   const canShare = !hideShare;
+  const isSampleLand =
+    property.propertyType === "LAND" && isSampleLandMedia(property.featuredMedia);
 
   // Check bookmark status from the correct user data
   const isBookmarked = isCompany
@@ -138,15 +141,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           className="block w-full h-full"
         >
           <Image
-            src={
-              (property.featuredMedia &&
-                property.featuredMedia.includes(
-                  "firebasestorage.googleapis.com"
-                )) ||
-                property.featuredMedia?.includes("picsum.photos")
-                ? property.featuredMedia
-                : "/images/placeholder.webp"
-            }
+            src={getPropertyMediaSrc(property.featuredMedia)}
             alt={property.description || "Property Image"}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-700 h-12!"
@@ -169,6 +164,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             <Badge className="shadow-sm backdrop-blur-md border-none bg-blue-600/90 text-white">
               <MapPin className="h-3 w-3 mr-1" />
               {t("label_same_city")}
+            </Badge>
+          )}
+          {isSampleLand && (
+            <Badge className="shadow-sm backdrop-blur-md border-none bg-amber-600/90 text-white">
+              Sample image
             </Badge>
           )}
 

@@ -91,7 +91,7 @@ const MessagePage = () => {
       {/* Sidebar */}
       <div
         className={cn(
-          "flex flex-col border-r border-border/40 bg-background transition-all duration-300",
+          "flex flex-col border-r border-border bg-background transition-all duration-300",
           isMobile
             ? selectedConversationId
               ? "hidden"
@@ -100,10 +100,19 @@ const MessagePage = () => {
         )}
       >
         <div className="flex h-[80px] shrink-0 items-center justify-between border-b border-border/20 px-6">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            <Button onClick={() => { router.push("/") }} variant={"ghost"}><ArrowLeft />Back</Button>
-            {t("page_messages_title")}
-          </h1>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => router.push("/")}
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0 rounded-full"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              {t("page_messages_title")}
+            </h1>
+          </div>
           <Button
             variant="ghost"
             size="icon"

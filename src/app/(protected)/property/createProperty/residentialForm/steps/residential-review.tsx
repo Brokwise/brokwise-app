@@ -106,7 +106,7 @@ const ResidentialReview: React.FC<ResidentialReviewProps> = ({
             </>
           )}
 
-          {(propertyType === "VILLA" || propertyType === "LAND") && (
+          {propertyType === "LAND" && (
             <>
               <div>
                 <strong>Plot Type:</strong>{" "}

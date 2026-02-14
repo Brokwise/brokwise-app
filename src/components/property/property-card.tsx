@@ -5,6 +5,7 @@ import Image from "next/image";
 import { PropertyStatusBadge } from "./property-status-badge";
 import { PropertyActions } from "./property-actions";
 import { MapPin, Maximize2, Home, Compass } from "lucide-react";
+import { getPropertyMediaSrc } from "@/lib/property-media";
 
 interface PropertyCardProps {
   property: Property;
@@ -26,11 +27,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
       <div className="relative aspect-video w-full overflow-hidden bg-muted">
         {property.featuredMedia ? (
           <Image
-            src={
-              property.featuredMedia.includes("firebasestorage.googleapis.com")
-                ? property.featuredMedia
-                : "/images/placeholder.webp"
-            }
+            src={getPropertyMediaSrc(property.featuredMedia)}
             alt={`${property.propertyCategory} ${property.propertyType}`}
             fill
             className="object-cover transition-transform duration-300 hover:scale-105"

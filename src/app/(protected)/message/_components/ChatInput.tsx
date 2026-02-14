@@ -222,7 +222,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
       </Dialog>
 
       {/* Chat Input Bar */}
-      <div className="relative flex items-end border-t border-border/40 bg-background/95 px-3 py-3 backdrop-blur-md sm:px-4 sm:py-4 md:pr-44 lg:pr-52">
+      <div className="relative flex items-end border-t border-border/40 bg-background/95 px-3 py-3 backdrop-blur-md sm:px-4 sm:py-4 md:pr-28 lg:pr-32">
         <input
           type="file"
           className="hidden"
@@ -233,19 +233,19 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
 
         <div className="mx-auto flex w-full max-w-5xl items-end gap-2 sm:gap-3">
           {/* Input Wrapper */}
-          <div className="flex w-full flex-1 items-end gap-2 rounded-[26px] border border-border/40 bg-muted/40 p-2 shadow-sm transition-all focus-within:border-primary/20 focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/10 sm:p-2.5">
+          <div className="flex w-full flex-1 items-end gap-2 rounded-[22px] border border-border/40 bg-muted/40 p-1.5 shadow-sm transition-all focus-within:border-primary/20 focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/10 sm:p-2">
 
             {/* Left Actions */}
             <div className="flex shrink-0 gap-0.5 pb-0.5 pl-1">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="h-8 w-8 rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 onClick={triggerFileSelect}
                 disabled={disabled || isUploading}
                 title={t("page_messages_attach_file")}
               >
-                <Paperclip className="h-5 w-5" />
+                <Paperclip className="h-4 w-4" />
               </Button>
 
               <Popover>
@@ -253,11 +253,11 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    className="h-8 w-8 rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     disabled={disabled || isUploading}
                     title={t("page_messages_add_emoji")}
                   >
-                    <Smile className="h-5 w-5" />
+                    <Smile className="h-4 w-4" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto border-none p-0 shadow-xl" align="start" side="top">
@@ -278,7 +278,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={t("page_messages_type_message")}
-              className="min-h-[48px] max-h-[180px] flex-1 resize-none border-0 bg-transparent px-2 py-2.5 text-sm shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/50 md:min-h-[64px] md:px-3 md:py-4 md:text-base"
+              className="min-h-[40px] max-h-[160px] flex-1 resize-none border-0 bg-transparent px-2 py-2 text-sm shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/50 md:min-h-[44px] md:px-3 md:py-2.5 md:text-base"
               disabled={disabled || isUploading}
             />
           </div>
@@ -288,9 +288,9 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
             onClick={handleSend}
             disabled={!message.trim() || disabled || isUploading}
             size="icon"
-            className="h-[52px] w-[52px] shrink-0 rounded-full bg-primary text-primary-foreground shadow-md transition-all hover:scale-105 hover:bg-primary/90 hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:hover:scale-100 md:h-[56px] md:w-[56px]"
+            className="h-[44px] w-[44px] shrink-0 rounded-full bg-primary text-primary-foreground shadow-md transition-all hover:scale-105 hover:bg-primary/90 hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:hover:scale-100 md:h-[48px] md:w-[48px]"
           >
-            <Send className="h-5 w-5 translate-x-0.5 md:h-[22px] md:w-[22px]" />
+            <Send className="h-4 w-4 translate-x-0.5 md:h-5 md:w-5" />
           </Button>
         </div>
       </div>

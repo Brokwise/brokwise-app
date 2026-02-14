@@ -8,6 +8,7 @@ import Image from "next/image";
 import { formatAddress, formatPrice } from "@/utils/helper";
 import { PropertyStatusBadge } from "@/components/property/property-status-badge";
 import { PropertyActions } from "@/components/property/property-actions";
+import { getPropertyMediaSrc } from "@/lib/property-media";
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -28,11 +29,7 @@ export const columns: ColumnDef<Property>[] = [
         <div className="relative h-10 w-16 overflow-hidden rounded-md">
           {image ? (
             <Image
-              src={
-                image.includes("firebasestorage.googleapis.com")
-                  ? image
-                  : "/images/placeholder.webp"
-              }
+              src={getPropertyMediaSrc(image)}
               alt="Property"
               fill
               className="object-cover"
