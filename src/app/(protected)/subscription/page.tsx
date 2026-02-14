@@ -514,8 +514,9 @@ const ActivationPlanCard = ({
 
       <CardContent className="text-center space-y-4">
         <div>
-          <div className="text-4xl font-bold">₹{plan.amount}</div>
+          <div className="text-4xl font-bold">₹{plan.displayAmount}</div>
           <div className="text-sm text-muted-foreground">1 Month Activation</div>
+          <div className="text-[11px] text-muted-foreground/70">+ GST</div>
         </div>
 
         <ul className="space-y-2 text-sm text-left">
@@ -609,11 +610,12 @@ const RegularPlanCard = ({
       <CardContent className="text-center space-y-4">
         <div>
           <div className="text-4xl font-bold">
-            ₹{plan?.amount.toLocaleString()}
+            ₹{plan?.displayAmount.toLocaleString()}
           </div>
           <div className="text-sm text-muted-foreground">
             {REGULAR_DURATION_LABELS[selectedDuration]}
           </div>
+          <div className="text-[11px] text-muted-foreground/70">+ GST</div>
           {savingsInfo.savingsPercent && (
             <Badge variant="secondary" className="mt-2">
               Save {savingsInfo.savingsPercent}%
@@ -1020,7 +1022,7 @@ const SubscriptionPage = () => {
                                 {ACTIVATION_TIER_INFO[selectedTier].name} {t("page_subscription_activation_pack", "Activation Pack")}
                               </p>
                               <p className="text-muted-foreground">
-                                ₹{ACTIVATION_PLANS[selectedTier].amount} {t("page_subscription_1_month_access", "for 1 month")}
+                                ₹{ACTIVATION_PLANS[selectedTier].displayAmount} {t("page_subscription_1_month_access", "for 1 month")}
                               </p>
                             </div>
                             <Button
@@ -1141,7 +1143,7 @@ const SubscriptionPage = () => {
                                   {t("page_subscription_upgrade_to", { plan: TIER_INFO[selectedTier].name })}
                                 </p>
                                 <p className="text-muted-foreground">
-                                  ₹{getRazorpayPlan(selectedTier, selectedDuration)?.amount.toLocaleString()}{" "}
+                                  ₹{getRazorpayPlan(selectedTier, selectedDuration)?.displayAmount.toLocaleString()}{" "}
                                   for {REGULAR_DURATION_LABELS[selectedDuration]}
                                 </p>
                               </div>

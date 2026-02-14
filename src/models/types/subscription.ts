@@ -184,14 +184,20 @@ export interface RazorpayPlanConfig {
   planId: string;
   tier: TIER;
   duration: RegularDuration;
+  /** GST-inclusive amount charged via Razorpay */
   amount: number;
+  /** Ex-GST amount shown in the UI */
+  displayAmount: number;
   currency: string;
   credits: number;
 }
 
 export interface ActivationPlanConfig {
   tier: TIER;
+  /** GST-inclusive amount charged via Razorpay */
   amount: number;
+  /** Ex-GST amount shown in the UI */
+  displayAmount: number;
   currency: string;
   credits: number;
 }

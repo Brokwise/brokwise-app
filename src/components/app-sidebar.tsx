@@ -47,7 +47,9 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useApp } from "@/context/AppContext";
+import { useGetCurrentSubscription } from "@/hooks/useSubscription";
 import Image from "next/image";
+import { AlertCircle } from "lucide-react";
 import {
   DEFAULT_RESOURCE_STATE,
   getStoredResourceState,
@@ -208,7 +210,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ];
 
-  const sidebarItems: SidebarNavItem[] = companyData ? companyNav : brokerNav;
+  // ─── Subscription gate for sidebar ──────────────────────────────────────────
+  const isBroker = !companyData;
+  const { subscription, isLoading: subLoading } = useGetCurrentSubscription({
+    enabled: isBroker,
+  });
+  const hasActiveSubscription =
+    isBroker &&
+    !!subscription &&
+    (subscription.status === "active" ||
+      subscription.status === "authenticated" ||
+      subscription.status === "created");
+
+  // When broker has no active subscription, only show Subscription link
+  const gatedBrokerNav: SidebarNavItem[] =
+    !subLoading && isBroker && !hasActiveSubscription
+      ? brokerNav.filter((item) => item.url === "/subscription")
+      : brokerNav;
+
+  const sidebarItems: SidebarNavItem[] = companyData ? companyNav : gatedBrokerNav;
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -298,7 +318,35 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {!companyData && (
+        {/* Subscription required banner */}
+        {isBroker && !subLoading && !hasActiveSubscription && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <div className="mx-2 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800/50 dark:bg-amber-950/20 p-3 group-data-[collapsible=icon]:hidden">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-amber-800 dark:text-amber-300">
+                      {t("sidebar_subscription_required", "Subscription Required")}
+                    </p>
+                    <p className="text-[11px] leading-relaxed text-amber-700/80 dark:text-amber-400/70">
+                      {t(
+                        "sidebar_subscription_message",
+                        "Complete your subscription payment to unlock all features."
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              {/* Icon-only mode: just show the warning icon */}
+              <div className="mx-auto hidden group-data-[collapsible=icon]:flex items-center justify-center py-2">
+                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              </div>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {!companyData && hasActiveSubscription && (
           <>
             <SidebarGroup>
               <SidebarGroupLabel>{t("nav_tools")}</SidebarGroupLabel>
@@ -376,20 +424,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       item.key === "land-converter" ||
                       item.target === "/resources/land-convertor"
                   ) && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={handleMenuClick}
-                        asChild
-                        tooltip={t("nav_land_convertor")}
-                        isActive={pathname === "/resources/land-convertor"}
-                      >
-                        <Link href="/resources/land-convertor">
-                          <Calculator />
-                          <span>{t("nav_land_convertor")}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          onClick={handleMenuClick}
+                          asChild
+                          tooltip={t("nav_land_convertor")}
+                          isActive={pathname === "/resources/land-convertor"}
+                        >
+                          <Link href="/resources/land-convertor">
+                            <Calculator />
+                            <span>{t("nav_land_convertor")}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>

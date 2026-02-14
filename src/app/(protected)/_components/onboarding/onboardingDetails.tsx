@@ -151,7 +151,7 @@ const PlanSelectionStep = ({
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-xl font-bold text-slate-900 dark:text-slate-50">
-                      ₹{plan.amount}
+                      ₹{plan.displayAmount}
                     </div>
                     <div className="text-xs text-slate-500">{t("onboarding_per_month") || "for 1 month"}</div>
                   </div>
@@ -249,7 +249,7 @@ const WelcomeStep = ({
               </div>
             </div>
             <div className="text-right">
-              <span className="text-2xl font-bold">₹{plan.amount}</span>
+              <span className="text-2xl font-bold">₹{plan.displayAmount}</span>
             </div>
           </div>
         </CardHeader>
@@ -587,37 +587,30 @@ export const OnboardingDetails = ({
             });
             toast.success("Activation successful! Welcome to Brokwise.");
           } catch {
-            // Payment succeeded but verification failed - still approve the profile
-            setBrokerData({
-              ...brokerData,
-              ...data,
-              status: "approved",
-            });
-            toast.error("Payment received but verification failed. Please contact support.");
-          }
-        },
-        modal: {
-          ondismiss: function () {
-            // Payment dismissed - still approve the profile, they can pay later
+            // Payment captured but client-side verification failed.
+            // The webhook will verify on the backend. Approve and let them in.
             localStorage.removeItem(SELECTED_TIER_KEY);
             setBrokerData({
               ...brokerData,
               ...data,
               status: "approved",
             });
-            toast.info("You can complete the activation payment from the Subscription page.");
+            toast.info("Payment received. Verification in progress — you can start using the app.");
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            // Payment dismissed — keep user on onboarding step 5
+            // Profile is submitted on backend, but we don't update local
+            // state to "approved" so the onboarding screen stays visible.
+            toast.info("Please complete the payment to start using the app.");
           },
         },
       });
 
       rzp.on("payment.failed", function (response: { error: { description: string } }) {
         toast.error(`Payment failed: ${response.error.description}`);
-        // Still approve profile on payment failure
-        setBrokerData({
-          ...brokerData,
-          ...data,
-          status: "approved",
-        });
+        // Keep user on step 5 — they can retry
       });
 
       rzp.open();
@@ -826,7 +819,7 @@ export const OnboardingDetails = ({
       case 5:
         return loading || activationPending || verifyPending
           ? (t("onboarding_processing", "Processing..."))
-          : `${t("onboarding_proceed_to_pay", "Proceed to Pay")} ₹${selectedTier ? ACTIVATION_PLANS[selectedTier].amount : ""}`;
+          : `${t("onboarding_proceed_to_pay", "Proceed to Pay")} ₹${selectedTier ? ACTIVATION_PLANS[selectedTier].displayAmount : ""}`;
       default:
         return t("onboarding_continue", "Continue");
     }

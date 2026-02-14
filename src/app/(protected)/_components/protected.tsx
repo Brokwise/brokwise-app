@@ -19,6 +19,7 @@ import { Loader2 } from "lucide-react";
 import { Loader } from "@/components/ui/loader";
 import Image from "next/image";
 import { SafeAreaWrapper } from "@/components/ui/safe-area";
+import { ActivationPendingGate } from "./activationPendingGate";
 
 const AUTH_TIMEOUT_MS = 10000;
 
@@ -323,8 +324,11 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
 
   }
 
-  // Direct approval: both "approved" and "pending" statuses proceed to main app
-  if (brokerData?.status === "approved" || brokerData?.status === "pending") return children;
+  // Direct approval: both "approved" and "pending" statuses proceed,
+  // but first check if activation payment is still pending.
+  if (brokerData?.status === "approved" || brokerData?.status === "pending") {
+    return <ActivationPendingGate>{children}</ActivationPendingGate>;
+  }
 
   if (userData?.userType === "company") {
     return (

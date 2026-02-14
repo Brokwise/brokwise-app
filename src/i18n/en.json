@@ -713,6 +713,8 @@
   "page_subscription_status_cancelled": "Cancelled",
   "page_subscription_status_expired": "Expired",
   "page_subscription_tier_starter_name": "Starter",
+  "page_subscription_tier_basic_name": "Basic",
+  "page_subscription_tier_basic_desc": "Perfect for individual brokers just getting started",
   "page_subscription_tier_starter_desc": "Perfect for individual brokers just getting started",
   "page_subscription_tier_essential_name": "Essential",
   "page_subscription_tier_essential_desc": "Ideal for growing brokers with moderate needs",

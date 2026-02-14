@@ -8,6 +8,13 @@ import {
 } from "@/models/types/subscription";
 
 // ──────────────────────────────────────────────────────────
+// Environment detection
+// If your staging build also uses NODE_ENV=production, switch
+// to a custom env var like NEXT_PUBLIC_APP_ENV instead.
+// ──────────────────────────────────────────────────────────
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
+// ──────────────────────────────────────────────────────────
 // Phase 1: Activation Pack Limits (lower – first month)
 // ──────────────────────────────────────────────────────────
 export const ACTIVATION_LIMITS: Record<TIER, TierLimits> = {
@@ -38,8 +45,8 @@ export const REGULAR_LIMITS: Record<TIER, TierLimits> = {
         SUBMIT_PROPERTY_ENQUIRY: 16,
     },
     ESSENTIAL: {
-        PROPERTY_LISTING: 25,
-        ENQUIRY_LISTING: 25,
+        PROPERTY_LISTING: 24,
+        ENQUIRY_LISTING: 24,
         SUBMIT_PROPERTY_ENQUIRY: 32,
     },
     PRO: {
@@ -62,39 +69,77 @@ export const getLimitsByPhase = (
 
 // ──────────────────────────────────────────────────────────
 // Activation Plans (one-time Razorpay orders)
+//
+// amount        = GST-inclusive (charged by Razorpay)
+// displayAmount = ex-GST (shown in UI)
 // ──────────────────────────────────────────────────────────
-export const ACTIVATION_PLANS: Record<TIER, ActivationPlanConfig> = {
+
+const ACTIVATION_PLANS_STAGING: Record<TIER, ActivationPlanConfig> = {
     BASIC: {
         tier: "BASIC",
         amount: 499,
+        displayAmount: 499,
         currency: "INR",
         credits: 40,
     },
     ESSENTIAL: {
         tier: "ESSENTIAL",
         amount: 699,
+        displayAmount: 699,
         currency: "INR",
         credits: 100,
     },
     PRO: {
         tier: "PRO",
         amount: 999,
+        displayAmount: 999,
         currency: "INR",
         credits: 180,
     },
 };
 
+const ACTIVATION_PLANS_PRODUCTION: Record<TIER, ActivationPlanConfig> = {
+    BASIC: {
+        tier: "BASIC",
+        amount: 589,            // GST-inclusive
+        displayAmount: 499,     // ex-GST
+        currency: "INR",
+        credits: 40,
+    },
+    ESSENTIAL: {
+        tier: "ESSENTIAL",
+        amount: 1179,           // GST-inclusive
+        displayAmount: 999,     // ex-GST
+        currency: "INR",
+        credits: 100,
+    },
+    PRO: {
+        tier: "PRO",
+        amount: 2123,           // GST-inclusive
+        displayAmount: 1799,    // ex-GST
+        currency: "INR",
+        credits: 180,
+    },
+};
+
+export const ACTIVATION_PLANS: Record<TIER, ActivationPlanConfig> =
+    IS_PRODUCTION ? ACTIVATION_PLANS_PRODUCTION : ACTIVATION_PLANS_STAGING;
+
 // ──────────────────────────────────────────────────────────
 // Regular Plans (recurring Razorpay subscriptions)
-// Plan IDs from Razorpay Dashboard
+//
+// amount        = GST-inclusive (charged by Razorpay)
+// displayAmount = ex-GST (shown in UI)
 // ──────────────────────────────────────────────────────────
-export const RAZORPAY_PLANS: RazorpayPlanConfig[] = [
+
+const RAZORPAY_PLANS_STAGING: RazorpayPlanConfig[] = [
     // Basic
     {
         planId: "plan_SFw0xVKtHYJWB3",
         tier: "BASIC",
         duration: "1_MONTH",
         amount: 2599,
+        displayAmount: 2599,
         currency: "INR",
         credits: 200,
     },
@@ -103,24 +148,28 @@ export const RAZORPAY_PLANS: RazorpayPlanConfig[] = [
         tier: "BASIC",
         duration: "3_MONTHS",
         amount: 5899,
+        displayAmount: 5899,
         currency: "INR",
         credits: 600,
     },
+    // Essential
     {
         planId: "plan_SFw1VNvWfIREmM",
         tier: "ESSENTIAL",
         duration: "1_MONTH",
         amount: 4699,
+        displayAmount: 4699,
         currency: "INR",
-        credits: 500,
+        credits: 400,
     },
     {
         planId: "plan_SFw1lbdWbw0Gi8",
         tier: "ESSENTIAL",
         duration: "3_MONTHS",
         amount: 8999,
+        displayAmount: 8999,
         currency: "INR",
-        credits: 1500,
+        credits: 1200,
     },
     // Pro
     {
@@ -128,6 +177,7 @@ export const RAZORPAY_PLANS: RazorpayPlanConfig[] = [
         tier: "PRO",
         duration: "1_MONTH",
         amount: 5499,
+        displayAmount: 5499,
         currency: "INR",
         credits: 1000,
     },
@@ -136,10 +186,74 @@ export const RAZORPAY_PLANS: RazorpayPlanConfig[] = [
         tier: "PRO",
         duration: "3_MONTHS",
         amount: 8999,
+        displayAmount: 8999,
         currency: "INR",
         credits: 3000,
     },
 ];
+
+const RAZORPAY_PLANS_PRODUCTION: RazorpayPlanConfig[] = [
+    // Basic
+    {
+        planId: "plan_SFt8z04RX7Fudz",
+        tier: "BASIC",
+        duration: "1_MONTH",
+        amount: 4720,           // GST-inclusive
+        displayAmount: 3999,    // ex-GST
+        currency: "INR",
+        credits: 200,
+    },
+    {
+        planId: "plan_SFtEhdMnSJAIBU",
+        tier: "BASIC",
+        duration: "3_MONTHS",
+        amount: 12980,          // GST-inclusive
+        displayAmount: 10999,   // ex-GST
+        currency: "INR",
+        credits: 600,
+    },
+    // Essential
+    {
+        planId: "plan_SFt9jdfu6JegZV",
+        tier: "ESSENTIAL",
+        duration: "1_MONTH",
+        amount: 5900,           // GST-inclusive
+        displayAmount: 4999,    // ex-GST
+        currency: "INR",
+        credits: 400,
+    },
+    {
+        planId: "plan_SFtFpGE24iyD3h",
+        tier: "ESSENTIAL",
+        duration: "3_MONTHS",
+        amount: 16520,          // GST-inclusive
+        displayAmount: 13999,   // ex-GST
+        currency: "INR",
+        credits: 1200,
+    },
+    // Pro
+    {
+        planId: "plan_SFtAGuuFyWf0GJ",
+        tier: "PRO",
+        duration: "1_MONTH",
+        amount: 7670,           // GST-inclusive
+        displayAmount: 6499,    // ex-GST
+        currency: "INR",
+        credits: 1000,
+    },
+    {
+        planId: "plan_SFtGrBjCbM3iBK",
+        tier: "PRO",
+        duration: "3_MONTHS",
+        amount: 21240,          // GST-inclusive
+        displayAmount: 17999,   // ex-GST
+        currency: "INR",
+        credits: 3000,
+    },
+];
+
+export const RAZORPAY_PLANS: RazorpayPlanConfig[] =
+    IS_PRODUCTION ? RAZORPAY_PLANS_PRODUCTION : RAZORPAY_PLANS_STAGING;
 
 // ──────────────────────────────────────────────────────────
 // Plan Lookup Helpers
@@ -283,7 +397,7 @@ export const ACTIVATION_CREDITS: Record<TIER, number> = {
 
 export const REGULAR_CREDITS: Record<TIER, Record<RegularDuration, number>> = {
     BASIC: { "1_MONTH": 200, "3_MONTHS": 600 },
-    ESSENTIAL: { "1_MONTH": 500, "3_MONTHS": 1500 },
+    ESSENTIAL: { "1_MONTH": 400, "3_MONTHS": 1200 },
     PRO: { "1_MONTH": 1000, "3_MONTHS": 3000 },
 };
 
