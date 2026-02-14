@@ -57,10 +57,10 @@ export const AgriculturalLocation: React.FC<AgriculturalLocationProps> = ({
                       }
                     }}
                     className={cn(
-                      "flex-col items-start h-auto py-2 px-3",
+                      "flex-1 min-w-[220px] md:min-w-0 md:basis-0 flex-col items-start justify-start gap-1.5 h-auto px-4 py-3 rounded-2xl text-left border",
                       field.value === item.value
-                        ? "bg-primary text-primary-foreground"
-                        : ""
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-foreground border-border hover:bg-muted/40"
                     )}
                   >
                     <span className="font-medium">{item.label}</span>
