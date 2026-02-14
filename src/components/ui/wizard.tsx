@@ -191,12 +191,12 @@ export const Wizard: React.FC<WizardProps> = ({
           )}
 
           {/* Center - Action Buttons Pill */}
-          <div className="inline-flex items-center bg-background/95 backdrop-blur-xl backdrop-saturate-150 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-full p-1.5 gap-2 ring-1 ring-black/5 dark:ring-white/10">
+          <div className="relative z-10 inline-flex items-center rounded-full border border-border bg-background p-1.5 shadow-sm gap-2">
             <Button
               type="button"
               variant="ghost"
               onClick={onCancel}
-              className="text-muted-foreground hover:bg-muted/50 rounded-full px-4 h-9 text-sm font-medium"
+              className="h-9 rounded-full px-4 text-sm font-medium text-foreground/75 hover:bg-muted hover:text-foreground"
             >
               Cancel
             </Button>
@@ -206,7 +206,7 @@ export const Wizard: React.FC<WizardProps> = ({
                 type="button"
                 variant="ghost"
                 onClick={onPrevious}
-                className="text-muted-foreground hover:bg-muted/50 rounded-full px-4 h-9 text-sm font-medium"
+                className="h-9 rounded-full px-4 text-sm font-medium text-foreground/75 hover:bg-muted hover:text-foreground"
               >
                 Previous
               </Button>

@@ -70,7 +70,9 @@ const basePropertySchema = z.object({
   images: z.array(z.string().url()).optional(),
 
   // Required common fields
-  floorPlans: z.array(z.string().url()).min(1, "At least one floor plan/site plan is required"),
+  floorPlans: z
+    .array(z.string().url())
+    .min(1, "At least one layout plan/site plan/map is mandatory"),
   isFeatured: z.boolean().optional(),
   isPriceNegotiable: z.boolean().optional(),
   size: z.number().min(0).optional(),
