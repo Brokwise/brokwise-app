@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { DirectionCompassField } from "@/components/property/direction-compass-field";
 import { RoadWidthField } from "@/components/property/road-width-field";
 import { Input } from "@/components/ui/input";
-import { getPlotTypeOptions } from "@/lib/plotType";
+import { getPlotTypeLabel, getPlotTypeOptions } from "@/lib/plotType";
 import { useTranslation } from "react-i18next";
 
 import { NumberInput } from "@/components/ui/number-input";
@@ -309,28 +309,27 @@ export const ResidentialProperySpecs: React.FC<
                   )}
                   data-field="plotType"
                 >
-                  {[
-                    { value: "ROAD", label: "Road Facing" },
-                    { value: "CORNER", label: "Corner Plot" },
-                  ].map((type) => (
+                  {getPlotTypeOptions(t).map((item) => (
                     <Button
-                      key={type.value}
+                      key={item.value}
                       type="button"
                       variant="selection"
                       onClick={() => {
-                        field.onChange(type.value);
-                        if (type.value === "ROAD") {
+                        field.onChange(item.value);
+                        if (item.value === "ROAD") {
                           form.setValue("sideFacing", undefined);
                           form.setValue("sideRoadWidth", undefined);
                         }
                       }}
                       className={cn(
-                        field.value === type.value
+                        "flex-col items-start h-auto py-2 px-3",
+                        field.value === item.value
                           ? "bg-primary text-primary-foreground"
                           : ""
                       )}
                     >
-                      {type.label}
+                      <span className="font-medium">{item.label}</span>
+                      <span className={cn("text-xs", field.value === item.value ? "text-primary-foreground/70" : "text-muted-foreground")}>{item.description}</span>
                     </Button>
                   ))}
                 </div>
@@ -342,8 +341,8 @@ export const ResidentialProperySpecs: React.FC<
                   <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
                     <AlertTriangle className="h-4 w-4" />
                     <span>
-                      Enquiry requires {enquiry.plotType}. You selected{" "}
-                      {field.value}.
+                      Enquiry requires {getPlotTypeLabel(t, enquiry.plotType)}. You selected{" "}
+                      {getPlotTypeLabel(t, field.value)}.
                     </span>
                   </div>
                 )}

@@ -37,6 +37,7 @@ import { useGetMyEnquiries } from "@/hooks/useEnquiry";
 import { useApp } from "@/context/AppContext";
 import { useTranslation } from "react-i18next";
 import ShinyText from "@/components/ui/shinnytext";
+import { getPlotTypeLabel } from "@/lib/plotType";
 
 interface EnquiryCardProps {
   enquiry: Enquiry | MarketplaceEnquiry;
@@ -233,7 +234,7 @@ export const EnquiryCard = ({
           {enquiry.plotType && (
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
               <LayoutGrid className="h-3.5 w-3.5" />
-              <span className="font-medium text-xs capitalize">{enquiry.plotType.toLowerCase()}</span>
+              <span className="font-medium text-xs">{getPlotTypeLabel(t, enquiry.plotType)}</span>
             </div>
           )}
           {enquiry.facing && (

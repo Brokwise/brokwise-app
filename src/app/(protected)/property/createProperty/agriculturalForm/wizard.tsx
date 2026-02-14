@@ -165,7 +165,7 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
           "address.pincode": "Pincode is required",
           size: "Land size is required",
           sizeUnit: "Please select a size unit",
-          plotType: "Please select a plot type",
+          plotType: "Please select plot access type (single-side or corner)",
           facing: "Please select front facing direction",
           frontRoadWidth: "Front road width is required",
           sideFacing: "Please select side facing direction",

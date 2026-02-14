@@ -52,6 +52,8 @@ import {
 } from "@/utils/helper";
 import { useApp } from "@/context/AppContext";
 import { toast } from "sonner";
+import { getPlotTypeLabel } from "@/lib/plotType";
+import { useTranslation } from "react-i18next";
 
 const isPopulatedProperty = (
   propertyId: Property | string | undefined | null
@@ -76,6 +78,7 @@ const ViewMarketPlaceEnquiryContent = () => {
   const searchParams = useSearchParams();
   const id = searchParams.get("id") || "";
   const { brokerData } = useApp();
+  const { t } = useTranslation();
   const [confirmationText, setConfirmationText] = useState<string>("");
   const [isCloseDialogOpen, setIsCloseDialogOpen] = useState(false);
   const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(
@@ -357,7 +360,7 @@ const ViewMarketPlaceEnquiryContent = () => {
                   <RequirementItem
                     icon={Home}
                     label="Plot Type"
-                    value={enquiry.plotType}
+                    value={getPlotTypeLabel(t, enquiry.plotType, "verbose")}
                   />
                 )}
                 {enquiry.facing && (

@@ -54,6 +54,7 @@ import { useApp } from "@/context/AppContext";
 import { toast } from "sonner";
 import { Alert } from "@/components/ui/alert";
 import { useTranslation } from "react-i18next";
+import { getPlotTypeLabel } from "@/lib/plotType";
 
 const isPopulatedProperty = (
   propertyId: Property | string | undefined | null
@@ -353,7 +354,7 @@ const SingleEnquiryContent = () => {
                   <RequirementItem
                     icon={Home}
                     label={t("page_enquiry_detail_plot_type")}
-                    value={enquiry.plotType}
+                    value={getPlotTypeLabel(t, enquiry.plotType, "verbose")}
                   />
                 )}
                 {enquiry.facing && (

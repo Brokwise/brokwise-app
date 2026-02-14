@@ -199,7 +199,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
           rooms: "Number of rooms is required",
           beds: "Please select number of beds",
           propertyStatus: "Please select property status",
-          plotType: "Please select a plot type",
+          plotType: "Please select plot access type (single-side or corner)",
           facing: "Please select front facing direction",
           frontRoadWidth: "Front road width is required",
           sideFacing: "Please select side facing direction",

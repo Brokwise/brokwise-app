@@ -145,7 +145,9 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         "address.pincode",
         "size",
         "sizeUnit",
-        ...(propertyType === "FLAT" || propertyType == "VILLA" ? ["bhk", "washrooms"] : ["plotType"]),
+        ...(propertyType === "FLAT" || propertyType === "VILLA"
+          ? ["bhk", "washrooms"]
+          : ["plotType"]),
         ...(propertyType === "LAND" && plotType
           ? [
             "facing",
@@ -194,7 +196,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
           sizeUnit: "Please select a size unit",
           bhk: "Please select number of BHK",
           washrooms: "Please select number of washrooms",
-          plotType: "Please select a plot type",
+          plotType: "Please select plot access type (single-side or corner)",
           facing: "Please select a front facing direction",
           sideFacing: "Please select a corner facing direction",
           frontRoadWidth: "Front road width is required",

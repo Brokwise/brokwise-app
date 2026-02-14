@@ -47,10 +47,7 @@ export const ResortFeatures: React.FC<ResortFeaturesProps> = ({ form }) => {
                 )}
                 data-field="plotType"
               >
-                {[
-                  { value: "ROAD", label: "Road Facing" },
-                  { value: "CORNER", label: "Corner Plot" },
-                ].map((item) => (
+                {getPlotTypeOptions(t).map((item) => (
                   <Button
                     key={item.value}
                     type="button"
@@ -63,12 +60,14 @@ export const ResortFeatures: React.FC<ResortFeaturesProps> = ({ form }) => {
                       }
                     }}
                     className={cn(
+                      "flex-col items-start h-auto py-2 px-3",
                       field.value === item.value
                         ? "bg-primary text-primary-foreground"
                         : ""
                     )}
                   >
-                    {item.label}
+                    <span className="font-medium">{item.label}</span>
+                    <span className={cn("text-xs", field.value === item.value ? "text-primary-foreground/70" : "text-muted-foreground")}>{item.description}</span>
                   </Button>
                 ))}
               </div>

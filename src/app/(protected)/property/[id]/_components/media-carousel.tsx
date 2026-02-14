@@ -14,6 +14,8 @@ import { ArrowLeft, Maximize2 } from "lucide-react";
 import { Property } from "@/types/property";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getPlotTypeLabel } from "@/lib/plotType";
+import { useTranslation } from "react-i18next";
 
 interface MediaCarouselProps {
     images: string[];
@@ -21,6 +23,7 @@ interface MediaCarouselProps {
 }
 
 export const MediaCarousel = ({ images, property }: MediaCarouselProps) => {
+    const { t } = useTranslation();
     const [isGalleryOpen, setIsGalleryOpen] = React.useState(false);
     const [activeImageIndex, setActiveImageIndex] = React.useState(0);
 
@@ -82,7 +85,7 @@ export const MediaCarousel = ({ images, property }: MediaCarouselProps) => {
                             )}
                             {property.plotType && (
                                 <Badge variant="secondary" className="bg-background/80 hover:bg-background/90 backdrop-blur text-foreground">
-                                    {property.plotType}
+                                    {getPlotTypeLabel(t, property.plotType)}
                                 </Badge>
                             )}
                             {property.frontRoadWidth && (
