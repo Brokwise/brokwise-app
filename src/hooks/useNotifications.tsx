@@ -6,6 +6,7 @@ export interface Notification {
   title: string;
   description: string;
   userId: string;
+  route?: string;
   read: boolean;
   createdAt: string;
   relatedTo:

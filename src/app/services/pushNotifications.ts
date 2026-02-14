@@ -1,6 +1,7 @@
 "use client";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { Capacitor } from "@capacitor/core";
+import { normalizeNotificationRoute } from "@/lib/notificationNavigation";
 
 export class PushNotificationsService {
   static async initalize(userId: string) {
@@ -43,11 +44,10 @@ export class PushNotificationsService {
       (event) => {
         console.log("Push action performed", JSON.stringify(event));
         const data = event.notification.data;
-        if (data && (data as { route?: string }).route) {
-          const route = (data as { route: string }).route;
-          const target = route.startsWith("/") ? route : `/${route}`;
-          window.location.href = target;
-        }
+        const rawRoute = data ? (data as { route?: string }).route : undefined;
+        const target = normalizeNotificationRoute(rawRoute) || "/";
+        // Keep full reload for push-action navigation in Capacitor context.
+        window.location.href = target;
       }
     );
 

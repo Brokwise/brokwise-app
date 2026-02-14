@@ -37,10 +37,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { formatCurrency } from "@/utils/helper";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { resolveNotificationRoute } from "@/lib/notificationNavigation";
 
 export const Notifications = () => {
   const { userData } = useApp();
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const router = useRouter();
 
   const { notificationsData, isLoading: isLoadingNotifications } =
     useNotification();
@@ -115,19 +119,52 @@ export const Notifications = () => {
     (invitations && invitations.length > 0) ||
     (pendingContactRequests && pendingContactRequests.length > 0);
 
-  const handleMarkAsRead = (notification: Notification) => {
+  const markAsRead = (
+    notification: Notification,
+    options?: { showToast?: boolean }
+  ) => {
+    if (notification.read) return;
+    const showToast = options?.showToast ?? true;
+    const previousNotifications = queryClient.getQueryData<Notification[]>([
+      "notifications",
+    ]);
+
+    queryClient.setQueryData<Notification[]>(["notifications"], (current) =>
+      current?.map((item) =>
+        item._id === notification._id ? { ...item, read: true } : item
+      )
+    );
+
     mutate(
       { read: true, _id: notification._id },
       {
         onSuccess: () => {
-          toast.success("Notification marked as read");
+          if (showToast) {
+            toast.success("Notification marked as read");
+          }
           queryClient.invalidateQueries({ queryKey: ["notifications"] });
         },
         onError: () => {
-          toast.error("Failed to mark notification as read");
+          queryClient.setQueryData(["notifications"], previousNotifications);
+          if (showToast) {
+            toast.error("Failed to mark notification as read");
+          }
         },
       }
     );
+  };
+
+  const handleMarkAsRead = (notification: Notification) => {
+    markAsRead(notification, { showToast: true });
+  };
+
+  const handleNotificationTap = (notification: Notification) => {
+    const route = resolveNotificationRoute(notification);
+    if (!notification.read) {
+      markAsRead(notification, { showToast: false });
+    }
+    setSheetOpen(false);
+    router.push(route);
   };
 
   const formatDate = (dateString: string) => {
@@ -308,10 +345,19 @@ export const Notifications = () => {
     isUnread: boolean;
   }) => (
     <Card
+      role="button"
+      tabIndex={0}
+      onClick={() => handleNotificationTap(notification)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleNotificationTap(notification);
+        }
+      }}
       className={`mb-2 sm:mb-3 transition-all duration-200 ${isUnread
         ? "border-primary/20 dark:border-primary/20 bg-blue-50/50 dark:bg-primary/5"
         : "border-primary/20 dark:border-primary/20"
-        }`}
+        } cursor-pointer`}
     >
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-start justify-between gap-2 sm:gap-3">
@@ -330,7 +376,11 @@ export const Notifications = () => {
               </h4>
               {isUnread && (
                 <Button
-                  onClick={() => handleMarkAsRead(notification)}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    handleMarkAsRead(notification);
+                  }}
                   variant="ghost"
                   size="sm"
                   disabled={isPending}
@@ -357,7 +407,7 @@ export const Notifications = () => {
   );
 
   return (
-    <Sheet>
+    <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
       <SheetTrigger asChild>
         <Button variant="outline" size="icon" className="relative">
           <Bell className="w-4 h-4" />
