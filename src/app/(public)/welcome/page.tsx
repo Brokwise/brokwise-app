@@ -38,8 +38,8 @@ const WelcomeScreenContent = () => {
   }, [mounted]);
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden flex flex-col items-center justify-end pb-10">
-      <div className="absolute inset-0 z-0">
+    <div className="relative min-h-[100svh] w-full overflow-hidden flex flex-col items-center justify-end pb-10">
+      <div className="fixed inset-0 z-0">
         <Image
           src="/images/login.jpg"
           alt="Background"
@@ -140,7 +140,7 @@ const WelcomeScreenContent = () => {
 };
 
 const WelcomeScreenFallback = () => (
-  <div className="h-dvh w-full bg-black" />
+  <div className="h-[100svh] w-full bg-black" />
 );
 
 export default function WelcomeScreen() {
