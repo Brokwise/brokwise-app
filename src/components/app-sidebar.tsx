@@ -62,6 +62,7 @@ import {
   opensInNewTab,
   resolveResourceIcon,
 } from "@/lib/resourceCatalog";
+import { LEGAL_DOC_LINKS } from "@/constants/legal";
 
 type SidebarNavSubItem = {
   title: string;
@@ -448,18 +449,31 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <div className="px-4 py-3 group-data-[collapsible=icon]:hidden">
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <Link
-              href="/privacy-policy"
+              href={LEGAL_DOC_LINKS.masterTerms}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={handleMenuClick}
               className="hover:text-sidebar-foreground transition-colors"
             >
-              {t("label_privacy")}
+              Master Platform Terms
             </Link>
             <Link
-              href="/terms-and-conditions"
+              href={LEGAL_DOC_LINKS.brokerTerms}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={handleMenuClick}
               className="hover:text-sidebar-foreground transition-colors"
             >
-              {t("label_terms")}
+              Terms of Use for Brokers
+            </Link>
+            <Link
+              href={LEGAL_DOC_LINKS.privacyPolicy}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleMenuClick}
+              className="hover:text-sidebar-foreground transition-colors"
+            >
+              Privacy Policy
             </Link>
           </div>
           <p className="text-[10px] text-muted-foreground/60 mt-1">
