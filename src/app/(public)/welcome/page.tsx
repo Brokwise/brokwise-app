@@ -39,7 +39,10 @@ const WelcomeScreenContent = () => {
 
   return (
     <div className="relative min-h-[100svh] w-full overflow-hidden flex flex-col items-center justify-end pb-10">
-      <div className="fixed inset-0 z-0">
+      <div
+        className="fixed inset-x-0 bottom-0 z-0"
+        style={{ top: "calc(env(safe-area-inset-top, 0px) * -1)" }}
+      >
         <Image
           src="/images/login.jpg"
           alt="Background"
@@ -77,7 +80,7 @@ const WelcomeScreenContent = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-full bg-black/30 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 hover:text-white"
+            className="hidden sm:inline-flex h-8 w-8 rounded-full bg-black/30 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 hover:text-white"
             onClick={() => setTheme(resolvedTheme === "light" ? "dark" : "light")}
           >
             {resolvedTheme === "light" ? (
