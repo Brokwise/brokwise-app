@@ -68,45 +68,35 @@ const GoogleOauthPage = () => {
       accountType: "broker" | "company" = "broker",
       shouldProvision = false
     ) => {
-      try {
-        const userDocRef = getUserDoc(user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          return;
-        }
+      const userDocRef = getUserDoc(user.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        return;
+      }
 
-        if (!shouldProvision) {
-          await firebaseAuth.signOut();
-          throw new Error("ACCOUNT_NOT_FOUND_FOR_GOOGLE_LOGIN");
-        }
+      if (!shouldProvision) {
+        await firebaseAuth.signOut();
+        throw new Error("ACCOUNT_NOT_FOUND_FOR_GOOGLE_LOGIN");
+      }
 
-        if (accountType !== "company") {
-          await createUser({
-            email: user.email ?? "",
-            uid: user.uid ?? "",
-            legalConsents: buildAcceptedLegalConsents("signup"),
-          });
-        }
-
-        await setUserDoc(userDocRef, {
-          uid: user.uid ?? "",
-          firstName: user.displayName ?? "",
-          lastName: "",
+      if (accountType !== "company") {
+        await createUser({
           email: user.email ?? "",
-          userType: accountType ?? "broker",
+          uid: user.uid ?? "",
+          legalConsents: buildAcceptedLegalConsents("signup"),
         });
+      }
 
-        if (accountType === "company") {
-          localStorage.setItem("userType", "company");
-        }
-      } catch (error) {
-        console.log(error);
-        logError({
-          error: error as Error,
-          slackChannel: "frontend-errors",
-          description: "Failed to create user in db",
-        });
-        toast.error("Failed to create user in db");
+      await setUserDoc(userDocRef, {
+        uid: user.uid ?? "",
+        firstName: user.displayName ?? "",
+        lastName: "",
+        email: user.email ?? "",
+        userType: accountType ?? "broker",
+      });
+
+      if (accountType === "company") {
+        localStorage.setItem("userType", "company");
       }
     },
     []
@@ -167,12 +157,14 @@ const GoogleOauthPage = () => {
           toast.error(
             "An account already exists with this email. Please sign in with email/password instead."
           );
-        } else if (firebaseError.message === "ACCOUNT_NOT_FOUND_FOR_GOOGLE_LOGIN") {
-          toast.error("No account found. Please sign up first.");
+        } else if (
+          firebaseError.message === "ACCOUNT_NOT_FOUND_FOR_GOOGLE_LOGIN"
+        ) {
+          throw error;
         } else if (firebaseError.code === "auth/invalid-credential") {
           toast.error("Invalid credentials. Please try again.");
         } else {
-          toast.error("Failed to verify Google user. Please try again.");
+          toast.error("Failed to create user in db");
         }
         throw error; // Re-throw to be caught by the caller
       }
@@ -277,7 +269,29 @@ const GoogleOauthPage = () => {
         return;
       }
 
-      await verifyGoogleUser(accessToken, accountType, authMode === "signup");
+      try {
+        await verifyGoogleUser(accessToken, accountType, authMode === "signup");
+      } catch (error) {
+        if (
+          authMode === "login" &&
+          error instanceof Error &&
+          error.message === "ACCOUNT_NOT_FOUND_FOR_GOOGLE_LOGIN"
+        ) {
+          const signupUrl =
+            target && target !== "/"
+              ? `/create-account?target=${encodeURIComponent(target)}`
+              : "/create-account";
+          toast.error("No account exists. Please sign up.");
+          redirectUser({
+            isDesktopApp: shouldOpenNativeApp,
+            target: signupUrl,
+            url: signupUrl,
+            delay: 0,
+          });
+          return;
+        }
+        throw error;
+      }
 
       // Clear forgot password rate limit state on successful login
       localStorage.removeItem("brokwise_password_reset_attempts");

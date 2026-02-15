@@ -140,7 +140,7 @@ const WelcomeScreenContent = () => {
             rel="noopener noreferrer"
             className="underline underline-offset-2"
           >
-            Master Platform Terms
+            Platform Terms
           </a>
           {", "}
           <a

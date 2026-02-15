@@ -53,7 +53,7 @@
   "legal_accept_required_error": "Please accept all required legal terms to continue.",
   "legal_gate_title": "Legal Acceptance Required",
   "legal_gate_description": "To continue using Brokwise, please review and accept the latest legal documents.",
-  "legal_accept_terms_label": "I agree to the <masterTerms>Master Platform Terms</masterTerms> and <brokerTerms>Terms of Use for Brokers</brokerTerms>.",
+  "legal_accept_terms_label": "I agree to the <masterTerms>Platform Terms</masterTerms> and <brokerTerms>Terms of Use for Brokers</brokerTerms>.",
   "legal_accept_privacy_label": "I agree to the <privacyPolicy>Privacy Policy</privacyPolicy> and consent to personal data processing.",
   "legal_save_success": "Legal consent saved.",
   "legal_save_failed": "Failed to save legal consent. Please try again.",

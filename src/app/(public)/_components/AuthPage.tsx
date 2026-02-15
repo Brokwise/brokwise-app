@@ -1055,7 +1055,7 @@ export default function AuthPage({
               {mode === "signup"
                 ? "By creating your account, you agree to our "
                 : "By continuing, you agree to our "}
-              <a href={LEGAL_DOC_LINKS.masterTerms} target="_blank" rel="noopener noreferrer" className="text-primary/80 hover:text-primary hover:underline">Master Platform Terms</a>
+              <a href={LEGAL_DOC_LINKS.masterTerms} target="_blank" rel="noopener noreferrer" className="text-primary/80 hover:text-primary hover:underline">Platform Terms</a>
               {", "}
               <a href={LEGAL_DOC_LINKS.brokerTerms} target="_blank" rel="noopener noreferrer" className="text-primary/80 hover:text-primary hover:underline">Terms of Use for Brokers</a>
               {", and "}
