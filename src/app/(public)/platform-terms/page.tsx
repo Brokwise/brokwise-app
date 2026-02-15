@@ -69,7 +69,7 @@ export default function PlatformTermsPage() {
                   </h3>
                 ),
                 p: ({ children }) => (
-                  <p className="text-slate-600 leading-relaxed mb-4">
+                  <p className="text-slate-600 leading-relaxed mb-4 text-justify">
                     {children}
                   </p>
                 ),
@@ -79,7 +79,7 @@ export default function PlatformTermsPage() {
                   </ul>
                 ),
                 li: ({ children }) => (
-                  <li className="text-slate-600 leading-relaxed">{children}</li>
+                  <li className="text-slate-600 leading-relaxed text-justify">{children}</li>
                 ),
                 strong: ({ children }) => (
                   <strong className="text-slate-800 font-semibold">

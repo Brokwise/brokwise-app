@@ -76,13 +76,13 @@ export default function TermsAndConditionsPage() {
                                     <h3 className="text-lg font-semibold text-slate-800 mt-6 mb-3">{children}</h3>
                                 ),
                                 p: ({ children }) => (
-                                    <p className="text-slate-600 leading-relaxed mb-4">{children}</p>
+                                    <p className="text-slate-600 leading-relaxed mb-4 text-justify">{children}</p>
                                 ),
                                 ul: ({ children }) => (
                                     <ul className="list-disc list-inside text-slate-600 space-y-2 mb-4 ml-2">{children}</ul>
                                 ),
                                 li: ({ children }) => (
-                                    <li className="text-slate-600 leading-relaxed">{children}</li>
+                                    <li className="text-slate-600 leading-relaxed text-justify">{children}</li>
                                 ),
                                 strong: ({ children }) => (
                                     <strong className="text-slate-800 font-semibold">{children}</strong>

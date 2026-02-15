@@ -4,15 +4,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  coerceStringArray,
-} from "@/utils/helper";
+  AmenitiesSelector,
+  AmenityOption,
+} from "@/components/property/amenities-selector";
+import { coerceStringArray } from "@/utils/helper";
 import { DirectionCompassField } from "@/components/property/direction-compass-field";
 import { RoadWidthField } from "@/components/property/road-width-field";
 import { getPlotTypeOptions } from "@/lib/plotType";
@@ -22,6 +22,19 @@ interface ResortFeaturesProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: any;
 }
+
+const RESORT_AMENITIES: AmenityOption[] = [
+  { label: "Swimming Pool" },
+  { label: "Free High-Speed Wi-Fi" },
+  { label: "Complimentary Breakfast" },
+  { label: "Multi-Cuisine Restaurant" },
+  { label: "Air-Conditioned Rooms" },
+  { label: "Free Parking" },
+  { label: "24-Hour Room Service" },
+  { label: "Bonfire & Music Night" },
+  { label: "Indoor & Outdoor Games" },
+  { label: "Spa & Wellness Center" },
+];
 
 export const ResortFeatures: React.FC<ResortFeaturesProps> = ({ form }) => {
   const { t } = useTranslation();
@@ -189,29 +202,12 @@ export const ResortFeatures: React.FC<ResortFeaturesProps> = ({ form }) => {
           control={form.control}
           name="amenities"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Resort Amenities</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="List amenities separated by commas (e.g., Swimming Pool, Spa, Restaurant, Conference Hall, Garden, Parking, Room Service, Adventure Sports, Nature Trails, Banquet Hall, Kids Play Area, Gym, Wi-Fi, 24/7 Security)"
-                  className="min-h-[100px]"
-                  {...field}
-                  value={coerceStringArray(field.value).join(", ")}
-                  onChange={(e) =>
-                    field.onChange(
-                      e.target.value
-                        .split(",")
-                        .map((item) => item.trim())
-                        .filter(Boolean)
-                    )
-                  }
-                />
-              </FormControl>
-              <FormDescription>
-                Enter amenities separated by commas
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
+            <AmenitiesSelector
+              value={coerceStringArray(field.value)}
+              onChange={field.onChange}
+              options={RESORT_AMENITIES}
+              label="Resort Amenities"
+            />
           )}
         />
       </div>

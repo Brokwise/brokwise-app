@@ -229,9 +229,7 @@ export const AgriculturalMedia: React.FC<AgriculturalMediaProps> = ({
           name="images"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Images <span className="text-destructive">*</span>
-              </FormLabel>
+              <FormLabel>Images (Optional)</FormLabel>
               <FormControl>
                 <div className="space-y-4">
                   {!field.value || field.value.length === 0 ? (

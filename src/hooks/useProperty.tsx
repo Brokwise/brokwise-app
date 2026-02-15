@@ -115,7 +115,7 @@ export const useGetAllProperties = (
       params.set("userCity", filters.userCity);
     }
     if (filters.featured !== undefined) {
-      params.set("featured", String(filters.featured));
+      params.set("isFeatured", String(filters.featured));
     }
 
     return params.toString();
