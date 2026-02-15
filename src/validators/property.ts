@@ -14,13 +14,21 @@ const geoLocationSchema = z.object({
 
 const rentalIncomeSchema = z
   .object({
-    min: z.number().min(0),
-    max: z.number().min(0),
+    min: z.number().min(0).optional(),
+    max: z.number().min(0).optional(),
   })
-  .refine((data) => data.max >= data.min, {
-    message: "Maximum rental income must be >= minimum",
-    path: ["max"],
-  });
+  .refine(
+    (data) => {
+      if (typeof data.min === "number" && typeof data.max === "number") {
+        return data.max >= data.min;
+      }
+      return true;
+    },
+    {
+      message: "Maximum rental income must be >= minimum",
+      path: ["max"],
+    }
+  );
 
 const SizeUnitEnum = z.enum([
   "SQ_FT",

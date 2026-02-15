@@ -36,8 +36,8 @@ export interface SizeRange {
 }
 
 export interface RentalIncomeRange {
-  min: number;
-  max: number;
+  min?: number;
+  max?: number;
 }
 
 // === MAIN ENQUIRY INTERFACE ===

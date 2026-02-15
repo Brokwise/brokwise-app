@@ -265,7 +265,8 @@ export const EnquiryCard = ({
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground">
               <IndianRupee className="h-3.5 w-3.5" />
               <span className="font-medium text-xs">
-                {formatCurrencyEnquiry(enquiry.rentalIncome.min)} - {formatCurrencyEnquiry(enquiry.rentalIncome.max)} rent
+                {formatCurrencyEnquiry(enquiry.rentalIncome.min || 0)} -{" "}
+                {formatCurrencyEnquiry(enquiry.rentalIncome.max || 0)} rent
               </span>
             </div>
           )}

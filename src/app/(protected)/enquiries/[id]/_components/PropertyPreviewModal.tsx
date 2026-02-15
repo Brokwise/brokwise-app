@@ -408,7 +408,11 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
                             {property.rentalIncome && (
                               <DetailRow
                                 label="Rental Income"
-                                value={`₹${property.rentalIncome.min.toLocaleString("en-IN")} - ₹${property.rentalIncome.max.toLocaleString("en-IN")}`}
+                                value={`₹${(
+                                  property.rentalIncome.min || 0
+                                ).toLocaleString("en-IN")} - ₹${(
+                                  property.rentalIncome.max || 0
+                                ).toLocaleString("en-IN")}`}
                               />
                             )}
                           </div>

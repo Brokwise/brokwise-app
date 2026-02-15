@@ -81,8 +81,8 @@ export interface Address {
 }
 
 export interface RentalIncome {
-  min: number;
-  max: number;
+  min?: number;
+  max?: number;
 }
 
 //  Main Property Interface

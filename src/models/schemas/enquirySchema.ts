@@ -77,13 +77,21 @@ const optionalSizeRangeSchema = z.preprocess((val) => {
 
 const rentalIncomeRangeSchema = z
   .object({
-    min: z.number().min(0),
-    max: z.number().min(0),
+    min: z.number().min(0).optional(),
+    max: z.number().min(0).optional(),
   })
-  .refine((data) => data.max >= data.min, {
-    message: "Max income must be greater than or equal to min income",
-    path: ["max"],
-  });
+  .refine(
+    (data) => {
+      if (typeof data.min === "number" && typeof data.max === "number") {
+        return data.max >= data.min;
+      }
+      return true;
+    },
+    {
+      message: "Max income must be greater than or equal to min income",
+      path: ["max"],
+    }
+  );
 
 // Preferred location schema for form
 const preferredLocationFormSchema = z.object({

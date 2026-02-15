@@ -107,9 +107,16 @@ export const PropertyFacts = ({ property }: PropertyFactsProps) => {
         },
         {
             label: t("property_rental_income"),
-            value: property.rentalIncome ? `${formatCurrency(property.rentalIncome.min)} - ${formatCurrency(property.rentalIncome.max)}` : null,
+            value: property.rentalIncome
+                ? `${formatCurrency(property.rentalIncome.min || 0)} - ${formatCurrency(
+                    property.rentalIncome.max || 0
+                )}`
+                : null,
             icon: IndianRupee,
-            show: !!property.rentalIncome
+            show:
+                !!property.rentalIncome &&
+                ((property.rentalIncome.min || 0) > 0 ||
+                    (property.rentalIncome.max || 0) > 0),
         }
     ];
 

@@ -76,6 +76,10 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         address: "",
         pincode: "",
       },
+      rentalIncome: {
+        min: 0,
+        max: 0,
+      },
       rate: 0,
       totalPrice: 0,
       description: "",

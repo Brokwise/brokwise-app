@@ -211,14 +211,20 @@ export const PropertyDetails = ({
                 </span></span>
               </div>
             )}
-            {property.rentalIncome && (property.rentalIncome.min > 0 || property.rentalIncome.max > 0) && (
-              <div className="flex items-center gap-1 text-muted-foreground truncate">
-                <IndianRupee className="h-2.5 w-2.5 text-accent/70 shrink-0" />
-                <span className="truncate">Rent: <span className="text-foreground font-medium">
-                  {formatCurrency(property.rentalIncome.min)}-{formatCurrency(property.rentalIncome.max)}
-                </span></span>
-              </div>
-            )}
+            {property.rentalIncome &&
+              ((property.rentalIncome.min || 0) > 0 ||
+                (property.rentalIncome.max || 0) > 0) && (
+                <div className="flex items-center gap-1 text-muted-foreground truncate">
+                  <IndianRupee className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+                  <span className="truncate">
+                    Rent:{" "}
+                    <span className="text-foreground font-medium">
+                      {formatCurrency(property.rentalIncome.min || 0)}-
+                      {formatCurrency(property.rentalIncome.max || 0)}
+                    </span>
+                  </span>
+                </div>
+              )}
           </div>
 
           {/* Amenities - Inline compact */}

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Script from "next/script";
 import { useGetCurrentSubscription, usePurchaseActivation, useLinkRazorpaySubscription } from "@/hooks/useSubscription";
 import { useApp } from "@/context/AppContext";
@@ -14,14 +14,19 @@ import {
   Check,
   CreditCard,
   Loader2,
+  LogOut,
+  ArrowLeftRight,
+  ChevronLeft
 } from "lucide-react";
 import { TIER } from "@/models/types/subscription";
 import { ACTIVATION_PLANS, ACTIVATION_TIER_INFO, getActivationPlan } from "@/config/tier_limits";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { useSignOut } from "react-firebase-hooks/auth";
+import { firebaseAuth } from "@/config/firebase";
 
 const tierIcons: Record<TIER, React.ReactNode> = {
   BASIC: <Zap className="h-6 w-6" />,
@@ -53,6 +58,8 @@ export const ActivationPendingGate = ({
   const { purchaseActivation, isPending: purchasePending } = usePurchaseActivation();
   const { linkRazorpaySubscription, isPending: verifyPending } = useLinkRazorpaySubscription();
   const { setBrokerData } = useApp();
+  const [signOut] = useSignOut(firebaseAuth);
+  const [isSwitchingPlan, setIsSwitchingPlan] = useState(false);
 
   // Still loading subscription data — show spinner
   if (isLoading) {
@@ -84,17 +91,26 @@ export const ActivationPendingGate = ({
   }
 
   // ── Activation payment is pending — show payment screen ────────────────────
-  const tier = subscription.tier;
-  const plan = ACTIVATION_PLANS[tier];
-  const info = ACTIVATION_TIER_INFO[tier];
+  const currentTier = subscription.tier;
+  const plan = ACTIVATION_PLANS[currentTier];
+  const info = ACTIVATION_TIER_INFO[currentTier];
   const isProcessing = purchasePending || verifyPending;
 
-  const handleRetryPayment = async () => {
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Logged out successfully");
+    } catch {
+      toast.error("Failed to logout");
+    }
+  };
+
+  const processPayment = async (selectedTier: TIER) => {
     if (!brokerData) return;
 
     try {
-      const activationPlan = getActivationPlan(tier);
-      const result = await purchaseActivation({ tier, razorpayPlanId: activationPlan.planId });
+      const activationPlan = getActivationPlan(selectedTier);
+      const result = await purchaseActivation({ tier: selectedTier, razorpayPlanId: activationPlan.planId });
       const { subscriptionId, keyId } = result.razorpay;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,7 +118,7 @@ export const ActivationPendingGate = ({
         key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         subscription_id: subscriptionId,
         name: "Brokwise",
-        description: `${tier} Activation Pack`,
+        description: `${selectedTier} Activation Pack`,
         prefill: {
           name: `${brokerData.firstName} ${brokerData.lastName}`,
           email: brokerData.email,
@@ -145,10 +161,118 @@ export const ActivationPendingGate = ({
     }
   };
 
+  const handleRetryPayment = () => processPayment(currentTier);
+
+  const handleSelectPlan = (tier: TIER) => {
+    processPayment(tier);
+  };
+
+  if (isSwitchingPlan) {
+    return (
+      <div className="h-screen w-full overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4">
+        <div className="max-w-5xl mx-auto space-y-8 py-8">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              onClick={() => setIsSwitchingPlan(false)}
+              className="gap-2"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Back to Payment
+            </Button>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+              Select Activation Plan
+            </h1>
+            <div className="w-24" /> {/* Spacer for centering */}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {(Object.keys(ACTIVATION_PLANS) as TIER[]).map((tierKey) => {
+              const planConfig = ACTIVATION_PLANS[tierKey];
+              const tierInfo = ACTIVATION_TIER_INFO[tierKey];
+              const isCurrentPlan = tierKey === currentTier;
+
+              return (
+                <Card
+                  key={tierKey}
+                  className={cn(
+                    "flex flex-col relative overflow-hidden transition-all duration-200 hover:shadow-lg",
+                    isCurrentPlan ? "border-primary ring-1 ring-primary" : "border-slate-200 dark:border-slate-800"
+                  )}
+                >
+                  {tierInfo.recommended && (
+                    <div className="absolute top-0 right-0">
+                      <div className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-bl-lg">
+                        RECOMMENDED
+                      </div>
+                    </div>
+                  )}
+
+                  <CardHeader>
+                    <div className={cn(
+                      "w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-r text-white mb-4",
+                      tierColors[tierKey]
+                    )}>
+                      {tierIcons[tierKey]}
+                    </div>
+                    <CardTitle className="flex items-baseline justify-between">
+                      <span>{tierInfo.name}</span>
+                      <span className="text-2xl font-bold">₹{planConfig.displayAmount}</span>
+                    </CardTitle>
+                    <CardDescription>{tierInfo.description}</CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="flex-1">
+                    <ul className="space-y-3">
+                      {tierInfo.features.map((feature, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
+                          <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+
+                  <CardFooter>
+                    <Button
+                      className="w-full"
+                      variant={isCurrentPlan ? "outline" : "default"}
+                      onClick={() => handleSelectPlan(tierKey)}
+                      disabled={isProcessing}
+                    >
+                      {isProcessing ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        isCurrentPlan ? "Pay for this Plan" : "Select & Pay"
+                      )}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       <div className="h-screen w-full overflow-y-auto bg-slate-50 dark:bg-slate-950">
+        {/* Top Bar with Logout */}
+        <div className="absolute top-4 right-4 z-10">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
+        </div>
+
         <div className="flex min-h-full items-center justify-center p-4">
           <div className="w-full max-w-lg space-y-8">
             {/* Header */}
@@ -156,10 +280,10 @@ export const ActivationPendingGate = ({
               <div
                 className={cn(
                   "w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-gradient-to-r text-white shadow-lg",
-                  tierColors[tier]
+                  tierColors[currentTier]
                 )}
               >
-                {tierIcons[tier]}
+                {tierIcons[currentTier]}
               </div>
               <div className="space-y-2">
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
@@ -180,10 +304,10 @@ export const ActivationPendingGate = ({
                     <div
                       className={cn(
                         "w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r text-white",
-                        tierColors[tier]
+                        tierColors[currentTier]
                       )}
                     >
-                      {React.cloneElement(tierIcons[tier] as React.ReactElement, {
+                      {React.cloneElement(tierIcons[currentTier] as React.ReactElement, {
                         className: "h-4 w-4",
                       })}
                     </div>
@@ -243,6 +367,17 @@ export const ActivationPendingGate = ({
                     Pay ₹{plan.displayAmount} to Activate
                   </>
                 )}
+              </Button>
+
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full h-12 text-base"
+                onClick={() => setIsSwitchingPlan(true)}
+                disabled={isProcessing}
+              >
+                <ArrowLeftRight className="mr-2 h-4 w-4" />
+                Switch Activation Plan
               </Button>
 
               <p className="text-center text-xs text-slate-400">
