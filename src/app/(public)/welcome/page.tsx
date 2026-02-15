@@ -38,8 +38,8 @@ const WelcomeScreenContent = () => {
   }, [mounted]);
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden flex flex-col items-center justify-end pb-10">
-      <div className="absolute inset-0 z-0">
+    <div className="relative min-h-[100svh] w-full overflow-hidden flex flex-col items-center justify-end pb-10 bg-[#0a2f61]">
+      <div className="fixed inset-0 z-0">
         <Image
           src="/images/login.jpg"
           alt="Background"
@@ -77,7 +77,7 @@ const WelcomeScreenContent = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-full bg-black/30 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 hover:text-white"
+            className="hidden sm:inline-flex h-8 w-8 rounded-full bg-black/30 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 hover:text-white"
             onClick={() => setTheme(resolvedTheme === "light" ? "dark" : "light")}
           >
             {resolvedTheme === "light" ? (
@@ -140,7 +140,7 @@ const WelcomeScreenContent = () => {
 };
 
 const WelcomeScreenFallback = () => (
-  <div className="h-dvh w-full bg-black" />
+  <div className="h-[100svh] w-full bg-[#0a2f61]" />
 );
 
 export default function WelcomeScreen() {
