@@ -38,11 +38,8 @@ const WelcomeScreenContent = () => {
   }, [mounted]);
 
   return (
-    <div className="relative min-h-[100svh] w-full overflow-hidden flex flex-col items-center justify-end pb-10">
-      <div
-        className="fixed inset-x-0 bottom-0 z-0"
-        style={{ top: "calc(env(safe-area-inset-top, 0px) * -1)" }}
-      >
+    <div className="relative min-h-[100svh] w-full overflow-hidden flex flex-col items-center justify-end pb-10 bg-[#0a2f61]">
+      <div className="fixed inset-0 z-0">
         <Image
           src="/images/login.jpg"
           alt="Background"
@@ -143,7 +140,7 @@ const WelcomeScreenContent = () => {
 };
 
 const WelcomeScreenFallback = () => (
-  <div className="h-[100svh] w-full bg-black" />
+  <div className="h-[100svh] w-full bg-[#0a2f61]" />
 );
 
 export default function WelcomeScreen() {
