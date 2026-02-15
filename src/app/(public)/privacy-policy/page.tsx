@@ -73,7 +73,7 @@ export default function PrivacyPolicyPage() {
                                     <ul className="list-disc list-inside text-slate-600 space-y-2 mb-4 ml-2">{children}</ul>
                                 ),
                                 li: ({ children }) => (
-                                    <li className="text-slate-600 leading-relaxed text-justify">{children}</li>
+                                    <li className="text-slate-600 leading-relaxed text-justify [&>p]:inline [&>p]:m-0">{children}</li>
                                 ),
                                 strong: ({ children }) => (
                                     <strong className="text-slate-800 font-semibold">{children}</strong>
