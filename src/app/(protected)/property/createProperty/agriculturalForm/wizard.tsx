@@ -140,7 +140,7 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
         ...(plotType === "CORNER" ? ["sideFacing", "sideRoadWidth"] : []),
         "rate",
       ],
-      1: ["description", "featuredMedia", "images", "floorPlans"],
+      1: ["description", "featuredMedia", "floorPlans"],
       2: [], // Review step
     };
 
@@ -183,7 +183,6 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
           rate: "Rate per unit is required",
           description: "Description is required",
           featuredMedia: "Featured media is required",
-          images: "At least one image is required",
           floorPlans: "At least one layout plan/site plan/map is mandatory",
         };
 

@@ -106,6 +106,7 @@ export const FarmhousePropertySpecs: React.FC<FarmhousePropertySpecsProps> = ({
                     { value: "ACRES", label: "Acres" },
                     { value: "HECTARE", label: "Hectare" },
                     { value: "BIGHA", label: "Bigha" },
+                    { value: "GAJ", label: "Gaj" },
                     { value: "SQ_FT", label: "Square Feet" },
                     { value: "SQ_METER", label: "Square Meter" },
                     { value: "SQ_YARDS", label: "Square Yards" },
