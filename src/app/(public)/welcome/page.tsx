@@ -11,6 +11,7 @@ import { Sun, Moon } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { useSearchParams } from "next/navigation";
+import { LEGAL_DOC_LINKS } from "@/constants/legal";
 
 const WelcomeScreenContent = () => {
   const { t, i18n } = useTranslation();
@@ -132,7 +133,34 @@ const WelcomeScreenContent = () => {
         </div>
 
         <p className="text-white/60 text-xs mt-4">
-          By continuing, you agree to our Terms of Service and Privacy Policy.
+          By continuing, you agree to our{" "}
+          <a
+            href={LEGAL_DOC_LINKS.masterTerms}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2"
+          >
+            Master Platform Terms
+          </a>
+          {", "}
+          <a
+            href={LEGAL_DOC_LINKS.brokerTerms}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2"
+          >
+            Terms of Use for Brokers
+          </a>
+          {", and "}
+          <a
+            href={LEGAL_DOC_LINKS.privacyPolicy}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2"
+          >
+            Privacy Policy
+          </a>
+          .
         </p>
       </div>
     </div>

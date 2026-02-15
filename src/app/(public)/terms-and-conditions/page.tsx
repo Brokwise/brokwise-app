@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
+import { LEGAL_DOC_LINKS } from "@/constants/legal";
 
 export default function TermsAndConditionsPage() {
     const [content, setContent] = useState<string>("");
@@ -32,6 +33,26 @@ export default function TermsAndConditionsPage() {
                     <div>
                         <h1 className="text-xl font-semibold text-slate-900">Terms and Conditions</h1>
                         <p className="text-sm text-slate-500">Brokwise Private Limited</p>
+                        <p className="text-xs text-slate-500 mt-1">
+                            Canonical PDFs:{" "}
+                            <a
+                                href={LEGAL_DOC_LINKS.masterTerms}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-teal-600 hover:underline"
+                            >
+                                Master Platform Terms
+                            </a>
+                            {" · "}
+                            <a
+                                href={LEGAL_DOC_LINKS.brokerTerms}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-teal-600 hover:underline"
+                            >
+                                Broker Terms
+                            </a>
+                        </p>
                     </div>
                 </div>
             </header>
@@ -87,9 +108,11 @@ export default function TermsAndConditionsPage() {
                 <div className="max-w-4xl mx-auto px-4 text-center">
                     <p className="text-sm text-slate-500">© {new Date().getFullYear()} Brokwise Private Limited</p>
                     <div className="flex justify-center gap-4 mt-3">
-                        <Link href="/terms-and-conditions" className="text-sm text-teal-600 font-medium">Terms & Conditions</Link>
+                        <a href={LEGAL_DOC_LINKS.masterTerms} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-600 font-medium">Master Platform Terms</a>
                         <span className="text-slate-300">|</span>
-                        <Link href="/privacy-policy" className="text-sm text-teal-600 hover:underline">Privacy Policy</Link>
+                        <a href={LEGAL_DOC_LINKS.brokerTerms} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-600 hover:underline">Terms of Use for Brokers</a>
+                        <span className="text-slate-300">|</span>
+                        <a href={LEGAL_DOC_LINKS.privacyPolicy} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-600 hover:underline">Privacy Policy</a>
                     </div>
                 </div>
             </footer>

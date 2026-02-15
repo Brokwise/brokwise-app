@@ -11,6 +11,7 @@ import {
   UpdateProfileDetailsResponse,
 } from "../types/user";
 import { ApiFunction } from "../types";
+import type { LegalConsentsPayload } from "@/constants/legal";
 
 // Check if a user (broker or company) exists by email (unprotected endpoint)
 export const checkUserExistsByEmail = async (
@@ -31,15 +32,28 @@ export const checkUserExistsByEmail = async (
 export const createUser: ApiFunction<
   CreateUserResponse,
   CreateUserRequest
-> = async ({ email, uid }) => {
+> = async ({ email, uid, legalConsents }) => {
   return await customFetch({
     method: "POST",
     path: "/broker/create",
     body: {
       email,
       uid,
+      legalConsents,
     },
     isProtected: false,
+  });
+};
+
+export const submitLegalConsents: ApiFunction<
+  { success: boolean; data: { legalConsents: LegalConsentsPayload } },
+  { legalConsents: LegalConsentsPayload }
+> = async ({ legalConsents }) => {
+  return await customFetch({
+    method: "POST",
+    path: "/broker/legal-consent",
+    body: { legalConsents },
+    isProtected: true,
   });
 };
 export const submitUserDetails: ApiFunction<

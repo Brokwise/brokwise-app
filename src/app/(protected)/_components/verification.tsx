@@ -13,6 +13,7 @@ import { getDoc } from "firebase/firestore";
 // import ilumierLogoDark from "@/assets/logo/ilumierDark.png";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
+import { buildAcceptedLegalConsents } from "@/constants/legal";
 
 export const Verification = () => {
   const [user] = useAuthState(firebaseAuth);
@@ -37,6 +38,7 @@ export const Verification = () => {
             await createUser({
               email: user.email ?? "",
               uid: user.uid ?? "",
+              legalConsents: buildAcceptedLegalConsents("signup"),
             });
 
             await setUserDoc(userDocRef, {

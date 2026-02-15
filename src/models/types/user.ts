@@ -1,8 +1,10 @@
 import { Company } from "./company";
+import type { LegalConsentsPayload } from "@/constants/legal";
 
 export type CreateUserRequest = {
   email: string;
   uid: string;
+  legalConsents: LegalConsentsPayload;
 };
 export type CreateUserResponse = Record<PropertyKey, never>;
 export type AddUserMetadataRequest = {
@@ -78,6 +80,7 @@ export type GetBrokerDetailsResponse = {
     recentSearches?: string[];
     bookmarkedPropertyIds?: string[];
     bookmarkedEnquiryIds?: string[];
+    legalConsents?: LegalConsentsPayload;
     createdAt: string;
     brokerId: string;
     profilePhoto?: string;
