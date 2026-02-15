@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ShieldCheck } from "lucide-react";
@@ -67,32 +66,32 @@ export const LegalConsentGate = () => {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-          <Link
+          <a
             href={LEGAL_DOC_LINKS.masterTerms}
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:underline"
           >
             Master Platform Terms
-          </Link>
+          </a>
           <Separator orientation="vertical" className="h-4" />
-          <Link
+          <a
             href={LEGAL_DOC_LINKS.brokerTerms}
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:underline"
           >
             Terms of Use for Brokers
-          </Link>
+          </a>
           <Separator orientation="vertical" className="h-4" />
-          <Link
+          <a
             href={LEGAL_DOC_LINKS.privacyPolicy}
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:underline"
           >
             Privacy Policy
-          </Link>
+          </a>
         </div>
 
         <div className="mt-5 space-y-3">
@@ -111,7 +110,7 @@ export const LegalConsentGate = () => {
                 i18nKey="legal_accept_terms_label"
                 components={{
                   masterTerms: (
-                    <Link
+                    <a
                       href={LEGAL_DOC_LINKS.masterTerms}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -119,7 +118,7 @@ export const LegalConsentGate = () => {
                     />
                   ),
                   brokerTerms: (
-                    <Link
+                    <a
                       href={LEGAL_DOC_LINKS.brokerTerms}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -146,7 +145,7 @@ export const LegalConsentGate = () => {
                 i18nKey="legal_accept_privacy_label"
                 components={{
                   privacyPolicy: (
-                    <Link
+                    <a
                       href={LEGAL_DOC_LINKS.privacyPolicy}
                       target="_blank"
                       rel="noopener noreferrer"

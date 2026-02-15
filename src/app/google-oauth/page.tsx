@@ -15,6 +15,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { logError } from "@/utils/errors";
 import { Capacitor } from "@capacitor/core";
+import { buildAcceptedLegalConsents } from "@/constants/legal";
 
 const GoogleOauthPage = () => {
   const defaultMessage = "Authenticating with google";
@@ -83,6 +84,7 @@ const GoogleOauthPage = () => {
           await createUser({
             email: user.email ?? "",
             uid: user.uid ?? "",
+            legalConsents: buildAcceptedLegalConsents("signup"),
           });
         }
 
@@ -202,6 +204,7 @@ const GoogleOauthPage = () => {
         typeof window !== "undefined" && Capacitor.isNativePlatform();
       let accountType: "broker" | "company" = "broker";
       let authMode: "login" | "signup" = "login";
+      let consentAccepted = false;
 
       if (stateParam) {
         const decodedState = decodeURIComponent(stateParam);
@@ -222,6 +225,9 @@ const GoogleOauthPage = () => {
                 if (state.authMode === "login" || state.authMode === "signup") {
                   authMode = state.authMode;
                 }
+              }
+              if (typeof state.consentAccepted === "boolean") {
+                consentAccepted = state.consentAccepted;
               }
               if (typeof state.target === "string") {
                 target = sanitizeTarget(state.target);
@@ -257,6 +263,17 @@ const GoogleOauthPage = () => {
       // proceed with verification without re-triggering the deep link.
       if (shouldOpenNativeApp) {
         window.location.href = `brokwise://google-oauth?access_token=${accessToken}`;
+        return;
+      }
+
+      if (authMode === "signup" && !consentAccepted) {
+        setMessage("Please accept legal terms before signing up.");
+        redirectUser({
+          isDesktopApp: shouldOpenNativeApp,
+          isError: true,
+          delay: 2500,
+          target: "/create-account",
+        });
         return;
       }
 

@@ -35,14 +35,14 @@ export default function PrivacyPolicyPage() {
                         <p className="text-sm text-slate-500">Brokwise Private Limited</p>
                         <p className="text-xs text-slate-500 mt-1">
                             Canonical PDF:{" "}
-                            <Link
+                            <a
                                 href={LEGAL_DOC_LINKS.privacyPolicy}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-teal-600 hover:underline"
                             >
                                 View signed policy document
-                            </Link>
+                            </a>
                         </p>
                     </div>
                 </div>
@@ -99,11 +99,11 @@ export default function PrivacyPolicyPage() {
                 <div className="max-w-4xl mx-auto px-4 text-center">
                     <p className="text-sm text-slate-500">© {new Date().getFullYear()} Brokwise Private Limited</p>
                     <div className="flex justify-center gap-4 mt-3">
-                        <Link href={LEGAL_DOC_LINKS.masterTerms} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-600 hover:underline">Master Platform Terms</Link>
+                        <a href={LEGAL_DOC_LINKS.masterTerms} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-600 hover:underline">Master Platform Terms</a>
                         <span className="text-slate-300">|</span>
-                        <Link href={LEGAL_DOC_LINKS.brokerTerms} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-600 hover:underline">Terms of Use for Brokers</Link>
+                        <a href={LEGAL_DOC_LINKS.brokerTerms} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-600 hover:underline">Terms of Use for Brokers</a>
                         <span className="text-slate-300">|</span>
-                        <Link href={LEGAL_DOC_LINKS.privacyPolicy} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-600 font-medium">Privacy Policy</Link>
+                        <a href={LEGAL_DOC_LINKS.privacyPolicy} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-600 font-medium">Privacy Policy</a>
                     </div>
                 </div>
             </footer>

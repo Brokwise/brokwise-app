@@ -32,13 +32,14 @@ export const checkUserExistsByEmail = async (
 export const createUser: ApiFunction<
   CreateUserResponse,
   CreateUserRequest
-> = async ({ email, uid }) => {
+> = async ({ email, uid, legalConsents }) => {
   return await customFetch({
     method: "POST",
     path: "/broker/create",
     body: {
       email,
       uid,
+      legalConsents,
     },
     isProtected: false,
   });

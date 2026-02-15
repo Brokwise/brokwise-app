@@ -4,6 +4,7 @@ import type { LegalConsentsPayload } from "@/constants/legal";
 export type CreateUserRequest = {
   email: string;
   uid: string;
+  legalConsents: LegalConsentsPayload;
 };
 export type CreateUserResponse = Record<PropertyKey, never>;
 export type AddUserMetadataRequest = {

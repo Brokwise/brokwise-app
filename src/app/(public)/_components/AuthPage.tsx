@@ -35,7 +35,7 @@ import {
   User,
 } from "firebase/auth";
 import { toast } from "sonner";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { detectLanguage, changeLanguage } from "@/i18n";
 import { useTheme } from "next-themes";
 
@@ -49,6 +49,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -68,7 +70,11 @@ import { firebaseAuth, getUserDoc, setUserDoc } from "@/config/firebase";
 import { createUser } from "@/models/api/user";
 import { logError } from "@/utils/errors";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { LEGAL_DOC_LINKS } from "@/constants/legal";
+import {
+  buildAcceptedLegalConsents,
+  LEGAL_DOC_LINKS,
+  type LegalConsentsPayload,
+} from "@/constants/legal";
 // import { tr } from "zod/v4/locales";
 
 // --- Types ---
@@ -206,12 +212,16 @@ export default function AuthPage({
     email: string;
     password: string;
     confirmPassword: string;
+    termsConsent: boolean;
+    privacyConsent: boolean;
   };
 
   const defaultValues = {
     email: "",
     password: "",
     confirmPassword: "",
+    termsConsent: false,
+    privacyConsent: false,
   };
 
   const form = useForm<FormSchemaType>({
@@ -221,6 +231,10 @@ export default function AuthPage({
   });
 
   const { reset } = form;
+  const formValues = form.watch();
+  const isSignupConsentSatisfied =
+    mode !== "signup" ||
+    (formValues.termsConsent === true && formValues.privacyConsent === true);
 
   // Reset form when switching modes
   React.useEffect(() => {
@@ -257,6 +271,7 @@ export default function AuthPage({
     name: string,
     options?: {
       provisionIfFirstTime?: boolean;
+      legalConsents?: LegalConsentsPayload;
     }
   ) => {
     const isFirstTimeUser =
@@ -275,6 +290,8 @@ export default function AuthPage({
         await createUser({
           email: user.email ?? "",
           uid: user.uid ?? "",
+          legalConsents:
+            options?.legalConsents ?? buildAcceptedLegalConsents("signup"),
         });
       }
 
@@ -364,6 +381,7 @@ export default function AuthPage({
       if (mode === "signup") {
         await createUserInDb(user, "", {
           provisionIfFirstTime: true,
+          legalConsents: buildAcceptedLegalConsents("signup"),
         });
         await sendVerificatinLink(user);
       } else {
@@ -390,6 +408,17 @@ export default function AuthPage({
 
   const handleGoogleAuth = async () => {
     try {
+      if (mode === "signup" && !isSignupConsentSatisfied) {
+        form.setError("termsConsent", {
+          message: t("terms_required"),
+        });
+        form.setError("privacyConsent", {
+          message: t("privacy_required"),
+        });
+        toast.error(t("legal_accept_required_error"));
+        return;
+      }
+
       const isNative = Capacitor.isNativePlatform();
 
       if (isNative) {
@@ -473,6 +502,7 @@ export default function AuthPage({
         if (mode === "signup") {
           await createUserInDb(user, user.displayName ?? "", {
             provisionIfFirstTime: true,
+            legalConsents: buildAcceptedLegalConsents("signup"),
           });
         } else {
           await createUserInDb(user, user.displayName ?? "", {
@@ -509,6 +539,7 @@ export default function AuthPage({
           target,
           accountType,
           authMode: mode,
+          consentAccepted: mode === "signup" ? isSignupConsentSatisfied : undefined,
         });
 
         const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${Config.googleOauthClientId
@@ -879,10 +910,94 @@ export default function AuthPage({
                       </div>
                     )}
 
+                    {mode === "signup" && (
+                      <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3">
+                        <FormField
+                          control={form.control}
+                          name="termsConsent"
+                          render={({ field }) => (
+                            <FormItem className="space-y-1.5">
+                              <div className="flex items-start gap-2">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value === true}
+                                    onCheckedChange={(checked) =>
+                                      field.onChange(checked === true)
+                                    }
+                                    className="mt-1"
+                                  />
+                                </FormControl>
+                                <Label className="text-xs leading-relaxed text-foreground/90">
+                                  <Trans
+                                    i18nKey="legal_accept_terms_label"
+                                    components={{
+                                      masterTerms: (
+                                        <a
+                                          href={LEGAL_DOC_LINKS.masterTerms}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-primary hover:underline"
+                                        />
+                                      ),
+                                      brokerTerms: (
+                                        <a
+                                          href={LEGAL_DOC_LINKS.brokerTerms}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-primary hover:underline"
+                                        />
+                                      ),
+                                    }}
+                                  />
+                                </Label>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="privacyConsent"
+                          render={({ field }) => (
+                            <FormItem className="space-y-1.5">
+                              <div className="flex items-start gap-2">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value === true}
+                                    onCheckedChange={(checked) =>
+                                      field.onChange(checked === true)
+                                    }
+                                    className="mt-1"
+                                  />
+                                </FormControl>
+                                <Label className="text-xs leading-relaxed text-foreground/90">
+                                  <Trans
+                                    i18nKey="legal_accept_privacy_label"
+                                    components={{
+                                      privacyPolicy: (
+                                        <a
+                                          href={LEGAL_DOC_LINKS.privacyPolicy}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-primary hover:underline"
+                                        />
+                                      ),
+                                    }}
+                                  />
+                                </Label>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+
                     <Button
                       type="submit"
                       className="w-full h-11 text-base font-semibold mt-2"
-                      disabled={loading}
+                      disabled={loading || !isSignupConsentSatisfied}
                     >
                       {loading && (
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -908,7 +1023,7 @@ export default function AuthPage({
                   type="button"
                   className="w-full h-11 font-semibold bg-card border-border text-foreground hover:bg-muted/50 hover:text-foreground transition-all"
                   onClick={handleGoogleAuth}
-                  disabled={loading}
+                  disabled={loading || !isSignupConsentSatisfied}
                 >
                   <Image
                     src="/icons/google.svg"
@@ -937,12 +1052,14 @@ export default function AuthPage({
               </button>
             </p>
             <p className="text-xs text-muted-foreground/70">
-              By continuing, you agree to our{" "}
-              <Link href={LEGAL_DOC_LINKS.masterTerms} target="_blank" rel="noopener noreferrer" className="text-primary/80 hover:text-primary hover:underline">Master Platform Terms</Link>
+              {mode === "signup"
+                ? "By creating your account, you agree to our "
+                : "By continuing, you agree to our "}
+              <a href={LEGAL_DOC_LINKS.masterTerms} target="_blank" rel="noopener noreferrer" className="text-primary/80 hover:text-primary hover:underline">Master Platform Terms</a>
               {", "}
-              <Link href={LEGAL_DOC_LINKS.brokerTerms} target="_blank" rel="noopener noreferrer" className="text-primary/80 hover:text-primary hover:underline">Terms of Use for Brokers</Link>
+              <a href={LEGAL_DOC_LINKS.brokerTerms} target="_blank" rel="noopener noreferrer" className="text-primary/80 hover:text-primary hover:underline">Terms of Use for Brokers</a>
               {", and "}
-              <Link href={LEGAL_DOC_LINKS.privacyPolicy} target="_blank" rel="noopener noreferrer" className="text-primary/80 hover:text-primary hover:underline">Privacy Policy</Link>
+              <a href={LEGAL_DOC_LINKS.privacyPolicy} target="_blank" rel="noopener noreferrer" className="text-primary/80 hover:text-primary hover:underline">Privacy Policy</a>
             </p>
           </div>
         </div>

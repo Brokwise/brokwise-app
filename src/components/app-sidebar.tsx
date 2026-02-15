@@ -448,7 +448,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter className="border-t border-sidebar-border">
         <div className="px-4 py-3 group-data-[collapsible=icon]:hidden">
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <Link
+            <a
               href={LEGAL_DOC_LINKS.masterTerms}
               target="_blank"
               rel="noopener noreferrer"
@@ -456,8 +456,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="hover:text-sidebar-foreground transition-colors"
             >
               Master Platform Terms
-            </Link>
-            <Link
+            </a>
+            <a
               href={LEGAL_DOC_LINKS.brokerTerms}
               target="_blank"
               rel="noopener noreferrer"
@@ -465,8 +465,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="hover:text-sidebar-foreground transition-colors"
             >
               Terms of Use for Brokers
-            </Link>
-            <Link
+            </a>
+            <a
               href={LEGAL_DOC_LINKS.privacyPolicy}
               target="_blank"
               rel="noopener noreferrer"
@@ -474,7 +474,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="hover:text-sidebar-foreground transition-colors"
             >
               Privacy Policy
-            </Link>
+            </a>
           </div>
           <p className="text-[10px] text-muted-foreground/60 mt-1">
             © {new Date().getFullYear()} Brokwise

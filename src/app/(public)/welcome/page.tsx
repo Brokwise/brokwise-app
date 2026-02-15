@@ -134,32 +134,32 @@ const WelcomeScreenContent = () => {
 
         <p className="text-white/60 text-xs mt-4">
           By continuing, you agree to our{" "}
-          <Link
+          <a
             href={LEGAL_DOC_LINKS.masterTerms}
             target="_blank"
             rel="noopener noreferrer"
             className="underline underline-offset-2"
           >
             Master Platform Terms
-          </Link>
+          </a>
           {", "}
-          <Link
+          <a
             href={LEGAL_DOC_LINKS.brokerTerms}
             target="_blank"
             rel="noopener noreferrer"
             className="underline underline-offset-2"
           >
             Terms of Use for Brokers
-          </Link>
+          </a>
           {", and "}
-          <Link
+          <a
             href={LEGAL_DOC_LINKS.privacyPolicy}
             target="_blank"
             rel="noopener noreferrer"
             className="underline underline-offset-2"
           >
             Privacy Policy
-          </Link>
+          </a>
           .
         </p>
       </div>
