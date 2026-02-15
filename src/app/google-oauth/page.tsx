@@ -62,12 +62,21 @@ const GoogleOauthPage = () => {
     [router]
   );
   const createUserInDb = useCallback(
-    async (user: User, accountType?: "broker" | "company") => {
+    async (
+      user: User,
+      accountType: "broker" | "company" = "broker",
+      shouldProvision = false
+    ) => {
       try {
         const userDocRef = getUserDoc(user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
           return;
+        }
+
+        if (!shouldProvision) {
+          await firebaseAuth.signOut();
+          throw new Error("ACCOUNT_NOT_FOUND_FOR_GOOGLE_LOGIN");
         }
 
         if (accountType !== "company") {
@@ -131,11 +140,15 @@ const GoogleOauthPage = () => {
   }, []);
 
   const verifyGoogleUser = useCallback(
-    async (accessToken: string, accountType?: "broker" | "company") => {
+    async (
+      accessToken: string,
+      accountType: "broker" | "company" = "broker",
+      shouldProvision = false
+    ) => {
       try {
         const credential = GoogleAuthProvider.credential(null, accessToken);
         const { user } = await signInWithCredential(firebaseAuth, credential);
-        await createUserInDb(user, accountType);
+        await createUserInDb(user, accountType, shouldProvision);
         await sendVerificationLink(user);
       } catch (error) {
         const firebaseError = error as Error & { code?: string };
@@ -152,6 +165,8 @@ const GoogleOauthPage = () => {
           toast.error(
             "An account already exists with this email. Please sign in with email/password instead."
           );
+        } else if (firebaseError.message === "ACCOUNT_NOT_FOUND_FOR_GOOGLE_LOGIN") {
+          toast.error("No account found. Please sign up first.");
         } else if (firebaseError.code === "auth/invalid-credential") {
           toast.error("Invalid credentials. Please try again.");
         } else {
@@ -185,7 +200,8 @@ const GoogleOauthPage = () => {
       let target = "/";
       const isNativePlatform =
         typeof window !== "undefined" && Capacitor.isNativePlatform();
-      let accountType: "broker" | "company" | undefined = "broker";
+      let accountType: "broker" | "company" = "broker";
+      let authMode: "login" | "signup" = "login";
 
       if (stateParam) {
         const decodedState = decodeURIComponent(stateParam);
@@ -200,6 +216,11 @@ const GoogleOauthPage = () => {
               if (typeof state.accountType === "string") {
                 if (state.accountType === "broker" || state.accountType === "company") {
                   accountType = state.accountType;
+                }
+              }
+              if (typeof state.authMode === "string") {
+                if (state.authMode === "login" || state.authMode === "signup") {
+                  authMode = state.authMode;
                 }
               }
               if (typeof state.target === "string") {
@@ -239,7 +260,7 @@ const GoogleOauthPage = () => {
         return;
       }
 
-      await verifyGoogleUser(accessToken, accountType);
+      await verifyGoogleUser(accessToken, accountType, authMode === "signup");
 
       // Clear forgot password rate limit state on successful login
       localStorage.removeItem("brokwise_password_reset_attempts");

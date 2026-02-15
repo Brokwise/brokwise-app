@@ -1,4 +1,5 @@
 import { Company } from "./company";
+import type { LegalConsentsPayload } from "@/constants/legal";
 
 export type CreateUserRequest = {
   email: string;
@@ -78,6 +79,7 @@ export type GetBrokerDetailsResponse = {
     recentSearches?: string[];
     bookmarkedPropertyIds?: string[];
     bookmarkedEnquiryIds?: string[];
+    legalConsents?: LegalConsentsPayload;
     createdAt: string;
     brokerId: string;
     profilePhoto?: string;

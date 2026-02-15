@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
+import { LEGAL_DOC_LINKS } from "@/constants/legal";
 
 export default function PrivacyPolicyPage() {
     const [content, setContent] = useState<string>("");
@@ -32,6 +33,17 @@ export default function PrivacyPolicyPage() {
                     <div>
                         <h1 className="text-xl font-semibold text-slate-900">Privacy Policy</h1>
                         <p className="text-sm text-slate-500">Brokwise Private Limited</p>
+                        <p className="text-xs text-slate-500 mt-1">
+                            Canonical PDF:{" "}
+                            <Link
+                                href={LEGAL_DOC_LINKS.privacyPolicy}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-teal-600 hover:underline"
+                            >
+                                View signed policy document
+                            </Link>
+                        </p>
                     </div>
                 </div>
             </header>
@@ -87,9 +99,11 @@ export default function PrivacyPolicyPage() {
                 <div className="max-w-4xl mx-auto px-4 text-center">
                     <p className="text-sm text-slate-500">© {new Date().getFullYear()} Brokwise Private Limited</p>
                     <div className="flex justify-center gap-4 mt-3">
-                        <Link href="/terms-and-conditions" className="text-sm text-teal-600 hover:underline">Terms & Conditions</Link>
+                        <Link href={LEGAL_DOC_LINKS.masterTerms} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-600 hover:underline">Master Platform Terms</Link>
                         <span className="text-slate-300">|</span>
-                        <Link href="/privacy-policy" className="text-sm text-teal-600 font-medium">Privacy Policy</Link>
+                        <Link href={LEGAL_DOC_LINKS.brokerTerms} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-600 hover:underline">Terms of Use for Brokers</Link>
+                        <span className="text-slate-300">|</span>
+                        <Link href={LEGAL_DOC_LINKS.privacyPolicy} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-600 font-medium">Privacy Policy</Link>
                     </div>
                 </div>
             </footer>

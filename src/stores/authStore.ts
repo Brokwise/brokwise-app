@@ -5,6 +5,13 @@ export type BrokerStatus =
   | "rejected"
   | "blacklisted";
 export interface Broker {
+  legalConsents?: {
+    masterTerms: { accepted: boolean; version: string; acceptedAt?: string };
+    brokerTerms: { accepted: boolean; version: string; acceptedAt?: string };
+    privacyPolicy: { accepted: boolean; version: string; acceptedAt?: string };
+    source?: "signup" | "post_signup_gate";
+    updatedAt?: string;
+  };
   firstName: string;
   lastName: string;
   email: string;

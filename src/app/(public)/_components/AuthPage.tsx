@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2,
@@ -61,8 +60,6 @@ import {
 
 
 import {
-  loginFormSchema,
-  signupFormSchema,
   getLoginFormSchema,
   getSignupFormSchema,
 } from "@/validators/onboarding";
@@ -71,6 +68,7 @@ import { firebaseAuth, getUserDoc, setUserDoc } from "@/config/firebase";
 import { createUser } from "@/models/api/user";
 import { logError } from "@/utils/errors";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { LEGAL_DOC_LINKS } from "@/constants/legal";
 // import { tr } from "zod/v4/locales";
 
 // --- Types ---
@@ -204,9 +202,11 @@ export default function AuthPage({
     () => (mode === "signup" ? getSignupFormSchema(t) : getLoginFormSchema(t)),
     [mode, t]
   );
-  type FormSchemaType =
-    | z.infer<typeof signupFormSchema>
-    | z.infer<typeof loginFormSchema>;
+  type FormSchemaType = {
+    email: string;
+    password: string;
+    confirmPassword: string;
+  };
 
   const defaultValues = {
     email: "",
@@ -215,7 +215,7 @@ export default function AuthPage({
   };
 
   const form = useForm<FormSchemaType>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as unknown as Resolver<FormSchemaType>,
     mode: "onChange",
     defaultValues,
   });
@@ -252,9 +252,23 @@ export default function AuthPage({
 
   // 2. Logic Functions (Adapted from existing code)
 
-  const createUserInDb = async (user: User, name: string) => {
+  const createUserInDb = async (
+    user: User,
+    name: string,
+    options?: {
+      provisionIfFirstTime?: boolean;
+    }
+  ) => {
     const isFirstTimeUser =
       user.metadata.creationTime === user.metadata.lastSignInTime;
+
+    if (!isFirstTimeUser) {
+      return;
+    }
+
+    if (options?.provisionIfFirstTime === false) {
+      return;
+    }
 
     if (isFirstTimeUser) {
       if (accountType === "broker") {
@@ -348,7 +362,9 @@ export default function AuthPage({
         : signInWithEmailAndPassword(firebaseAuth, email, password));
 
       if (mode === "signup") {
-        await createUserInDb(user, "");
+        await createUserInDb(user, "", {
+          provisionIfFirstTime: true,
+        });
         await sendVerificatinLink(user);
       } else {
         if (!user.emailVerified) {
@@ -445,13 +461,33 @@ export default function AuthPage({
           throw new Error("No user returned from Google Sign-In");
         }
 
-        // Create user in DB if first time
-        await createUserInDb(user, user.displayName ?? "");
+        const isFirstTimeUser =
+          user.metadata.creationTime === user.metadata.lastSignInTime;
+
+        if (mode === "login" && isFirstTimeUser) {
+          await firebaseAuth.signOut();
+          toast.error("No account found. Please sign up first.");
+          return;
+        }
+
+        if (mode === "signup") {
+          await createUserInDb(user, user.displayName ?? "", {
+            provisionIfFirstTime: true,
+          });
+        } else {
+          await createUserInDb(user, user.displayName ?? "", {
+            provisionIfFirstTime: false,
+          });
+        }
 
         // Clear forgot password rate limit state on successful login
         localStorage.removeItem("brokwise_password_reset_attempts");
 
-        toast.success(t("logged_in_success"));
+        toast.success(
+          mode === "signup"
+            ? t("account_created_success")
+            : t("logged_in_success")
+        );
         router.push(targetPath);
       } else {
         // Web OAuth flow
@@ -468,7 +504,12 @@ export default function AuthPage({
           "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
         );
 
-        const statePayload = `false---${target}`;
+        const statePayload = JSON.stringify({
+          isDesktopApp: false,
+          target,
+          accountType,
+          authMode: mode,
+        });
 
         const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${Config.googleOauthClientId
           }&response_type=token&scope=${scope}&redirect_uri=${redirectUri}&state=${encodeURIComponent(
@@ -867,6 +908,7 @@ export default function AuthPage({
                   type="button"
                   className="w-full h-11 font-semibold bg-card border-border text-foreground hover:bg-muted/50 hover:text-foreground transition-all"
                   onClick={handleGoogleAuth}
+                  disabled={loading}
                 >
                   <Image
                     src="/icons/google.svg"
@@ -896,9 +938,11 @@ export default function AuthPage({
             </p>
             <p className="text-xs text-muted-foreground/70">
               By continuing, you agree to our{" "}
-              <Link href="/terms-and-conditions" className="text-primary/80 hover:text-primary hover:underline">Terms & Conditions</Link>
-              {" "}and{" "}
-              <Link href="/privacy-policy" className="text-primary/80 hover:text-primary hover:underline">Privacy Policy</Link>
+              <Link href={LEGAL_DOC_LINKS.masterTerms} target="_blank" rel="noopener noreferrer" className="text-primary/80 hover:text-primary hover:underline">Master Platform Terms</Link>
+              {", "}
+              <Link href={LEGAL_DOC_LINKS.brokerTerms} target="_blank" rel="noopener noreferrer" className="text-primary/80 hover:text-primary hover:underline">Terms of Use for Brokers</Link>
+              {", and "}
+              <Link href={LEGAL_DOC_LINKS.privacyPolicy} target="_blank" rel="noopener noreferrer" className="text-primary/80 hover:text-primary hover:underline">Privacy Policy</Link>
             </p>
           </div>
         </div>

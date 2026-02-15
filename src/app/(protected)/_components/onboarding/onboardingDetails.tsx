@@ -829,7 +829,7 @@ export const OnboardingDetails = ({
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
       {/* Theme & Language Toggles */}
-      <div className="absolute top-[calc(env(safe-area-inset-top))] right-4 z-50">
+      <div className="absolute top-[calc(env(safe-area-inset-top)+0.75rem)] right-4 z-50">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

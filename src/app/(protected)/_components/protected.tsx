@@ -20,6 +20,8 @@ import { Loader } from "@/components/ui/loader";
 import Image from "next/image";
 import { SafeAreaWrapper } from "@/components/ui/safe-area";
 import { ActivationPendingGate } from "./activationPendingGate";
+import { LegalConsentGate } from "./legalConsentGate";
+import { hasRequiredLegalConsents } from "@/constants/legal";
 
 const AUTH_TIMEOUT_MS = 10000;
 
@@ -278,6 +280,18 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
 
   // Check broker status and render appropriate component
   if (brokerData) {
+    const shouldGateForLegalConsent =
+      brokerData.status === "approved" ||
+      brokerData.status === "pending" ||
+      brokerData.status === "incomplete";
+
+    if (
+      shouldGateForLegalConsent &&
+      !hasRequiredLegalConsents(brokerData.legalConsents)
+    ) {
+      return <LegalConsentGate />;
+    }
+
     if (isEditing) {
       return (
         <WaveBackground>
