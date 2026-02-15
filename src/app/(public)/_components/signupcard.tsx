@@ -40,7 +40,6 @@ import {
 
 import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
-import { buildAcceptedLegalConsents } from "@/constants/legal";
 
 const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
   const { t, i18n } = useTranslation();
@@ -80,7 +79,6 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
       await createUser({
         email: user.email ?? "",
         uid: user.uid ?? "",
-        legalConsents: buildAcceptedLegalConsents("signup"),
       });
       const userDoc = getUserDoc(user.uid);
       await setUserDoc(userDoc, {
