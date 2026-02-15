@@ -72,7 +72,7 @@ export const LegalConsentGate = () => {
             rel="noopener noreferrer"
             className="text-primary hover:underline"
           >
-            Master Platform Terms
+            Platform Terms
           </a>
           <Separator orientation="vertical" className="h-4" />
           <a

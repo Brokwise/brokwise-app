@@ -455,7 +455,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               onClick={handleMenuClick}
               className="hover:text-sidebar-foreground transition-colors"
             >
-              Master Platform Terms
+              Platform Terms
             </a>
             <a
               href={LEGAL_DOC_LINKS.brokerTerms}

@@ -1,7 +1,7 @@
 export const LEGAL_DOC_LINKS = {
-  masterTerms: "/legal/master-platform-terms-of-use-v1.pdf",
-  brokerTerms: "/legal/terms-of-use-for-brokers-v1.pdf",
-  privacyPolicy: "/legal/privacy-policy-v2026-02-11.pdf",
+  masterTerms: "/platform-terms",
+  brokerTerms: "/broker-terms",
+  privacyPolicy: "/privacy-policy",
 } as const;
 
 export const LEGAL_DOC_VERSIONS = {
