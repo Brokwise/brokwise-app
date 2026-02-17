@@ -692,36 +692,37 @@ export const OnboardingDetails = ({
       try {
         setLoading(true);
         const data = form.getValues();
-        
+
         // Construct payload based on step
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let payload: any = { _id: brokerData._id };
-        
+
         if (step === 1) {
-          payload = { 
-            ...payload, 
-            firstName: data.firstName, 
-            lastName: data.lastName, 
-            mobile: data.mobile, 
-            profilePhoto: data.profilePhoto 
+          payload = {
+            ...payload,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            mobile: data.mobile,
+            profilePhoto: data.profilePhoto
           };
         } else if (step === 2) {
-          payload = { 
-            ...payload, 
-            companyName: data.companyName, 
-            gstin: data.gstin, 
-            reraNumber: data.reraNumber, 
-            yearsOfExperience: data.yearsOfExperience 
+          payload = {
+            ...payload,
+            companyName: data.companyName,
+            gstin: data.gstin,
+            reraNumber: data.reraNumber,
+            yearsOfExperience: data.yearsOfExperience
           };
         } else if (step === 3) {
-          payload = { 
-            ...payload, 
-            city: data.city, 
-            officeAddress: data.officeAddress 
+          payload = {
+            ...payload,
+            city: data.city,
+            officeAddress: data.officeAddress
           };
         }
 
         await updateProfileDetails(payload);
-        
+
         // Update local context
         setBrokerData({
           ...brokerData,
