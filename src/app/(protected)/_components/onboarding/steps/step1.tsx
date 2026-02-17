@@ -13,6 +13,10 @@ import {
     Camera,
     ShieldCheck,
     Lock,
+    Shield,
+    ExternalLink,
+    Loader2,
+    AlertCircle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -361,161 +365,161 @@ export const Step1: React.FC<Step1Props> = ({
 
 // ─── KYC Verification Card ──────────────────────────────────────────────────
 
-// function KycVerificationCard({
-//     kycState,
-//     onStartKyc,
-//     onOpenDigiLocker,
-//     t,
-// }: {
-//     kycState: KycState;
-//     onStartKyc: () => void;
-//     onOpenDigiLocker: () => void;
-//     t: (key: string) => string;
-// }) {
-//     const { status } = kycState;
+function KycVerificationCard({
+    kycState,
+    onStartKyc,
+    onOpenDigiLocker,
+    t,
+}: {
+    kycState: KycState;
+    onStartKyc: () => void;
+    onOpenDigiLocker: () => void;
+    t: (key: string) => string;
+}) {
+    const { status } = kycState;
 
-//     // Shared card wrapper
-//     const cardClass = (variant: "blue" | "green" | "red" | "amber") => {
-//         const colors = {
-//             blue: "border-blue-200 bg-blue-50/80 dark:border-blue-800/60 dark:bg-blue-950/20",
-//             green: "border-green-200 bg-green-50/80 dark:border-green-800/60 dark:bg-green-950/20",
-//             red: "border-red-200 bg-red-50/80 dark:border-red-800/60 dark:bg-red-950/20",
-//             amber: "border-amber-200 bg-amber-50/80 dark:border-amber-800/60 dark:bg-amber-950/20",
-//         };
-//         return `rounded-xl border-2 p-5 transition-all ${colors[variant]}`;
-//     };
+    // Shared card wrapper
+    const cardClass = (variant: "blue" | "green" | "red" | "amber") => {
+        const colors = {
+            blue: "border-blue-200 bg-blue-50/80 dark:border-blue-800/60 dark:bg-blue-950/20",
+            green: "border-green-200 bg-green-50/80 dark:border-green-800/60 dark:bg-green-950/20",
+            red: "border-red-200 bg-red-50/80 dark:border-red-800/60 dark:bg-red-950/20",
+            amber: "border-amber-200 bg-amber-50/80 dark:border-amber-800/60 dark:bg-amber-950/20",
+        };
+        return `rounded-xl border-2 p-5 transition-all ${colors[variant]}`;
+    };
 
-//     // ─── Not Started ────────────────────────────────────────────────────────
-//     if (status === "not_started") {
-//         return (
-//             <div className={cardClass("blue")}>
-//                 <div className="flex items-start gap-3 mb-4">
-//                     <div className="rounded-lg bg-blue-100 dark:bg-blue-900/40 p-2.5 shrink-0">
-//                         <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-//                     </div>
-//                     <div className="min-w-0">
-//                         <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
-//                             {t("kyc_verify_identity")}
-//                         </h3>
-//                         <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
-//                             {t("kyc_verify_desc")}
-//                         </p>
-//                     </div>
-//                 </div>
-//                 <Button
-//                     type="button"
-//                     onClick={onStartKyc}
-//                     className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600 font-medium"
-//                 >
-//                     <ExternalLink className="mr-2 h-4 w-4" />
-//                     {t("kyc_verify_button")}
-//                 </Button>
-//             </div>
-//         );
-//     }
+    // ─── Not Started ────────────────────────────────────────────────────────
+    if (status === "not_started") {
+        return (
+            <div className={cardClass("blue")}>
+                <div className="flex items-start gap-3 mb-4">
+                    <div className="rounded-lg bg-blue-100 dark:bg-blue-900/40 p-2.5 shrink-0">
+                        <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="min-w-0">
+                        <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
+                            {t("kyc_verify_identity")}
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
+                            {t("kyc_verify_desc")}
+                        </p>
+                    </div>
+                </div>
+                <Button
+                    type="button"
+                    onClick={onStartKyc}
+                    className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600 font-medium"
+                >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    {t("kyc_verify_button")}
+                </Button>
+            </div>
+        );
+    }
 
-//     // ─── Initiating ─────────────────────────────────────────────────────────
-//     if (status === "initiating") {
-//         return (
-//             <div className={cardClass("blue")}>
-//                 <div className="flex items-center gap-3">
-//                     <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400 shrink-0" />
-//                     <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-//                         {t("kyc_initiating")}
-//                     </p>
-//                 </div>
-//             </div>
-//         );
-//     }
+    // ─── Initiating ─────────────────────────────────────────────────────────
+    if (status === "initiating") {
+        return (
+            <div className={cardClass("blue")}>
+                <div className="flex items-center gap-3">
+                    <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400 shrink-0" />
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {t("kyc_initiating")}
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
-//     // ─── Pending (polling) ──────────────────────────────────────────────────
-//     if (status === "pending") {
-//         return (
-//             <div className={cardClass("amber")}>
-//                 <div className="flex items-start gap-3 mb-3">
-//                     <div className="rounded-lg bg-amber-100 dark:bg-amber-900/40 p-2.5 shrink-0">
-//                         <Loader2 className="h-5 w-5 animate-spin text-amber-600 dark:text-amber-400" />
-//                     </div>
-//                     <div className="min-w-0">
-//                         <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
-//                             {t("kyc_pending_title")}
-//                         </h3>
-//                         <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
-//                             {t("kyc_pending_desc")}
-//                         </p>
-//                     </div>
-//                 </div>
-//                 <p className="text-xs text-slate-500 dark:text-slate-500 mb-2">
-//                     {t("kyc_pending_hint")}
-//                 </p>
-//                 <Button
-//                     type="button"
-//                     variant="outline"
-//                     size="sm"
-//                     onClick={onOpenDigiLocker}
-//                     className="border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950"
-//                 >
-//                     <ExternalLink className="mr-2 h-3.5 w-3.5" />
-//                     {t("kyc_open_digilocker")}
-//                 </Button>
-//             </div>
-//         );
-//     }
+    // ─── Pending (polling) ──────────────────────────────────────────────────
+    if (status === "pending") {
+        return (
+            <div className={cardClass("amber")}>
+                <div className="flex items-start gap-3 mb-3">
+                    <div className="rounded-lg bg-amber-100 dark:bg-amber-900/40 p-2.5 shrink-0">
+                        <Loader2 className="h-5 w-5 animate-spin text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div className="min-w-0">
+                        <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
+                            {t("kyc_pending_title")}
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
+                            {t("kyc_pending_desc")}
+                        </p>
+                    </div>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-500 mb-2">
+                    {t("kyc_pending_hint")}
+                </p>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onOpenDigiLocker}
+                    className="border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950"
+                >
+                    <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                    {t("kyc_open_digilocker")}
+                </Button>
+            </div>
+        );
+    }
 
-//     // ─── Verified ───────────────────────────────────────────────────────────
-//     if (status === "verified") {
-//         return (
-//             <div className={cardClass("green")}>
-//                 <div className="flex items-center gap-3">
-//                     <div className="rounded-lg bg-green-100 dark:bg-green-900/40 p-2.5 shrink-0">
-//                         <ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
-//                     </div>
-//                     <div className="min-w-0">
-//                         <h3 className="font-semibold text-green-800 dark:text-green-300 text-sm">
-//                             {t("kyc_verified_title")}
-//                         </h3>
-//                         <p className="text-xs text-green-700 dark:text-green-400 mt-0.5">
-//                             {t("kyc_verified_desc")}
-//                         </p>
-//                     </div>
-//                 </div>
-//             </div>
-//         );
-//     }
+    // ─── Verified ───────────────────────────────────────────────────────────
+    if (status === "verified") {
+        return (
+            <div className={cardClass("green")}>
+                <div className="flex items-center gap-3">
+                    <div className="rounded-lg bg-green-100 dark:bg-green-900/40 p-2.5 shrink-0">
+                        <ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div className="min-w-0">
+                        <h3 className="font-semibold text-green-800 dark:text-green-300 text-sm">
+                            {t("kyc_verified_title")}
+                        </h3>
+                        <p className="text-xs text-green-700 dark:text-green-400 mt-0.5">
+                            {t("kyc_verified_desc")}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
-//     // ─── Failed / Expired ───────────────────────────────────────────────────
-//     if (status === "failed" || status === "expired") {
-//         return (
-//             <div className={cardClass("red")}>
-//                 <div className="flex items-start gap-3 mb-3">
-//                     <div className="rounded-lg bg-red-100 dark:bg-red-900/40 p-2.5 shrink-0">
-//                         <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-//                     </div>
-//                     <div className="min-w-0">
-//                         <h3 className="font-semibold text-red-800 dark:text-red-300 text-sm">
-//                             {status === "expired"
-//                                 ? t("kyc_expired_title")
-//                                 : t("kyc_failed_title")}
-//                         </h3>
-//                         <p className="text-xs text-red-700 dark:text-red-400 mt-0.5 leading-relaxed">
-//                             {status === "expired"
-//                                 ? t("kyc_expired_desc")
-//                                 : t("kyc_failed_desc")}
-//                         </p>
-//                     </div>
-//                 </div>
-//                 <Button
-//                     type="button"
-//                     variant="outline"
-//                     size="sm"
-//                     onClick={onStartKyc}
-//                     className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950"
-//                 >
-//                     {t("kyc_retry")}
-//                 </Button>
-//             </div>
-//         );
-//     }
+    // ─── Failed / Expired ───────────────────────────────────────────────────
+    if (status === "failed" || status === "expired") {
+        return (
+            <div className={cardClass("red")}>
+                <div className="flex items-start gap-3 mb-3">
+                    <div className="rounded-lg bg-red-100 dark:bg-red-900/40 p-2.5 shrink-0">
+                        <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div className="min-w-0">
+                        <h3 className="font-semibold text-red-800 dark:text-red-300 text-sm">
+                            {status === "expired"
+                                ? t("kyc_expired_title")
+                                : t("kyc_failed_title")}
+                        </h3>
+                        <p className="text-xs text-red-700 dark:text-red-400 mt-0.5 leading-relaxed">
+                            {status === "expired"
+                                ? t("kyc_expired_desc")
+                                : t("kyc_failed_desc")}
+                        </p>
+                    </div>
+                </div>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onStartKyc}
+                    className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950"
+                >
+                    {t("kyc_retry")}
+                </Button>
+            </div>
+        );
+    }
 
-//     return null;
-// }
+    return null;
+}
