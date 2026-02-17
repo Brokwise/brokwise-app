@@ -86,7 +86,7 @@ const tierColors: Record<TIER, string> = {
   PRO: "from-amber-500 to-amber-600",
 };
 
-// ─── Plan Selection Step (Step 1) ────────────────────────────────────────────
+// ─── Plan Selection Step (Step 4) ────────────────────────────────────────────
 const PlanSelectionStep = ({
   selectedTier,
   onSelect,
@@ -195,7 +195,7 @@ const PlanSelectionStep = ({
   );
 };
 
-// ─── Welcome Step (Step 3) ───────────────────────────────────────────────────
+// ─── Welcome Step (Step 5) ───────────────────────────────────────────────────
 const WelcomeStep = ({
   selectedTier,
   loading,
@@ -293,9 +293,9 @@ export const OnboardingDetails = ({
   isEditing?: boolean;
   onCancel?: () => void;
 }) => {
-  // Steps: 1=Plan, 2=Personal, 3=Business, 4=Location, 5=Welcome+Pay
-  // Edit mode starts at step 2 (personal)
-  const [step, setStep] = useState(isEditing ? 2 : 1);
+  // Steps: 1=Personal, 2=Business, 3=Location, 4=Plan, 5=Welcome+Pay
+  // Edit mode uses steps 1-3
+  const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -341,11 +341,11 @@ export const OnboardingDetails = ({
     }
   }, [selectedTier]);
 
-  // Validation field groups per step (matching original 3-step layout)
+  // Validation field groups per step
   const stepFields: Record<number, (keyof z.infer<typeof submitProfileDetails>)[]> = {
-    2: ["profilePhoto", "firstName", "lastName", "mobile"],
-    3: ["companyName", "gstin", "reraNumber", "yearsOfExperience"],
-    4: ["city", "officeAddress"],
+    1: ["profilePhoto", "firstName", "lastName", "mobile"],
+    2: ["companyName", "gstin", "reraNumber", "yearsOfExperience"],
+    3: ["city", "officeAddress"],
   };
 
   const form = useForm<z.infer<typeof submitProfileDetails>>({
@@ -680,16 +680,71 @@ export const OnboardingDetails = ({
   const handleNext = async (e: React.MouseEvent) => {
     e.preventDefault();
 
-    if (isEditing) {
-      // Edit mode uses steps 2-4 (personal, business, location)
-      const fields = stepFields[step];
-      if (fields) {
-        const isStepValid = await form.trigger(fields);
-        if (!isStepValid) return;
-      }
+    // Validate current step fields
+    const fields = stepFields[step];
+    if (fields) {
+      const isStepValid = await form.trigger(fields);
+      if (!isStepValid) return;
+    }
 
-      if (step === 4) {
-        // Last edit step - submit
+    // Save details at each step (1, 2, 3)
+    if (step >= 1 && step <= 3 && brokerData?._id) {
+      try {
+        setLoading(true);
+        const data = form.getValues();
+        
+        // Construct payload based on step
+        let payload: any = { _id: brokerData._id };
+        
+        if (step === 1) {
+          payload = { 
+            ...payload, 
+            firstName: data.firstName, 
+            lastName: data.lastName, 
+            mobile: data.mobile, 
+            profilePhoto: data.profilePhoto 
+          };
+        } else if (step === 2) {
+          payload = { 
+            ...payload, 
+            companyName: data.companyName, 
+            gstin: data.gstin, 
+            reraNumber: data.reraNumber, 
+            yearsOfExperience: data.yearsOfExperience 
+          };
+        } else if (step === 3) {
+          payload = { 
+            ...payload, 
+            city: data.city, 
+            officeAddress: data.officeAddress 
+          };
+        }
+
+        await updateProfileDetails(payload);
+        
+        // Update local context
+        setBrokerData({
+          ...brokerData,
+          ...data,
+        });
+      } catch (error) {
+        console.error("Error saving step details:", error);
+        // We log error but don't block progress unless it's critical? 
+        // User asked to save details. If save fails, maybe we should warn.
+        // But for UX, maybe continue? 
+        // Let's show error and stop to ensure data is saved.
+        toast.error("Failed to save details. Please try again.");
+        setLoading(false);
+        return;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (isEditing) {
+      // Edit mode uses steps 1-3
+      if (step === 3) {
+        // Last edit step - submit (calls updateProfileDetails again with all data)
         onSubmitProfileEdit(form.getValues());
       } else {
         setDirection(1);
@@ -698,25 +753,19 @@ export const OnboardingDetails = ({
       return;
     }
 
-    // New user flow: 1=Plan, 2=Personal, 3=Business, 4=Location, 5=Welcome+Pay
-    if (step === 1) {
+    // New user flow: 1=Personal, 2=Business, 3=Location, 4=Plan, 5=Welcome+Pay
+    if (step === 4) { // Plan Selection
       if (!selectedTier) {
         toast.error(t("onboarding_select_plan_error") || "Please select an activation plan");
         return;
       }
       setDirection(1);
-      setStep(2);
-    } else if (step >= 2 && step <= 4) {
-      // Validate current step's fields
-      const fields = stepFields[step];
-      if (fields) {
-        const isStepValid = await form.trigger(fields);
-        if (!isStepValid) return;
-      }
-      setDirection(1);
-      setStep(step + 1);
+      setStep(5);
     } else if (step === 5) {
       await handleCompleteOnboarding();
+    } else {
+      setDirection(1);
+      setStep(step + 1);
     }
   };
 
@@ -747,8 +796,8 @@ export const OnboardingDetails = ({
     setStep(step - 1);
   };
 
-  // For edit mode, map steps 2-4 to display steps 1-3
-  const displayStep = isEditing ? step - 1 : step;
+  // For edit mode, map steps 1-3
+  const displayStep = step;
   const watchedFirstName = form.watch("firstName");
   const watchedLastName = form.watch("lastName");
   const watchedMobile = form.watch("mobile");
@@ -766,21 +815,21 @@ export const OnboardingDetails = ({
       case 1:
         return (
           <>
-            {t("onboarding_choose_your", "Choose your")}{" "}
-            <span className="text-primary">{t("onboarding_plan_word", "plan")}</span>
-          </>
-        );
-      case 2:
-        return (
-          <>
             {(t("onboarding_setup_profile") || "Setup profile").split("profile")[0]}
             <span className="text-primary">profile</span>
           </>
         );
-      case 3:
+      case 2:
         return t("onboarding_business_step_title", "Business details");
-      case 4:
+      case 3:
         return t("onboarding_location_step_title", "Location");
+      case 4:
+        return (
+          <>
+            {t("onboarding_choose_your", "Choose your")}{" "}
+            <span className="text-primary">{t("onboarding_plan_word", "plan")}</span>
+          </>
+        );
       case 5:
         return t("onboarding_welcome_step_title", "Welcome!");
       default:
@@ -792,13 +841,13 @@ export const OnboardingDetails = ({
     if (isEditing) return t("onboarding_profile_details_desc");
     switch (step) {
       case 1:
-        return t("onboarding_plan_step_desc", "Start with a 1-month activation pack to explore the platform");
-      case 2:
         return t("onboarding_profile_details_desc", "Tell us a bit about yourself");
-      case 3:
+      case 2:
         return t("onboarding_business_step_desc", "Tell us about your business");
-      case 4:
+      case 3:
         return t("onboarding_location_step_desc", "Where are you based?");
+      case 4:
+        return t("onboarding_plan_step_desc", "Start with a 1-month activation pack to explore the platform");
       case 5:
         return t("onboarding_welcome_step_desc", "Review your plan and complete the setup");
       default:
@@ -808,7 +857,7 @@ export const OnboardingDetails = ({
 
   const getNextButtonLabel = () => {
     if (isEditing) {
-      if (step === 4) {
+      if (step === 3) {
         return loading ? t("onboarding_updating", "Updating...") : t("onboarding_update_profile_btn", "Update Profile");
       }
       return t("onboarding_continue", "Continue");
@@ -950,16 +999,8 @@ export const OnboardingDetails = ({
                       transition={{ duration: 0.4, ease: "circOut" }}
                       className="space-y-6"
                     >
-                      {/* ── Step 1: Plan Selection ──────────────────────── */}
-                      {!isEditing && step === 1 && (
-                        <PlanSelectionStep
-                          selectedTier={selectedTier}
-                          onSelect={setSelectedTier}
-                        />
-                      )}
-
-                      {/* ── Step 2: Personal Details (KYC optional) ─────── */}
-                      {step === 2 && (
+                      {/* ── Step 1: Personal Details (KYC optional) ─────── */}
+                      {step === 1 && (
                         <Step1
                           form={form}
                           selectedCountry={selectedCountry}
@@ -971,14 +1012,22 @@ export const OnboardingDetails = ({
                         />
                       )}
 
-                      {/* ── Step 3: Business Details ────────────────────── */}
-                      {step === 3 && (
+                      {/* ── Step 2: Business Details ────────────────────── */}
+                      {step === 2 && (
                         <Step2 form={form} />
                       )}
 
-                      {/* ── Step 4: Location ────────────────────────────── */}
-                      {step === 4 && (
+                      {/* ── Step 3: Location ────────────────────────────── */}
+                      {step === 3 && (
                         <Step3 form={form} />
+                      )}
+
+                      {/* ── Step 4: Plan Selection ──────────────────────── */}
+                      {!isEditing && step === 4 && (
+                        <PlanSelectionStep
+                          selectedTier={selectedTier}
+                          onSelect={setSelectedTier}
+                        />
                       )}
 
                       {/* ── Step 5: Welcome + Pay ──────────────────────── */}
@@ -1002,7 +1051,7 @@ export const OnboardingDetails = ({
                 </div>
               )}
               <div className="flex items-center justify-between">
-                {((step > 1 && !isEditing) || (isEditing && step > 2)) ? (
+                {step > 1 ? (
                   <Button
                     variant="ghost"
                     type="button"
@@ -1024,8 +1073,8 @@ export const OnboardingDetails = ({
                     loading ||
                     activationPending ||
                     verifyPending ||
-                    (step === 1 && !selectedTier) ||
-                    (step === 2 && !isIndianNumber && !isEditing)
+                    (step === 4 && !selectedTier) ||
+                    (step === 1 && !isIndianNumber && !isEditing)
                   }
                   className={cn(
                     "h-12 px-8 font-medium",
@@ -1049,7 +1098,7 @@ export const OnboardingDetails = ({
                     <div className="flex items-center gap-2">
                       {step === 5 && !isEditing && <CreditCard className="h-4 w-4" />}
                       {getNextButtonLabel()}
-                      {((step < 5 && !isEditing) || (isEditing && step < 4)) && <ArrowRight className="h-4 w-4" />}
+                      {((step < 5 && !isEditing) || (isEditing && step < 3)) && <ArrowRight className="h-4 w-4" />}
                     </div>
                   )}
                 </Button>
