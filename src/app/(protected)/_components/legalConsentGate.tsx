@@ -16,14 +16,13 @@ import { buildAcceptedLegalConsents, LEGAL_DOC_LINKS } from "@/constants/legal";
 export const LegalConsentGate = () => {
   const { t } = useTranslation();
   const { brokerData, setBrokerData } = useApp();
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = termsAccepted && privacyAccepted && !submitting;
+  const canSubmit = legalAccepted && !submitting;
 
   const handleContinue = async () => {
-    if (!termsAccepted || !privacyAccepted) {
+    if (!legalAccepted) {
       toast.error(t("legal_accept_required_error"));
       return;
     }
@@ -94,20 +93,20 @@ export const LegalConsentGate = () => {
           </a>
         </div>
 
-        <div className="mt-5 space-y-3">
+        <div className="mt-5">
           <div className="flex items-start gap-2">
             <Checkbox
-              checked={termsAccepted}
-              onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+              checked={legalAccepted}
+              onCheckedChange={(checked) => setLegalAccepted(checked === true)}
               className="mt-1"
-              id="legal-terms-consent"
+              id="legal-consent"
             />
             <Label
-              htmlFor="legal-terms-consent"
+              htmlFor="legal-consent"
               className="text-sm leading-relaxed cursor-pointer"
             >
               <Trans
-                i18nKey="legal_accept_terms_label"
+                i18nKey="legal_accept_all_label"
                 components={{
                   masterTerms: (
                     <a
@@ -125,25 +124,6 @@ export const LegalConsentGate = () => {
                       className="text-primary hover:underline"
                     />
                   ),
-                }}
-              />
-            </Label>
-          </div>
-
-          <div className="flex items-start gap-2">
-            <Checkbox
-              checked={privacyAccepted}
-              onCheckedChange={(checked) => setPrivacyAccepted(checked === true)}
-              className="mt-1"
-              id="legal-privacy-consent"
-            />
-            <Label
-              htmlFor="legal-privacy-consent"
-              className="text-sm leading-relaxed cursor-pointer"
-            >
-              <Trans
-                i18nKey="legal_accept_privacy_label"
-                components={{
                   privacyPolicy: (
                     <a
                       href={LEGAL_DOC_LINKS.privacyPolicy}

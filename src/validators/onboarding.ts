@@ -66,11 +66,8 @@ export const signupFormSchema = z
     confirmPassword: z
       .string()
       .min(8, { message: "Password must be at least 8 characters long" }),
-    termsConsent: z.boolean().refine((value) => value === true, {
+    legalConsent: z.boolean().refine((value) => value === true, {
       message: "You must agree to the terms to continue",
-    }),
-    privacyConsent: z.boolean().refine((value) => value === true, {
-      message: "You must agree to the privacy policy to continue",
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -84,11 +81,8 @@ export const getSignupFormSchema = (t: (key: string) => string) =>
       email: z.string().email({ message: t("invalid_email") }),
       password: z.string().min(8, { message: t("password_min_length") }),
       confirmPassword: z.string().min(8, { message: t("password_min_length") }),
-      termsConsent: z.boolean().refine((value) => value === true, {
-        message: t("terms_required"),
-      }),
-      privacyConsent: z.boolean().refine((value) => value === true, {
-        message: t("privacy_required"),
+      legalConsent: z.boolean().refine((value) => value === true, {
+        message: t("legal_consent_required"),
       }),
     })
     .refine((data) => data.password === data.confirmPassword, {

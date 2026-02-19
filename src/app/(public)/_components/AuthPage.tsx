@@ -213,16 +213,14 @@ export default function AuthPage({
     email: string;
     password: string;
     confirmPassword: string;
-    termsConsent: boolean;
-    privacyConsent: boolean;
+    legalConsent: boolean;
   };
 
   const defaultValues = {
     email: "",
     password: "",
     confirmPassword: "",
-    termsConsent: false,
-    privacyConsent: false,
+    legalConsent: false,
   };
 
   const form = useForm<FormSchemaType>({
@@ -234,8 +232,7 @@ export default function AuthPage({
   const { reset } = form;
   const formValues = form.watch();
   const isSignupConsentSatisfied =
-    mode !== "signup" ||
-    (formValues.termsConsent === true && formValues.privacyConsent === true);
+    mode !== "signup" || formValues.legalConsent === true;
 
   // Reset form when switching modes
   React.useEffect(() => {
@@ -415,11 +412,8 @@ export default function AuthPage({
   const handleGoogleAuth = async () => {
     try {
       if (mode === "signup" && !isSignupConsentSatisfied) {
-        form.setError("termsConsent", {
-          message: t("terms_required"),
-        });
-        form.setError("privacyConsent", {
-          message: t("privacy_required"),
+        form.setError("legalConsent", {
+          message: t("legal_consent_required"),
         });
         toast.error(t("legal_accept_required_error"));
         return;
@@ -922,10 +916,10 @@ export default function AuthPage({
                     )}
 
                     {mode === "signup" && (
-                      <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3">
+                      <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
                         <FormField
                           control={form.control}
-                          name="termsConsent"
+                          name="legalConsent"
                           render={({ field }) => (
                             <FormItem className="space-y-1.5">
                               <div className="flex items-start gap-2">
@@ -940,7 +934,7 @@ export default function AuthPage({
                                 </FormControl>
                                 <Label className="text-xs leading-relaxed text-foreground/90">
                                   <Trans
-                                    i18nKey="legal_accept_terms_label"
+                                    i18nKey="legal_accept_all_label"
                                     components={{
                                       masterTerms: (
                                         <a
@@ -958,34 +952,6 @@ export default function AuthPage({
                                           className="text-primary hover:underline"
                                         />
                                       ),
-                                    }}
-                                  />
-                                </Label>
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="privacyConsent"
-                          render={({ field }) => (
-                            <FormItem className="space-y-1.5">
-                              <div className="flex items-start gap-2">
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value === true}
-                                    onCheckedChange={(checked) =>
-                                      field.onChange(checked === true)
-                                    }
-                                    className="mt-1"
-                                  />
-                                </FormControl>
-                                <Label className="text-xs leading-relaxed text-foreground/90">
-                                  <Trans
-                                    i18nKey="legal_accept_privacy_label"
-                                    components={{
                                       privacyPolicy: (
                                         <a
                                           href={LEGAL_DOC_LINKS.privacyPolicy}
