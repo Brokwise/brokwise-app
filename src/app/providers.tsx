@@ -1,14 +1,17 @@
 'use client'
 
 import { usePathname, useSearchParams } from "next/navigation"
-import { Suspense, useEffect } from "react"
+import { Suspense, useEffect, useRef } from "react"
 import { usePostHog } from 'posthog-js/react'
 import { firebaseAuth } from "@/config/firebase"
+import { clearSessionId } from "@/lib/session"
 
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
+  const lastAuthenticatedUidRef = useRef<string | null>(null)
+
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) return
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
@@ -24,7 +27,14 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) return
 
     const unsubscribe = firebaseAuth.onAuthStateChanged((user) => {
-      if (!user) return
+      if (!user) {
+        if (lastAuthenticatedUidRef.current) {
+          clearSessionId()
+        }
+        lastAuthenticatedUidRef.current = null
+        return
+      }
+      lastAuthenticatedUidRef.current = user.uid
       posthog.identify(user.uid, {
         email: user.email ?? undefined,
         name: user.displayName ?? undefined,

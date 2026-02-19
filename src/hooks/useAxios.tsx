@@ -4,6 +4,11 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { firebaseAuth } from "@/config/firebase";
 import { useEffect, useMemo, useRef } from "react";
+import { getSessionId } from "@/lib/session";
+import {
+  forceLogoutDueToSession,
+  isSessionErrorCode,
+} from "@/lib/authSession";
 const useAxios = () => {
   const router = useRouter();
   const routerRef = useRef(router);
@@ -20,33 +25,19 @@ const useAxios = () => {
       },
     });
 
-    // Note: 401/403 will land in the error handler (not the success handler).
-    // instance.interceptors.response.use(
-    //   (response) => response,
-    //   async (error) => {
-    //     const status = error?.response?.status;
-    //     // Only 401 implies an invalid/expired token.
-    //     // 403 can be a valid authorization failure; don't force logout on it.
-    //     if (status === 401) {
-    //       if (isHandlingAuthErrorRef.current) {
-    //         return Promise.reject(error);
-    //       }
-    //       isHandlingAuthErrorRef.current = true;
-    //       try {
-    //         await firebaseAuth.signOut();
-    //       } catch {
-    //         // Ignore sign-out errors; still route user to login.
-    //       }
-    //       toast.error("Session expired, please login again");
-    //       routerRef.current.push("/login");
-    //       // Reset after a delay so fresh 401s (e.g., after re-login) are handled.
-    //       setTimeout(() => {
-    //         isHandlingAuthErrorRef.current = false;
-    //       }, 2000);
-    //     }
-    //     return Promise.reject(error);
-    //   }
-    // );
+    instance.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const status = error?.response?.status;
+        const code = error?.response?.data?.code;
+
+        if (status === 401 && isSessionErrorCode(code)) {
+          await forceLogoutDueToSession({ router: routerRef.current });
+        }
+
+        return Promise.reject(error);
+      }
+    );
 
     instance.interceptors.request.use(
       async (config) => {
@@ -57,6 +48,14 @@ const useAxios = () => {
             config.headers as Record<string, string>
           ).Authorization = `Bearer ${token}`;
         }
+
+        const sessionId = getSessionId();
+        if (sessionId) {
+          config.headers = config.headers ?? {};
+          (config.headers as Record<string, string>)["x-session-id"] =
+            sessionId;
+        }
+
         return config;
       },
       (error) => Promise.reject(error)
