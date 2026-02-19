@@ -2,6 +2,11 @@ import { RequestMethod } from "@/models/types";
 import { firebaseAuth } from "../../config/firebase";
 import { Config } from "../../config";
 import { logError } from "@/utils/errors";
+import { getSessionId } from "@/lib/session";
+import {
+  forceLogoutDueToSession,
+  isSessionErrorCode,
+} from "@/lib/authSession";
 
 let lastTokenRefetch = 0;
 interface PostHog {
@@ -62,6 +67,11 @@ export const customFetch = async <ResponseType, RequestType extends object>({
       }
       console.log("[customFetch] Token obtained, length:", token.length);
       formattedHeaders.Authorization = `Bearer ${token}`;
+
+      const sessionId = getSessionId();
+      if (sessionId) {
+        formattedHeaders["x-session-id"] = sessionId;
+      }
     }
     const isFormData =
       typeof FormData !== "undefined" && body instanceof FormData;
@@ -85,6 +95,15 @@ export const customFetch = async <ResponseType, RequestType extends object>({
     const data = (await response.json()) as ResponseType;
     console.log("[customFetch] Response data received");
     if (response.status >= 400 || !response.ok) {
+      const sessionCode =
+        typeof (data as { code?: unknown })?.code === "string"
+          ? (data as { code: string }).code
+          : undefined;
+
+      if (response.status === 401 && isSessionErrorCode(sessionCode)) {
+        await forceLogoutDueToSession();
+      }
+
       throw new Error(JSON.stringify(data));
     }
 
