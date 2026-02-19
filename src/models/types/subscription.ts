@@ -159,7 +159,6 @@ export interface CreateSubscriptionPayload {
 
 export interface PurchaseActivationPayload {
   tier: TIER;
-  razorpayPlanId: string;
 }
 
 export interface VerifyActivationPayload {
@@ -174,12 +173,10 @@ export interface ActivationPurchaseResponse {
     phase: SubscriptionPhase;
     duration: SubscriptionDuration;
     status: SubscriptionStatus;
-    razorpayPlanId: string;
-    razorpaySubscriptionId: string;
   };
   razorpay: {
-    subscriptionId: string;
-    shortUrl: string;
+    orderId: string;
+    amount: number;
     keyId: string;
   };
   activationDetails: {

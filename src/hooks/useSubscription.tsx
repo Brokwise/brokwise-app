@@ -19,7 +19,7 @@ import {
   VerifyActivationPayload,
   ActivationPurchaseResponse,
 } from "@/models/types/subscription";
-import { getRazorpayPlan, getActivationPlan } from "@/config/tier_limits";
+import { getRazorpayPlan } from "@/config/tier_limits";
 
 interface CreateSubscriptionResponse {
   subscription: SubscriptionResponse;
@@ -350,7 +350,7 @@ export const useSubscription = () => {
     useCancelSubscription();
   const { purchaseActivation, isPending: activationPending } =
     usePurchaseActivation();
-  const { isPending: verifyPending } =
+  const { verifyActivation, isPending: verifyPending } =
     useVerifyActivation();
 
   const queryClient = useQueryClient();
@@ -371,27 +371,23 @@ export const useSubscription = () => {
       (subscription.status === "expired" || subscription.status === "cancelled"));
 
   /**
-   * Initiate activation pack purchase (Phase 1 - Razorpay subscription)
+   * Initiate activation pack purchase (Phase 1 - one-time Razorpay order)
    */
   const initiateActivation = async (
     selectedTier: TIER,
     userInfo: { name: string; email: string; phone: string }
   ): Promise<boolean> => {
     try {
-      const activationPlan = getActivationPlan(selectedTier);
-      if (!activationPlan?.planId) {
-        toast.error("Invalid activation plan configuration");
-        return false;
-      }
+      const result = await purchaseActivation({ tier: selectedTier });
 
-      const result = await purchaseActivation({ tier: selectedTier, razorpayPlanId: activationPlan.planId });
-
-      const { subscriptionId, keyId } = result.razorpay;
+      const { orderId, amount, keyId } = result.razorpay;
 
       return new Promise((resolve) => {
         const options = {
           key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          subscription_id: subscriptionId,
+          order_id: orderId,
+          amount,
+          currency: "INR",
           name: "Brokwise",
           description: `${selectedTier} Activation Pack`,
           prefill: {
@@ -403,13 +399,15 @@ export const useSubscription = () => {
             color: "#3399cc",
           },
           handler: async function (response: {
-            razorpay_subscription_id: string;
+            razorpay_order_id: string;
             razorpay_payment_id: string;
             razorpay_signature: string;
           }) {
             try {
-              await linkRazorpaySubscription({
-                razorpaySubscriptionId: response.razorpay_subscription_id,
+              await verifyActivation({
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
               });
               queryClient.invalidateQueries({ queryKey: ["current-subscription"] });
               queryClient.invalidateQueries({ queryKey: ["usage"] });

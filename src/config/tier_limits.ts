@@ -103,7 +103,7 @@ const ACTIVATION_PLANS_STAGING: Record<TIER, ActivationPlanConfig> = {
 
 const ACTIVATION_PLANS_PRODUCTION: Record<TIER, ActivationPlanConfig> = {
     BASIC: {
-        planId: "plan_SGD9Ca5rmMknL0",
+        planId: "plan_SFt6ZxwHVyh12Z",
         tier: "BASIC",
         amount: 589,            // GST-inclusive
         displayAmount: 499,     // ex-GST
@@ -111,7 +111,7 @@ const ACTIVATION_PLANS_PRODUCTION: Record<TIER, ActivationPlanConfig> = {
         credits: 40,
     },
     ESSENTIAL: {
-        planId: "plan_SFt7MRewCPEs6K",      // TODO: replace with actual Razorpay plan ID
+        planId: "plan_SFt7MRewCPEs6K",
         tier: "ESSENTIAL",
         amount: 1179,           // GST-inclusive
         displayAmount: 999,     // ex-GST
@@ -119,7 +119,7 @@ const ACTIVATION_PLANS_PRODUCTION: Record<TIER, ActivationPlanConfig> = {
         credits: 100,
     },
     PRO: {
-        planId: "plan_SFt873dHKP5Lgg",            // TODO: replace with actual Razorpay plan ID
+        planId: "plan_SFt873dHKP5Lgg",
         tier: "PRO",
         amount: 2123,           // GST-inclusive
         displayAmount: 1799,    // ex-GST

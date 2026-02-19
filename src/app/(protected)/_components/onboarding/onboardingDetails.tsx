@@ -59,9 +59,8 @@ import {
   ACTIVATION_PLANS,
   ACTIVATION_TIER_INFO,
   ACTIVATION_LIMITS,
-  getActivationPlan,
 } from "@/config/tier_limits";
-import { usePurchaseActivation, useLinkRazorpaySubscription } from "@/hooks/useSubscription";
+import { usePurchaseActivation, useVerifyActivation } from "@/hooks/useSubscription";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -322,7 +321,7 @@ export const OnboardingDetails = ({
 
   // Activation hooks
   const { purchaseActivation, isPending: activationPending } = usePurchaseActivation();
-  const { linkRazorpaySubscription, isPending: verifyPending } = useLinkRazorpaySubscription();
+  const { verifyActivation, isPending: verifyPending } = useVerifyActivation();
 
   // ─── KYC State ───────────────────────────────────────────────────────────────
   const [kycState, setKycState] = useState<KycState>({ status: "not_started" });
@@ -548,16 +547,17 @@ export const OnboardingDetails = ({
         profilePhoto: data.profilePhoto,
       });
 
-      // 2. Initiate activation payment via Razorpay
-      const activationPlan = getActivationPlan(selectedTier);
-      const activationResult = await purchaseActivation({ tier: selectedTier, razorpayPlanId: activationPlan.planId });
-      const { subscriptionId, keyId } = activationResult.razorpay;
+      // 2. Initiate activation payment via Razorpay (one-time order)
+      const activationResult = await purchaseActivation({ tier: selectedTier });
+      const { orderId, amount, keyId } = activationResult.razorpay;
 
-      // 3. Open Razorpay checkout
+      // 3. Open Razorpay checkout in order mode
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rzp = new (window as any).Razorpay({
         key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        subscription_id: subscriptionId,
+        order_id: orderId,
+        amount,
+        currency: "INR",
         name: "Brokwise",
         description: `${selectedTier} Activation Pack`,
         prefill: {
@@ -567,17 +567,17 @@ export const OnboardingDetails = ({
         },
         theme: { color: "#3399cc" },
         handler: async function (response: {
-          razorpay_subscription_id: string;
+          razorpay_order_id: string;
           razorpay_payment_id: string;
           razorpay_signature: string;
         }) {
           try {
-            await linkRazorpaySubscription({
-              razorpaySubscriptionId: response.razorpay_subscription_id,
+            await verifyActivation({
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
             });
-            // Clean up
             localStorage.removeItem(SELECTED_TIER_KEY);
-            // Update broker data -> approved (direct approval)
             setBrokerData({
               ...brokerData,
               ...data,
@@ -585,8 +585,6 @@ export const OnboardingDetails = ({
             });
             toast.success("Activation successful! Welcome to Brokwise.");
           } catch {
-            // Payment captured but client-side verification failed.
-            // The webhook will verify on the backend. Approve and let them in.
             localStorage.removeItem(SELECTED_TIER_KEY);
             setBrokerData({
               ...brokerData,
@@ -598,9 +596,6 @@ export const OnboardingDetails = ({
         },
         modal: {
           ondismiss: function () {
-            // Payment dismissed — keep user on onboarding step 5
-            // Profile is submitted on backend, but we don't update local
-            // state to "approved" so the onboarding screen stays visible.
             toast.info("Please complete the payment to start using the app.");
           },
         },

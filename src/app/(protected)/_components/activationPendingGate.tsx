@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Script from "next/script";
-import { useGetCurrentSubscription, usePurchaseActivation, useLinkRazorpaySubscription } from "@/hooks/useSubscription";
+import { useGetCurrentSubscription, usePurchaseActivation, useVerifyActivation } from "@/hooks/useSubscription";
 import { useApp } from "@/context/AppContext";
 import { Loader } from "@/components/ui/loader";
 import Image from "next/image";
@@ -19,7 +19,7 @@ import {
   ChevronLeft
 } from "lucide-react";
 import { TIER } from "@/models/types/subscription";
-import { ACTIVATION_PLANS, ACTIVATION_TIER_INFO, getActivationPlan } from "@/config/tier_limits";
+import { ACTIVATION_PLANS, ACTIVATION_TIER_INFO } from "@/config/tier_limits";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,7 +56,7 @@ export const ActivationPendingGate = ({
   const { brokerData } = useApp();
   const { subscription, isLoading } = useGetCurrentSubscription();
   const { purchaseActivation, isPending: purchasePending } = usePurchaseActivation();
-  const { linkRazorpaySubscription, isPending: verifyPending } = useLinkRazorpaySubscription();
+  const { verifyActivation, isPending: verifyPending } = useVerifyActivation();
   const { setBrokerData } = useApp();
   const [signOut] = useSignOut(firebaseAuth);
   const [isSwitchingPlan, setIsSwitchingPlan] = useState(false);
@@ -109,14 +109,15 @@ export const ActivationPendingGate = ({
     if (!brokerData) return;
 
     try {
-      const activationPlan = getActivationPlan(selectedTier);
-      const result = await purchaseActivation({ tier: selectedTier, razorpayPlanId: activationPlan.planId });
-      const { subscriptionId, keyId } = result.razorpay;
+      const result = await purchaseActivation({ tier: selectedTier });
+      const { orderId, amount, keyId } = result.razorpay;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rzp = new (window as any).Razorpay({
         key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        subscription_id: subscriptionId,
+        order_id: orderId,
+        amount,
+        currency: "INR",
         name: "Brokwise",
         description: `${selectedTier} Activation Pack`,
         prefill: {
@@ -126,19 +127,19 @@ export const ActivationPendingGate = ({
         },
         theme: { color: "#3399cc" },
         handler: async function (response: {
-          razorpay_subscription_id: string;
+          razorpay_order_id: string;
           razorpay_payment_id: string;
           razorpay_signature: string;
         }) {
           try {
-            await linkRazorpaySubscription({
-              razorpaySubscriptionId: response.razorpay_subscription_id,
+            await verifyActivation({
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
             });
             toast.success("Activation successful! Welcome to Brokwise.");
-            // Force a full page reload to refresh all state
             window.location.reload();
           } catch {
-            // Webhook will handle it
             setBrokerData({ ...brokerData });
             toast.info("Payment received. Verification in progress.");
             window.location.reload();
