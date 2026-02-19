@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { logError } from "@/utils/errors";
 import { Capacitor } from "@capacitor/core";
 import { buildAcceptedLegalConsents } from "@/constants/legal";
+import posthog from "posthog-js";
 
 const GoogleOauthPage = () => {
   const defaultMessage = "Authenticating with google";
@@ -295,6 +296,14 @@ const GoogleOauthPage = () => {
 
       // Clear forgot password rate limit state on successful login
       localStorage.removeItem("brokwise_password_reset_attempts");
+
+      const currentUser = firebaseAuth.currentUser;
+      if (currentUser) {
+        posthog.identify(currentUser.uid, {
+          email: currentUser.email ?? undefined,
+          name: currentUser.displayName ?? undefined,
+        });
+      }
 
       setTimeout(() => {
         redirectUser({

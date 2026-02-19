@@ -14,6 +14,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { firebaseAuth } from "@/config/firebase";
 import Image from "next/image";
 import { signOut } from "firebase/auth";
+import posthog from "posthog-js";
 import { Computer, Moon, Sun, Languages } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -174,7 +175,7 @@ export function UserAvatar() {
         <DropdownMenuSeparator className="my-2" />
 
         <DropdownMenuItem
-          onClick={() => signOut(firebaseAuth)}
+          onClick={() => { posthog.reset(); signOut(firebaseAuth); }}
           className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 py-2.5 flex items-center gap-3 font-medium"
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10">

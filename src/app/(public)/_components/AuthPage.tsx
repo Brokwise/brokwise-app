@@ -70,6 +70,7 @@ import { firebaseAuth, getUserDoc, setUserDoc } from "@/config/firebase";
 import { createUser } from "@/models/api/user";
 import { logError } from "@/utils/errors";
 import { useIsMobile } from "@/hooks/use-mobile";
+import posthog from "posthog-js";
 import {
   buildAcceptedLegalConsents,
   LEGAL_DOC_LINKS,
@@ -393,6 +394,11 @@ export default function AuthPage({
       // Clear forgot password rate limit state on successful login
       localStorage.removeItem("brokwise_password_reset_attempts");
 
+      posthog.identify(user.uid, {
+        email: user.email ?? undefined,
+        name: user.displayName ?? undefined,
+      });
+
       toast.success(
         mode === "signup"
           ? t("account_created_success")
@@ -512,6 +518,11 @@ export default function AuthPage({
 
         // Clear forgot password rate limit state on successful login
         localStorage.removeItem("brokwise_password_reset_attempts");
+
+        posthog.identify(user.uid, {
+          email: user.email ?? undefined,
+          name: user.displayName ?? undefined,
+        });
 
         toast.success(
           mode === "signup"
