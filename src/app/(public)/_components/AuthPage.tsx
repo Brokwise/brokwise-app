@@ -439,6 +439,7 @@ export default function AuthPage({
   };
 
   const handleGoogleAuth = async () => {
+    let activationAttempted = false;
     try {
       if (mode === "signup" && !isSignupConsentSatisfied) {
         form.setError("legalConsent", {
@@ -547,6 +548,7 @@ export default function AuthPage({
           name: user.displayName ?? undefined,
         });
 
+        activationAttempted = true;
         await activateSingleDeviceSession();
 
         toast.success(
@@ -586,6 +588,14 @@ export default function AuthPage({
         window.open(authUrl, "_self");
       }
     } catch (error) {
+      if (activationAttempted) {
+        clearSessionId();
+        try {
+          await firebaseAuth.signOut();
+        } catch {
+          // Ignore sign out errors while recovering from session activation failure.
+        }
+      }
       logError({
         description: "Error signing up with Google",
         error: error as Error,

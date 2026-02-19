@@ -63,11 +63,11 @@ export const forceLogoutDueToSession = async (options?: {
         "Logged out because your account was signed in on another device."
     );
 
-    if (options?.router) {
-      options.router.push("/login");
-    } else if (typeof window !== "undefined") {
-      window.location.href = "/login";
+    if (typeof window !== "undefined") {
+      window.location.assign("/login");
+      return;
     }
+    options?.router?.push("/login");
   } finally {
     setTimeout(() => {
       isHandlingForcedLogout = false;

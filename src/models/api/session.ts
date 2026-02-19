@@ -17,17 +17,28 @@ interface SessionData {
 }
 
 export const activateSession = async (sessionId: string) =>
-  customFetch<SessionEnvelope<SessionData>, Record<string, unknown>>({
-    method: "POST",
-    path: "/session/activate",
-    isProtected: true,
-    body: {
-      sessionId,
-      devicePlatform: detectDevicePlatform(),
-      deviceName: getDeviceName(),
-      appVersion: Config.version,
-    },
-  });
+  {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    try {
+      return await customFetch<SessionEnvelope<SessionData>, Record<string, unknown>>({
+        method: "POST",
+        path: "/session/activate",
+        isProtected: true,
+        includeSessionHeader: false,
+        signal: controller.signal,
+        body: {
+          sessionId,
+          devicePlatform: detectDevicePlatform(),
+          deviceName: getDeviceName(),
+          appVersion: Config.version,
+        },
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  };
 
 export const getCurrentSession = async () =>
   customFetch<SessionEnvelope<SessionData>, Record<string, never>>({

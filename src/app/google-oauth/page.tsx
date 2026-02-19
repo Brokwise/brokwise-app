@@ -184,6 +184,7 @@ const GoogleOauthPage = () => {
   );
 
   const login = useCallback(async () => {
+    let activationAttempted = false;
     try {
       const params = new URLSearchParams(
         typeof window !== "undefined"
@@ -315,6 +316,7 @@ const GoogleOauthPage = () => {
         });
       }
 
+      activationAttempted = true;
       await activateSingleDeviceSession();
 
       setTimeout(() => {
@@ -326,11 +328,13 @@ const GoogleOauthPage = () => {
         });
       }, 200);
     } catch (error) {
-      clearSessionId();
-      try {
-        await firebaseAuth.signOut();
-      } catch {
-        // Ignore sign out failures while handling OAuth errors.
+      if (activationAttempted) {
+        clearSessionId();
+        try {
+          await firebaseAuth.signOut();
+        } catch {
+          // Ignore sign out failures while handling OAuth errors.
+        }
       }
       logError({
         error: error as Error,
