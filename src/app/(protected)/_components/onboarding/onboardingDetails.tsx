@@ -1068,7 +1068,7 @@ export const OnboardingDetails = ({
                   disabled={
                     loading ||
                     activationPending ||
-                    verifyPending ||
+                    verifyPending || !kycState.userDetails ||
                     (step === 4 && !selectedTier) ||
                     (step === 1 && !isIndianNumber && !isEditing)
                   }
