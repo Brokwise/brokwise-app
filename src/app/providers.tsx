@@ -3,6 +3,7 @@
 import { usePathname, useSearchParams } from "next/navigation"
 import { Suspense, useEffect } from "react"
 import { usePostHog } from 'posthog-js/react'
+import { firebaseAuth } from "@/config/firebase"
 
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
@@ -12,10 +13,25 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) return
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
       api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+      cross_subdomain_cookie: true,
       person_profiles: 'identified_only',
       capture_pageview: false,
       capture_pageleave: true
     })
+  }, [])
+
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) return
+
+    const unsubscribe = firebaseAuth.onAuthStateChanged((user) => {
+      if (!user) return
+      posthog.identify(user.uid, {
+        email: user.email ?? undefined,
+        name: user.displayName ?? undefined,
+      })
+    })
+
+    return () => unsubscribe()
   }, [])
 
   return (
