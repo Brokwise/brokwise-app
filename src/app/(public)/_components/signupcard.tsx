@@ -128,7 +128,7 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         return;
       }
       const actionCodeSettings = {
-        url: `${window.location.origin}`,
+        url: `https://app.brokwise.com`,
         handleCodeInApp: false,
       };
       await sendEmailVerification(user, actionCodeSettings);
