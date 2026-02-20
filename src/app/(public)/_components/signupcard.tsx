@@ -131,7 +131,16 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         url: `https://app.brokwise.com`,
         handleCodeInApp: false,
       };
-      await sendEmailVerification(user, actionCodeSettings);
+      try {
+        await sendEmailVerification(user, actionCodeSettings);
+      } catch (err) {
+        const fbErr = err as FirebaseError;
+        if (fbErr.message?.includes("UNAUTHORIZED_DOMAIN")) {
+          await sendEmailVerification(user);
+        } else {
+          throw err;
+        }
+      }
       localStorage.setItem("lastVerification", Date.now().toString());
       toast.success(t("verification_email_sent"));
     } catch (error) {
