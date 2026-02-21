@@ -8,6 +8,19 @@ export type PropertyCategory =
   | "RESORT"
   | "FARM_HOUSE";
 
+export type ListingPurpose = "SALE" | "RENT";
+
+export type TenantType =
+  | "FAMILY"
+  | "BACHELORS_MEN"
+  | "BACHELORS_WOMEN"
+  | "COMPANY_LEASE";
+
+export type CommercialFurnishing =
+  | "BARE_SHELL"
+  | "WARM_SHELL"
+  | "FULLY_FURNISHED";
+
 export type PropertyType =
   | "FLAT"
   | "VILLA"
@@ -127,6 +140,8 @@ export interface Property {
   _id: string;
   propertyId: string | null;
 
+  listingPurpose?: ListingPurpose;
+
   propertyCategory: PropertyCategory;
   propertyType: PropertyType;
   address: Address;
@@ -185,6 +200,17 @@ export interface Property {
 
   amenities?: string[];
 
+  // Rental-specific fields
+  monthlyRent?: number;
+  securityDeposit?: number;
+  agreementDuration?: string;
+  lockInPeriod?: number;
+  noticePeriod?: number;
+  tenantType?: TenantType[];
+  petsAllowed?: boolean;
+  nonVegAllowed?: boolean;
+  furnishing?: CommercialFurnishing;
+
   createdAt: string;
   updatedAt: string;
   deletingStatus?: "pending" | "approved" | "rejected" | null;
@@ -222,4 +248,14 @@ export interface EditPropertyDTO {
   newImages?: string[];
   featuredMedia?: string;
   isFeatured?: boolean;
+  // Rental fields
+  monthlyRent?: number;
+  securityDeposit?: number;
+  agreementDuration?: string;
+  lockInPeriod?: number;
+  noticePeriod?: number;
+  tenantType?: TenantType[];
+  petsAllowed?: boolean;
+  nonVegAllowed?: boolean;
+  furnishing?: CommercialFurnishing;
 }

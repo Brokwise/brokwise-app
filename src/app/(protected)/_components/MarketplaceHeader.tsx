@@ -13,6 +13,9 @@ import {
   Columns,
   Plus,
   ChevronDown,
+  Home,
+  Tag,
+  KeyIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -102,6 +105,14 @@ interface MarketplaceHeaderProps {
   setBhkFilter: (val: string) => void;
   featuredFilter: string;
   setFeaturedFilter: (val: string) => void;
+  listingPurposeFilter: string;
+  setListingPurposeFilter: (val: string) => void;
+  enquiryPurposeFilter: string;
+  setEnquiryPurposeFilter: (val: string) => void;
+  rentRange: number[] | null;
+  setRentRange: (val: number[] | null) => void;
+  maxRentPrice: number;
+  effectiveRentRange: number[];
   view: "grid" | "map" | "split";
   setView: (val: "grid" | "map" | "split") => void;
   filteredCount: number;
@@ -130,6 +141,14 @@ export const MarketplaceHeader = ({
   setBhkFilter,
   featuredFilter,
   setFeaturedFilter,
+  listingPurposeFilter,
+  setListingPurposeFilter,
+  enquiryPurposeFilter,
+  setEnquiryPurposeFilter,
+  rentRange,
+  setRentRange,
+  maxRentPrice,
+  effectiveRentRange,
   view,
   setView,
   filteredCount,
@@ -346,6 +365,9 @@ export const MarketplaceHeader = ({
         </Popover>
       </div>
 
+      {/* Sell / Rent Segmented Control */}
+
+
       {/* Controls: Filter Pills + View Toggle */}
       <div className="flex flex-col gap-3 sm:gap-4 w-full">
         {/* Category Pills (Scrollable) - Full width on mobile */}
@@ -373,6 +395,7 @@ export const MarketplaceHeader = ({
               </Button>
             ))}
           </div>
+
           <div>
             <Select
               value={categoryFilter}
@@ -399,6 +422,52 @@ export const MarketplaceHeader = ({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 justify-end">
+            {viewMode === "PROPERTIES" && (
+              <div className="flex items-center gap-0.5 p-0.5 bg-muted/60 rounded-full border border-border/40 w-fit">
+                {([
+                  { value: "ALL", label: "All" },
+                  { value: "SALE", label: "Sell" },
+                  { value: "RENT", label: "Rent" },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setListingPurposeFilter(opt.value)}
+                    className={`px-4 sm:px-5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${listingPurposeFilter === opt.value
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }`}
+                  >
+                    <div className="flex items-center gap-1">
+                      {opt.value === "SALE" ? <Tag className="w-4 h-4 " /> : opt.value === "ALL" ? <Home className="w-4 h-4 " /> : <KeyIcon className="w-4 h-4 " />} {opt.label}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+            {viewMode === "ENQUIRIES" && (
+              <div className="flex items-center gap-0.5 p-0.5 bg-muted/60 rounded-full border border-border/40 w-fit">
+                {([
+                  { value: "ALL", label: "All" },
+                  { value: "SALE", label: "Buy" },
+                  { value: "RENT", label: "Rent" },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setEnquiryPurposeFilter(opt.value)}
+                    className={`px-4 sm:px-5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${enquiryPurposeFilter === opt.value
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      }`}
+                  >
+                    <div className="flex items-center gap-1">
+                      {opt.value === "SALE" ? <Tag className="w-4 h-4" /> : opt.value === "ALL" ? <Home className="w-4 h-4" /> : <KeyIcon className="w-4 h-4" />} {opt.label}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
             {" "}
             {/* Advanced Filters Trigger */}{" "}
             <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
@@ -498,88 +567,148 @@ export const MarketplaceHeader = ({
                       </Select>{" "}
                     </div>
                   )}{" "}
-                  {/* Price/Budget Range */}{" "}
-                  <div className="space-y-4">
-                    {" "}
-                    <div className="flex justify-between items-center">
+                  {/* Price/Budget/Rent Range */}{" "}
+                  {viewMode === "ENQUIRIES" && enquiryPurposeFilter === "RENT" ? (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label>Monthly Rent Range</Label>
+                        <div className="text-xs text-muted-foreground font-medium">
+                          {formatPriceShort(effectiveRentRange[0])} -{" "}
+                          {formatPriceShort(effectiveRentRange[1])}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Min</Label>
+                          <Input
+                            inputMode="numeric"
+                            type="number"
+                            min={0}
+                            max={effectiveRentRange[1]}
+                            value={effectiveRentRange[0]}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              const next = raw === "" ? 0 : Number(raw);
+                              if (!Number.isFinite(next)) return;
+                              setRentRange([
+                                Math.max(0, Math.min(next, effectiveRentRange[1])),
+                                effectiveRentRange[1],
+                              ]);
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Max</Label>
+                          <Input
+                            inputMode="numeric"
+                            type="number"
+                            min={effectiveRentRange[0]}
+                            max={maxRentPrice}
+                            value={effectiveRentRange[1]}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              const next = raw === "" ? maxRentPrice : Number(raw);
+                              if (!Number.isFinite(next)) return;
+                              setRentRange([
+                                effectiveRentRange[0],
+                                Math.min(maxRentPrice, Math.max(next, effectiveRentRange[0])),
+                              ]);
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <Slider
+                        min={0}
+                        max={maxRentPrice}
+                        step={1000}
+                        value={effectiveRentRange}
+                        onValueChange={(value) => setRentRange(value)}
+                        className="py-2"
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
                       {" "}
-                      <Label>
+                      <div className="flex justify-between items-center">
                         {" "}
-                        {viewMode === "PROPERTIES"
-                          ? "Price"
-                          : "Budget"} Range{" "}
-                      </Label>{" "}
-                      <div className="text-xs text-muted-foreground font-medium">
-                        {" "}
-                        {formatPriceShort(effectivePriceRange[0])} -{" "}
-                        {formatPriceShort(effectivePriceRange[1])}{" "}
-                      </div>{" "}
-                    </div>{" "}
-                    <div className="grid grid-cols-2 gap-3">
-                      {" "}
-                      <div className="space-y-1">
-                        {" "}
-                        <Label className="text-xs text-muted-foreground">
+                        <Label>
                           {" "}
-                          Min{" "}
+                          {viewMode === "PROPERTIES"
+                            ? "Price"
+                            : "Budget"} Range{" "}
                         </Label>{" "}
-                        <Input
-                          inputMode="numeric"
-                          type="number"
-                          min={0}
-                          max={effectivePriceRange[1]}
-                          value={effectivePriceRange[0]}
-                          onChange={(e) => {
-                            const raw = e.target.value;
-                            const next = raw === "" ? 0 : Number(raw);
-                            if (!Number.isFinite(next)) return;
-                            setPriceRange([
-                              Math.max(
-                                0,
-                                Math.min(next, effectivePriceRange[1])
-                              ),
-                              effectivePriceRange[1],
-                            ]);
-                          }}
-                        />{" "}
-                      </div>{" "}
-                      <div className="space-y-1">
-                        {" "}
-                        <Label className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground font-medium">
                           {" "}
-                          Max{" "}
-                        </Label>{" "}
-                        <Input
-                          inputMode="numeric"
-                          type="number"
-                          min={effectivePriceRange[0]}
-                          max={maxPropertyPrice}
-                          value={effectivePriceRange[1]}
-                          onChange={(e) => {
-                            const raw = e.target.value;
-                            const next =
-                              raw === "" ? maxPropertyPrice : Number(raw);
-                            if (!Number.isFinite(next)) return;
-                            setPriceRange([
-                              effectivePriceRange[0],
-                              Math.min(
-                                maxPropertyPrice,
-                                Math.max(next, effectivePriceRange[0])
-                              ),
-                            ]);
-                          }}
-                        />{" "}
+                          {formatPriceShort(effectivePriceRange[0])} -{" "}
+                          {formatPriceShort(effectivePriceRange[1])}{" "}
+                        </div>{" "}
                       </div>{" "}
-                    </div>{" "}
-                    <Slider
-                      min={0}
-                      max={maxPropertyPrice}
-                      step={100000}
-                      value={effectivePriceRange}
-                      onValueChange={(value) => setPriceRange(value)}
-                      className="py-2"
-                    />{" "}
-                  </div>{" "}
+                      <div className="grid grid-cols-2 gap-3">
+                        {" "}
+                        <div className="space-y-1">
+                          {" "}
+                          <Label className="text-xs text-muted-foreground">
+                            {" "}
+                            Min{" "}
+                          </Label>{" "}
+                          <Input
+                            inputMode="numeric"
+                            type="number"
+                            min={0}
+                            max={effectivePriceRange[1]}
+                            value={effectivePriceRange[0]}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              const next = raw === "" ? 0 : Number(raw);
+                              if (!Number.isFinite(next)) return;
+                              setPriceRange([
+                                Math.max(
+                                  0,
+                                  Math.min(next, effectivePriceRange[1])
+                                ),
+                                effectivePriceRange[1],
+                              ]);
+                            }}
+                          />{" "}
+                        </div>{" "}
+                        <div className="space-y-1">
+                          {" "}
+                          <Label className="text-xs text-muted-foreground">
+                            {" "}
+                            Max{" "}
+                          </Label>{" "}
+                          <Input
+                            inputMode="numeric"
+                            type="number"
+                            min={effectivePriceRange[0]}
+                            max={maxPropertyPrice}
+                            value={effectivePriceRange[1]}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              const next =
+                                raw === "" ? maxPropertyPrice : Number(raw);
+                              if (!Number.isFinite(next)) return;
+                              setPriceRange([
+                                effectivePriceRange[0],
+                                Math.min(
+                                  maxPropertyPrice,
+                                  Math.max(next, effectivePriceRange[0])
+                                ),
+                              ]);
+                            }}
+                          />{" "}
+                        </div>{" "}
+                      </div>{" "}
+                      <Slider
+                        min={0}
+                        max={maxPropertyPrice}
+                        step={100000}
+                        value={effectivePriceRange}
+                        onValueChange={(value) => setPriceRange(value)}
+                        className="py-2"
+                      />{" "}
+                    </div>
+                  )}{" "}
                   {/* BHK - Only shown for Residential */}{" "}
                   {showBhkFilter && (
                     <div className="space-y-2">
@@ -782,7 +911,19 @@ export const MarketplaceHeader = ({
               </Button>
             )}
 
-            {priceRange !== null && (
+            {viewMode === "ENQUIRIES" && enquiryPurposeFilter !== "ALL" && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setEnquiryPurposeFilter("ALL")}
+                className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+              >
+                {enquiryPurposeFilter === "SALE" ? "Buy" : "Rent"}
+                <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
+              </Button>
+            )}
+
+            {priceRange !== null && !(viewMode === "ENQUIRIES" && enquiryPurposeFilter === "RENT") && (
               <Button
                 variant="secondary"
                 size="sm"
@@ -794,6 +935,20 @@ export const MarketplaceHeader = ({
                 </span>
                 {formatPriceShort(effectivePriceRange[0])} -{" "}
                 {formatPriceShort(effectivePriceRange[1])}
+                <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
+              </Button>
+            )}
+
+            {rentRange !== null && viewMode === "ENQUIRIES" && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setRentRange(null)}
+                className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
+              >
+                <span className="hidden sm:inline">Rent:{" "}</span>
+                {formatPriceShort(effectiveRentRange[0])} -{" "}
+                {formatPriceShort(effectiveRentRange[1])}
                 <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
               </Button>
             )}

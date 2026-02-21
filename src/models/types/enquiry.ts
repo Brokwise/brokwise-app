@@ -11,6 +11,8 @@ import { Property } from "@/types/property";
 // === ENUMS ===
 export type EnquiryStatus = "active" | "closed" | "expired";
 export type EnquirySource = "broker" | "admin" | "company";
+export type EnquiryPurpose = "BUY" | "RENT";
+export type PossessionType = "IMMEDIATE" | "SPECIFIC_DATE";
 export type SubmissionStatus = "pending" | "approved" | "rejected";
 export type MessageThreadType = "enquirer_admin" | "submitter_admin";
 export type SubmissionViewStatus = "not_viewed" | "viewed" | "contact_shared";
@@ -40,6 +42,11 @@ export interface RentalIncomeRange {
   max?: number;
 }
 
+export interface MonthlyRentBudget {
+  min: number;
+  max: number;
+}
+
 // === MAIN ENQUIRY INTERFACE ===
 export interface Enquiry {
   _id: string;
@@ -48,6 +55,8 @@ export interface Enquiry {
   // Source Tracking
   source: EnquirySource;
   createdBy: string; // Ref: 'Broker' | 'Admin'
+
+  enquiryPurpose?: EnquiryPurpose;
 
   // Classification
   enquiryCategory: PropertyCategory;
@@ -62,6 +71,12 @@ export interface Enquiry {
 
   // Budget Range
   budget: BudgetRange;
+
+  // Rental-specific
+  monthlyRentBudget?: MonthlyRentBudget;
+  possessionType?: PossessionType;
+  possessionDate?: string | Date;
+  tenantDetails?: string;
 
   // Description
   description: string;
@@ -204,6 +219,9 @@ export interface MarketplaceFilters {
   type?: string;
   minBudget?: number;
   maxBudget?: number;
+  enquiryPurpose?: EnquiryPurpose;
+  minRent?: number;
+  maxRent?: number;
 }
 
 export interface CreateEnquiryDTO {
@@ -212,9 +230,10 @@ export interface CreateEnquiryDTO {
   // Legacy fields required by company create-enquiry endpoint (backend still expects these)
   city?: string;
   localities?: string[];
+  enquiryPurpose?: EnquiryPurpose;
   enquiryCategory: PropertyCategory;
   enquiryType: PropertyType;
-  budget: BudgetRange;
+  budget?: BudgetRange;
   description: string;
   size?: SizeRange;
   plotType?: PlotType;
@@ -232,4 +251,9 @@ export interface CreateEnquiryDTO {
   urgent?: boolean;
   shouldUseCredits?: boolean;
   enquiryDisclaimerAccepted: true;
+  // Rental-specific
+  monthlyRentBudget?: MonthlyRentBudget;
+  possessionType?: PossessionType;
+  possessionDate?: string | Date;
+  tenantDetails?: string;
 }

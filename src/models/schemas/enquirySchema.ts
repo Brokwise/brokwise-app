@@ -4,6 +4,8 @@ import { PropertyCategory, PropertyType } from "@/models/types/property";
 
 const BUDGET_MIN = 500000; // ₹5 lakh
 const BUDGET_MAX = 10000000000; // ₹1000 crore
+const RENT_MIN = 1000; // ₹1,000
+const RENT_MAX = 50000000; // ₹5 Crore
 
 // --- Constants ---
 
@@ -37,6 +39,22 @@ const budgetRangeSchema = z
   })
   .refine((data) => data.max >= data.min, {
     message: "Max budget must be greater than or equal to min budget.",
+    path: ["max"],
+  });
+
+const monthlyRentBudgetSchema = z
+  .object({
+    min: z
+      .number()
+      .min(RENT_MIN, "Minimum rent must be at least ₹1,000.")
+      .max(RENT_MAX, "Rent cannot exceed ₹5 Crore."),
+    max: z
+      .number()
+      .min(RENT_MIN, "Maximum rent must be at least ₹1,000.")
+      .max(RENT_MAX, "Rent cannot exceed ₹5 Crore."),
+  })
+  .refine((data) => data.max >= data.min, {
+    message: "Max rent must be greater than or equal to min rent.",
     path: ["max"],
   });
 
@@ -107,6 +125,8 @@ export const createEnquirySchema = z
     locationMode: z.enum(["search", "manual"]),
     isCompany: z.boolean(),
 
+    enquiryPurpose: z.enum(["BUY", "RENT"]).optional(),
+
     // Preferred locations (1 required, up to 3)
     preferredLocations: z
       .array(preferredLocationFormSchema)
@@ -130,7 +150,7 @@ export const createEnquirySchema = z
       { message: "Please select a category" }
     ),
     enquiryType: z.string({ message: "Please select a property type" }).min(1, "Please select a property type"),
-    budget: budgetRangeSchema,
+    budget: budgetRangeSchema.optional(),
     description: z
       .string()
       .min(10, "Description must be at least 10 characters")
@@ -143,7 +163,7 @@ export const createEnquirySchema = z
     // Corner Property Logic
     isCorner: z.boolean().optional(),
     roadFacingSides: z.coerce.number().min(1).max(4).optional(),
-    roadWidths: z.array(z.coerce.number().positive()).optional(), // We'll store array of widths corresponding to sides
+    roadWidths: z.array(z.coerce.number().positive()).optional(),
 
     facing: z
       .enum([
@@ -200,6 +220,14 @@ export const createEnquirySchema = z
       .enum(["NEAR_RING_ROAD", "RIICO_AREA", "SEZ"] as [string, ...string[]])
       .optional(),
     urgent: z.boolean().optional(),
+
+    // Rental-specific fields
+    monthlyRentBudget: monthlyRentBudgetSchema.optional(),
+    possessionType: z.enum(["IMMEDIATE", "SPECIFIC_DATE"] as [string, ...string[]]).optional(),
+    possessionDate: z.union([z.string(), z.date()]).optional(),
+    tenantDetails: z.enum(
+      ["FAMILY", "BACHELORS_MEN", "BACHELORS_WOMEN", "COMPANY_LEASE"] as [string, ...string[]]
+    ).optional(),
   })
   .superRefine((data, ctx) => {
     // Validate preferred locations
@@ -350,8 +378,47 @@ export const createEnquirySchema = z
       }
     }
 
+    // Rental-specific validations
+    const purpose = data.enquiryPurpose || "BUY";
+
+    if (purpose === "RENT") {
+      if (category && !["RESIDENTIAL", "COMMERCIAL"].includes(category)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["enquiryCategory"],
+          message: "Rental enquiries are only allowed for Residential and Commercial categories",
+        });
+      }
+
+      if (!data.monthlyRentBudget || !data.monthlyRentBudget.min || !data.monthlyRentBudget.max) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["monthlyRentBudget"],
+          message: "Monthly rent budget is required for rental enquiries",
+        });
+      }
+
+      if (data.possessionType === "SPECIFIC_DATE" && !data.possessionDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["possessionDate"],
+          message: "Possession date is required when type is Specific Date",
+        });
+      }
+    }
+
+    if (purpose === "BUY") {
+      if (!data.budget || !data.budget.min || !data.budget.max) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["budget"],
+          message: "Budget is required for buy enquiries",
+        });
+      }
+    }
+
   });
 
 export type CreateEnquiryFormValues = z.infer<typeof createEnquirySchema>;
 
-export { BUDGET_MIN, BUDGET_MAX };
+export { BUDGET_MIN, BUDGET_MAX, RENT_MIN, RENT_MAX };

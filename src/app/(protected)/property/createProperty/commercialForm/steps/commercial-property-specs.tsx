@@ -18,6 +18,14 @@ import { NumberInput } from "@/components/ui/number-input";
 import { getPlotTypeOptions } from "@/lib/plotType";
 import { useTranslation } from "react-i18next";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   formatIndianNumber,
   parseIntegerWithMax,
@@ -38,11 +46,12 @@ interface CommercialPropertySpecsProps {
   form: UseFormReturn<CommercialPropertyFormData>;
   enquiry?: Enquiry;
   propertyType: CommercialPropertyType;
+  listingPurpose?: "SALE" | "RENT";
 }
 
 export const CommercialPropertySpecs: React.FC<
   CommercialPropertySpecsProps
-> = ({ form, enquiry, propertyType }) => {
+> = ({ form, enquiry, propertyType, listingPurpose = "SALE" }) => {
   const { t } = useTranslation();
   const [lastEditedPriceField, setLastEditedPriceField] = useState<
     "rate" | "totalPrice"
@@ -558,152 +567,360 @@ export const CommercialPropertySpecs: React.FC<
 
       {/* Pricing Details */}
       <div className="pt-6 border-t space-y-6">
-        <div className="space-y-2">
-          <h3 className="text-lg font-medium text-primary">Pricing Details</h3>
-          <p className="text-sm text-muted-foreground">
-            Enter either Rate per Unit or Total Price — the other will be
-            calculated automatically based on the property size.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="rate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  Rate per Unit (₹) <span className="text-destructive">*</span>
-                  {lastEditedPriceField === "totalPrice" &&
-                    effectiveSize > 0 && (
-                      <span className="text-xs font-normal text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">
-                        Auto-calculated
-                      </span>
-                    )}
-                </FormLabel>
-                <FormControl>
-                  <NumberInput
-                    placeholder="Enter rate per unit"
-                    {...field}
-                    onChange={(value) => {
-                      setLastEditedPriceField("rate");
-                      field.onChange(value);
-                    }}
-                    className={cn(
-                      lastEditedPriceField === "totalPrice" && effectiveSize > 0
-                        ? "bg-muted/50"
-                        : ""
-                    )}
-                  />
-                </FormControl>
-                <FormDescription>
-                  {lastEditedPriceField === "rate"
-                    ? "Total price will be calculated"
-                    : "Calculated from total price ÷ size"}
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        {listingPurpose === "SALE" ? (
+          <>
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium text-primary">Pricing Details</h3>
+              <p className="text-sm text-muted-foreground">
+                Enter either Rate per Unit or Total Price — the other will be
+                calculated automatically based on the property size.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="rate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      Rate per Unit (₹) <span className="text-destructive">*</span>
+                      {lastEditedPriceField === "totalPrice" &&
+                        effectiveSize > 0 && (
+                          <span className="text-xs font-normal text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">
+                            Auto-calculated
+                          </span>
+                        )}
+                    </FormLabel>
+                    <FormControl>
+                      <NumberInput
+                        placeholder="Enter rate per unit"
+                        {...field}
+                        onChange={(value) => {
+                          setLastEditedPriceField("rate");
+                          field.onChange(value);
+                        }}
+                        className={cn(
+                          lastEditedPriceField === "totalPrice" && effectiveSize > 0
+                            ? "bg-muted/50"
+                            : ""
+                        )}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {lastEditedPriceField === "rate"
+                        ? "Total price will be calculated"
+                        : "Calculated from total price ÷ size"}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <FormField
-            control={form.control}
-            name="totalPrice"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  Total Price (₹)
-                  {lastEditedPriceField === "rate" && effectiveSize > 0 && (
-                    <span className="text-xs font-normal text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">
-                      Auto-calculated
-                    </span>
-                  )}
-                </FormLabel>
-                <FormControl>
-                  <NumberInput
-                    placeholder="Enter total price"
-                    {...field}
-                    onChange={(value) => {
-                      setLastEditedPriceField("totalPrice");
-                      field.onChange(value);
-                    }}
-                    className={cn(
-                      lastEditedPriceField === "rate" && effectiveSize > 0
-                        ? "bg-muted/50"
-                        : ""
-                    )}
-                  />
-                </FormControl>
-                <FormDescription>
-                  {lastEditedPriceField === "totalPrice"
-                    ? "Rate per unit will be calculated"
-                    : "Calculated from size × rate"}
-                </FormDescription>
-                <FormMessage />
-                {enquiry?.budget &&
-                  field.value &&
-                  (field.value < enquiry.budget.min ||
-                    field.value > enquiry.budget.max) && (
-                    <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
-                      <AlertTriangle className="h-4 w-4" />
-                      <span>
-                        Enquiry budget range:{" "}
-                        {formatIndianNumber(enquiry.budget.min)} -{" "}
-                        {formatIndianNumber(enquiry.budget.max)}.
-                      </span>
-                    </div>
-                  )}
-              </FormItem>
-            )}
-          />
-        </div>
+              <FormField
+                control={form.control}
+                name="totalPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      Total Price (₹)
+                      {lastEditedPriceField === "rate" && effectiveSize > 0 && (
+                        <span className="text-xs font-normal text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">
+                          Auto-calculated
+                        </span>
+                      )}
+                    </FormLabel>
+                    <FormControl>
+                      <NumberInput
+                        placeholder="Enter total price"
+                        {...field}
+                        onChange={(value) => {
+                          setLastEditedPriceField("totalPrice");
+                          field.onChange(value);
+                        }}
+                        className={cn(
+                          lastEditedPriceField === "rate" && effectiveSize > 0
+                            ? "bg-muted/50"
+                            : ""
+                        )}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {lastEditedPriceField === "totalPrice"
+                        ? "Rate per unit will be calculated"
+                        : "Calculated from size × rate"}
+                    </FormDescription>
+                    <FormMessage />
+                    {enquiry?.budget &&
+                      field.value &&
+                      (field.value < enquiry.budget.min ||
+                        field.value > enquiry.budget.max) && (
+                        <div className="flex items-center gap-2 text-amber-500 text-sm mt-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span>
+                            Enquiry budget range:{" "}
+                            {formatIndianNumber(enquiry.budget.min)} -{" "}
+                            {formatIndianNumber(enquiry.budget.max)}.
+                          </span>
+                        </div>
+                      )}
+                  </FormItem>
+                )}
+              />
+            </div>
 
-        {/* Rental Income for Showroom/Hotel/Hostel */}
-        {(propertyType === "SHOWROOM" ||
-          propertyType === "HOTEL" ||
-          propertyType === "HOSTEL") && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Rental Income (Optional)</h3>
+            {/* Rental Income for Showroom/Hotel/Hostel */}
+            {(propertyType === "SHOWROOM" ||
+              propertyType === "HOTEL" ||
+              propertyType === "HOSTEL") && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Rental Income (Optional)</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="rentalIncome.min"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Minimum Rental Income (₹)</FormLabel>
+                          <FormControl>
+                            <NumberInput
+                              placeholder="0"
+                              {...field}
+                              onChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormDescription>Range: 0 to 25L</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="rentalIncome.max"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Maximum Rental Income (₹)</FormLabel>
+                          <FormControl>
+                            <NumberInput
+                              placeholder="2500000"
+                              {...field}
+                              onChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormDescription>Range: 0 to 25L</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+          </>
+        ) : (
+          <>
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium text-primary">Rental Details</h3>
+              <p className="text-sm text-muted-foreground">
+                Enter the monthly rent, security deposit, and lease terms.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="monthlyRent"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Monthly Rent (₹) <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <NumberInput placeholder="Enter monthly rent" {...field} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="securityDeposit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Security Deposit (₹) <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <NumberInput placeholder="Enter security deposit" {...field} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="agreementDuration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Agreement Duration <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select duration" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {["6 months", "11 months", "1 year", "2 years", "3 years", "5 years"].map((d) => (
+                          <SelectItem key={d} value={d}>{d}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="lockInPeriod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Lock-in Period (months)</FormLabel>
+                    <FormControl>
+                      <NumberInput placeholder="e.g. 6" {...field} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="noticePeriod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notice Period (months)</FormLabel>
+                    <FormControl>
+                      <NumberInput placeholder="e.g. 2" {...field} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-4 p-4 rounded-xl bg-muted/30 border">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <span className="w-1 h-4 bg-primary rounded-full" />
+                Tenant Preferences
+              </h3>
+
+              <FormField
+                control={form.control}
+                name="tenantType"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel>Preferred Tenant Type</FormLabel>
+                    <FormControl>
+                      <div
+                        className={cn(
+                          "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
+                          fieldState.error && "bg-destructive/10 ring-1 ring-destructive"
+                        )}
+                      >
+                        {([
+                          { value: "FAMILY", label: "Family" },
+                          { value: "BACHELORS_MEN", label: "Bachelors (Men)" },
+                          { value: "BACHELORS_WOMEN", label: "Bachelors (Women)" },
+                          { value: "COMPANY_LEASE", label: "Company Lease" },
+                        ] as const).map((item) => {
+                          const selected = (field.value || []).includes(item.value);
+                          return (
+                            <Button
+                              key={item.value}
+                              type="button"
+                              variant="selection"
+                              onClick={() => {
+                                const current = field.value || [];
+                                field.onChange(
+                                  selected
+                                    ? current.filter((v: string) => v !== item.value)
+                                    : [...current, item.value]
+                                );
+                              }}
+                              className={cn(selected ? "bg-primary text-primary-foreground" : "")}
+                            >
+                              {item.label}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="rentalIncome.min"
+                  name="petsAllowed"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Minimum Rental Income (₹)</FormLabel>
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>Pets Allowed</FormLabel>
+                      </div>
                       <FormControl>
-                        <NumberInput
-                          placeholder="0"
-                          {...field}
-                          onChange={field.onChange}
-                        />
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
-                      <FormDescription>Range: 0 to 25L</FormDescription>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
-                  name="rentalIncome.max"
+                  name="nonVegAllowed"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Maximum Rental Income (₹)</FormLabel>
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>Non-Veg Allowed</FormLabel>
+                      </div>
                       <FormControl>
-                        <NumberInput
-                          placeholder="2500000"
-                          {...field}
-                          onChange={field.onChange}
-                        />
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
-                      <FormDescription>Range: 0 to 25L</FormDescription>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="furnishing"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Furnishing Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select furnishing" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="BARE_SHELL">Bare Shell</SelectItem>
+                        <SelectItem value="WARM_SHELL">Warm Shell</SelectItem>
+                        <SelectItem value="FULLY_FURNISHED">Fully Furnished</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-          )}
+          </>
+        )}
 
         <FormField
           control={form.control}

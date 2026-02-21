@@ -35,6 +35,7 @@ interface ResidentialWizardProps {
   enquiry?: Enquiry;
   draftCount?: number;
   isEditingDraft?: boolean;
+  listingPurpose?: "SALE" | "RENT";
 }
 
 export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
@@ -47,6 +48,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   enquiry,
   draftCount,
   isEditingDraft,
+  listingPurpose = "SALE",
 }) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient()
@@ -64,6 +66,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     resolver: zodResolver(residentialPropertySchema),
     defaultValues: {
       propertyCategory: "RESIDENTIAL",
+      listingPurpose: listingPurpose,
       address: {
         state: "",
         city: "",
@@ -89,6 +92,10 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     },
     mode: "onChange",
   });
+
+  useEffect(() => {
+    form.setValue("listingPurpose", listingPurpose, { shouldValidate: false });
+  }, [listingPurpose, form]);
 
   const watchedPropertyType = form.watch("propertyType");
   const propertyType = watchedPropertyType || "FLAT";
@@ -136,6 +143,11 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         ? ["description", "floorPlans"]
         : ["description", "featuredMedia", "floorPlans"];
 
+    const isRent = listingPurpose === "RENT";
+    const pricingFields = isRent
+      ? ["monthlyRent", "securityDeposit", "agreementDuration"]
+      : ["rate"];
+
     const stepRequiredFields: { [key: number]: string[] } = {
       0: [
         "propertyType",
@@ -156,7 +168,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
             ...(plotType === "CORNER" ? ["sideRoadWidth"] : []),
           ]
           : []),
-        "rate",
+        ...pricingFields,
       ],
       1: mediaStepFields,
       2: [],
@@ -388,6 +400,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                 enquiry={enquiry}
                 form={form}
                 propertyType={propertyType}
+                listingPurpose={listingPurpose}
               />
             }
           </div>

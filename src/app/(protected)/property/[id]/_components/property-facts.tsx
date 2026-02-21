@@ -12,7 +12,12 @@ import {
     Building,
     Calendar,
     Layers,
-    IndianRupee
+    IndianRupee,
+    Shield,
+    Clock,
+    Users,
+    PawPrint,
+    Armchair,
 } from "lucide-react";
 import { format } from "date-fns";
 import { formatCurrency } from "@/utils/helper";
@@ -117,7 +122,62 @@ export const PropertyFacts = ({ property }: PropertyFactsProps) => {
                 !!property.rentalIncome &&
                 ((property.rentalIncome.min || 0) > 0 ||
                     (property.rentalIncome.max || 0) > 0),
-        }
+        },
+        // Rental-specific facts
+        {
+            label: "Monthly Rent",
+            value: property.monthlyRent ? formatCurrency(property.monthlyRent) + "/mo" : null,
+            icon: IndianRupee,
+            show: !!property.monthlyRent,
+        },
+        {
+            label: "Security Deposit",
+            value: property.securityDeposit != null ? formatCurrency(property.securityDeposit) : null,
+            icon: Shield,
+            show: property.securityDeposit != null && (property.listingPurpose === "RENT"),
+        },
+        {
+            label: "Agreement Duration",
+            value: property.agreementDuration,
+            icon: Calendar,
+            show: !!property.agreementDuration,
+        },
+        {
+            label: "Lock-in Period",
+            value: property.lockInPeriod ? `${property.lockInPeriod} months` : null,
+            icon: Clock,
+            show: !!property.lockInPeriod,
+        },
+        {
+            label: "Notice Period",
+            value: property.noticePeriod ? `${property.noticePeriod} months` : null,
+            icon: Clock,
+            show: !!property.noticePeriod,
+        },
+        {
+            label: "Tenant Type",
+            value: property.tenantType?.map(t => t.replace(/_/g, " ")).join(", "),
+            icon: Users,
+            show: !!property.tenantType && property.tenantType.length > 0,
+        },
+        {
+            label: "Pets Allowed",
+            value: property.petsAllowed ? "Yes" : "No",
+            icon: PawPrint,
+            show: property.petsAllowed !== undefined && (property.listingPurpose === "RENT"),
+        },
+        {
+            label: "Non-Veg Allowed",
+            value: property.nonVegAllowed ? "Yes" : "No",
+            icon: Home,
+            show: property.nonVegAllowed !== undefined && (property.listingPurpose === "RENT"),
+        },
+        {
+            label: "Furnishing",
+            value: property.furnishing?.replace(/_/g, " "),
+            icon: Armchair,
+            show: !!property.furnishing,
+        },
     ];
 
     const visibleItems = items.filter((item) => item.show && item.value);

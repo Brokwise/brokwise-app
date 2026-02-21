@@ -65,6 +65,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
     resolver: zodResolver(industrialPropertySchema),
     defaultValues: {
       propertyCategory: "INDUSTRIAL",
+      listingPurpose: "SALE",
       propertyType: "WAREHOUSE",
       address: {
         state: "",

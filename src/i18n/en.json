@@ -869,6 +869,7 @@
   "page_enquiry_detail_category": "Category",
   "page_enquiry_detail_type": "Type",
   "page_enquiry_detail_status": "Status",
+  "page_enquiry_detail_enquiry_purpose": "Enquiry Purpose",
   "page_enquiry_detail_created": "Created",
   "page_enquiry_detail_updated": "Updated",
   "page_enquiry_detail_same_company": "Someone from your company has raised this enquiry, so you can't submit a property.",

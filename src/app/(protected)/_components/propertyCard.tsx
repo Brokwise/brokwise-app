@@ -60,10 +60,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
   const isCompany = userData?.userType === "company";
 
-  const rateDisplay =
-    property.rate && property.sizeUnit
+  const isRental = (property.listingPurpose || "SALE") === "RENT";
+  const rateDisplay = isRental
+    ? null
+    : property.rate && property.sizeUnit
       ? `${formatPriceShort(property.rate)}/${property.sizeUnit.toLowerCase().replace(/_/g, " ")}`
       : null;
+  const priceDisplay = isRental
+    ? `${formatPriceShort(property.monthlyRent || 0)}/mo`
+    : formatPriceShort(property.totalPrice);
 
   const canShare = !hideShare;
   const isSampleLand =
@@ -300,8 +305,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Price Tag Overlay (Luxurious Touch) */}
         <div className="absolute bottom-3 right-3 z-10">
           <div className="bg-background/95 backdrop-blur shadow-md px-3 py-1.5 rounded-lg border border-accent/10 flex flex-col items-end">
+            {isRental && (
+              <span className="text-[9px] font-semibold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded mb-0.5">RENT</span>
+            )}
             <Typography variant="large" className="font-bold text-accent leading-none">
-              {formatPriceShort(property.totalPrice)}
+              {priceDisplay}
             </Typography>
             {rateDisplay && (
               <p className="text-[10px] text-muted-foreground font-medium mt-1">

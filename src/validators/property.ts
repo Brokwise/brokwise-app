@@ -7,6 +7,10 @@ export const PROPERTY_VALIDATION_LIMITS = {
   MAX_FRONT_ROAD_WIDTH: 300,
 } as const;
 
+const ListingPurposeEnum = z.enum(["SALE", "RENT"]);
+const TenantTypeEnum = z.enum(["FAMILY", "BACHELORS_MEN", "BACHELORS_WOMEN", "COMPANY_LEASE"]);
+const CommercialFurnishingEnum = z.enum(["BARE_SHELL", "WARM_SHELL", "FULLY_FURNISHED"]);
+
 const geoLocationSchema = z.object({
   type: z.literal("Point"),
   coordinates: z.tuple([z.number(), z.number()]),
@@ -74,9 +78,10 @@ const isValidFeaturedMedia = (value: string) =>
 // Base fields required for all properties
 const basePropertySchema = z.object({
   _id: z.string().optional(),
+  listingPurpose: ListingPurposeEnum.optional(),
   address: addressSchema,
-  rate: z.number().min(0, "Rate must be >= 0"),
-  totalPrice: z.number().min(0, "Total price must be >= 0"),
+  rate: z.number().min(0, "Rate must be >= 0").optional(),
+  totalPrice: z.number().min(0, "Total price must be >= 0").optional(),
   description: z.string().min(20, "Description must be at least 20 characters"),
   location: geoLocationSchema,
   featuredMedia: z.string().url("Featured media must be a valid URL"),
@@ -91,6 +96,17 @@ const basePropertySchema = z.object({
   size: z.number().min(0).optional(),
   sizeUnit: SizeUnitEnum.optional(),
   amenities: z.array(z.string()).optional(),
+
+  // Rental-specific fields
+  monthlyRent: z.number().min(1, "Monthly rent must be > 0").optional(),
+  securityDeposit: z.number().min(0, "Security deposit must be >= 0").optional(),
+  agreementDuration: z.string().min(1, "Agreement duration is required").optional(),
+  lockInPeriod: z.number().min(0).optional(),
+  noticePeriod: z.number().min(0).optional(),
+  tenantType: z.array(TenantTypeEnum).min(1).optional(),
+  petsAllowed: z.boolean().optional(),
+  nonVegAllowed: z.boolean().optional(),
+  furnishing: CommercialFurnishingEnum.optional(),
 });
 
 // Residential Property Schema
@@ -187,13 +203,56 @@ export const residentialPropertySchema = basePropertySchema
       path: ["featuredMedia"],
     }
   )
-  .refine((data) => {
-    if (data.propertyType === "FLAT" || data.propertyType === "VILLA") {
-      // Check for industrial fields if needed, but type enforcement handles most.
+  .refine(
+    (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "SALE") {
+        return typeof data.rate === "number" && data.rate >= 0;
+      }
       return true;
-    }
-    return true;
-  })
+    },
+    { message: "Rate is required for sale listings", path: ["rate"] }
+  )
+  .refine(
+    (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "SALE") {
+        return typeof data.totalPrice === "number" && data.totalPrice >= 0;
+      }
+      return true;
+    },
+    { message: "Total price is required for sale listings", path: ["totalPrice"] }
+  )
+  .refine(
+    (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "RENT") {
+        return typeof data.monthlyRent === "number" && data.monthlyRent > 0;
+      }
+      return true;
+    },
+    { message: "Monthly rent is required for rental listings", path: ["monthlyRent"] }
+  )
+  .refine(
+    (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "RENT") {
+        return typeof data.securityDeposit === "number" && data.securityDeposit >= 0;
+      }
+      return true;
+    },
+    { message: "Security deposit is required for rental listings", path: ["securityDeposit"] }
+  )
+  .refine(
+    (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "RENT") {
+        return !!data.agreementDuration && data.agreementDuration.trim().length > 0;
+      }
+      return true;
+    },
+    { message: "Agreement duration is required for rental listings", path: ["agreementDuration"] }
+  )
   .refine(
     (data) => {
       if (data.projectArea != null && data.size != null && data.size > 0) {
@@ -274,6 +333,56 @@ export const commercialPropertySchema = basePropertySchema
       message: "Number of beds is required for hostels",
       path: ["beds"],
     }
+  )
+  .refine(
+    (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "SALE") {
+        return typeof data.rate === "number" && data.rate >= 0;
+      }
+      return true;
+    },
+    { message: "Rate is required for sale listings", path: ["rate"] }
+  )
+  .refine(
+    (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "SALE") {
+        return typeof data.totalPrice === "number" && data.totalPrice >= 0;
+      }
+      return true;
+    },
+    { message: "Total price is required for sale listings", path: ["totalPrice"] }
+  )
+  .refine(
+    (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "RENT") {
+        return typeof data.monthlyRent === "number" && data.monthlyRent > 0;
+      }
+      return true;
+    },
+    { message: "Monthly rent is required for rental listings", path: ["monthlyRent"] }
+  )
+  .refine(
+    (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "RENT") {
+        return typeof data.securityDeposit === "number" && data.securityDeposit >= 0;
+      }
+      return true;
+    },
+    { message: "Security deposit is required for rental listings", path: ["securityDeposit"] }
+  )
+  .refine(
+    (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "RENT") {
+        return !!data.agreementDuration && data.agreementDuration.trim().length > 0;
+      }
+      return true;
+    },
+    { message: "Agreement duration is required for rental listings", path: ["agreementDuration"] }
   )
   .refine(
     (data) => {

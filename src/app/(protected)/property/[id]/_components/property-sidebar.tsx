@@ -67,17 +67,34 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
             <Card className="shadow-md border-primary/10 overflow-hidden">
                 <div className="bg-primary/5 p-5 border-b border-primary/10">
                     <div className="flex flex-col gap-2">
-                        <div>
-                            <span className="text-sm text-muted-foreground block mb-1">{t("property_asking_price")}</span>
-                            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                                <span className="text-3xl font-bold text-primary">{formatCurrency(property.totalPrice)}</span>
-                                {property.rate && property.sizeUnit && (
-                                    <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                                        ({formatCurrency(property.rate)} / {property.sizeUnit.toLowerCase().replace("_", " ")})
+                        {(property.listingPurpose || "SALE") === "RENT" ? (
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-sm text-muted-foreground">Monthly Rent</span>
+                                    <Badge variant="secondary" className="text-[10px] bg-blue-100 text-blue-700 border-blue-200">RENT</Badge>
+                                </div>
+                                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                    <span className="text-3xl font-bold text-primary">{formatCurrency(property.monthlyRent || 0)}<span className="text-base font-normal">/mo</span></span>
+                                </div>
+                                {property.securityDeposit != null && (
+                                    <span className="text-sm text-muted-foreground mt-1 block">
+                                        Deposit: {formatCurrency(property.securityDeposit)}
                                     </span>
                                 )}
                             </div>
-                        </div>
+                        ) : (
+                            <div>
+                                <span className="text-sm text-muted-foreground block mb-1">{t("property_asking_price")}</span>
+                                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                    <span className="text-3xl font-bold text-primary">{formatCurrency(property.totalPrice)}</span>
+                                    {property.rate && property.sizeUnit && (
+                                        <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                                            ({formatCurrency(property.rate)} / {property.sizeUnit.toLowerCase().replace("_", " ")})
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Property Abstract Info */}
                         <div className="text-sm font-medium text-foreground py-1">

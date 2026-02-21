@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useGetProperty, useEditProperty } from "@/hooks/useProperty";
-import { EditPropertyDTO, Facing } from "@/types/property";
+import { EditPropertyDTO, Facing, TenantType, CommercialFurnishing } from "@/types/property";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, Loader2, Upload, Star, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Loader2, Upload, Star, AlertTriangle, Home } from "lucide-react";
 import Image from "next/image";
 import { FLAT_AMENITIES, VILLA_AMENITIES } from "@/constants";
 import { useTranslation } from "react-i18next";
@@ -68,6 +68,17 @@ function EditPropertyPageContent() {
     const [allImages, setAllImages] = useState<string[]>([]);
     const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
 
+    // Rental fields
+    const [monthlyRent, setMonthlyRent] = useState<number | undefined>();
+    const [securityDeposit, setSecurityDeposit] = useState<number | undefined>();
+    const [agreementDuration, setAgreementDuration] = useState<string>("");
+    const [lockInPeriod, setLockInPeriod] = useState<number | undefined>();
+    const [noticePeriod, setNoticePeriod] = useState<number | undefined>();
+    const [tenantType, setTenantType] = useState<TenantType[]>([]);
+    const [petsAllowed, setPetsAllowed] = useState<boolean>(false);
+    const [nonVegAllowed, setNonVegAllowed] = useState<boolean>(false);
+    const [furnishing, setFurnishing] = useState<CommercialFurnishing | undefined>();
+
     // Initialize form with property data
     useEffect(() => {
         if (property) {
@@ -82,6 +93,17 @@ function EditPropertyPageContent() {
             setSelectedAmenities(property.amenities || []);
             setFeaturedMedia(property.featuredMedia || "");
             setAllImages(property.images || []);
+
+            // Rental fields
+            setMonthlyRent(property.monthlyRent);
+            setSecurityDeposit(property.securityDeposit);
+            setAgreementDuration(property.agreementDuration || "");
+            setLockInPeriod(property.lockInPeriod);
+            setNoticePeriod(property.noticePeriod);
+            setTenantType(property.tenantType || []);
+            setPetsAllowed(property.petsAllowed || false);
+            setNonVegAllowed(property.nonVegAllowed || false);
+            setFurnishing(property.furnishing);
         }
     }, [property]);
 
@@ -178,10 +200,17 @@ function EditPropertyPageContent() {
 
         if (!propertyId) return;
 
-        // Validate required fields
+        const isRental = (property?.listingPurpose || "SALE") === "RENT";
+
         const errors: Record<string, boolean> = {};
-        if (rate <= 0) errors.rate = true;
-        if (totalPrice <= 0) errors.totalPrice = true;
+        if (!isRental) {
+            if (rate <= 0) errors.rate = true;
+            if (totalPrice <= 0) errors.totalPrice = true;
+        } else {
+            if (!monthlyRent || monthlyRent <= 0) errors.monthlyRent = true;
+            if (securityDeposit === undefined || securityDeposit < 0) errors.securityDeposit = true;
+            if (!agreementDuration) errors.agreementDuration = true;
+        }
 
         if (Object.keys(errors).length > 0) {
             setValidationErrors(errors);
@@ -193,8 +222,8 @@ function EditPropertyPageContent() {
 
         const payload: EditPropertyDTO = {
             propertyId,
-            rate,
-            totalPrice,
+            rate: isRental ? undefined : rate,
+            totalPrice: isRental ? undefined : totalPrice,
             isPriceNegotiable,
             frontRoadWidth,
             sideRoadWidth,
@@ -204,6 +233,17 @@ function EditPropertyPageContent() {
             amenities: selectedAmenities,
             featuredMedia,
             newImages: newImages.length > 0 ? newImages : undefined,
+            ...(isRental && {
+                monthlyRent,
+                securityDeposit,
+                agreementDuration,
+                lockInPeriod,
+                noticePeriod,
+                tenantType: tenantType.length > 0 ? tenantType : undefined,
+                petsAllowed,
+                nonVegAllowed,
+                furnishing,
+            }),
         };
 
         try {
@@ -320,62 +360,159 @@ function EditPropertyPageContent() {
             </Alert>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Price Section */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">{t("edit_property_price_section")}</CardTitle>
-                        <CardDescription>{t("edit_property_price_desc")}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="rate">{t("label_rate_per_unit")} <span className="text-destructive">*</span></Label>
-                            <Input
-                                id="rate"
-                                type="number"
-                                value={rate}
-                                onChange={(e) => {
-                                    setRate(Number(e.target.value));
-                                    setValidationErrors(prev => ({ ...prev, rate: false }));
-                                }}
-                                min={0}
-                                className={validationErrors.rate ? "border-destructive focus-visible:ring-destructive" : ""}
-                            />
-                            {validationErrors.rate && <p className="text-xs text-destructive">{t("validation_rate_required")}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="totalPrice">{t("label_total_price")} <span className="text-destructive">*</span></Label>
-                            <Input
-                                id="totalPrice"
-                                type="number"
-                                value={totalPrice}
-                                onChange={(e) => {
-                                    setTotalPrice(Number(e.target.value));
-                                    setValidationErrors(prev => ({ ...prev, totalPrice: false }));
-                                }}
-                                min={0}
-                                className={validationErrors.totalPrice ? "border-destructive focus-visible:ring-destructive" : ""}
-                            />
-                            {validationErrors.totalPrice && <p className="text-xs text-destructive">{t("validation_total_positive")}</p>}
-                        </div>
-                        <div className="md:col-span-2 pt-4">
+                {/* Listing Purpose Badge */}
+                {property.listingPurpose === "RENT" && (
+                    <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg">
+                        <Home className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Rental Property</span>
+                    </div>
+                )}
+
+                {/* Price Section - conditional based on listing purpose */}
+                {(property.listingPurpose || "SALE") === "SALE" ? (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg">{t("edit_property_price_section")}</CardTitle>
+                            <CardDescription>{t("edit_property_price_desc")}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="rate">{t("label_rate_per_unit")} <span className="text-destructive">*</span></Label>
+                                <Input
+                                    id="rate"
+                                    type="number"
+                                    value={rate}
+                                    onChange={(e) => {
+                                        setRate(Number(e.target.value));
+                                        setValidationErrors(prev => ({ ...prev, rate: false }));
+                                    }}
+                                    min={0}
+                                    className={validationErrors.rate ? "border-destructive focus-visible:ring-destructive" : ""}
+                                />
+                                {validationErrors.rate && <p className="text-xs text-destructive">{t("validation_rate_required")}</p>}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="totalPrice">{t("label_total_price")} <span className="text-destructive">*</span></Label>
+                                <Input
+                                    id="totalPrice"
+                                    type="number"
+                                    value={totalPrice}
+                                    onChange={(e) => {
+                                        setTotalPrice(Number(e.target.value));
+                                        setValidationErrors(prev => ({ ...prev, totalPrice: false }));
+                                    }}
+                                    min={0}
+                                    className={validationErrors.totalPrice ? "border-destructive focus-visible:ring-destructive" : ""}
+                                />
+                                {validationErrors.totalPrice && <p className="text-xs text-destructive">{t("validation_total_positive")}</p>}
+                            </div>
+                            <div className="md:col-span-2 pt-4">
+                                <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
+                                    <div className="space-y-0.5">
+                                        <Label htmlFor="isPriceNegotiable" className="text-sm font-medium cursor-pointer">
+                                            {t("label_price_negotiable")}
+                                        </Label>
+                                        <p className="text-xs text-muted-foreground">
+                                            {t("label_price_negotiable_desc")}
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        id="isPriceNegotiable"
+                                        checked={isPriceNegotiable}
+                                        onCheckedChange={setIsPriceNegotiable}
+                                    />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg">Rental Details</CardTitle>
+                            <CardDescription>Update rent, deposit and lease terms</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="monthlyRent">Monthly Rent (₹) <span className="text-destructive">*</span></Label>
+                                    <Input
+                                        id="monthlyRent"
+                                        type="number"
+                                        value={monthlyRent || ""}
+                                        onChange={(e) => {
+                                            setMonthlyRent(Number(e.target.value));
+                                            setValidationErrors(prev => ({ ...prev, monthlyRent: false }));
+                                        }}
+                                        min={1}
+                                        className={validationErrors.monthlyRent ? "border-destructive" : ""}
+                                    />
+                                    {validationErrors.monthlyRent && <p className="text-xs text-destructive">Monthly rent is required</p>}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="securityDeposit">Security Deposit (₹) <span className="text-destructive">*</span></Label>
+                                    <Input
+                                        id="securityDeposit"
+                                        type="number"
+                                        value={securityDeposit ?? ""}
+                                        onChange={(e) => {
+                                            setSecurityDeposit(Number(e.target.value));
+                                            setValidationErrors(prev => ({ ...prev, securityDeposit: false }));
+                                        }}
+                                        min={0}
+                                        className={validationErrors.securityDeposit ? "border-destructive" : ""}
+                                    />
+                                    {validationErrors.securityDeposit && <p className="text-xs text-destructive">Security deposit is required</p>}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="agreementDuration">Agreement Duration <span className="text-destructive">*</span></Label>
+                                    <Select value={agreementDuration} onValueChange={(val) => {
+                                        setAgreementDuration(val);
+                                        setValidationErrors(prev => ({ ...prev, agreementDuration: false }));
+                                    }}>
+                                        <SelectTrigger className={validationErrors.agreementDuration ? "border-destructive" : ""}>
+                                            <SelectValue placeholder="Select duration" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {["6 months", "11 months", "1 year", "2 years", "3 years", "5 years"].map((d) => (
+                                                <SelectItem key={d} value={d}>{d}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {validationErrors.agreementDuration && <p className="text-xs text-destructive">Duration is required</p>}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="lockInPeriod">Lock-in (months)</Label>
+                                    <Input
+                                        id="lockInPeriod"
+                                        type="number"
+                                        value={lockInPeriod || ""}
+                                        onChange={(e) => setLockInPeriod(e.target.value ? Number(e.target.value) : undefined)}
+                                        min={0}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="noticePeriod">Notice (months)</Label>
+                                    <Input
+                                        id="noticePeriod"
+                                        type="number"
+                                        value={noticePeriod || ""}
+                                        onChange={(e) => setNoticePeriod(e.target.value ? Number(e.target.value) : undefined)}
+                                        min={0}
+                                    />
+                                </div>
+                            </div>
                             <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
                                 <div className="space-y-0.5">
-                                    <Label htmlFor="isPriceNegotiable" className="text-sm font-medium cursor-pointer">
-                                        {t("label_price_negotiable")}
-                                    </Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        {t("label_price_negotiable_desc")}
-                                    </p>
+                                    <Label className="text-sm font-medium cursor-pointer">{t("label_price_negotiable")}</Label>
+                                    <p className="text-xs text-muted-foreground">{t("label_price_negotiable_desc")}</p>
                                 </div>
-                                <Switch
-                                    id="isPriceNegotiable"
-                                    checked={isPriceNegotiable}
-                                    onCheckedChange={setIsPriceNegotiable}
-                                />
+                                <Switch checked={isPriceNegotiable} onCheckedChange={setIsPriceNegotiable} />
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Road Size Section */}
                 <Card>

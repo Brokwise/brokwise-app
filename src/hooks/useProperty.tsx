@@ -76,6 +76,9 @@ export interface PropertyListFilters {
   search?: string;
   userCity?: string;
   featured?: boolean;
+  listingPurpose?: "SALE" | "RENT";
+  minRent?: number;
+  maxRent?: number;
 }
 
 export const useGetAllProperties = (
@@ -116,6 +119,15 @@ export const useGetAllProperties = (
     }
     if (filters.featured !== undefined) {
       params.set("isFeatured", String(filters.featured));
+    }
+    if (filters.listingPurpose) {
+      params.set("listingPurpose", filters.listingPurpose);
+    }
+    if (filters.minRent !== undefined && filters.minRent > 0) {
+      params.set("minRent", String(filters.minRent));
+    }
+    if (filters.maxRent !== undefined) {
+      params.set("maxRent", String(filters.maxRent));
     }
 
     return params.toString();

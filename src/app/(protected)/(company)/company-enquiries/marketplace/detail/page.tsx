@@ -546,7 +546,7 @@ const ViewMarketPlaceEnquiryContent = () => {
               {detailRow("Category", enquiry.enquiryCategory)}
               {detailRow("Type", enquiry.enquiryType)}
               {detailRow("Source", enquiry.source)}
-              {detailRow("Status", enquiry.status)}
+              {detailRow("Enquiry Purpose", enquiry.enquiryPurpose)}
               <Separator className="my-3" />
               {detailRow("Address", formatEnquiryLocation(enquiry) || "—")}
               {detailRow("Submissions", String(enquiry.submissionCount ?? 0))}

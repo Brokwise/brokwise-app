@@ -5,13 +5,13 @@ import {
   useSaveCompanyPropertyDraft,
 } from "@/hooks/useCompany";
 import { Button as MovingBorderCard } from "@/components/ui/moving-border";
-import { ArrowLeft, Sparkles, FileText, ChevronRight } from "lucide-react";
+import { ArrowLeft, Sparkles, FileText, ChevronRight, Home, Key } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 
 import { PropertyFormData } from "@/validators/property";
 import { useApp } from "@/context/AppContext";
-import { Property, PropertyCategory } from "@/types/property";
+import { Property, PropertyCategory, ListingPurpose } from "@/types/property";
 import { useState, useEffect } from "react";
 import { useGetMyListings, useGetProperty } from "@/hooks/useProperty";
 import { ResortWizard } from "./resortForm/wizard";
@@ -26,6 +26,8 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { PageShell, PageHeader } from "@/components/ui/layout";
 import { useTranslation } from "react-i18next";
+
+const RENTAL_CATEGORIES = new Set<PropertyCategory>(["RESIDENTIAL", "COMMERCIAL"]);
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -69,6 +71,7 @@ const getCategoryDescTranslationKey = (key: PropertyCategory): string => {
 
 const CreateProperty = () => {
   const { t } = useTranslation();
+  const [listingPurpose, setListingPurpose] = useState<ListingPurpose | null>(null);
   const [selectedCategory, setSelectedCategory] =
     useState<PropertyCategory | null>(null);
   const [selectedDraft, setSelectedDraft] = useState<Property | null>(null);
@@ -110,6 +113,7 @@ const CreateProperty = () => {
   // Handle URL params for draft selection
   useEffect(() => {
     if (draftIdFromUrl && categoryFromUrl && draftProperty) {
+      setListingPurpose(draftProperty.listingPurpose || "SALE");
       setSelectedCategory(categoryFromUrl);
       setSelectedDraft(draftProperty);
     }
@@ -121,9 +125,12 @@ const CreateProperty = () => {
   };
 
   const handleBack = () => {
-    setSelectedCategory(null);
-    setSelectedDraft(null);
-    // Clear URL params when going back
+    if (selectedCategory) {
+      setSelectedCategory(null);
+      setSelectedDraft(null);
+    } else {
+      setListingPurpose(null);
+    }
     if (draftIdFromUrl) {
       router.replace("/property/createProperty");
     }
@@ -155,6 +162,7 @@ const CreateProperty = () => {
       externalIsLoading: companyData ? isCreatingCompanyProperty : undefined,
       draftCount: draftsCount,
       isEditingDraft: !!selectedDraft,
+      listingPurpose: (listingPurpose || "SALE") as ListingPurpose,
     };
 
     switch (selectedCategory) {
@@ -175,21 +183,25 @@ const CreateProperty = () => {
     }
   };
 
+  const availableCategories = listingPurpose === "RENT"
+    ? propertyCategories.filter((c) => RENTAL_CATEGORIES.has(c.key))
+    : propertyCategories;
+
   return (
     <PageShell>
-      {!selectedCategory ? (
+      {/* STEP 1: Purpose Selection */}
+      {!listingPurpose && !selectedCategory ? (
         <>
-          <PageHeader
-            title={t("page_create_property_title")}
-            description={t("page_create_property_subtitle")}
-          />
+          {<PageHeader
+            title={listingPurpose ? t("page_create_property_title") : ""}
+            description={listingPurpose ? t("page_create_property_subtitle") : ""}
+          />}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="space-y-6"
+            className="space-y-8"
           >
-            {/* Drafts Summary Banner */}
             {draftsCount > 0 && (
               <motion.div
                 variants={itemVariants}
@@ -240,7 +252,81 @@ const CreateProperty = () => {
               </motion.div>
             )}
 
-            {/* Categories Grid */}
+            {/* Purpose Cards */}
+            <section className="space-y-4">
+              <div className="text-center space-y-2">
+                <h2 className="text-xl font-bold tracking-tight text-foreground">
+                  What is this listing for?
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Choose the purpose to get started
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
+                <motion.button
+                  variants={itemVariants}
+                  type="button"
+                  onClick={() => setListingPurpose("SALE")}
+                  className="group relative flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-border/60 bg-background hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 hover:shadow-lg"
+                >
+                  <div className="w-14 h-14 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Home className="w-7 h-7 text-emerald-600" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-bold text-foreground">For Sale</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      List a property for ownership transfer
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </motion.button>
+
+                <motion.button
+                  variants={itemVariants}
+                  type="button"
+                  onClick={() => setListingPurpose("RENT")}
+                  className="group relative flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-border/60 bg-background hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 hover:shadow-lg"
+                >
+                  <div className="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Key className="w-7 h-7 text-blue-600" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-bold text-foreground">For Rent / Lease</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      List a property available for rent
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </motion.button>
+              </div>
+            </section>
+          </motion.div>
+        </>
+      ) : !selectedCategory ? (
+        /* STEP 2: Category Selection */
+        <>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="space-y-6"
+          >
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                onClick={handleBack}
+                className="group pl-0 hover:pl-2 transition-all hover:bg-transparent hover:text-accent"
+              >
+                <ArrowLeft className="w-5 h-5 mr-1 group-hover:-translate-x-1 transition-transform" />
+                Back
+              </Button>
+              <div>
+                <Badge variant="secondary" className={`text-[10px] px-2 py-0 h-5 ${listingPurpose === "RENT" ? "bg-blue-100 text-blue-700 border-blue-200" : "bg-emerald-100 text-emerald-700 border-emerald-200"}`}>
+                  {listingPurpose === "RENT" ? "For Rent" : "For Sale"}
+                </Badge>
+              </div>
+            </div>
+
             <section className="space-y-3 pt-2">
               <div className="flex items-center gap-2 text-accent">
                 <Sparkles className="w-4 h-4" />
@@ -249,8 +335,14 @@ const CreateProperty = () => {
                 </h1>
               </div>
 
+              {listingPurpose === "RENT" && (
+                <p className="text-sm text-muted-foreground">
+                  Rental listings are available for Residential and Commercial properties.
+                </p>
+              )}
+
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {propertyCategories.map((category) => (
+                {availableCategories.map((category) => (
                   <MovingBorderCard
                     key={category.key}
                     duration={3000}
@@ -265,16 +357,11 @@ const CreateProperty = () => {
                     borderClassName="h-24 w-24 opacity-100 bg-[radial-gradient(#3b82f6_30%,#06b6d4_50%,transparent_70%)]"
                   >
                     <div className="relative w-full h-full group cursor-pointer overflow-hidden rounded-xl">
-                      {/* Background Image */}
                       <div
                         className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                         style={{ backgroundImage: `url(${category.image})` }}
                       />
-
-                      {/* Gradient Overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300" />
-
-                      {/* Content */}
                       <div className="absolute inset-0 p-3 flex flex-col justify-end">
                         <div className="transform transition-transform duration-300 translate-y-1 group-hover:translate-y-0">
                           <h1 className="text-xl md:text-3xl font-bold tracking-tight text-white leading-tight">
@@ -296,6 +383,7 @@ const CreateProperty = () => {
           </motion.div>
         </>
       ) : (
+        /* STEP 3: Wizard Form */
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -312,6 +400,9 @@ const CreateProperty = () => {
                 <ArrowLeft className="w-5 h-5 mr-1 group-hover:-translate-x-1 transition-transform" />
                 {t("label_back_to_categories")}
               </Button>
+              <Badge variant="secondary" className={`text-[10px] px-2 py-0 h-5 ${listingPurpose === "RENT" ? "bg-blue-100 text-blue-700 border-blue-200" : "bg-emerald-100 text-emerald-700 border-emerald-200"}`}>
+                {listingPurpose === "RENT" ? "For Rent" : "For Sale"}
+              </Badge>
             </div>
             <div className="text-right">
               <h1 className="text-2xl text-foreground font-bold">
@@ -323,6 +414,7 @@ const CreateProperty = () => {
               </p>
             </div>
           </div>
+
           {renderCategoryForm()}
         </motion.div>
       )}

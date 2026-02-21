@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Share2, Bookmark, BookmarkCheck, Link2 } from "lucide-react";
+import { Share2, Bookmark, BookmarkCheck, Link2, FileText } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import {
     DropdownMenu,
@@ -80,7 +80,10 @@ export const PropertyActionsBar = ({
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-
+            <Button variant="outline" size="sm" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Show documents
+            </Button>
             <Button
                 variant={isBookmarked ? "default" : "outline"}
                 size="sm"

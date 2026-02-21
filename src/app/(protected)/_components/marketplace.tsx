@@ -11,7 +11,7 @@ import {
   useGetAllProperties,
   PropertyListFilters,
 } from "@/hooks/useProperty";
-import { useGetAllMarketPlaceEnquiries } from "@/hooks/useEnquiry";
+import { useGetAllMarketPlaceEnquiries, EnquiryMarketplaceFilters } from "@/hooks/useEnquiry";
 import { PropertyCard } from "@/./app/(protected)/_components/propertyCard";
 import { MapBox } from "@/./app/(protected)/_components/mapBox";
 import { PropertyDetails } from "@/./app/(protected)/_components/propertyDetails";
@@ -79,9 +79,13 @@ export const MarketPlace = () => {
   const [priceRange, setPriceRange] = useState<number[] | null>(null);
   const [bhkFilter, setBhkFilter] = useState<string>("ALL");
   const [featuredFilter, setFeaturedFilter] = useState<string>("ALL");
+  const [listingPurposeFilter, setListingPurposeFilter] = useState<string>("ALL");
+  const [enquiryPurposeFilter, setEnquiryPurposeFilter] = useState<string>("ALL");
+  const [rentRange, setRentRange] = useState<number[] | null>(null);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const debouncedPriceRange = useDebounce(priceRange, 300);
+  const debouncedRentRange = useDebounce(rentRange, 300);
 
   // Build server-side filters object
   const serverFilters = useMemo((): PropertyListFilters => {
@@ -97,6 +101,9 @@ export const MarketPlace = () => {
       filters.maxPrice = debouncedPriceRange[1];
     }
     if (userCity) filters.userCity = userCity;
+    if (listingPurposeFilter !== "ALL") {
+      filters.listingPurpose = listingPurposeFilter as "SALE" | "RENT";
+    }
     return filters;
   }, [
     categoryFilter,
@@ -107,6 +114,7 @@ export const MarketPlace = () => {
     debouncedSearchQuery,
     debouncedPriceRange,
     userCity,
+    listingPurposeFilter,
   ]);
 
   const { properties, pagination, isLoading, error } = useGetAllProperties(
@@ -114,11 +122,23 @@ export const MarketPlace = () => {
     cardsPerPage,
     serverFilters
   );
+
+  const enquiryServerFilters = useMemo((): EnquiryMarketplaceFilters => {
+    const filters: EnquiryMarketplaceFilters = {};
+    if (enquiryPurposeFilter !== "ALL") {
+      filters.enquiryPurpose = enquiryPurposeFilter as "SALE" | "RENT";
+    }
+    return filters;
+  }, [enquiryPurposeFilter]);
+
   const {
     marketPlaceEnquiries,
     isPending: isEnquiriesLoading,
     error: enquiriesError,
-  } = useGetAllMarketPlaceEnquiries({ enabled: viewMode === "ENQUIRIES" });
+  } = useGetAllMarketPlaceEnquiries({
+    enabled: viewMode === "ENQUIRIES",
+    filters: enquiryServerFilters,
+  });
 
   // Reset to page 1 when any filter or page size changes
   useEffect(() => {
@@ -212,10 +232,15 @@ export const MarketPlace = () => {
   );
 
   const maxPropertyPrice = 1_000_000_000; // 100 Crore fixed max for price slider
+  const maxRentPrice = 500_000; // 5 Lakh per month max for rent slider
 
   const effectivePriceRange = useMemo(
     () => priceRange ?? [0, maxPropertyPrice],
     [priceRange, maxPropertyPrice]
+  );
+  const effectiveRentRange = useMemo(
+    () => rentRange ?? [0, maxRentPrice],
+    [rentRange, maxRentPrice]
   );
   const debouncedEnquiryPriceRange = useDebounce(priceRange, 300);
 
@@ -273,11 +298,20 @@ export const MarketPlace = () => {
         categoryFilter === "ALL" || enquiry.enquiryCategory === categoryFilter;
 
       let matchesPrice = true;
-      if (debouncedEnquiryPriceRange && enquiry.budget) {
-        const [minFilter, maxFilter] = debouncedEnquiryPriceRange;
-        const eMin = enquiry.budget.min || 0;
-        const eMax = enquiry.budget.max || Number.MAX_SAFE_INTEGER;
-        matchesPrice = eMin <= maxFilter && eMax >= minFilter;
+      if (enquiryPurposeFilter === "RENT") {
+        if (debouncedRentRange && enquiry.monthlyRentBudget) {
+          const [minFilter, maxFilter] = debouncedRentRange;
+          const eMin = enquiry.monthlyRentBudget.min || 0;
+          const eMax = enquiry.monthlyRentBudget.max || Number.MAX_SAFE_INTEGER;
+          matchesPrice = eMin <= maxFilter && eMax >= minFilter;
+        }
+      } else {
+        if (debouncedEnquiryPriceRange && enquiry.budget) {
+          const [minFilter, maxFilter] = debouncedEnquiryPriceRange;
+          const eMin = enquiry.budget.min || 0;
+          const eMax = enquiry.budget.max || Number.MAX_SAFE_INTEGER;
+          matchesPrice = eMin <= maxFilter && eMax >= minFilter;
+        }
       }
 
       let matchesBhk = true;
@@ -345,6 +379,8 @@ export const MarketPlace = () => {
     sourceFilter,
     categoryFilter,
     debouncedEnquiryPriceRange,
+    debouncedRentRange,
+    enquiryPurposeFilter,
     bhkFilter,
     userCity,
   ]);
@@ -357,6 +393,9 @@ export const MarketPlace = () => {
     setPriceRange(null);
     setBhkFilter("ALL");
     setFeaturedFilter("ALL");
+    setListingPurposeFilter("ALL");
+    setEnquiryPurposeFilter("ALL");
+    setRentRange(null);
   };
 
   const hasActiveFilters =
@@ -365,7 +404,10 @@ export const MarketPlace = () => {
     sourceFilter !== "ALL" ||
     propertyTypeFilter !== "ALL" ||
     featuredFilter !== "ALL" ||
-    priceRange !== null;
+    listingPurposeFilter !== "ALL" ||
+    enquiryPurposeFilter !== "ALL" ||
+    priceRange !== null ||
+    rentRange !== null;
 
   const renderPagination = () => {
     const { totalPages } = pagination;
@@ -542,6 +584,14 @@ export const MarketPlace = () => {
         setBhkFilter={setBhkFilter}
         featuredFilter={featuredFilter}
         setFeaturedFilter={setFeaturedFilter}
+        listingPurposeFilter={listingPurposeFilter}
+        setListingPurposeFilter={setListingPurposeFilter}
+        enquiryPurposeFilter={enquiryPurposeFilter}
+        setEnquiryPurposeFilter={setEnquiryPurposeFilter}
+        rentRange={rentRange}
+        setRentRange={setRentRange}
+        maxRentPrice={maxRentPrice}
+        effectiveRentRange={effectiveRentRange}
         view={view}
         setView={setView}
         filteredCount={pagination.total}

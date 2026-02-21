@@ -62,6 +62,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
     resolver: zodResolver(resortPropertySchema),
     defaultValues: {
       propertyCategory: "RESORT",
+      listingPurpose: "SALE",
       propertyType: "RESORT",
       address: {
         state: "",

@@ -62,6 +62,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
     resolver: zodResolver(farmHousePropertySchema),
     defaultValues: {
       propertyCategory: "FARM_HOUSE",
+      listingPurpose: "SALE",
       propertyType: "FARM_HOUSE",
       address: {
         state: "",

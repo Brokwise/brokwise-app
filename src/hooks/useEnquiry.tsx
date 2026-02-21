@@ -15,17 +15,41 @@ export type MarketplaceEnquiriesResponse = {
   totalPages: number;
 };
 
+export interface EnquiryMarketplaceFilters {
+  enquiryPurpose?: "BUY" | "RENT";
+  minRent?: number;
+  maxRent?: number;
+}
+
 export const useGetMarketPlaceEnquiries = (
   page: number = 1,
   limit: number = 100,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
+  filters?: EnquiryMarketplaceFilters
 ) => {
   const api = useAxios();
+
+  const queryString = (() => {
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("limit", String(limit));
+    if (filters?.enquiryPurpose) {
+      params.set("enquiryPurpose", filters.enquiryPurpose);
+    }
+    if (filters?.minRent !== undefined && filters.minRent > 0) {
+      params.set("minRent", String(filters.minRent));
+    }
+    if (filters?.maxRent !== undefined) {
+      params.set("maxRent", String(filters.maxRent));
+    }
+    return params.toString();
+  })();
+
   const { data, isPending, error } = useQuery<MarketplaceEnquiriesResponse>({
-    queryKey: ["market-place-enquiries", page, limit],
+    queryKey: ["market-place-enquiries", queryString],
     queryFn: async () => {
       return (
-        await api.get(`/broker/enquiry/marketplace?page=${page}&limit=${limit}`)
+        await api.get(`/broker/enquiry/marketplace?${queryString}`)
       ).data.data as MarketplaceEnquiriesResponse;
     },
     enabled: options?.enabled ?? true,

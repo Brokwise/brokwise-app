@@ -65,6 +65,7 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
     resolver: zodResolver(agriculturalPropertySchema),
     defaultValues: {
       propertyCategory: "AGRICULTURAL",
+      listingPurpose: "SALE",
       propertyType: "AGRICULTURAL_LAND",
       address: {
         state: "",

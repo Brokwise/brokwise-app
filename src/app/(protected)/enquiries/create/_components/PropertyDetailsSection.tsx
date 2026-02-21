@@ -41,7 +41,9 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
     FARM_HOUSE: Home, // Fallback
 };
 
-const PropertyDetailsSection = () => {
+const RENTAL_CATEGORIES = new Set(["RESIDENTIAL", "COMMERCIAL"]);
+
+const PropertyDetailsSection = ({ enquiryPurpose = "BUY" }: { enquiryPurpose?: string }) => {
     const { control, watch } = useFormContext<CreateEnquiryFormValues>();
     const { t } = useTranslation();
     const category = watch("enquiryCategory");
@@ -91,7 +93,11 @@ const PropertyDetailsSection = () => {
                                     </FormControl>
                                     <SelectContent>
                                         {Object.keys(CATEGORY_TYPE_MAP).map((cat) => (
-                                            <SelectItem key={cat} value={cat}>
+                                            <SelectItem
+                                                key={cat}
+                                                value={cat}
+                                                disabled={enquiryPurpose === "RENT" && !RENTAL_CATEGORIES.has(cat)}
+                                            >
                                                 {t(getCategoryLabelKey(cat))}
                                             </SelectItem>
                                         ))}

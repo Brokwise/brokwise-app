@@ -201,7 +201,7 @@ const SingleEnquiryContent = () => {
                 </div>
               </div>
               <h1 className="text-xl md:text-3xl font-bold tracking-tight text-foreground">
-                {enquiry.enquiryType} Enquiry{" "}
+                {enquiry.enquiryPurpose === "RENT" ? "Rent" : ""} Enquiry{" "}
                 {formatEnquiryLocation(enquiry)
                   ? `in ${formatEnquiryLocation(enquiry)}`
                   : ""}
@@ -307,13 +307,24 @@ const SingleEnquiryContent = () => {
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-                <RequirementItem
-                  icon={IndianRupee}
-                  label={t("page_enquiry_detail_budget_range")}
-                  value={`₹${formatCurrencyEnquiry(
-                    enquiry.budget.min as number
-                  )} - ₹${formatCurrencyEnquiry(enquiry.budget.max as number)}`}
-                />
+                {enquiry.budget && (
+                  <RequirementItem
+                    icon={IndianRupee}
+                    label={t("page_enquiry_detail_budget_range")}
+                    value={`₹${formatCurrencyEnquiry(
+                      enquiry.budget.min as number
+                    )} - ₹${formatCurrencyEnquiry(enquiry.budget.max as number)}`}
+                  />
+                )}
+                {enquiry.monthlyRentBudget && (
+                  <RequirementItem
+                    icon={IndianRupee}
+                    label="Monthly Rent"
+                    value={`₹${formatCurrencyEnquiry(
+                      enquiry.monthlyRentBudget.min
+                    )} - ₹${formatCurrencyEnquiry(enquiry.monthlyRentBudget.max)}`}
+                  />
+                )}
 
                 {enquiry.bhk && (
                   <RequirementItem
@@ -592,7 +603,7 @@ const SingleEnquiryContent = () => {
               {detailRow(t("page_enquiry_detail_enquiry_id"), enquiry.enquiryId)}
               {detailRow(t("page_enquiry_detail_category"), enquiry.enquiryCategory)}
               {detailRow(t("page_enquiry_detail_type"), enquiry.enquiryType)}
-              {detailRow(t("page_enquiry_detail_status"), enquiry.status)}
+              {detailRow(t("page_enquiry_detail_enquiry_purpose"), enquiry.enquiryPurpose)}
 
               {detailRow(
                 t("page_enquiry_detail_created"),

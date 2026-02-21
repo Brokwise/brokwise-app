@@ -41,6 +41,7 @@ export default function MyListings() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [propertyTypeFilter, setPropertyTypeFilter] = useState("all");
+  const [purposeFilter, setPurposeFilter] = useState<"ALL" | "SALE" | "RENT">("ALL");
 
   // Load view preference from local storage
   useEffect(() => {
@@ -66,6 +67,12 @@ export default function MyListings() {
   const filteredListings = useMemo(() => {
     if (!myListings) return [];
     return myListings.filter((property) => {
+      // Purpose Filter
+      if (purposeFilter !== "ALL") {
+        const propPurpose = property.listingPurpose || "SALE";
+        if (propPurpose !== purposeFilter) return false;
+      }
+
       // Status Filter
       if (statusFilter !== "all" && property.listingStatus !== statusFilter) {
         return false;
@@ -102,7 +109,7 @@ export default function MyListings() {
 
       return descriptionMatch || addressMatch || typeMatch || categoryMatch;
     });
-  }, [myListings, searchQuery, statusFilter, propertyTypeFilter]);
+  }, [myListings, searchQuery, statusFilter, propertyTypeFilter, purposeFilter]);
 
   if (isLoading) {
     return (
@@ -136,6 +143,28 @@ export default function MyListings() {
       </PageHeader>
 
       <div className="space-y-6">
+        {/* Sell / Rent Switcher */}
+        <div className="flex items-center gap-0.5 p-0.5 bg-muted/60 rounded-lg border border-border/40 w-fit">
+          {([
+            { value: "ALL" as const, label: "All" },
+            { value: "SALE" as const, label: "Sell" },
+            { value: "RENT" as const, label: "Rent" },
+          ]).map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setPurposeFilter(opt.value)}
+              className={`px-4 sm:px-5 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-all ${
+                purposeFilter === opt.value
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
         {/* Filters Section */}
         {myListings && myListings.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-1 sm:mt-2">

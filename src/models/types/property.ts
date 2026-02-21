@@ -66,6 +66,19 @@ export type ListingStatus =
 
 export type PossessionStatus = "READY_TO_MOVE" | "UNDER_CONSTRUCTION";
 
+export type ListingPurpose = "SALE" | "RENT";
+
+export type TenantType =
+  | "FAMILY"
+  | "BACHELORS_MEN"
+  | "BACHELORS_WOMEN"
+  | "COMPANY_LEASE";
+
+export type CommercialFurnishing =
+  | "BARE_SHELL"
+  | "WARM_SHELL"
+  | "FULLY_FURNISHED";
+
 //  Embedded Object Interfaces
 
 export interface GeoLocation {
@@ -90,6 +103,8 @@ export interface RentalIncome {
 export interface Property {
   _id: string;
   propertyId?: string; // Human-readable ID (PROP-000001)
+
+  listingPurpose?: ListingPurpose;
 
   // Core & Common
   propertyCategory: PropertyCategory;
@@ -165,6 +180,17 @@ export interface Property {
 
   // Amenities
   amenities?: string[];
+
+  // Rental-specific fields
+  monthlyRent?: number;
+  securityDeposit?: number;
+  agreementDuration?: string;
+  lockInPeriod?: number;
+  noticePeriod?: number;
+  tenantType?: TenantType[];
+  petsAllowed?: boolean;
+  nonVegAllowed?: boolean;
+  furnishing?: CommercialFurnishing;
 
   // Timestamps
   createdAt: string;

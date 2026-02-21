@@ -174,20 +174,44 @@ export const EnquiryCard = ({
 
       <CardContent className="p-4 md:p-5 flex-grow">
         <div className="mb-4">
-          <div className="flex items-baseline gap-1">
-            <span className="text-xl font-bold tracking-tight">
-              {formatCurrencyEnquiry(enquiry.budget.min)}
-            </span>
-            <span className="text-muted-foreground text-sm font-medium">
-              {t("label_to")}
-            </span>
-            <span className="text-xl font-bold tracking-tight">
-              {formatCurrencyEnquiry(enquiry.budget.max)}
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1 font-medium pl-0.5">
-            {t("label_estimated_budget")}
-          </p>
+          {(enquiry.enquiryPurpose || "BUY") === "RENT" && enquiry.monthlyRentBudget ? (
+            <>
+              <div className="flex items-center gap-1.5 mb-1">
+                <Badge variant="secondary" className="text-[9px] bg-blue-100 text-blue-700 border-blue-200 px-1.5 py-0">RENT</Badge>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-bold tracking-tight">
+                  {formatCurrencyEnquiry(enquiry.monthlyRentBudget.min)}
+                </span>
+                <span className="text-muted-foreground text-sm font-medium">
+                  {t("label_to")}
+                </span>
+                <span className="text-xl font-bold tracking-tight">
+                  {formatCurrencyEnquiry(enquiry.monthlyRentBudget.max)}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1 font-medium pl-0.5">
+                Monthly Rent Range
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-bold tracking-tight">
+                  {formatCurrencyEnquiry(enquiry.budget?.min || 0)}
+                </span>
+                <span className="text-muted-foreground text-sm font-medium">
+                  {t("label_to")}
+                </span>
+                <span className="text-xl font-bold tracking-tight">
+                  {formatCurrencyEnquiry(enquiry.budget?.max || 0)}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1 font-medium pl-0.5">
+                {t("label_estimated_budget")}
+              </p>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-2 text-sm flex-wrap">

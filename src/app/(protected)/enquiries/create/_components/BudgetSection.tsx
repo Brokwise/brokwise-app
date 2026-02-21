@@ -47,8 +47,8 @@ const findNearestBudgetIndex = (value: number) => {
 const BudgetSection = () => {
     const { t } = useTranslation();
     const { control, watch, setValue } = useFormContext<CreateEnquiryFormValues>();
-    const minBudget = watch("budget.min");
-    const maxBudget = watch("budget.max");
+    const minBudget = watch("budget.min") ?? BUDGET_MIN;
+    const maxBudget = watch("budget.max") ?? BUDGET_MAX;
 
     // Keep slider values in sync with indices
     const minIndex = findNearestBudgetIndex(minBudget);
