@@ -1,5 +1,6 @@
 import { Company } from "./company";
 import type { LegalConsentsPayload } from "@/constants/legal";
+import type { DigiLockerUserDetails } from "./kyc";
 
 export type CreateUserRequest = {
   email: string;
@@ -84,5 +85,12 @@ export type GetBrokerDetailsResponse = {
     createdAt: string;
     brokerId: string;
     profilePhoto?: string;
+    kycVerification?: {
+      verificationId: string;
+      cashfreeStatus: "PENDING" | "AUTHENTICATED" | "EXPIRED" | "CONSENT_DENIED" | "FAILURE";
+      digiLockerUrl?: string;
+      userDetails?: DigiLockerUserDetails;
+      duplicateReason?: string;
+    };
   };
 };

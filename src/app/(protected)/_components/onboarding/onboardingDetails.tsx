@@ -67,6 +67,13 @@ import { cn } from "@/lib/utils";
 import { DisclaimerNotice } from "@/components/ui/disclaimer-notice";
 import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 import { Separator } from "@/components/ui/separator";
+import {
+  trackMetaEvent,
+  isPaymentTracked,
+  markPaymentTracked,
+  isRegistrationTracked,
+  markRegistrationTracked,
+} from "@/utils/tracking";
 
 const KYC_STORAGE_KEY = "bw_kyc_verification_id";
 const KYC_URL_STORAGE_KEY = "bw_kyc_digilocker_url";
@@ -388,6 +395,63 @@ export const OnboardingDetails = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing]);
 
+  // ─── Hydrate KYC state from server-side brokerData on load ───────────────────
+  useEffect(() => {
+    if (isEditing) return;
+    const kyc = brokerData?.kycVerification;
+    if (!kyc) return;
+
+    setKycState((prev) => {
+      // Never override an active in-progress or verified state
+      if (prev.status === "pending" || prev.status === "verified") return prev;
+
+      if (kyc.cashfreeStatus === "AUTHENTICATED" && kyc.userDetails) {
+        return { status: "verified", userDetails: kyc.userDetails };
+      }
+      if (kyc.cashfreeStatus === "FAILURE") {
+        return {
+          status: "failed",
+          duplicateReason: kyc.duplicateReason,
+          userDetails: kyc.userDetails,
+        };
+      }
+      if (kyc.cashfreeStatus === "EXPIRED") {
+        return { status: "expired" };
+      }
+      if (kyc.cashfreeStatus === "CONSENT_DENIED") {
+        return { status: "failed" };
+      }
+      // PENDING without a localStorage key — restore from API data
+      if (kyc.cashfreeStatus === "PENDING" && !localStorage.getItem(KYC_STORAGE_KEY)) {
+        return {
+          status: "pending",
+          verificationId: kyc.verificationId,
+          digiLockerUrl: kyc.digiLockerUrl,
+        };
+      }
+      return prev;
+    });
+
+    // Pre-fill form fields from KYC user details when available
+    const userDetails = kyc.userDetails;
+    if (userDetails && (kyc.cashfreeStatus === "AUTHENTICATED" || kyc.cashfreeStatus === "FAILURE")) {
+      const nameParts = userDetails.name.trim().split(/\s+/);
+      const lastName = nameParts.length > 1 ? nameParts.pop()! : "";
+      const firstName = nameParts.join(" ");
+      if (!form.getValues("firstName")) {
+        form.setValue("firstName", firstName, { shouldValidate: true, shouldDirty: true });
+      }
+      if (!form.getValues("lastName")) {
+        form.setValue("lastName", lastName, { shouldValidate: true, shouldDirty: true });
+      }
+      const mobile = (userDetails.mobile || "").replace(/\D/g, "").slice(-10);
+      if (mobile.length === 10 && !form.getValues("mobile")) {
+        form.setValue("mobile", mobile, { shouldValidate: true, shouldDirty: true });
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brokerData, isEditing]);
+
   // ─── KYC Polling ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (kycState.status !== "pending" || !kycState.verificationId) return;
@@ -408,6 +472,8 @@ export const OnboardingDetails = ({
             verificationId: kycState.verificationId,
             userDetails,
           });
+
+          trackMetaEvent({ eventName: "KYCCompleted", plan: "broker_onboarding_kyc_completed" });
 
           if (userDetails) {
             const nameParts = userDetails.name.trim().split(/\s+/);
@@ -443,6 +509,7 @@ export const OnboardingDetails = ({
           localStorage.removeItem(KYC_STORAGE_KEY);
           localStorage.removeItem(KYC_URL_STORAGE_KEY);
           setKycState({ status: "failed" });
+          trackMetaEvent({ eventName: "OnboardingStepFailed", plan: "kyc_failed" });
         }
       } catch (error) {
         console.error("Error polling KYC status:", error);
@@ -493,6 +560,7 @@ export const OnboardingDetails = ({
     } catch (error) {
       console.error("Error initiating KYC:", error);
       setKycState({ status: "failed" });
+      trackMetaEvent({ eventName: "OnboardingStepFailed", plan: "kyc_failed" });
       toast.error(t("kyc_initiate_error"));
       logError({
         description: "Error initiating DigiLocker KYC",
@@ -577,6 +645,16 @@ export const OnboardingDetails = ({
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
             });
+
+            if (!isPaymentTracked()) {
+              trackMetaEvent({ eventName: "Purchase", plan: selectedTier });
+              markPaymentTracked();
+            }
+            if (!isRegistrationTracked()) {
+              trackMetaEvent({ eventName: "CompleteRegistration", plan: "broker_onboarding_completed" });
+              markRegistrationTracked();
+            }
+
             localStorage.removeItem(SELECTED_TIER_KEY);
             setBrokerData({
               ...brokerData,
@@ -585,6 +663,15 @@ export const OnboardingDetails = ({
             });
             toast.success("Activation successful! Welcome to Brokwise.");
           } catch {
+            if (!isPaymentTracked()) {
+              trackMetaEvent({ eventName: "Purchase", plan: selectedTier });
+              markPaymentTracked();
+            }
+            if (!isRegistrationTracked()) {
+              trackMetaEvent({ eventName: "CompleteRegistration", plan: "broker_onboarding_completed" });
+              markRegistrationTracked();
+            }
+
             localStorage.removeItem(SELECTED_TIER_KEY);
             setBrokerData({
               ...brokerData,
@@ -602,12 +689,13 @@ export const OnboardingDetails = ({
       });
 
       rzp.on("payment.failed", function (response: { error: { description: string } }) {
+        trackMetaEvent({ eventName: "OnboardingStepFailed", plan: "payment_failed" });
         toast.error(`Payment failed: ${response.error.description}`);
-        // Keep user on step 5 — they can retry
       });
 
       rzp.open();
     } catch (error) {
+      trackMetaEvent({ eventName: "OnboardingStepFailed", plan: "initiate_checkout_failed" });
       logError({
         description: "Error during onboarding completion",
         error: error as Error,
@@ -723,12 +811,19 @@ export const OnboardingDetails = ({
           ...brokerData,
           ...data,
         });
+
+        if (step === 1) {
+          trackMetaEvent({ eventName: "PhoneSubmitted", plan: "broker_onboarding_phone_submitted" });
+        } else if (step === 3) {
+          trackMetaEvent({ eventName: "LocationSubmitted", plan: "broker_onboarding_location_submitted" });
+        }
       } catch (error) {
         console.error("Error saving step details:", error);
-        // We log error but don't block progress unless it's critical? 
-        // User asked to save details. If save fails, maybe we should warn.
-        // But for UX, maybe continue? 
-        // Let's show error and stop to ensure data is saved.
+        if (step === 1) {
+          trackMetaEvent({ eventName: "OnboardingStepFailed", plan: "phone_submit_failed" });
+        } else if (step === 3) {
+          trackMetaEvent({ eventName: "OnboardingStepFailed", plan: "location_submit_failed" });
+        }
         toast.error("Failed to save details. Please try again.");
         setLoading(false);
         return;
@@ -755,9 +850,11 @@ export const OnboardingDetails = ({
         toast.error(t("onboarding_select_plan_error") || "Please select an activation plan");
         return;
       }
+      trackMetaEvent({ eventName: "AddToCart", plan: selectedTier });
       setDirection(1);
       setStep(5);
     } else if (step === 5) {
+      trackMetaEvent({ eventName: "InitiateCheckout", plan: selectedTier! });
       await handleCompleteOnboarding();
     } else {
       setDirection(1);

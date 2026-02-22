@@ -17,6 +17,7 @@ import {
     ExternalLink,
     Loader2,
     AlertCircle,
+    Copy,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -485,6 +486,40 @@ function KycVerificationCard({
                         </p>
                     </div>
                 </div>
+            </div>
+        );
+    }
+
+    // ─── Failed: Duplicate Aadhaar ──────────────────────────────────────────
+    if (status === "failed" && kycState.duplicateReason === "AADHAAR_ALREADY_USED") {
+        return (
+            <div className={cardClass("amber")}>
+                <div className="flex items-start gap-3 mb-3">
+                    <div className="rounded-lg bg-amber-100 dark:bg-amber-900/40 p-2.5 shrink-0">
+                        <Copy className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div className="min-w-0">
+                        <h3 className="font-semibold text-amber-800 dark:text-amber-300 text-sm">
+                            {t("kyc_duplicate_aadhaar_title")}
+                        </h3>
+                        <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5 leading-relaxed">
+                            {t("kyc_duplicate_aadhaar_desc")}
+                        </p>
+                    </div>
+                </div>
+                <p className="text-xs text-amber-600 dark:text-amber-500 mb-3">
+                    {t("kyc_duplicate_aadhaar_hint")}
+                </p>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onStartKyc}
+                    className="border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950"
+                >
+                    <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                    {t("kyc_reinitiate")}
+                </Button>
             </div>
         );
     }
