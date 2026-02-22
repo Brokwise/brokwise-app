@@ -11,7 +11,7 @@ import {
   useGetAllProperties,
   PropertyListFilters,
 } from "@/hooks/useProperty";
-import { useGetAllMarketPlaceEnquiries, EnquiryMarketplaceFilters } from "@/hooks/useEnquiry";
+import { useGetAllMarketPlaceEnquiries } from "@/hooks/useEnquiry";
 import { PropertyCard } from "@/./app/(protected)/_components/propertyCard";
 import { MapBox } from "@/./app/(protected)/_components/mapBox";
 import { PropertyDetails } from "@/./app/(protected)/_components/propertyDetails";
@@ -123,13 +123,13 @@ export const MarketPlace = () => {
     serverFilters
   );
 
-  const enquiryServerFilters = useMemo((): EnquiryMarketplaceFilters => {
-    const filters: EnquiryMarketplaceFilters = {};
-    if (enquiryPurposeFilter !== "ALL") {
-      filters.enquiryPurpose = enquiryPurposeFilter as "BUY" | "RENT";
-    }
-    return filters;
-  }, [enquiryPurposeFilter]);
+  // const enquiryServerFilters = useMemo((): EnquiryMarketplaceFilters => {
+  //   const filters: EnquiryMarketplaceFilters = {};
+  //   if (enquiryPurposeFilter !== "ALL") {
+  //     filters.enquiryPurpose = enquiryPurposeFilter as "BUY" | "RENT";
+  //   }
+  //   return filters;
+  // }, [enquiryPurposeFilter]);
 
   const {
     marketPlaceEnquiries,
