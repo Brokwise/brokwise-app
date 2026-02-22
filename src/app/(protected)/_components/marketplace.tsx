@@ -126,7 +126,7 @@ export const MarketPlace = () => {
   const enquiryServerFilters = useMemo((): EnquiryMarketplaceFilters => {
     const filters: EnquiryMarketplaceFilters = {};
     if (enquiryPurposeFilter !== "ALL") {
-      filters.enquiryPurpose = enquiryPurposeFilter as "SALE" | "RENT";
+      filters.enquiryPurpose = enquiryPurposeFilter as "BUY" | "RENT";
     }
     return filters;
   }, [enquiryPurposeFilter]);
@@ -136,8 +136,7 @@ export const MarketPlace = () => {
     isPending: isEnquiriesLoading,
     error: enquiriesError,
   } = useGetAllMarketPlaceEnquiries({
-    enabled: viewMode === "ENQUIRIES",
-    filters: enquiryServerFilters,
+    enabled: viewMode === "ENQUIRIES"
   });
 
   // Reset to page 1 when any filter or page size changes

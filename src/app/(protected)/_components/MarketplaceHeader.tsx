@@ -449,7 +449,7 @@ export const MarketplaceHeader = ({
               <div className="flex items-center gap-0.5 p-0.5 bg-muted/60 rounded-full border border-border/40 w-fit">
                 {([
                   { value: "ALL", label: "All" },
-                  { value: "SALE", label: "Buy" },
+                  { value: "BUY", label: "Buy" },
                   { value: "RENT", label: "Rent" },
                 ] as const).map((opt) => (
                   <button
@@ -462,7 +462,7 @@ export const MarketplaceHeader = ({
                       }`}
                   >
                     <div className="flex items-center gap-1">
-                      {opt.value === "SALE" ? <Tag className="w-4 h-4" /> : opt.value === "ALL" ? <Home className="w-4 h-4" /> : <KeyIcon className="w-4 h-4" />} {opt.label}
+                      {opt.value === "BUY" ? <Tag className="w-4 h-4" /> : opt.value === "ALL" ? <Home className="w-4 h-4" /> : <KeyIcon className="w-4 h-4" />} {opt.label}
                     </div>
                   </button>
                 ))}
@@ -918,7 +918,7 @@ export const MarketplaceHeader = ({
                 onClick={() => setEnquiryPurposeFilter("ALL")}
                 className="h-5 sm:h-6 text-[10px] sm:text-xs rounded-full gap-1 sm:gap-1.5 px-2 sm:px-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border/50"
               >
-                {enquiryPurposeFilter === "SALE" ? "Buy" : "Rent"}
+                {enquiryPurposeFilter === "BUY" ? "Buy" : "Rent"}
                 <X className="h-2.5 sm:h-3 w-2.5 sm:w-3 opacity-70 shrink-0" />
               </Button>
             )}
