@@ -395,6 +395,63 @@ export const OnboardingDetails = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing]);
 
+  // ─── Hydrate KYC state from server-side brokerData on load ───────────────────
+  useEffect(() => {
+    if (isEditing) return;
+    const kyc = brokerData?.kycVerification;
+    if (!kyc) return;
+
+    setKycState((prev) => {
+      // Never override an active in-progress or verified state
+      if (prev.status === "pending" || prev.status === "verified") return prev;
+
+      if (kyc.cashfreeStatus === "AUTHENTICATED" && kyc.userDetails) {
+        return { status: "verified", userDetails: kyc.userDetails };
+      }
+      if (kyc.cashfreeStatus === "FAILURE") {
+        return {
+          status: "failed",
+          duplicateReason: kyc.duplicateReason,
+          userDetails: kyc.userDetails,
+        };
+      }
+      if (kyc.cashfreeStatus === "EXPIRED") {
+        return { status: "expired" };
+      }
+      if (kyc.cashfreeStatus === "CONSENT_DENIED") {
+        return { status: "failed" };
+      }
+      // PENDING without a localStorage key — restore from API data
+      if (kyc.cashfreeStatus === "PENDING" && !localStorage.getItem(KYC_STORAGE_KEY)) {
+        return {
+          status: "pending",
+          verificationId: kyc.verificationId,
+          digiLockerUrl: kyc.digiLockerUrl,
+        };
+      }
+      return prev;
+    });
+
+    // Pre-fill form fields from KYC user details when available
+    const userDetails = kyc.userDetails;
+    if (userDetails && (kyc.cashfreeStatus === "AUTHENTICATED" || kyc.cashfreeStatus === "FAILURE")) {
+      const nameParts = userDetails.name.trim().split(/\s+/);
+      const lastName = nameParts.length > 1 ? nameParts.pop()! : "";
+      const firstName = nameParts.join(" ");
+      if (!form.getValues("firstName")) {
+        form.setValue("firstName", firstName, { shouldValidate: true, shouldDirty: true });
+      }
+      if (!form.getValues("lastName")) {
+        form.setValue("lastName", lastName, { shouldValidate: true, shouldDirty: true });
+      }
+      const mobile = (userDetails.mobile || "").replace(/\D/g, "").slice(-10);
+      if (mobile.length === 10 && !form.getValues("mobile")) {
+        form.setValue("mobile", mobile, { shouldValidate: true, shouldDirty: true });
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brokerData, isEditing]);
+
   // ─── KYC Polling ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (kycState.status !== "pending" || !kycState.verificationId) return;

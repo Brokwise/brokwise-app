@@ -12,6 +12,7 @@ export type KycState = {
   verificationId?: string;
   userDetails?: DigiLockerUserDetails;
   digiLockerUrl?: string;
+  duplicateReason?: string;
 };
 
 export type DigiLockerUserDetails = {
