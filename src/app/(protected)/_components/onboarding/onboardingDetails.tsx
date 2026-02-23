@@ -408,7 +408,7 @@ export const OnboardingDetails = ({
       if (kyc.cashfreeStatus === "AUTHENTICATED" && kyc.userDetails) {
         return { status: "verified", userDetails: kyc.userDetails };
       }
-      if (kyc.cashfreeStatus === "FAILURE") {
+      if (kyc.cashfreeStatus === "FAILURE" || kyc.duplicateReason) {
         return {
           status: "failed",
           duplicateReason: kyc.duplicateReason,
@@ -449,7 +449,7 @@ export const OnboardingDetails = ({
         form.setValue("mobile", mobile, { shouldValidate: true, shouldDirty: true });
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brokerData, isEditing]);
 
   // ─── KYC Polling ─────────────────────────────────────────────────────────────
