@@ -2,15 +2,15 @@ import { sendGTMEvent } from "@next/third-parties/google";
 
 import { Config } from "@/config";
 
-type TrackingEventName =
-  | "KYCCompleted"
-  | "PhoneSubmitted"
-  | "LocationSubmitted"
-  | "AddToCart"
-  | "InitiateCheckout"
-  | "Purchase"
-  | "CompleteRegistration"
-  | "OnboardingStepFailed";
+// type TrackingEventName =
+//   | "KYCCompleted"
+//   | "PhoneSubmitted"
+//   | "LocationSubmitted"
+//   | "AddToCart"
+//   | "InitiateCheckout"
+//   | "Purchase"
+//   | "CompleteRegistration"
+//   | "OnboardingStepFailed";
 
 export type TrackMetaEventParams =
   | { eventName: "KYCCompleted"; firstName?: string; lastName?: string; phoneNumber?: string; plan?: string }
@@ -57,10 +57,8 @@ export async function trackMetaEvent(params: TrackMetaEventParams): Promise<void
   const eventId = crypto.randomUUID();
   const { eventName } = params;
 
-  // Fire client-side pixel via GTM dataLayer (same eventId for deduplication)
   try {
-    // Construct the specific payload for each event
-    let gtmPayload: Record<string, any> = { eventId, ...params };
+    const gtmPayload: Record<string, string> = { eventId, ...params };
 
     switch (eventName) {
       case "InitiateCheckout":
@@ -90,7 +88,7 @@ export async function trackMetaEvent(params: TrackMetaEventParams): Promise<void
 
   // Fire server-side Conversions API
   try {
-    const body: Record<string, any> = {
+    const body: Record<string, string> = {
       ...params,
       eventId,
     };
