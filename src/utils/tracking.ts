@@ -62,19 +62,19 @@ export async function trackMetaEvent(params: TrackMetaEventParams): Promise<void
 
     switch (eventName) {
       case "InitiateCheckout":
-        gtmPayload.event = "InitiateCheckout - Landing";
+        gtmPayload.event = "InitiateCheckout";
         break;
       case "Purchase":
-        gtmPayload.event = "Purchase - Landing";
+        gtmPayload.event = "Purchase";
         break;
       case "AddToCart":
-        gtmPayload.event = "AddToCart - Landing";
+        gtmPayload.event = "AddToCart";
         break;
       case "KYCCompleted":
-        gtmPayload.event = "KYCCompleted - Landing";
+        gtmPayload.event = "KYCCompleted";
         break;
       case "CompleteRegistration":
-        gtmPayload.event = "CompleteRegistration - Landing";
+        gtmPayload.event = "CompleteRegistration";
         break;
       default:
         gtmPayload.event = eventName;
