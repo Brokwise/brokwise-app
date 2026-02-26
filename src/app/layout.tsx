@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import Script from "next/script";
 import "../globals.css";
 import { QueryClientProviderWrapper } from "@/providers/queryClientProvider";
-import { Toaster } from "@/components/ui/sonner";
+// import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/providers/themeProvider";
 import { PostHogProvider } from "./providers";
 import { DeepLinkHandler } from "@/components/deeplinkhandler";
