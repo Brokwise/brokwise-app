@@ -473,12 +473,14 @@ export const OnboardingDetails = ({
             userDetails,
           });
 
-          trackMetaEvent({ eventName: "KYCCompleted", plan: "broker_onboarding_kyc_completed" });
+          let firstName = "";
+          let lastName = "";
+          let mobile = "";
 
           if (userDetails) {
             const nameParts = userDetails.name.trim().split(/\s+/);
-            const lastName = nameParts.length > 1 ? nameParts.pop()! : "";
-            const firstName = nameParts.join(" ");
+            lastName = nameParts.length > 1 ? nameParts.pop()! : "";
+            firstName = nameParts.join(" ");
 
             form.setValue("firstName", firstName, {
               shouldValidate: true,
@@ -489,7 +491,7 @@ export const OnboardingDetails = ({
               shouldDirty: true,
             });
 
-            const mobile = (userDetails.mobile || "").replace(/\D/g, "").slice(-10);
+            mobile = (userDetails.mobile || "").replace(/\D/g, "").slice(-10);
             if (mobile.length === 10) {
               form.setValue("mobile", mobile, {
                 shouldValidate: true,
@@ -497,6 +499,14 @@ export const OnboardingDetails = ({
               });
             }
           }
+
+          trackMetaEvent({ 
+            eventName: "KYCCompleted", 
+            plan: "broker_onboarding_kyc_completed",
+            firstName,
+            lastName,
+            phoneNumber: mobile
+          });
 
           toast.success(t("kyc_verified_title"));
         } else if (status === "EXPIRED") {
@@ -509,7 +519,7 @@ export const OnboardingDetails = ({
           localStorage.removeItem(KYC_STORAGE_KEY);
           localStorage.removeItem(KYC_URL_STORAGE_KEY);
           setKycState({ status: "failed" });
-          trackMetaEvent({ eventName: "OnboardingStepFailed", plan: "kyc_failed" });
+          trackMetaEvent({ eventName: "OnboardingStepFailed", step: "kyc_failed" });
         }
       } catch (error) {
         console.error("Error polling KYC status:", error);
@@ -560,7 +570,7 @@ export const OnboardingDetails = ({
     } catch (error) {
       console.error("Error initiating KYC:", error);
       setKycState({ status: "failed" });
-      trackMetaEvent({ eventName: "OnboardingStepFailed", plan: "kyc_failed" });
+      trackMetaEvent({ eventName: "OnboardingStepFailed", step: "kyc_failed" });
       toast.error(t("kyc_initiate_error"));
       logError({
         description: "Error initiating DigiLocker KYC",
@@ -647,11 +657,25 @@ export const OnboardingDetails = ({
             });
 
             if (!isPaymentTracked()) {
-              trackMetaEvent({ eventName: "Purchase", plan: selectedTier });
+              trackMetaEvent({ 
+                eventName: "Purchase", 
+                plan: selectedTier,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                phoneNumber: data.mobile,
+                email: user.email || ""
+              });
               markPaymentTracked();
             }
             if (!isRegistrationTracked()) {
-              trackMetaEvent({ eventName: "CompleteRegistration", plan: "broker_onboarding_completed" });
+              trackMetaEvent({ 
+                eventName: "CompleteRegistration", 
+                plan: "broker_onboarding_completed",
+                firstName: data.firstName,
+                lastName: data.lastName,
+                phoneNumber: data.mobile,
+                email: user.email || ""
+              });
               markRegistrationTracked();
             }
 
@@ -664,11 +688,25 @@ export const OnboardingDetails = ({
             toast.success("Activation successful! Welcome to Brokwise.");
           } catch {
             if (!isPaymentTracked()) {
-              trackMetaEvent({ eventName: "Purchase", plan: selectedTier });
+              trackMetaEvent({ 
+                eventName: "Purchase", 
+                plan: selectedTier,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                phoneNumber: data.mobile,
+                email: user.email || ""
+              });
               markPaymentTracked();
             }
             if (!isRegistrationTracked()) {
-              trackMetaEvent({ eventName: "CompleteRegistration", plan: "broker_onboarding_completed" });
+              trackMetaEvent({ 
+                eventName: "CompleteRegistration", 
+                plan: "broker_onboarding_completed",
+                firstName: data.firstName,
+                lastName: data.lastName,
+                phoneNumber: data.mobile,
+                email: user.email || ""
+              });
               markRegistrationTracked();
             }
 
@@ -689,13 +727,13 @@ export const OnboardingDetails = ({
       });
 
       rzp.on("payment.failed", function (response: { error: { description: string } }) {
-        trackMetaEvent({ eventName: "OnboardingStepFailed", plan: "payment_failed" });
+        trackMetaEvent({ eventName: "OnboardingStepFailed", step: "payment_failed", reason: response.error.description });
         toast.error(`Payment failed: ${response.error.description}`);
       });
 
       rzp.open();
     } catch (error) {
-      trackMetaEvent({ eventName: "OnboardingStepFailed", plan: "initiate_checkout_failed" });
+      trackMetaEvent({ eventName: "OnboardingStepFailed", step: "initiate_checkout_failed", reason: (error as Error).message });
       logError({
         description: "Error during onboarding completion",
         error: error as Error,
@@ -813,16 +851,16 @@ export const OnboardingDetails = ({
         });
 
         if (step === 1) {
-          trackMetaEvent({ eventName: "PhoneSubmitted", plan: "broker_onboarding_phone_submitted" });
+          trackMetaEvent({ eventName: "PhoneSubmitted", phoneNumber: data.mobile || "" });
         } else if (step === 3) {
-          trackMetaEvent({ eventName: "LocationSubmitted", plan: "broker_onboarding_location_submitted" });
+          trackMetaEvent({ eventName: "LocationSubmitted", city: data.city });
         }
       } catch (error) {
         console.error("Error saving step details:", error);
         if (step === 1) {
-          trackMetaEvent({ eventName: "OnboardingStepFailed", plan: "phone_submit_failed" });
+          trackMetaEvent({ eventName: "OnboardingStepFailed", step: "phone_submit_failed", reason: (error as Error).message });
         } else if (step === 3) {
-          trackMetaEvent({ eventName: "OnboardingStepFailed", plan: "location_submit_failed" });
+          trackMetaEvent({ eventName: "OnboardingStepFailed", step: "location_submit_failed", reason: (error as Error).message });
         }
         toast.error("Failed to save details. Please try again.");
         setLoading(false);
@@ -850,11 +888,27 @@ export const OnboardingDetails = ({
         toast.error(t("onboarding_select_plan_error") || "Please select an activation plan");
         return;
       }
-      trackMetaEvent({ eventName: "AddToCart", plan: selectedTier });
+      const data = form.getValues();
+      trackMetaEvent({ 
+        eventName: "AddToCart", 
+        plan: selectedTier,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phoneNumber: data.mobile,
+        city: data.city
+      });
       setDirection(1);
       setStep(5);
     } else if (step === 5) {
-      trackMetaEvent({ eventName: "InitiateCheckout", plan: selectedTier! });
+      const data = form.getValues();
+      trackMetaEvent({ 
+        eventName: "InitiateCheckout", 
+        plan: selectedTier!,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phoneNumber: data.mobile,
+        city: data.city
+      });
       await handleCompleteOnboarding();
     } else {
       setDirection(1);
