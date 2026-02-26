@@ -1,3 +1,5 @@
+import { sendGTMEvent } from "@next/third-parties/google";
+
 import { Config } from "@/config";
 
 type TrackingEventName =
@@ -10,10 +12,15 @@ type TrackingEventName =
   | "CompleteRegistration"
   | "OnboardingStepFailed";
 
-interface TrackMetaEventParams {
-  eventName: TrackingEventName;
-  plan: string;
-}
+export type TrackMetaEventParams =
+  | { eventName: "KYCCompleted"; firstName?: string; lastName?: string; phoneNumber?: string; plan?: string }
+  | { eventName: "PhoneSubmitted"; phoneNumber?: string }
+  | { eventName: "LocationSubmitted"; city?: string }
+  | { eventName: "AddToCart"; plan: string; firstName?: string; lastName?: string; phoneNumber?: string; city?: string }
+  | { eventName: "InitiateCheckout"; plan: string; firstName?: string; lastName?: string; phoneNumber?: string; city?: string }
+  | { eventName: "Purchase"; plan: string; firstName?: string; lastName?: string; phoneNumber?: string; email?: string }
+  | { eventName: "CompleteRegistration"; plan: string; firstName?: string; lastName?: string; phoneNumber?: string; email?: string }
+  | { eventName: "OnboardingStepFailed"; step: string; reason?: string };
 
 function getCookie(name: string): string | undefined {
   if (typeof document === "undefined") return undefined;
@@ -46,12 +53,46 @@ export function isRegistrationTracked(): boolean {
   return sessionStorage.getItem(REGISTRATION_TRACKED_KEY) === "1";
 }
 
-export async function trackMetaEvent({ eventName, plan }: TrackMetaEventParams): Promise<void> {
+export async function trackMetaEvent(params: TrackMetaEventParams): Promise<void> {
+  const eventId = crypto.randomUUID();
+  const { eventName } = params;
+
+  // Fire client-side pixel via GTM dataLayer (same eventId for deduplication)
   try {
-    const body: Record<string, string> = {
-      eventName,
-      eventId: crypto.randomUUID(),
-      plan,
+    // Construct the specific payload for each event
+    let gtmPayload: Record<string, any> = { eventId, ...params };
+
+    switch (eventName) {
+      case "InitiateCheckout":
+        gtmPayload.event = "InitiateCheckout - Landing";
+        break;
+      case "Purchase":
+        gtmPayload.event = "Purchase - Landing";
+        break;
+      case "AddToCart":
+        gtmPayload.event = "AddToCart - Landing";
+        break;
+      case "KYCCompleted":
+        gtmPayload.event = "KYCCompleted - Landing";
+        break;
+      case "CompleteRegistration":
+        gtmPayload.event = "CompleteRegistration - Landing";
+        break;
+      default:
+        gtmPayload.event = eventName;
+        break;
+    }
+
+    sendGTMEvent(gtmPayload);
+  } catch {
+    // Never block UX — silently swallow tracking errors
+  }
+
+  // Fire server-side Conversions API
+  try {
+    const body: Record<string, any> = {
+      ...params,
+      eventId,
     };
 
     const fbp = getCookie("_fbp");
