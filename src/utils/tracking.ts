@@ -1,16 +1,16 @@
-import { sendGTMEvent } from "@next/third-parties/google";
+// import { sendGTMEvent } from "@next/third-parties/google";
 
 import { Config } from "@/config";
 
-type TrackingEventName =
-  | "KYCCompleted"
-  | "PhoneSubmitted"
-  | "LocationSubmitted"
-  | "AddToCart"
-  | "InitiateCheckout"
-  | "Purchase"
-  | "CompleteRegistration"
-  | "OnboardingStepFailed";
+// type TrackingEventName =
+//   | "KYCCompleted"
+//   | "PhoneSubmitted"
+//   | "LocationSubmitted"
+//   | "AddToCart"
+//   | "InitiateCheckout"
+//   | "Purchase"
+//   | "CompleteRegistration"
+//   | "OnboardingStepFailed";
 
 export type TrackMetaEventParams =
   | { eventName: "KYCCompleted"; firstName?: string; lastName?: string; phoneNumber?: string; plan?: string }
@@ -53,30 +53,107 @@ export function isRegistrationTracked(): boolean {
   return sessionStorage.getItem(REGISTRATION_TRACKED_KEY) === "1";
 }
 
+// Extend Window interface to include fbq
+declare global {
+  interface Window {
+    fbq?: (...args: unknown[]) => void;
+  }
+}
+
 export async function trackMetaEvent(params: TrackMetaEventParams): Promise<void> {
   const eventId = crypto.randomUUID();
   const { eventName } = params;
 
+  // Fire client-side pixel directly via fbq()
+  try {
+    if (typeof window !== "undefined" && window.fbq) {
+      const commonData = {
+        eventID: eventId,
+      };
+
+      switch (eventName) {
+        case "InitiateCheckout":
+        case "Purchase":
+        case "AddToCart":
+        case "CompleteRegistration": {
+          // Standard Events
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const payload: any = {
+            content_name: params.plan,
+            currency: "INR",
+          };
+
+          if ("firstName" in params) payload.fn = params.firstName;
+          if ("lastName" in params) payload.ln = params.lastName;
+          if ("phoneNumber" in params) payload.ph = params.phoneNumber;
+          if ("email" in params) payload.em = params.email;
+          if ("city" in params) payload.ct = params.city;
+
+          window.fbq("track", eventName, payload, commonData);
+          break;
+        }
+        case "KYCCompleted": {
+          // Custom Event
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const payload: any = {
+            content_name: params.plan,
+          };
+          if (params.firstName) payload.fn = params.firstName;
+          if (params.lastName) payload.ln = params.lastName;
+          if (params.phoneNumber) payload.ph = params.phoneNumber;
+
+          window.fbq("trackCustom", "KYCCompleted", payload, commonData);
+          break;
+        }
+        case "PhoneSubmitted": {
+          // Custom Event
+          window.fbq("trackCustom", "PhoneSubmitted", {
+            ph: params.phoneNumber
+          }, commonData);
+          break;
+        }
+        case "LocationSubmitted": {
+          // Custom Event
+          window.fbq("trackCustom", "LocationSubmitted", {
+            ct: params.city
+          }, commonData);
+          break;
+        }
+        case "OnboardingStepFailed": {
+          // Custom Event
+          window.fbq("trackCustom", "OnboardingStepFailed", {
+            step_failed: params.step,
+            error_reason: params.reason
+          }, commonData);
+          break;
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Meta Pixel Error:", err);
+    // Never block UX — silently swallow tracking errors
+  }
+
+  /*
   // Fire client-side pixel via GTM dataLayer (same eventId for deduplication)
   try {
-    // Construct the specific payload for each event
-    let gtmPayload: Record<string, any> = { eventId, ...params };
+    const gtmPayload: Record<string, string> = { eventId, ...params };
 
     switch (eventName) {
       case "InitiateCheckout":
-        gtmPayload.event = "InitiateCheckout - Landing";
+        gtmPayload.event = "InitiateCheckout";
         break;
       case "Purchase":
-        gtmPayload.event = "Purchase - Landing";
+        gtmPayload.event = "Purchase";
         break;
       case "AddToCart":
-        gtmPayload.event = "AddToCart - Landing";
+        gtmPayload.event = "AddToCart";
         break;
       case "KYCCompleted":
-        gtmPayload.event = "KYCCompleted - Landing";
+        gtmPayload.event = "KYCCompleted";
         break;
       case "CompleteRegistration":
-        gtmPayload.event = "CompleteRegistration - Landing";
+        gtmPayload.event = "CompleteRegistration";
         break;
       default:
         gtmPayload.event = eventName;
@@ -87,10 +164,11 @@ export async function trackMetaEvent(params: TrackMetaEventParams): Promise<void
   } catch {
     // Never block UX — silently swallow tracking errors
   }
+  */
 
   // Fire server-side Conversions API
   try {
-    const body: Record<string, any> = {
+    const body: Record<string, string> = {
       ...params,
       eventId,
     };

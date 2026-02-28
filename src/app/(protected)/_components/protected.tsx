@@ -22,8 +22,18 @@ import { SafeAreaWrapper } from "@/components/ui/safe-area";
 import { ActivationPendingGate } from "./activationPendingGate";
 import { LegalConsentGate } from "./legalConsentGate";
 import { hasRequiredLegalConsents } from "@/constants/legal";
+import { getSessionId } from "@/lib/session";
+import {
+  extractApiErrorCode,
+  forceLogoutDueToSession,
+  isSessionErrorCode,
+} from "@/lib/authSession";
+import { getCurrentSession } from "@/models/api/session";
 
 const AUTH_TIMEOUT_MS = 10000;
+const SESSION_HEARTBEAT_INTERVAL_MS = 45000;
+const SESSION_NOT_ACTIVE_GRACE_MS = 10000;
+const SESSION_NOT_ACTIVE_RETRIES = 2;
 
 
 
@@ -42,12 +52,116 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [authTimedOut, setAuthTimedOut] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const sessionHeartbeatInFlightRef = useRef(false);
+  const sessionGraceUntilRef = useRef(0);
+  const networkHeartbeatFailureCountRef = useRef(0);
 
   const getLoginUrlWithTarget = useCallback(() => {
     if (typeof window === "undefined") return "/login";
     const target = `${window.location.pathname}${window.location.search}`;
     return `/login?target=${encodeURIComponent(target)}`;
   }, []);
+
+  const runSessionHeartbeat = useCallback(async () => {
+    if (!firebaseAuth.currentUser) return;
+
+    const sessionId = getSessionId();
+    if (!sessionId) {
+      await forceLogoutDueToSession({
+        router,
+        message: "Session expired. Please log in again.",
+      });
+      return;
+    }
+
+    if (sessionHeartbeatInFlightRef.current) return;
+    sessionHeartbeatInFlightRef.current = true;
+
+    try {
+      for (let attempt = 0; attempt <= SESSION_NOT_ACTIVE_RETRIES; attempt++) {
+        try {
+          await getCurrentSession();
+          networkHeartbeatFailureCountRef.current = 0;
+          return;
+        } catch (err) {
+          const code = extractApiErrorCode(err);
+
+          const canRetryForPropagationLag =
+            code === "SESSION_NOT_ACTIVE" &&
+            Date.now() <= sessionGraceUntilRef.current &&
+            attempt < SESSION_NOT_ACTIVE_RETRIES;
+
+          if (canRetryForPropagationLag) {
+            const delay = 400 * (attempt + 1);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            continue;
+          }
+
+          if (isSessionErrorCode(code)) {
+            await forceLogoutDueToSession({ router });
+            return;
+          }
+
+          networkHeartbeatFailureCountRef.current += 1;
+          if (networkHeartbeatFailureCountRef.current >= 3) {
+            console.warn(
+              "Session heartbeat failing repeatedly due to non-session errors"
+            );
+          }
+          return;
+        }
+      }
+    } catch {
+      networkHeartbeatFailureCountRef.current += 1;
+    } finally {
+      sessionHeartbeatInFlightRef.current = false;
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    sessionGraceUntilRef.current = Date.now() + SESSION_NOT_ACTIVE_GRACE_MS;
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (loading || !user) return;
+
+    if (getSessionId()) return;
+
+    void forceLogoutDueToSession({
+      router,
+      message: "Please log in again to continue.",
+    });
+  }, [loading, user, router]);
+
+  useEffect(() => {
+    if (loading || !user?.uid) return;
+
+    void runSessionHeartbeat();
+
+    const interval = setInterval(() => {
+      void runSessionHeartbeat();
+    }, SESSION_HEARTBEAT_INTERVAL_MS);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void runSessionHeartbeat();
+      }
+    };
+
+    const onFocus = () => {
+      void runSessionHeartbeat();
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [loading, user?.uid, runSessionHeartbeat]);
 
 
   useEffect(() => {

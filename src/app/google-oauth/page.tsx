@@ -3,6 +3,7 @@
 import { Loader } from "@/components/ui/loader";
 import { firebaseAuth, getUserDoc, setUserDoc } from "@/config/firebase";
 import { createUser } from "@/models/api/user";
+import { activateSession } from "@/models/api/session";
 import {
   GoogleAuthProvider,
   sendEmailVerification,
@@ -17,6 +18,7 @@ import { logError } from "@/utils/errors";
 import { Capacitor } from "@capacitor/core";
 import { buildAcceptedLegalConsents } from "@/constants/legal";
 import posthog from "posthog-js";
+import { clearSessionId, rotateSessionId } from "@/lib/session";
 
 const GoogleOauthPage = () => {
   const defaultMessage = "Authenticating with google";
@@ -132,6 +134,14 @@ const GoogleOauthPage = () => {
     }
   }, []);
 
+  const activateSingleDeviceSession = useCallback(async () => {
+    const sessionId = rotateSessionId();
+    if (!sessionId) {
+      throw new Error("Unable to create a session on this device");
+    }
+    await activateSession(sessionId);
+  }, []);
+
   const verifyGoogleUser = useCallback(
     async (
       accessToken: string,
@@ -174,6 +184,7 @@ const GoogleOauthPage = () => {
   );
 
   const login = useCallback(async () => {
+    let activationAttempted = false;
     try {
       const params = new URLSearchParams(
         typeof window !== "undefined"
@@ -305,6 +316,9 @@ const GoogleOauthPage = () => {
         });
       }
 
+      activationAttempted = true;
+      await activateSingleDeviceSession();
+
       setTimeout(() => {
         redirectUser({
           isDesktopApp: shouldOpenNativeApp,
@@ -314,6 +328,14 @@ const GoogleOauthPage = () => {
         });
       }, 200);
     } catch (error) {
+      if (activationAttempted) {
+        clearSessionId();
+        try {
+          await firebaseAuth.signOut();
+        } catch {
+          // Ignore sign out failures while handling OAuth errors.
+        }
+      }
       logError({
         error: error as Error,
         slackChannel: "frontend-errors",
@@ -321,7 +343,13 @@ const GoogleOauthPage = () => {
       });
       setMessage("Something went wrong");
     }
-  }, [redirectUser, verifyGoogleUser, searchParams, sanitizeTarget]);
+  }, [
+    activateSingleDeviceSession,
+    redirectUser,
+    verifyGoogleUser,
+    searchParams,
+    sanitizeTarget,
+  ]);
 
   useEffect(() => {
     if (hasAttemptedLoginRef.current) return;

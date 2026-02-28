@@ -4,6 +4,11 @@ import { useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { firebaseAuth } from "@/config/firebase";
 import { useChatbotStore } from "@/stores/chatbotStore";
+import { getSessionId } from "@/lib/session";
+import {
+  forceLogoutDueToSession,
+  isSessionErrorCode,
+} from "@/lib/authSession";
 
 interface UseChatbotReturn {
   sendMessage: (message: string) => Promise<void>;
@@ -48,6 +53,11 @@ export const useChatbot = (): UseChatbotReturn => {
         if (!token) {
           throw new Error("Please log in to use the chatbot");
         }
+        const sessionId = getSessionId();
+        if (!sessionId) {
+          await forceLogoutDueToSession();
+          throw new Error("Session not active. Please log in again.");
+        }
 
         // Create abort controller for this request
         abortControllerRef.current = new AbortController();
@@ -60,6 +70,7 @@ export const useChatbot = (): UseChatbotReturn => {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
+              "x-session-id": sessionId,
             },
             body: JSON.stringify({
               message: message.trim(),
@@ -75,6 +86,12 @@ export const useChatbot = (): UseChatbotReturn => {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
+          if (
+            response.status === 401 &&
+            isSessionErrorCode((errorData as { code?: string }).code)
+          ) {
+            await forceLogoutDueToSession();
+          }
           throw new Error(errorData.message || "Failed to get response");
         }
 

@@ -500,8 +500,8 @@ export const OnboardingDetails = ({
             }
           }
 
-          trackMetaEvent({ 
-            eventName: "KYCCompleted", 
+          trackMetaEvent({
+            eventName: "KYCCompleted",
             plan: "broker_onboarding_kyc_completed",
             firstName,
             lastName,
@@ -657,8 +657,8 @@ export const OnboardingDetails = ({
             });
 
             if (!isPaymentTracked()) {
-              trackMetaEvent({ 
-                eventName: "Purchase", 
+              trackMetaEvent({
+                eventName: "Purchase",
                 plan: selectedTier,
                 firstName: data.firstName,
                 lastName: data.lastName,
@@ -668,8 +668,8 @@ export const OnboardingDetails = ({
               markPaymentTracked();
             }
             if (!isRegistrationTracked()) {
-              trackMetaEvent({ 
-                eventName: "CompleteRegistration", 
+              trackMetaEvent({
+                eventName: "CompleteRegistration",
                 plan: "broker_onboarding_completed",
                 firstName: data.firstName,
                 lastName: data.lastName,
@@ -688,8 +688,8 @@ export const OnboardingDetails = ({
             toast.success("Activation successful! Welcome to Brokwise.");
           } catch {
             if (!isPaymentTracked()) {
-              trackMetaEvent({ 
-                eventName: "Purchase", 
+              trackMetaEvent({
+                eventName: "Purchase",
                 plan: selectedTier,
                 firstName: data.firstName,
                 lastName: data.lastName,
@@ -699,8 +699,8 @@ export const OnboardingDetails = ({
               markPaymentTracked();
             }
             if (!isRegistrationTracked()) {
-              trackMetaEvent({ 
-                eventName: "CompleteRegistration", 
+              trackMetaEvent({
+                eventName: "CompleteRegistration",
                 plan: "broker_onboarding_completed",
                 firstName: data.firstName,
                 lastName: data.lastName,
@@ -889,8 +889,8 @@ export const OnboardingDetails = ({
         return;
       }
       const data = form.getValues();
-      trackMetaEvent({ 
-        eventName: "AddToCart", 
+      trackMetaEvent({
+        eventName: "AddToCart",
         plan: selectedTier,
         firstName: data.firstName,
         lastName: data.lastName,
@@ -901,8 +901,8 @@ export const OnboardingDetails = ({
       setStep(5);
     } else if (step === 5) {
       const data = form.getValues();
-      trackMetaEvent({ 
-        eventName: "InitiateCheckout", 
+      trackMetaEvent({
+        eventName: "InitiateCheckout",
         plan: selectedTier!,
         firstName: data.firstName,
         lastName: data.lastName,
