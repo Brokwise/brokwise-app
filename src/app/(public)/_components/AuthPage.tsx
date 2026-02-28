@@ -68,6 +68,8 @@ import {
 import { Config } from "@/config";
 import { firebaseAuth, getUserDoc, setUserDoc } from "@/config/firebase";
 import { createUser } from "@/models/api/user";
+import { activateSession } from "@/models/api/session";
+import { clearSessionId, rotateSessionId } from "@/lib/session";
 import { logError } from "@/utils/errors";
 import { useIsMobile } from "@/hooks/use-mobile";
 import posthog from "posthog-js";
@@ -334,6 +336,14 @@ export default function AuthPage({
     }
   };
 
+  const activateSingleDeviceSession = async () => {
+    const sessionId = rotateSessionId();
+    if (!sessionId) {
+      throw new Error("Unable to create a session on this device");
+    }
+    await activateSession(sessionId);
+  };
+
   const handleAuthError = (error: FirebaseError) => {
     const errorCode = error.code;
     let errorMessage = "An error occurred. Please try again.";
@@ -391,6 +401,8 @@ export default function AuthPage({
       // Clear forgot password rate limit state on successful login
       localStorage.removeItem("brokwise_password_reset_attempts");
 
+      await activateSingleDeviceSession();
+
       posthog.identify(user.uid, {
         email: user.email ?? undefined,
         name: user.displayName ?? undefined,
@@ -403,13 +415,31 @@ export default function AuthPage({
       );
       router.push(targetPath);
     } catch (err) {
-      handleAuthError(err as FirebaseError);
+      const maybeFirebaseError = err as FirebaseError;
+
+      if (maybeFirebaseError.code?.startsWith("auth/")) {
+        handleAuthError(maybeFirebaseError);
+      } else {
+        clearSessionId();
+        try {
+          await firebaseAuth.signOut();
+        } catch {
+          // Best effort sign out when session setup fails.
+        }
+        toast.error("Unable to start your session. Please try logging in again.");
+        logError({
+          description: "Failed to activate single-device session",
+          error: err as Error,
+          slackChannel: "frontend-errors",
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleAuth = async () => {
+    let activationAttempted = false;
     try {
       if (mode === "signup" && !isSignupConsentSatisfied) {
         form.setError("legalConsent", {
@@ -518,6 +548,9 @@ export default function AuthPage({
           name: user.displayName ?? undefined,
         });
 
+        activationAttempted = true;
+        await activateSingleDeviceSession();
+
         toast.success(
           mode === "signup"
             ? t("account_created_success")
@@ -555,6 +588,14 @@ export default function AuthPage({
         window.open(authUrl, "_self");
       }
     } catch (error) {
+      if (activationAttempted) {
+        clearSessionId();
+        try {
+          await firebaseAuth.signOut();
+        } catch {
+          // Ignore sign out errors while recovering from session activation failure.
+        }
+      }
       logError({
         description: "Error signing up with Google",
         error: error as Error,
