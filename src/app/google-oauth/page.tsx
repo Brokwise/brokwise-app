@@ -110,8 +110,11 @@ const GoogleOauthPage = () => {
       if (user?.emailVerified) {
         return;
       }
+      const continueUrl = Capacitor.isNativePlatform()
+        ? "https://app.brokwise.com"
+        : `${window.location.origin}/`;
       const actionCodeSettings = {
-        url: `${window.location.origin}/`,
+        url: continueUrl,
         handleCodeInApp: false,
       };
       await sendEmailVerification(user, actionCodeSettings);

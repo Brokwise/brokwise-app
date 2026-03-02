@@ -11,7 +11,9 @@ const config: CapacitorConfig = {
 
   ios: {
     path: "ios",
-    scheme: "App",
+  },
+  server: {
+    iosScheme: "https",
   },
   plugins: {
     App: {

@@ -14,6 +14,7 @@ import { getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { buildAcceptedLegalConsents } from "@/constants/legal";
+import { Capacitor } from "@capacitor/core";
 
 export const Verification = () => {
   const [user] = useAuthState(firebaseAuth);
@@ -102,8 +103,11 @@ export const Verification = () => {
     }
     try {
       setLoading(true);
+      const continueUrl = Capacitor.isNativePlatform()
+        ? "https://app.brokwise.com"
+        : `${window.location.origin}/`;
       const actionCodeSettings = {
-        url: `${window.location.origin}/`,
+        url: continueUrl,
         handleCodeInApp: false,
       };
       await sendEmailVerification(user, actionCodeSettings);
