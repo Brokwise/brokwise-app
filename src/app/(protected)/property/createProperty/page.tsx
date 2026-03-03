@@ -253,51 +253,67 @@ const CreateProperty = () => {
             )}
 
             {/* Purpose Cards */}
-            <section className="space-y-4">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold tracking-tight text-foreground">
+            <section className="space-y-8 py-4">
+              <div className="text-center space-y-3">
+                <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-primary text-xs font-medium tracking-wide uppercase">
+
+                  New Listing
+                </motion.div>
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                   What is this listing for?
                 </h2>
-                <p className="text-sm text-muted-foreground">
-                  Choose the purpose to get started
+                <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+                  Choose the purpose of your property listing to get started
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-xl mx-auto">
                 <motion.button
                   variants={itemVariants}
+                  whileHover={{ y: -4 }}
+                  whileTap={{ scale: 0.98 }}
                   type="button"
                   onClick={() => setListingPurpose("SALE")}
-                  className="group relative flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-border/60 bg-background hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 hover:shadow-lg"
+                  className="group relative flex flex-col items-start gap-5 p-7 rounded-2xl border border-border/50 bg-gradient-to-br from-background to-emerald-500/[0.03] hover:border-emerald-500/40 hover:shadow-[0_8px_30px_-12px_rgba(16,185,129,0.2)] transition-all duration-300 text-left overflow-hidden"
                 >
-                  <div className="w-14 h-14 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Home className="w-7 h-7 text-emerald-600" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/[0.04] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500" />
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center group-hover:bg-emerald-500/15 transition-colors">
+                    <Home className="w-6 h-6 text-emerald-600" />
                   </div>
-                  <div className="text-center">
-                    <h3 className="text-lg font-bold text-foreground">For Sale</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
+                  <div className="space-y-1.5">
+                    <h3 className="text-lg font-semibold text-foreground">For Sale</h3>
+                    <p className="text-[13px] text-muted-foreground leading-relaxed">
                       List a property for ownership transfer
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="flex items-center gap-1.5 text-emerald-600 text-xs font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0">
+                    Get started
+                    <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
                 </motion.button>
 
                 <motion.button
                   variants={itemVariants}
+                  whileHover={{ y: -4 }}
+                  whileTap={{ scale: 0.98 }}
                   type="button"
                   onClick={() => setListingPurpose("RENT")}
-                  className="group relative flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-border/60 bg-background hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 hover:shadow-lg"
+                  className="group relative flex flex-col items-start gap-5 p-7 rounded-2xl border border-border/50 bg-gradient-to-br from-background to-blue-500/[0.03] hover:border-blue-500/40 hover:shadow-[0_8px_30px_-12px_rgba(59,130,246,0.2)] transition-all duration-300 text-left overflow-hidden"
                 >
-                  <div className="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Key className="w-7 h-7 text-blue-600" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/[0.04] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500" />
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/15 transition-colors">
+                    <Key className="w-6 h-6 text-blue-600" />
                   </div>
-                  <div className="text-center">
-                    <h3 className="text-lg font-bold text-foreground">For Rent / Lease</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
+                  <div className="space-y-1.5">
+                    <h3 className="text-lg font-semibold text-foreground">For Rent / Lease</h3>
+                    <p className="text-[13px] text-muted-foreground leading-relaxed">
                       List a property available for rent
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="flex items-center gap-1.5 text-blue-600 text-xs font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0">
+                    Get started
+                    <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
                 </motion.button>
               </div>
             </section>

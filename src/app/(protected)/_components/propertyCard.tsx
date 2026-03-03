@@ -138,24 +138,33 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     typeof coordinates[1] === "number";
 
   return (
-    <Card className="group overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 bg-card h-[27rem] flex flex-col rounded-3xl">
+    <Card className={`group overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 bg-card h-[27rem] flex flex-col rounded-3xl ${isRental ? "" : "border-none"}`}>
       {/* Image Section */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
         <Link
           href={`/property/detail?id=${property._id}`}
           className="block w-full h-full"
         >
+
+
           <Image
             src={getPropertyMediaSrc(property.featuredMedia)}
             alt={property.description || "Property Image"}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-700 h-12!"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+
+          <div className={`absolute inset-0 bg-gradient-to-t ${isRental ? "from-blue-950/60 via-blue-900/10" : "from-black/60 via-transparent"} to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300`} />
         </Link>
 
         {/* Status Badge */}
         <div className="absolute top-3 left-3 flex flex-col gap-2 z-10 items-start">
+          {isRental && (
+            <Badge className="shadow-sm backdrop-blur-md border-none bg-blue-600 text-white px-3 py-1.5 font-bold tracking-wide">
+              <Home className="h-3.5 w-3.5 mr-1.5" />
+              FOR RENT
+            </Badge>
+          )}
           {property.isFeatured && (
             <Badge className="relative overflow-hidden shadow-[0_0_15px_rgba(245,158,11,0.5)] border-none bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white px-3 py-1.5 font-bold tracking-wide">
               <div className="absolute inset-0 bg-white/20 translate-x-[-100%] animate-[shimmer_2s_infinite]" />
@@ -304,11 +313,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
         {/* Price Tag Overlay (Luxurious Touch) */}
         <div className="absolute bottom-3 right-3 z-10">
-          <div className="bg-background/95 backdrop-blur shadow-md px-3 py-1.5 rounded-lg border border-accent/10 flex flex-col items-end">
-            {isRental && (
-              <span className="text-[9px] font-semibold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded mb-0.5">RENT</span>
-            )}
-            <Typography variant="large" className="font-bold text-accent leading-none">
+          <div className={`bg-background/95 backdrop-blur shadow-md px-3 py-1.5 rounded-lg flex flex-col items-end ${isRental ? "border border-blue-300/40 ring-1 ring-blue-200/30" : "border border-accent/10"}`}>
+            <Typography variant="large" className={`font-bold leading-none ${isRental ? "text-blue-600" : "text-accent"}`}>
               {priceDisplay}
             </Typography>
             {rateDisplay && (
@@ -324,8 +330,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       <CardContent className="p-3 flex-grow flex flex-col gap-1 md:gap-2">
         <div className="flex justify-between items-start gap-1 md:gap-1">
           <div className="space-y-1 flex-1 min-w-0">
-            <div className="text-xs font-medium text-accent uppercase tracking-wider">
-              {property.propertyCategory}
+            <div className={`text-xs font-medium uppercase tracking-wider ${isRental ? "text-blue-600" : "text-accent"}`}>
+              {isRental ? "Rental" : ""} {property.propertyCategory}
             </div>
             <Typography variant="h3" className="text-[17px] line-clamp-1 leading-tight">
               {property.bhk ? `${property.bhk} BHK ` : ""}

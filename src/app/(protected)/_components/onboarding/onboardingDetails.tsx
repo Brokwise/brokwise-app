@@ -291,6 +291,31 @@ const WelcomeStep = ({
 };
 
 
+// ─── iOS Completion Step (Apple guidelines: no in-app purchase UI) ───────────
+const IOSCompletionStep = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="space-y-8 text-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-20 h-20 rounded-full flex items-center justify-center bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg">
+          <Check className="h-8 w-8" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+            {t("onboarding_profile_saved_title", "Profile Saved!")}
+          </h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+            {t("onboarding_ios_manage_account", "Manage your account at")}
+          </p>
+          <p className="text-base font-semibold text-primary select-all">
+            app.brokwise.com
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ─── Main Onboarding Component ───────────────────────────────────────────────
 export const OnboardingDetails = ({
   isEditing = false,
@@ -310,6 +335,7 @@ export const OnboardingDetails = ({
   const currentLang = i18n.language;
 
   const isIndianNumber = selectedCountry === "+91";
+  const isIOSNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
 
   const { brokerData, setBrokerData } = useApp();
   const [user] = useAuthState(firebaseAuth);
@@ -796,7 +822,7 @@ export const OnboardingDetails = ({
   };
 
   // 5 steps for new users, 3 steps for edit mode (personal, business, location)
-  const totalSteps = isEditing ? 3 : 5;
+  const totalSteps = isEditing ? 3 : isIOSNative ? 4 : 5;
 
   const handleNext = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -875,6 +901,50 @@ export const OnboardingDetails = ({
       if (step === 3) {
         // Last edit step - submit (calls updateProfileDetails again with all data)
         onSubmitProfileEdit(form.getValues());
+      } else {
+        setDirection(1);
+        setStep(step + 1);
+      }
+      return;
+    }
+
+    // iOS: skip plan selection and payment (Apple guidelines)
+    if (isIOSNative) {
+      if (step === 4) {
+        if (!user || !brokerData) {
+          toast.error("Missing required data");
+          return;
+        }
+        try {
+          setLoading(true);
+          const data = form.getValues();
+          await submitUserDetails({
+            uid: user.uid,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: user.email || "",
+            _id: brokerData._id,
+            mobile: data.mobile,
+            companyName: data.companyName,
+            gstin: data.gstin,
+            yearsOfExperience: data.yearsOfExperience,
+            city: data.city,
+            officeAddress: data.officeAddress,
+            reraNumber: data.reraNumber,
+            profilePhoto: data.profilePhoto,
+          });
+          setBrokerData({ ...brokerData, ...data });
+          toast.success(t("onboarding_profile_saved_toast", "Profile saved successfully!"));
+        } catch (error) {
+          logError({
+            description: "Error during iOS onboarding completion",
+            error: error as Error,
+            slackChannel: "frontend-errors",
+          });
+          toast.error("Failed to save profile. Please try again.");
+        } finally {
+          setLoading(false);
+        }
       } else {
         setDirection(1);
         setStep(step + 1);
@@ -971,6 +1041,7 @@ export const OnboardingDetails = ({
       case 3:
         return t("onboarding_location_step_title", "Location");
       case 4:
+        if (isIOSNative) return t("onboarding_almost_done", "Almost done!");
         return (
           <>
             {t("onboarding_choose_your", "Choose your")}{" "}
@@ -994,6 +1065,7 @@ export const OnboardingDetails = ({
       case 3:
         return t("onboarding_location_step_desc", "Where are you based?");
       case 4:
+        if (isIOSNative) return t("onboarding_ios_step4_desc", "Your profile has been set up successfully");
         return t("onboarding_plan_step_desc", "Start with a 1-month activation pack to explore the platform");
       case 5:
         return t("onboarding_welcome_step_desc", "Review your plan and complete the setup");
@@ -1009,6 +1081,9 @@ export const OnboardingDetails = ({
       }
       return t("onboarding_continue", "Continue");
     }
+    if (isIOSNative && step === 4) {
+      return loading ? t("onboarding_saving", "Saving...") : t("onboarding_done", "Done");
+    }
     switch (step) {
       case 5:
         return loading || activationPending || verifyPending
@@ -1021,8 +1096,8 @@ export const OnboardingDetails = ({
 
   return (
     <section className="relative h-[100dvh] w-full overflow-hidden md:overflow-y-auto transition-colors duration-500 bg-slate-50 dark:bg-slate-950">
-      {/* Razorpay Script */}
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+      {/* Razorpay Script (not needed on iOS — payment happens on web) */}
+      {!isIOSNative && <Script src="https://checkout.razorpay.com/v1/checkout.js" />}
 
       {/* Theme & Language Toggles */}
       <div className="absolute top-[calc(env(safe-area-inset-top)+0.75rem)] right-4 z-50">
@@ -1169,16 +1244,21 @@ export const OnboardingDetails = ({
                         <Step3 form={form} />
                       )}
 
-                      {/* ── Step 4: Plan Selection ──────────────────────── */}
-                      {!isEditing && step === 4 && (
+                      {/* ── Step 4: iOS Completion ─────────────────────── */}
+                      {!isEditing && isIOSNative && step === 4 && (
+                        <IOSCompletionStep />
+                      )}
+
+                      {/* ── Step 4: Plan Selection (non-iOS) ──────────── */}
+                      {!isEditing && !isIOSNative && step === 4 && (
                         <PlanSelectionStep
                           selectedTier={selectedTier}
                           onSelect={setSelectedTier}
                         />
                       )}
 
-                      {/* ── Step 5: Welcome + Pay ──────────────────────── */}
-                      {!isEditing && step === 5 && selectedTier && (
+                      {/* ── Step 5: Welcome + Pay (non-iOS) ──────────── */}
+                      {!isEditing && !isIOSNative && step === 5 && selectedTier && (
                         <WelcomeStep
                           selectedTier={selectedTier}
                           loading={loading || activationPending || verifyPending}
@@ -1220,7 +1300,7 @@ export const OnboardingDetails = ({
                     loading ||
                     activationPending ||
                     verifyPending || !kycState.userDetails ||
-                    (step === 4 && !selectedTier) ||
+                    (!isIOSNative && step === 4 && !selectedTier) ||
                     (step === 1 && !isIndianNumber && !isEditing)
                   }
                   className={cn(
@@ -1228,7 +1308,7 @@ export const OnboardingDetails = ({
                     "bg-primary text-white hover:bg-[#1E293B]",
                     "dark:bg-white dark:text-[#0F172A] dark:hover:bg-slate-200",
                     "transition-all duration-300",
-                    step === 5
+                    !isEditing && step === totalSteps
                       ? "bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 dark:text-white"
                       : "",
                     (loading || activationPending || verifyPending)
@@ -1243,9 +1323,9 @@ export const OnboardingDetails = ({
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      {step === 5 && !isEditing && <CreditCard className="h-4 w-4" />}
+                      {step === 5 && !isEditing && !isIOSNative && <CreditCard className="h-4 w-4" />}
                       {getNextButtonLabel()}
-                      {((step < 5 && !isEditing) || (isEditing && step < 3)) && <ArrowRight className="h-4 w-4" />}
+                      {((step < totalSteps && !isEditing) || (isEditing && step < 3)) && <ArrowRight className="h-4 w-4" />}
                     </div>
                   )}
                 </Button>

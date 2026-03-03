@@ -1,6 +1,6 @@
 import { Property } from "@/types/property";
 import React from "react";
-import { formatCurrency, formatAddress } from "@/utils/helper";
+import { formatAddress, formatPriceShort } from "@/utils/helper";
 import { getPlotTypeLabel } from "@/lib/plotType";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +37,7 @@ export const PropertyDetails = ({
   onClose,
 }: PropertyDetailsProps) => {
   const { t } = useTranslation();
+  const isRental = (property.listingPurpose || "SALE") === "RENT";
   return (
     <div className="flex flex-col bg-background overflow-hidden max-h-full h-auto">
       {/* Header */}
@@ -73,6 +74,12 @@ export const PropertyDetails = ({
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
+              {isRental && (
+                <Badge className="bg-blue-600/90 text-white hover:bg-blue-600 backdrop-blur shadow-sm text-[9px] py-0.5">
+                  <Home className="h-2.5 w-2.5 mr-0.5" />
+                  For Rent
+                </Badge>
+              )}
               <Badge className="bg-background/90 text-foreground hover:bg-background/100 backdrop-blur shadow-sm text-[9px] py-0.5">
                 {property.propertyCategory}
               </Badge>
@@ -85,13 +92,33 @@ export const PropertyDetails = ({
             </div>
             <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between">
               <div>
-                <p className="text-white text-xl font-bold drop-shadow-lg">
-                  {formatCurrency(property.totalPrice)}
-                </p>
-                <p className="text-white/80 text-[10px] font-medium drop-shadow">
-                  {formatCurrency(property.rate)}/sqft
-                  {property.isPriceNegotiable && <span className="text-emerald-300 ml-1">• Negotiable</span>}
-                </p>
+                {isRental ? (
+                  <>
+                    <p className="text-white text-xl font-bold drop-shadow-lg">
+                      {formatPriceShort(property.monthlyRent || 0)}<span className="text-sm font-normal text-white/80">/mo</span>
+                    </p>
+                    {property.securityDeposit ? (
+                      <p className="text-white/80 text-[10px] font-medium drop-shadow">
+                        Deposit: {formatPriceShort(property.securityDeposit)}
+                        {property.isPriceNegotiable && <span className="text-emerald-300 ml-1">• Negotiable</span>}
+                      </p>
+                    ) : property.isPriceNegotiable ? (
+                      <p className="text-white/80 text-[10px] font-medium drop-shadow">
+                        <span className="text-emerald-300">Negotiable</span>
+                      </p>
+                    ) : null}
+                  </>
+                ) : (
+                  <>
+                    <p className="text-white text-xl font-bold drop-shadow-lg">
+                      {formatPriceShort(property.totalPrice)}
+                    </p>
+                    <p className="text-white/80 text-[10px] font-medium drop-shadow">
+                      {formatPriceShort(property.rate)}/sqft
+                      {property.isPriceNegotiable && <span className="text-emerald-300 ml-1">• Negotiable</span>}
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -219,12 +246,36 @@ export const PropertyDetails = ({
                   <span className="truncate">
                     Rent:{" "}
                     <span className="text-foreground font-medium">
-                      {formatCurrency(property.rentalIncome.min || 0)}-
-                      {formatCurrency(property.rentalIncome.max || 0)}
+                      {formatPriceShort(property.rentalIncome.min || 0)}-
+                      {formatPriceShort(property.rentalIncome.max || 0)}
                     </span>
                   </span>
                 </div>
               )}
+            {isRental && property.agreementDuration && (
+              <div className="flex items-center gap-1 text-muted-foreground truncate">
+                <Calendar className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+                <span className="truncate">Agreement: <span className="text-foreground font-medium">{property.agreementDuration}</span></span>
+              </div>
+            )}
+            {isRental && property.lockInPeriod != null && property.lockInPeriod > 0 && (
+              <div className="flex items-center gap-1 text-muted-foreground truncate">
+                <Calendar className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+                <span className="truncate">Lock-in: <span className="text-foreground font-medium">{property.lockInPeriod} months</span></span>
+              </div>
+            )}
+            {isRental && property.noticePeriod != null && property.noticePeriod > 0 && (
+              <div className="flex items-center gap-1 text-muted-foreground truncate">
+                <Calendar className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+                <span className="truncate">Notice: <span className="text-foreground font-medium">{property.noticePeriod} months</span></span>
+              </div>
+            )}
+            {isRental && property.furnishing && (
+              <div className="flex items-center gap-1 text-muted-foreground truncate">
+                <Home className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+                <span className="truncate"><span className="text-foreground font-medium">{property.furnishing.replace(/_/g, " ")}</span></span>
+              </div>
+            )}
           </div>
 
           {/* Amenities - Inline compact */}

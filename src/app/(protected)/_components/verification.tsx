@@ -104,7 +104,7 @@ export const Verification = () => {
     try {
       setLoading(true);
       const continueUrl = Capacitor.isNativePlatform()
-        ? "https://app.brokwise.com"
+        ? "https://app.brokwise.com?source=mobile"
         : `${window.location.origin}/`;
       const actionCodeSettings = {
         url: continueUrl,

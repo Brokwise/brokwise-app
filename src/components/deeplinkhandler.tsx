@@ -60,6 +60,14 @@ export function DeepLinkHandler() {
       });
       // Handle cold start when the app is opened via brokwise:// URL.
       App.getLaunchUrl().then((data) => handleUrl(data?.url));
+    } else {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("source") === "mobile") {
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("source");
+        window.history.replaceState({}, "", cleanUrl.toString());
+        window.location.href = "brokwise://";
+      }
     }
     return () => {
       if (isNative) {

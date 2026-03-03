@@ -36,7 +36,7 @@ export const PropertyHeader = ({
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => router.back()}
+                        onClick={() => router.push("/")}
                         className="shrink-0 rounded-full"
                     >
                         <ArrowLeft className="h-5 w-5" />

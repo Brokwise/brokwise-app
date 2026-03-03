@@ -420,10 +420,10 @@ export const ProtectedPage = ({ children }: { children: React.ReactNode }) => {
     switch (brokerData.status) {
       case "incomplete":
         return (
-          <WaveBackground>
+          <SafeAreaWrapper>
             <OnboardingDetails />
             <ChatbotWidget isOnboarding={true} />
-          </WaveBackground>
+          </SafeAreaWrapper>
         );
       case "pending":
         // Direct approval: treat pending as approved (no admin review needed)

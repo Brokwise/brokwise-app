@@ -30,7 +30,7 @@ export const DisclaimerAcknowledge = ({
   return (
     <div className={cn("space-y-3", className)}>
       <DisclaimerNotice text={text} />
-      <div className="flex items-start gap-2">
+      <div className="flex items-center gap-2">
         <Checkbox
           id={checkboxId}
           checked={checked}

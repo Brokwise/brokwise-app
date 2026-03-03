@@ -44,7 +44,12 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
   const [open, setOpen] = useState(false);
   const [perUnitRate, setPerUnitRate] = useState<string>("");
   const [totalRate, setTotalRate] = useState<string>("");
+  const [rentalOffer, setRentalOffer] = useState<string>("");
   const [isFinalOfferMode, setIsFinalOfferMode] = useState(false);
+
+  const isRental = (property.listingPurpose || "SALE") === "RENT";
+  const askingPrice = isRental ? (property.monthlyRent || 0) : property.rate;
+
   if (!brokerData && !companyData) return null;
   const isOwnListing =
     typeof property.listedBy === "string"
@@ -71,6 +76,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
     if (!isOpen) {
       setPerUnitRate("");
       setTotalRate("");
+      setRentalOffer("");
       setIsFinalOfferMode(false);
     }
   };
@@ -107,24 +113,36 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const offerValue = parseFloat(perUnitRate);
-    const size = Number(property.size) || 0;
-    const maxTotal = size ? property.rate * size : property.rate;
-    const offerRate = offerValue;
 
-    if (isNaN(offerValue) || offerValue <= 0) {
-      toast.error(t("toast_error_invalid_rate"));
-      return;
-    }
+    let offerRate: number;
 
-    if (offerRate > property.rate) {
-      toast.error(t("toast_error_rate_higher"));
-      return;
-    }
+    if (isRental) {
+      offerRate = parseFloat(rentalOffer);
+      if (isNaN(offerRate) || offerRate <= 0) {
+        toast.error(t("toast_error_invalid_rate"));
+        return;
+      }
+      if (offerRate > askingPrice) {
+        toast.error(t("toast_error_rate_higher"));
+        return;
+      }
+    } else {
+      offerRate = parseFloat(perUnitRate);
+      const size = Number(property.size) || 0;
+      const maxTotal = size ? property.rate * size : property.rate;
 
-    if (size && offerRate * size > maxTotal) {
-      toast.error(t("toast_error_total_higher"));
-      return;
+      if (isNaN(offerRate) || offerRate <= 0) {
+        toast.error(t("toast_error_invalid_rate"));
+        return;
+      }
+      if (offerRate > property.rate) {
+        toast.error(t("toast_error_rate_higher"));
+        return;
+      }
+      if (size && offerRate * size > maxTotal) {
+        toast.error(t("toast_error_total_higher"));
+        return;
+      }
     }
 
     try {
@@ -169,7 +187,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
           <p className="text-sm text-muted-foreground">
             {t("property_no_offer_yet")}{" "}
             <span className="font-semibold text-foreground">
-              {formatCurrency(property.rate)}
+              {formatCurrency(askingPrice)}{isRental ? "/mo" : ""}
             </span>
             .
           </p>
@@ -192,12 +210,12 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
 
         <div className="p-3 bg-muted rounded-lg space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">{t("property_offered_rate")}:</span>
-            <span className="font-semibold">{formatCurrency(offerRate)}</span>
+            <span className="text-muted-foreground">{isRental ? t("property_offered_rate") : t("property_offered_rate")}:</span>
+            <span className="font-semibold">{formatCurrency(offerRate)}{isRental ? "/mo" : ""}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">{t("label_asking_rate")}:</span>
-            <span>{formatCurrency(property.rate)}</span>
+            <span className="text-muted-foreground">{isRental ? t("label_asking_rate") : t("label_asking_rate")}:</span>
+            <span>{formatCurrency(askingPrice)}{isRental ? "/mo" : ""}</span>
           </div>
         </div>
 
@@ -306,75 +324,105 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 py-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="rate-per-unit">
-                  {`${t("property_offer_rate_label")} (per ${property.sizeUnit
-                    ?.toLowerCase()
-                    .replace("_", " ")})`}
-                </Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-muted-foreground">
-                    ₹
-                  </span>
-                  <Input
-                    id="rate-per-unit"
-                    type="number"
-                    placeholder={`${t("label_max")}: ${property.rate}`}
-                    className="pl-7"
-                    value={perUnitRate}
-                    onChange={(e) => handlePerUnitChange(e.target.value)}
-                    max={property.rate}
-                    required
-                  />
+            {isRental ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="rental-offer">Monthly Rent Offer</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground">₹</span>
+                    <Input
+                      id="rental-offer"
+                      type="number"
+                      placeholder={`${t("label_max")}: ${askingPrice}`}
+                      className="pl-7"
+                      value={rentalOffer}
+                      onChange={(e) => setRentalOffer(e.target.value)}
+                      max={askingPrice}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="rate-total">{t("property_offer_total_label")}</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-muted-foreground">
-                    ₹
-                  </span>
-                  <Input
-                    id="rate-total"
-                    type="number"
-                    placeholder={`${t("label_max")}: ${(Number(property.size) || 0) * property.rate}`}
-                    className="pl-7"
-                    value={totalRate}
-                    onChange={(e) => handleTotalChange(e.target.value)}
-                    max={(Number(property.size) || 0) * property.rate}
-                    disabled={!property.size}
-                  />
+                <p className="text-xs text-muted-foreground">
+                  Asking rent: {formatCurrency(askingPrice)}/mo
+                </p>
+
+                {rentalOffer && parseFloat(rentalOffer) > askingPrice && (
+                  <div className="text-sm text-destructive flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    {t("offer_higher_than_asking")}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="rate-per-unit">
+                      {`${t("property_offer_rate_label")} (per ${property.sizeUnit
+                        ?.toLowerCase()
+                        .replace("_", " ")})`}
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-muted-foreground">₹</span>
+                      <Input
+                        id="rate-per-unit"
+                        type="number"
+                        placeholder={`${t("label_max")}: ${property.rate}`}
+                        className="pl-7"
+                        value={perUnitRate}
+                        onChange={(e) => handlePerUnitChange(e.target.value)}
+                        max={property.rate}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="rate-total">{t("property_offer_total_label")}</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-muted-foreground">₹</span>
+                      <Input
+                        id="rate-total"
+                        type="number"
+                        placeholder={`${t("label_max")}: ${(Number(property.size) || 0) * property.rate}`}
+                        className="pl-7"
+                        value={totalRate}
+                        onChange={(e) => handleTotalChange(e.target.value)}
+                        max={(Number(property.size) || 0) * property.rate}
+                        disabled={!property.size}
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <p className="text-xs text-muted-foreground">
-              {t("label_asking_rate")}: {formatCurrency(property.rate)}
-              {property.size ? (
-                <>
-                  {" "}
-                  • {t("property_asking_total")}:{" "}
-                  {formatCurrency(property.rate * property.size)}
-                </>
-              ) : null}
-            </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("label_asking_rate")}: {formatCurrency(property.rate)}
+                  {property.size ? (
+                    <>
+                      {" "}
+                      • {t("property_asking_total")}:{" "}
+                      {formatCurrency(property.rate * property.size)}
+                    </>
+                  ) : null}
+                </p>
 
-            {perUnitRate &&
-              (parseFloat(perUnitRate) > property.rate ||
-                (Boolean(property.size) &&
-                  parseFloat(totalRate || "0") >
-                  (Number(property.size) || 0) * property.rate)) && (
-                <div className="text-sm text-destructive flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  {property.size &&
-                    parseFloat(totalRate || "0") >
-                    (Number(property.size) || 0) * property.rate
-                    ? t("offer_total_higher_than_asking")
-                    : t("offer_higher_than_asking")}
-                </div>
-              )}
+                {perUnitRate &&
+                  (parseFloat(perUnitRate) > property.rate ||
+                    (Boolean(property.size) &&
+                      parseFloat(totalRate || "0") >
+                      (Number(property.size) || 0) * property.rate)) && (
+                    <div className="text-sm text-destructive flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      {property.size &&
+                        parseFloat(totalRate || "0") >
+                        (Number(property.size) || 0) * property.rate
+                        ? t("offer_total_higher_than_asking")
+                        : t("offer_higher_than_asking")}
+                    </div>
+                  )}
+              </>
+            )}
 
             <DialogFooter className="gap-2">
               <Button
@@ -389,11 +437,13 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
                 disabled={
                   isSubmitting ||
                   isSubmittingFinal ||
-                  !perUnitRate ||
-                  parseFloat(perUnitRate) > property.rate ||
-                  (Boolean(property.size) &&
-                    parseFloat(totalRate || "0") >
-                    (Number(property.size) || 0) * property.rate)
+                  (isRental
+                    ? !rentalOffer || parseFloat(rentalOffer) > askingPrice
+                    : !perUnitRate ||
+                      parseFloat(perUnitRate) > property.rate ||
+                      (Boolean(property.size) &&
+                        parseFloat(totalRate || "0") >
+                        (Number(property.size) || 0) * property.rate))
                 }
               >
                 {isSubmitting || isSubmittingFinal
