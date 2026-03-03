@@ -7,6 +7,7 @@ import { QueryClientProviderWrapper } from "@/providers/queryClientProvider";
 import { Providers } from "@/providers/themeProvider";
 import { PostHogProvider } from "./providers";
 import { DeepLinkHandler } from "@/components/deeplinkhandler";
+import { PullToRefresh } from "@/components/PullToRefresh";
 
 const inter = localFont({
   src: "./fonts/InterVariable.woff2",
@@ -45,7 +46,9 @@ export default function RootLayout({
           <Providers>
             <QueryClientProviderWrapper>
               <DeepLinkHandler />
-              {children}
+              <PullToRefresh>
+                {children}
+              </PullToRefresh>
             </QueryClientProviderWrapper>
           </Providers>
 

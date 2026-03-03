@@ -261,7 +261,6 @@ export const ActivationPendingGate = ({
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       <div className="h-screen w-full overflow-y-auto bg-slate-50 dark:bg-slate-950">
-        {/* Top Bar with Logout */}
         <div className="absolute top-4 right-4 z-10">
           <Button
             variant="ghost"

@@ -148,12 +148,15 @@ export const MapBox = ({
             typeof p.location.coordinates[0] === "number" &&
             typeof p.location.coordinates[1] === "number"
         )
-        .map((property) => ({
+        .map((property) => {
+        const isRental = (property.listingPurpose || "SALE") === "RENT";
+        const displayPrice = isRental ? (property.monthlyRent || 0) : property.totalPrice;
+        return {
           type: "Feature",
           properties: {
             id: property._id,
-            price: property.totalPrice,
-            priceFormatted: formatPrice(property.totalPrice),
+            price: displayPrice,
+            priceFormatted: isRental ? `${formatPrice(displayPrice)}/mo` : formatPrice(displayPrice),
             category: property.propertyCategory,
             address:
               property.address?.address ||
@@ -161,12 +164,14 @@ export const MapBox = ({
               "Address available",
             rate: property.rate,
             featuredMedia: property.featuredMedia,
+            isRental,
           },
           geometry: {
             type: "Point",
             coordinates: property.location.coordinates,
           },
-        }));
+        };
+      });
 
       return {
         type: "FeatureCollection",
@@ -317,7 +322,9 @@ export const MapBox = ({
 
       validProperties.forEach((property) => {
         const [lng, lat] = property.location.coordinates;
-        const priceFormatted = formatPrice(property.totalPrice);
+        const isRental = (property.listingPurpose || "SALE") === "RENT";
+        const displayPrice = isRental ? (property.monthlyRent || 0) : property.totalPrice;
+        const priceFormatted = isRental ? `${formatPrice(displayPrice)}/mo` : formatPrice(displayPrice);
 
         const el = document.createElement("div");
         // Start hidden if zoom is below threshold

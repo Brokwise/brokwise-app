@@ -19,7 +19,7 @@ export const DisclaimerNotice = ({
   return (
     <Alert
       className={cn(
-        "border-amber-300/70 bg-amber-50/40 dark:border-amber-700/50 dark:bg-amber-950/30",
+        "border-amber-300/70 bg-amber-50/40 dark:border-black/50 dark:bg-black/30",
         className
       )}
     >
