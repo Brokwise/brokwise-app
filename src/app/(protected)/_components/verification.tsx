@@ -228,7 +228,7 @@ export const Verification = () => {
               <p className="text-base text-muted-foreground">
                 Please check your inbox (and spam folder) for an email from{" "}
                 <span className="font-semibold text-foreground">
-                  dev@brokwise.com
+                  no-reply@brokwise.com
                 </span>
               </p>
               <p className="text-sm text-muted-foreground">

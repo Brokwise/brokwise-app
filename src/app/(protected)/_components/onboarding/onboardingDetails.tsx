@@ -74,6 +74,7 @@ import {
   isRegistrationTracked,
   markRegistrationTracked,
 } from "@/utils/tracking";
+import Link from "next/link";
 
 const KYC_STORAGE_KEY = "bw_kyc_verification_id";
 const KYC_URL_STORAGE_KEY = "bw_kyc_digilocker_url";
@@ -308,7 +309,9 @@ const IOSCompletionStep = () => {
             {t("onboarding_ios_manage_account", "Manage your account at")}
           </p>
           <p className="text-base font-semibold text-primary select-all">
-            app.brokwise.com
+            <Link href="https://app.brokwise.com" target="_blank" className="underline">
+              app.brokwise.com
+            </Link>
           </p>
         </div>
       </div>
@@ -1096,7 +1099,6 @@ export const OnboardingDetails = ({
 
   return (
     <section className="relative h-[100dvh] w-full overflow-hidden md:overflow-y-auto transition-colors duration-500 bg-slate-50 dark:bg-slate-950">
-      {/* Razorpay Script (not needed on iOS — payment happens on web) */}
       {!isIOSNative && <Script src="https://checkout.razorpay.com/v1/checkout.js" />}
 
       {/* Theme & Language Toggles */}
@@ -1299,9 +1301,9 @@ export const OnboardingDetails = ({
                   disabled={
                     loading ||
                     activationPending ||
-                    verifyPending || !kycState.userDetails ||
+                    verifyPending || !kycState.userDetails || kycState.duplicateReason !== undefined ||
                     (!isIOSNative && step === 4 && !selectedTier) ||
-                    (step === 1 && !isIndianNumber && !isEditing)
+                    (step === 1 && !isEditing && (!isIndianNumber || kycState.status !== "verified"))
                   }
                   className={cn(
                     "h-12 px-8 font-medium",

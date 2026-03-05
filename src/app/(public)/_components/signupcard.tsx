@@ -128,7 +128,7 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         return;
       }
       const actionCodeSettings = {
-        url: `https://app.brokwise.com`,
+        url: `https://app.brokwise.com?source=mobile`,
         handleCodeInApp: false,
       };
       try {
