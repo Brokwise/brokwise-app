@@ -4,17 +4,17 @@ const config: CapacitorConfig = {
   appId: "com.brokwise.app",
   appName: "Brokwise",
   webDir: "out",
-  // server: {
-  //   url: "http://localhost:3001",
-  //   cleartext: true
-  // },
+  server: {
+    url: "http://localhost:3001",
+    cleartext: true
+  },
 
   ios: {
     path: "ios",
   },
-  server: {
-    iosScheme: "https",
-  },
+  // server: {
+  //   iosScheme: "https",
+  // },
   plugins: {
     App: {
       //@ts-ignore
@@ -34,7 +34,7 @@ const config: CapacitorConfig = {
       enable: true,
     },
     StatusBar: {
-      style: "dark",
+      // style: "dark",
       overlaysWebView: true,
     },
   },

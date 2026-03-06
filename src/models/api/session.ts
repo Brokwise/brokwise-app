@@ -46,3 +46,10 @@ export const getCurrentSession = async () =>
     path: "/session/current",
     isProtected: true,
   });
+
+export const createTransferToken = async () =>
+  customFetch<SessionEnvelope<{ customToken: string }>, Record<string, never>>({
+    method: "POST",
+    path: "/auth/transfer-token",
+    isProtected: true,
+  });
