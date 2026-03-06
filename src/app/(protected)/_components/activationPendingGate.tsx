@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import Script from "next/script";
 import { useGetCurrentSubscription, usePurchaseActivation, useVerifyActivation } from "@/hooks/useSubscription";
 import { useApp } from "@/context/AppContext";
@@ -16,7 +16,8 @@ import {
   Loader2,
   LogOut,
   ArrowLeftRight,
-  ChevronLeft
+  ChevronLeft,
+  ExternalLink,
 } from "lucide-react";
 import { TIER } from "@/models/types/subscription";
 import { ACTIVATION_PLANS, ACTIVATION_TIER_INFO } from "@/config/tier_limits";
@@ -27,6 +28,9 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useSignOut } from "react-firebase-hooks/auth";
 import { firebaseAuth } from "@/config/firebase";
+import { Capacitor } from "@capacitor/core";
+import { createTransferToken } from "@/models/api/session";
+import { logError } from "@/utils/errors";
 
 const tierIcons: Record<TIER, React.ReactNode> = {
   BASIC: <Zap className="h-6 w-6" />,
@@ -60,6 +64,51 @@ export const ActivationPendingGate = ({
   const { setBrokerData } = useApp();
   const [signOut] = useSignOut(firebaseAuth);
   const [isSwitchingPlan, setIsSwitchingPlan] = useState(false);
+  const [iosRedirectLoading, setIosRedirectLoading] = useState(false);
+  const isIOSNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
+
+  const openUrl = useCallback(async (url: string) => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { Browser } = await import("@capacitor/browser");
+        await Browser.open({ url, presentationStyle: "popover" });
+      } catch {
+        window.open(url, "_blank");
+      }
+    } else {
+      window.open(url, "_blank");
+    }
+  }, []);
+
+  const handleOpenWebApp = useCallback(async () => {
+    try {
+      setIosRedirectLoading(true);
+      const result = await createTransferToken();
+      const token = result.data.customToken;
+      await openUrl(
+        `https://app.brokwise.com/auth/token-login?token=${encodeURIComponent(token)}&step=4`
+      );
+    } catch (error) {
+      logError({
+        description: "Failed to generate auth transfer token for iOS activation gate",
+        error: error as Error,
+        slackChannel: "frontend-errors",
+      });
+      await openUrl("https://app.brokwise.com");
+      toast.info("Please log in on the web app to continue.");
+    } finally {
+      setIosRedirectLoading(false);
+    }
+  }, [openUrl]);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Logged out successfully");
+    } catch {
+      toast.error("Failed to logout");
+    }
+  };
 
   // Still loading subscription data — show spinner
   if (isLoading) {
@@ -90,20 +139,67 @@ export const ActivationPendingGate = ({
     return <>{children}</>;
   }
 
+  // ── iOS: redirect to web app instead of showing pricing ─────────────────────
+  if (isIOSNative) {
+    return (
+      <div className="h-screen w-full overflow-y-auto bg-slate-50 dark:bg-slate-950">
+        <div className="absolute top-[calc(env(safe-area-inset-top)+1rem)] right-4 z-10">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
+        </div>
+
+        <div className="flex min-h-full items-center justify-center p-4">
+          <div className="w-full max-w-lg space-y-8 text-center">
+            <div className="space-y-4">
+              <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg">
+                <Check className="h-8 w-8" />
+              </div>
+              <div className="space-y-2">
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                  Profile Saved!
+                </h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                  To complete your activation and manage your account, please visit the web app.
+                </p>
+              </div>
+            </div>
+
+            <Button
+              size="lg"
+              onClick={handleOpenWebApp}
+              disabled={iosRedirectLoading}
+              className="h-14 px-8 text-base gap-2"
+            >
+              {iosRedirectLoading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Opening...
+                </>
+              ) : (
+                <>
+                  <ExternalLink className="h-5 w-5" />
+                  Continue on app.brokwise.com
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ── Activation payment is pending — show payment screen ────────────────────
   const currentTier = subscription.tier;
   const plan = ACTIVATION_PLANS[currentTier];
   const info = ACTIVATION_TIER_INFO[currentTier];
   const isProcessing = purchasePending || verifyPending;
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      toast.success("Logged out successfully");
-    } catch {
-      toast.error("Failed to logout");
-    }
-  };
 
   const processPayment = async (selectedTier: TIER) => {
     if (!brokerData) return;

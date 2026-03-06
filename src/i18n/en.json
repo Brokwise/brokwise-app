@@ -727,6 +727,8 @@
   "page_subscription_tier_starter_desc": "Perfect for individual brokers just getting started",
   "page_subscription_tier_essential_name": "Essential",
   "page_subscription_tier_essential_desc": "Ideal for growing brokers with moderate needs",
+  "page_subscription_tier_pro_name": "Pro",
+  "page_subscription_tier_pro_desc": "For power users and established agencies",
   "page_subscription_tier_elite_name": "Elite",
   "page_subscription_tier_elite_desc": "For power users and established agencies",
   "page_subscription_feature_property_listing": "Property Listings",
