@@ -40,7 +40,8 @@ function TokenLoginContent() {
         }
 
         toast.success("Signed in successfully!");
-        router.push("/");
+        const step = searchParams.get("step");
+        router.push(step ? `/?step=${step}` : "/");
       } catch (error) {
         logError({
           description: "Token-based login failed",

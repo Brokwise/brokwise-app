@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Script from "next/script";
+import { useSearchParams } from "next/navigation";
 import { submitProfileDetails } from "@/validators/onboarding";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -97,6 +98,8 @@ export const OnboardingDetails = ({
   const [signOut] = useSignOut(firebaseAuth);
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const searchParams = useSearchParams();
+  const hasAppliedStepParam = useRef(false);
 
   // Plan selection state
   const [selectedTier, setSelectedTier] = useState<TIER | null>(() => {
@@ -118,6 +121,30 @@ export const OnboardingDetails = ({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Skip to the requested step if the URL has a `step` param and previous steps are complete
+  useEffect(() => {
+    if (isEditing || isIOSNative || hasAppliedStepParam.current || !brokerData) return;
+
+    const requestedStep = parseInt(searchParams.get("step") || "", 10);
+    if (isNaN(requestedStep) || requestedStep <= 1 || requestedStep > 5) return;
+
+    const hasStep1 = !!(brokerData.firstName && brokerData.lastName && brokerData.mobile);
+    const hasStep2 = !!brokerData.companyName;
+    const hasStep3 = !!brokerData.city;
+
+    const completedUpTo = hasStep1 && hasStep2 && hasStep3 ? 3
+      : hasStep1 && hasStep2 ? 2
+      : hasStep1 ? 1
+      : 0;
+
+    const targetStep = Math.min(requestedStep, completedUpTo + 1);
+
+    if (targetStep > 1) {
+      hasAppliedStepParam.current = true;
+      setStep(targetStep);
+    }
+  }, [isEditing, isIOSNative, brokerData, searchParams]);
 
   // Reload page when user tabs back in (e.g. after completing DigiLocker KYC)
   useEffect(() => {

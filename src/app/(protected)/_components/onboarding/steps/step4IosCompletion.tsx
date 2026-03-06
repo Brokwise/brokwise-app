@@ -30,7 +30,7 @@ export const Step4IosCompletion: React.FC = () => {
       const result = await createTransferToken();
       const token = result.data.customToken;
       await openUrl(
-        `https://app.brokwise.com/auth/token-login?token=${encodeURIComponent(token)}`
+        `https://app.brokwise.com/auth/token-login?token=${encodeURIComponent(token)}&step=4`
       );
     } catch (error) {
       logError({
