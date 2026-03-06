@@ -21,13 +21,7 @@ import {
   Languages,
   LogOut,
   Palette,
-  Crown,
-  Zap,
-  Rocket,
-  Check,
-  Sparkles,
   CreditCard,
-  Loader2,
 } from "lucide-react";
 import { submitUserDetails, updateProfileDetails } from "@/models/api/user";
 import { useApp } from "@/context/AppContext";
@@ -49,6 +43,9 @@ import { Capacitor } from "@capacitor/core";
 import { Step1 } from "./steps/step1";
 import { Step2 } from "./steps/step2";
 import { Step3 } from "./steps/step3";
+import { Step4Plan } from "./steps/step4Plan";
+import { Step4IosCompletion } from "./steps/step4IosCompletion";
+import { Step5Welcome } from "./steps/step5Welcome";
 import { KycState } from "@/models/types/kyc";
 import {
   initiateDigiLockerVerification,
@@ -57,16 +54,11 @@ import {
 import { TIER } from "@/models/types/subscription";
 import {
   ACTIVATION_PLANS,
-  ACTIVATION_TIER_INFO,
-  ACTIVATION_LIMITS,
 } from "@/config/tier_limits";
 import { usePurchaseActivation, useVerifyActivation } from "@/hooks/useSubscription";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { DisclaimerNotice } from "@/components/ui/disclaimer-notice";
 import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
-import { Separator } from "@/components/ui/separator";
 import {
   trackMetaEvent,
   isPaymentTracked,
@@ -74,250 +66,10 @@ import {
   isRegistrationTracked,
   markRegistrationTracked,
 } from "@/utils/tracking";
-import Link from "next/link";
 
 const KYC_STORAGE_KEY = "bw_kyc_verification_id";
 const KYC_URL_STORAGE_KEY = "bw_kyc_digilocker_url";
 const SELECTED_TIER_KEY = "bw_onboarding_tier";
-
-// ─── Tier icons & colors ─────────────────────────────────────────────────────
-const tierIcons: Record<TIER, React.ReactNode> = {
-  BASIC: <Zap className="h-6 w-6" />,
-  ESSENTIAL: <Rocket className="h-6 w-6" />,
-  PRO: <Crown className="h-6 w-6" />,
-};
-
-const tierColors: Record<TIER, string> = {
-  BASIC: "from-gray-500 to-gray-600",
-  ESSENTIAL: "from-blue-500 to-blue-600",
-  PRO: "from-amber-500 to-amber-600",
-};
-
-// ─── Plan Selection Step (Step 4) ────────────────────────────────────────────
-const PlanSelectionStep = ({
-  selectedTier,
-  onSelect,
-}: {
-  selectedTier: TIER | null;
-  onSelect: (tier: TIER) => void;
-}) => {
-  const { t } = useTranslation();
-  const tiers: TIER[] = ["BASIC", "ESSENTIAL", "PRO"];
-
-  return (
-    <div className="space-y-6">
-      {/* <div className="text-center space-y-2">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-          {t("onboarding_choose_plan_title") || "Choose Your Activation Plan"}
-        </h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          {t("onboarding_choose_plan_desc") || "Start with a 1-month activation pack to explore the platform"}
-        </p>
-      </div> */}
-
-      <div className="grid grid-cols-1 gap-4">
-        {tiers.map((tier) => {
-          const info = ACTIVATION_TIER_INFO[tier];
-          const plan = ACTIVATION_PLANS[tier];
-          const isSelected = selectedTier === tier;
-          const limits = ACTIVATION_LIMITS[tier];
-
-          return (
-            <Card
-              key={tier}
-              className={cn(
-                "relative cursor-pointer transition-all duration-200 hover:shadow-md",
-                isSelected && "ring-2 ring-primary shadow-lg border-primary",
-                info.recommended && !isSelected && "border-blue-200 dark:border-blue-800"
-              )}
-              onClick={() => onSelect(tier)}
-            >
-              {info.recommended && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                  <Badge className="bg-primary text-primary-foreground flex items-center gap-1 text-xs">
-                    <Sparkles className="h-3 w-3" />
-                    {t("onboarding_recommended") || "Popular"}
-                  </Badge>
-                </div>
-              )}
-
-              <CardHeader className="pb-3 pt-5">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r text-white shrink-0",
-                      tierColors[tier]
-                    )}
-                  >
-                    {tierIcons[tier]}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base">{info.name}</CardTitle>
-                    <CardDescription className="text-xs">
-                      {info.description}
-                    </CardDescription>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-xl font-bold text-slate-900 dark:text-slate-50">
-                      ₹{plan.displayAmount}
-                    </div>
-                    <div className="text-xs text-slate-500">{t("onboarding_per_month") || "for 1 month"}</div>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="pt-0 pb-3">
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-md p-2">
-                    <p className="text-sm font-bold">{limits.PROPERTY_LISTING}</p>
-                    <p className="text-[10px] text-slate-500">{t("onboarding_listings") || "Listings"}</p>
-                  </div>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-md p-2">
-                    <p className="text-sm font-bold">{limits.ENQUIRY_LISTING}</p>
-                    <p className="text-[10px] text-slate-500">{t("onboarding_enquiries") || "Enquiries"}</p>
-                  </div>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-md p-2">
-                    <p className="text-sm font-bold">{plan.credits}</p>
-                    <p className="text-[10px] text-slate-500">{t("onboarding_credits") || "Credits"}</p>
-                  </div>
-                </div>
-              </CardContent>
-
-              <CardFooter className="pt-0 pb-4">
-                <div className="w-full flex items-center justify-center">
-                  {isSelected ? (
-                    <Badge className="bg-primary text-primary-foreground">
-                      <Check className="h-3 w-3 mr-1" /> {t("onboarding_selected") || "Selected"}
-                    </Badge>
-                  ) : (
-                    <span className="text-xs text-slate-400">{t("onboarding_tap_to_select") || "Tap to select"}</span>
-                  )}
-                </div>
-              </CardFooter>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-// ─── Welcome Step (Step 5) ───────────────────────────────────────────────────
-const WelcomeStep = ({
-  selectedTier,
-  loading,
-}: {
-  selectedTier: TIER;
-  loading: boolean;
-}) => {
-  const { t } = useTranslation();
-  const plan = ACTIVATION_PLANS[selectedTier];
-  const info = ACTIVATION_TIER_INFO[selectedTier];
-
-  return (
-    <div className="space-y-8 text-center">
-      {/* Welcome Illustration */}
-      <div className="flex flex-col items-center gap-4">
-        <div
-          className={cn(
-            "w-20 h-20 rounded-full flex items-center justify-center bg-gradient-to-r text-white shadow-lg",
-            tierColors[selectedTier]
-          )}
-        >
-          {tierIcons[selectedTier]}
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
-            {t("onboarding_welcome_title", "Welcome to Brokwise!")}
-          </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-            {t("onboarding_welcome_desc", "You are almost done. Complete your activation to start using the platform.")}
-          </p>
-        </div>
-      </div>
-
-      {/* Plan Summary */}
-      <Card className="text-left border-2 border-primary/20 bg-primary/5">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div
-                className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r text-white",
-                  tierColors[selectedTier]
-                )}
-              >
-                {React.cloneElement(tierIcons[selectedTier] as React.ReactElement, {
-                  className: "h-4 w-4",
-                })}
-              </div>
-              <div>
-                <CardTitle className="text-base">{info.name} {t("onboarding_activation_pack", "Activation Pack")}</CardTitle>
-                <CardDescription className="text-xs">{t("onboarding_1_month_access", "1 Month Access")}</CardDescription>
-              </div>
-            </div>
-            <div className="text-right">
-              <span className="text-2xl font-bold">₹{plan.displayAmount}</span>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <Separator className="mb-3" />
-          <ul className="space-y-1.5">
-            {info.features.map((feature, index) => (
-              <li key={index} className="flex items-center gap-2 text-sm">
-                <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
-                <span className="text-slate-600 dark:text-slate-400">{feature}</span>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
-
-      {/* Payment Info */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
-          <CreditCard className="h-3.5 w-3.5" />
-          <span>{t("onboarding_secure_razorpay", "Secure payment via Razorpay")}</span>
-        </div>
-        {loading && (
-          <div className="flex items-center justify-center gap-2 text-sm text-primary">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>{t("onboarding_processing", "Processing...")}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-
-// ─── iOS Completion Step (Apple guidelines: no in-app purchase UI) ───────────
-const IOSCompletionStep = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="space-y-8 text-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-20 h-20 rounded-full flex items-center justify-center bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg">
-          <Check className="h-8 w-8" />
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
-            {t("onboarding_profile_saved_title", "Profile Saved!")}
-          </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-            {t("onboarding_ios_manage_account", "Manage your account at")}
-          </p>
-          <p className="text-base font-semibold text-primary select-all">
-            <Link href="https://app.brokwise.com" target="_blank" className="underline">
-              app.brokwise.com
-            </Link>
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // ─── Main Onboarding Component ───────────────────────────────────────────────
 export const OnboardingDetails = ({
@@ -366,6 +118,35 @@ export const OnboardingDetails = ({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Reload page when user tabs back in (e.g. after completing DigiLocker KYC)
+  useEffect(() => {
+    if (isEditing || step !== 1) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        window.location.reload();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    let appStateListener: { remove: () => void } | undefined;
+    if (Capacitor.isNativePlatform()) {
+      import("@capacitor/app").then(({ App }) => {
+        App.addListener("appStateChange", ({ isActive }) => {
+          if (isActive) window.location.reload();
+        }).then((listener) => {
+          appStateListener = listener;
+        });
+      });
+    }
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      appStateListener?.remove();
+    };
+  }, [isEditing, step]);
 
   const activeTheme = mounted ? resolvedTheme ?? theme : undefined;
 
@@ -1248,12 +1029,12 @@ export const OnboardingDetails = ({
 
                       {/* ── Step 4: iOS Completion ─────────────────────── */}
                       {!isEditing && isIOSNative && step === 4 && (
-                        <IOSCompletionStep />
+                        <Step4IosCompletion />
                       )}
 
                       {/* ── Step 4: Plan Selection (non-iOS) ──────────── */}
                       {!isEditing && !isIOSNative && step === 4 && (
-                        <PlanSelectionStep
+                        <Step4Plan
                           selectedTier={selectedTier}
                           onSelect={setSelectedTier}
                         />
@@ -1261,7 +1042,7 @@ export const OnboardingDetails = ({
 
                       {/* ── Step 5: Welcome + Pay (non-iOS) ──────────── */}
                       {!isEditing && !isIOSNative && step === 5 && selectedTier && (
-                        <WelcomeStep
+                        <Step5Welcome
                           selectedTier={selectedTier}
                           loading={loading || activationPending || verifyPending}
                         />
