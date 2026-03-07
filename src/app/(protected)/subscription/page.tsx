@@ -59,7 +59,7 @@ import {
   TIER_INFO,
   ACTIVATION_TIER_INFO,
   ACTIVATION_PLANS,
-  DURATION_SAVINGS,
+  // DURATION_SAVINGS,
   getRazorpayPlan,
   ACTIVATION_LIMITS,
   REGULAR_LIMITS,
@@ -220,6 +220,14 @@ const CurrentSubscriptionCard = ({
 }) => {
   const { t } = useTranslation();
   const currentTier = subscription?.tier || tier || "BASIC";
+  const tierNameKey = `page_subscription_tier_${currentTier.toLowerCase()}_name`;
+  const tierDescriptionKey = `page_subscription_tier_${currentTier.toLowerCase()}_desc`;
+  const fallbackTierInfo = TIER_INFO[currentTier];
+  const tierName = t(tierNameKey, fallbackTierInfo?.name || currentTier);
+  const tierDescription = t(
+    tierDescriptionKey,
+    fallbackTierInfo?.description || ""
+  );
 
 
   const formatDate = (date: Date | string) => {
@@ -271,8 +279,8 @@ const CurrentSubscriptionCard = ({
               {tierIcons[currentTier]}
             </div>
             <div>
-              <CardTitle className="text-xl">{t(`page_subscription_tier_${currentTier.toLowerCase()}_name`)} {t("page_subscription_plan")}</CardTitle>
-              <CardDescription>{t(`page_subscription_tier_${currentTier.toLowerCase()}_desc`)}</CardDescription>
+              <CardTitle className="text-xl">{tierName} {t("page_subscription_plan")}</CardTitle>
+              <CardDescription>{tierDescription}</CardDescription>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -566,7 +574,7 @@ const RegularPlanCard = ({
   const tierInfo = TIER_INFO[tier];
   const plan = getRazorpayPlan(tier, selectedDuration);
   const credits = REGULAR_CREDITS[tier]?.[selectedDuration] || 0;
-  const savingsInfo = DURATION_SAVINGS[selectedDuration] || { savingsPercent: 0 };
+  // const savingsInfo = DURATION_SAVINGS[selectedDuration] || { savingsPercent: 0 };
 
   return (
     <Card
@@ -616,11 +624,7 @@ const RegularPlanCard = ({
             {REGULAR_DURATION_LABELS[selectedDuration]}
           </div>
           <div className="text-[11px] text-muted-foreground/70">+ GST</div>
-          {savingsInfo.savingsPercent && (
-            <Badge variant="secondary" className="mt-2">
-              Save {savingsInfo.savingsPercent}%
-            </Badge>
-          )}
+
           {credits > 0 && (
             <div className="mt-2 text-xs text-muted-foreground">
               <CreditCard className="h-3 w-3 inline mr-1" />
@@ -1091,7 +1095,7 @@ const SubscriptionPage = () => {
                           {(
                             Object.keys(REGULAR_DURATION_LABELS) as RegularDuration[]
                           ).map((duration) => {
-                            const savingsInfo = DURATION_SAVINGS[duration];
+                            // const savingsInfo = DURATION_SAVINGS[duration];
                             return (
                               <Button
                                 key={duration}
@@ -1103,11 +1107,6 @@ const SubscriptionPage = () => {
                               >
                                 <div className="flex flex-col items-center">
                                   <span>{REGULAR_DURATION_LABELS[duration]}</span>
-                                  {savingsInfo.savingsPercent && (
-                                    <span className="text-xs opacity-75">
-                                      Save {savingsInfo.savingsPercent}%
-                                    </span>
-                                  )}
                                 </div>
                               </Button>
                             );

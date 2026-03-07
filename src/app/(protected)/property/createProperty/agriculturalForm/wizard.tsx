@@ -151,6 +151,27 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
     let hasEmptyRequired = false;
     const emptyFields: string[] = [];
 
+    const fieldMessages: Record<string, string> = {
+      "address.state": "State is required",
+      "address.city": "City is required",
+      "address.address": "Address is required",
+      "address.pincode": "Pincode is required",
+      size: "Land size is required",
+      sizeUnit: "Please select a size unit",
+      plotType: "Please select plot access type (single-side or corner)",
+      facing: "Please select front facing direction",
+      frontRoadWidth: "Front road width is required",
+      sideFacing: "Please select side facing direction",
+      sideRoadWidth: "Side road width is required",
+      rate: "Rate per unit is required",
+      monthlyRent: "Monthly rent is required",
+      securityDeposit: "Security deposit is required",
+      agreementDuration: "Agreement duration is required",
+      description: "Description is required",
+      featuredMedia: "Featured media is required",
+      floorPlans: "At least one layout plan/site plan/map is mandatory",
+    };
+
     for (const field of fieldsToValidate) {
       const parts = field.split(".");
       let value: unknown = values;
@@ -168,35 +189,19 @@ export const AgriculturalWizard: React.FC<AgriculturalWizardProps> = ({
       if (isEmpty) {
         hasEmptyRequired = true;
         emptyFields.push(field);
-
-        const fieldMessages: Record<string, string> = {
-          "address.state": "State is required",
-          "address.city": "City is required",
-          "address.address": "Address is required",
-          "address.pincode": "Pincode is required",
-          size: "Land size is required",
-          sizeUnit: "Please select a size unit",
-          plotType: "Please select plot access type (single-side or corner)",
-          facing: "Please select front facing direction",
-          frontRoadWidth: "Front road width is required",
-          sideFacing: "Please select side facing direction",
-          sideRoadWidth: "Side road width is required",
-          rate: "Rate per unit is required",
-          description: "Description is required",
-          featuredMedia: "Featured media is required",
-          floorPlans: "At least one layout plan/site plan/map is mandatory",
-        };
-
-        form.setError(field as keyof AgriculturalPropertyFormData, {
-          type: "required",
-          message: fieldMessages[field] || `${field} is required`,
-        });
       }
     }
 
     const schemaResult = await form.trigger(
       fieldsToValidate as (keyof AgriculturalPropertyFormData)[]
     );
+
+    for (const field of emptyFields) {
+      form.setError(field as keyof AgriculturalPropertyFormData, {
+        type: "required",
+        message: fieldMessages[field] || `${field} is required`,
+      });
+    }
 
     const isValid = schemaResult && !hasEmptyRequired;
 
