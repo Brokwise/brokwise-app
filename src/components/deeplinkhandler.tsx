@@ -50,16 +50,27 @@ export function DeepLinkHandler() {
   );
 
   useEffect(() => {
+    let cancelled = false;
+    let urlOpenHandle: { remove: () => void } | undefined;
+
     if (isNative) {
       PrivacyScreen.enable();
       if (isIOS) {
         Keyboard.setAccessoryBarVisible({ isVisible: false });
       }
       App.addListener("appUrlOpen", (data: { url: string }) => {
-        handleUrl(data.url);
+        if (!cancelled) handleUrl(data.url);
+      }).then((handle) => {
+        if (cancelled) {
+          handle.remove();
+        } else {
+          urlOpenHandle = handle;
+        }
       });
       // Handle cold start when the app is opened via brokwise:// URL.
-      App.getLaunchUrl().then((data) => handleUrl(data?.url));
+      App.getLaunchUrl().then((data) => {
+        if (!cancelled) handleUrl(data?.url);
+      });
     } else {
       const params = new URLSearchParams(window.location.search);
       if (params.get("source") === "mobile") {
@@ -70,9 +81,8 @@ export function DeepLinkHandler() {
       }
     }
     return () => {
-      if (isNative) {
-        App.removeAllListeners();
-      }
+      cancelled = true;
+      urlOpenHandle?.remove();
     };
   }, [router, isIOS, isNative, handleUrl]);
 

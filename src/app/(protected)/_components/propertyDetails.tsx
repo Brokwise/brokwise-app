@@ -41,9 +41,9 @@ export const PropertyDetails = ({
   return (
     <div className="flex flex-col bg-background overflow-hidden max-h-full h-auto">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-border/50 sticky top-0 bg-background/95 backdrop-blur-md z-10 shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 sticky top-0 bg-background/95 backdrop-blur-md z-10 shrink-0">
         <div className="min-w-0 flex-1">
-          <h2 className="text-lg text-foreground">Property Details</h2>
+          <h2 className="text-sm font-semibold text-foreground">Property Details</h2>
           <p className="text-[10px] text-muted-foreground/70 font-mono tracking-wider">
             {property.propertyId}
           </p>
@@ -52,9 +52,9 @@ export const PropertyDetails = ({
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="h-8 w-8 rounded-full hover:bg-muted/50 shrink-0"
+          className="h-7 w-7 rounded-full hover:bg-muted/50 shrink-0"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
         </Button>
       </div>
 
@@ -62,10 +62,10 @@ export const PropertyDetails = ({
         <Link
           href={`/property/detail?id=${property._id}`}
           target="_blank"
-          className="block p-3 space-y-1.5 cursor-pointer hover:bg-muted/30 transition-colors group overflow-hidden"
+          className="block p-4 space-y-3 cursor-pointer hover:bg-muted/30 transition-colors group overflow-hidden"
         >
-          {/* Compact Image with Price & Badges */}
-          <div className="aspect-[2.5/1] w-full relative rounded-lg overflow-hidden bg-muted border">
+          {/* Image with Price & Badges */}
+          <div className="aspect-[2.2/1] w-full relative rounded-lg overflow-hidden bg-muted border border-border/30">
             <Image
               src={getPropertyMediaSrc(property.featuredMedia)}
               alt="Property"
@@ -77,7 +77,7 @@ export const PropertyDetails = ({
               {isRental && (
                 <Badge className="bg-blue-600/90 text-white hover:bg-blue-600 backdrop-blur shadow-sm text-[9px] py-0.5">
                   <Home className="h-2.5 w-2.5 mr-0.5" />
-                  For Rent
+                  Rent
                 </Badge>
               )}
               <Badge className="bg-background/90 text-foreground hover:bg-background/100 backdrop-blur shadow-sm text-[9px] py-0.5">
@@ -94,8 +94,8 @@ export const PropertyDetails = ({
               <div>
                 {isRental ? (
                   <>
-                    <p className="text-white text-xl font-bold drop-shadow-lg">
-                      {formatPriceShort(property.monthlyRent || 0)}<span className="text-sm font-normal text-white/80">/mo</span>
+                    <p className="text-white text-base font-bold drop-shadow-lg">
+                      {formatPriceShort(property.monthlyRent || 0)}<span className="text-xs font-normal text-white/80">/mo</span>
                     </p>
                     {property.securityDeposit ? (
                       <p className="text-white/80 text-[10px] font-medium drop-shadow">
@@ -110,7 +110,7 @@ export const PropertyDetails = ({
                   </>
                 ) : (
                   <>
-                    <p className="text-white text-xl font-bold drop-shadow-lg">
+                    <p className="text-white text-base font-bold drop-shadow-lg">
                       {formatPriceShort(property.totalPrice)}
                     </p>
                     <p className="text-white/80 text-[10px] font-medium drop-shadow">
@@ -123,27 +123,27 @@ export const PropertyDetails = ({
             </div>
           </div>
 
-          {/* Title & Location - Compact */}
-          <div className="space-y-1 overflow-hidden">
-            <h3 className="text-sm font-semibold text-foreground leading-tight truncate">
+          {/* Title & Location */}
+          <div className="space-y-1.5 overflow-hidden">
+            <h3 className="text-sm font-semibold text-foreground leading-snug">
               {property.bhk ? `${property.bhk} BHK ` : ""}{property.propertyType.replace(/_/g, " ")}
               {property.society && ` in ${property.society}`}
             </h3>
-            <div className="flex items-center text-muted-foreground text-xs overflow-hidden">
-              <MapPin className="h-3 w-3 mr-1 shrink-0 text-accent/60" />
-              <span className="line-clamp-2 block">{formatAddress(property.address)}</span>
+            <div className="flex items-start text-muted-foreground text-xs overflow-hidden gap-1">
+              <MapPin className="h-3 w-3 mt-0.5 shrink-0 text-accent/60" />
+              <span className="line-clamp-2 leading-relaxed">{formatAddress(property.address)}</span>
             </div>
 
-            {/* Status Badges - Inline */}
-            <div className="flex gap-1 flex-wrap">
+            {/* Status Badges */}
+            <div className="flex gap-1.5 flex-wrap">
               <Badge
                 variant={property.listingStatus === "ACTIVE" ? "default" : "secondary"}
-                className={property.listingStatus === "ACTIVE" ? "bg-emerald-600/90 text-white border-none text-[10px] py-0" : "text-[10px] py-0"}
+                className={property.listingStatus === "ACTIVE" ? "bg-emerald-600/90 text-white border-none text-[10px] py-0.5 px-2" : "text-[10px] py-0.5 px-2"}
               >
                 {property.listingStatus.replace(/_/g, " ")}
               </Badge>
               {property.isVerified && (
-                <Badge variant="outline" className="border-emerald-500/50 text-emerald-600 bg-emerald-50/50 text-[10px] py-0">
+                <Badge variant="outline" className="border-emerald-500/50 text-emerald-600 bg-emerald-50/50 text-[10px] py-0.5 px-2">
                   <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
                   Verified
                 </Badge>
@@ -151,88 +151,86 @@ export const PropertyDetails = ({
             </div>
           </div>
 
-          {/* Key Stats Grid - Compact 3 columns */}
-          <div className="grid grid-cols-3 gap-1 w-full min-w-0">
-            {/* Size */}
-            <div className="bg-muted/40 p-1.5 py-2 rounded-md text-center border border-border/30 overflow-hidden min-w-0">
-              <Move className="h-3 w-3 mx-auto text-accent/80 mb-0.5" />
-              <p className="font-bold text-lg text-foreground truncate leading-none">
-                {property.size} {property.sizeUnit?.replace("SQ_", "").replace("_", " ")}
+          {/* Key Stats - Horizontal row */}
+          <div className="grid grid-cols-3 gap-2 w-full min-w-0">
+            <div className="bg-muted/30 px-2 py-2.5 rounded-lg text-center border border-border/20 overflow-hidden min-w-0">
+              <Move className="h-3.5 w-3.5 mx-auto text-primary/70 mb-1" />
+              <p className="font-semibold text-sm text-foreground truncate leading-none">
+                {property.size}
               </p>
-              <p className="text-[10px] text-muted-foreground uppercase font-medium mt-0.5">Size</p>
+              <p className="text-[9px] text-muted-foreground uppercase font-medium mt-1 tracking-wider">
+                {property.sizeUnit?.replace("SQ_", "").replace("_", " ") || "Size"}
+              </p>
             </div>
 
-            {/* BHK or Type */}
-            {/* BHK or Type */}
             {property.bhk ? (
-              <div className="bg-muted/40 p-1.5 py-2 rounded-md text-center border border-border/30 overflow-hidden min-w-0">
-                <BedDouble className="h-3 w-3 mx-auto text-accent/80 mb-0.5" />
-                <p className="font-bold text-lg text-foreground leading-none">{property.bhk} BHK</p>
-                <p className="text-[10px] text-muted-foreground uppercase font-medium mt-0.5">Config</p>
+              <div className="bg-muted/30 px-2 py-2.5 rounded-lg text-center border border-border/20 overflow-hidden min-w-0">
+                <BedDouble className="h-3.5 w-3.5 mx-auto text-primary/70 mb-1" />
+                <p className="font-semibold text-sm text-foreground leading-none">{property.bhk} BHK</p>
+                <p className="text-[9px] text-muted-foreground uppercase font-medium mt-1 tracking-wider">Config</p>
               </div>
             ) : (
-              <div className="bg-muted/40 p-1.5 py-2 rounded-md text-center border border-border/30 overflow-hidden min-w-0">
-                <Building2 className="h-3 w-3 mx-auto text-accent/80 mb-0.5" />
-                <p className="font-bold text-lg text-foreground truncate leading-none">
+              <div className="bg-muted/30 px-2 py-2.5 rounded-lg text-center border border-border/20 overflow-hidden min-w-0">
+                <Building2 className="h-3.5 w-3.5 mx-auto text-primary/70 mb-1" />
+                <p className="font-semibold text-sm text-foreground truncate leading-none">
                   {property.propertyType.replace(/_/g, " ")}
                 </p>
-                <p className="text-[10px] text-muted-foreground uppercase font-medium mt-0.5">Type</p>
+                <p className="text-[9px] text-muted-foreground uppercase font-medium mt-1 tracking-wider">Type</p>
               </div>
             )}
 
-            {/* Washrooms or Facing */}
             {property.washrooms !== undefined ? (
-              <div className="bg-muted/40 p-1.5 py-2 rounded-md text-center border border-border/30 overflow-hidden min-w-0">
-                <Bath className="h-3 w-3 mx-auto text-accent/80 mb-0.5" />
-                <p className="font-bold text-lg text-foreground leading-none">{property.washrooms}</p>
-                <p className="text-[10px] text-muted-foreground uppercase font-medium mt-0.5">Baths</p>
+              <div className="bg-muted/30 px-2 py-2.5 rounded-lg text-center border border-border/20 overflow-hidden min-w-0">
+                <Bath className="h-3.5 w-3.5 mx-auto text-primary/70 mb-1" />
+                <p className="font-semibold text-sm text-foreground leading-none">{property.washrooms}</p>
+                <p className="text-[9px] text-muted-foreground uppercase font-medium mt-1 tracking-wider">Baths</p>
               </div>
             ) : property.facing ? (
-              <div className="bg-muted/40 p-1.5 py-2 rounded-md text-center border border-border/30 overflow-hidden min-w-0">
-                <Compass className="h-3 w-3 mx-auto text-accent/80 mb-0.5" />
-                <p className="font-bold text-lg text-foreground truncate leading-none">{property.facing.replace(/_/g, " ")}</p>
-                <p className="text-[10px] text-muted-foreground uppercase font-medium mt-0.5">Facing</p>
+              <div className="bg-muted/30 px-2 py-2.5 rounded-lg text-center border border-border/20 overflow-hidden min-w-0">
+                <Compass className="h-3.5 w-3.5 mx-auto text-primary/70 mb-1" />
+                <p className="font-semibold text-sm text-foreground truncate leading-none">{property.facing.replace(/_/g, " ")}</p>
+                <p className="text-[9px] text-muted-foreground uppercase font-medium mt-1 tracking-wider">Facing</p>
               </div>
             ) : (
-              <div className="bg-muted/40 p-1.5 py-2 rounded-md text-center border border-border/30 overflow-hidden min-w-0">
-                <Building2 className="h-3 w-3 mx-auto text-accent/80 mb-0.5" />
-                <p className="font-bold text-lg text-foreground truncate leading-none">
+              <div className="bg-muted/30 px-2 py-2.5 rounded-lg text-center border border-border/20 overflow-hidden min-w-0">
+                <Building2 className="h-3.5 w-3.5 mx-auto text-primary/70 mb-1" />
+                <p className="font-semibold text-sm text-foreground truncate leading-none">
                   {property.propertyCategory}
                 </p>
-                <p className="text-[10px] text-muted-foreground uppercase font-medium mt-0.5">Category</p>
+                <p className="text-[9px] text-muted-foreground uppercase font-medium mt-1 tracking-wider">Category</p>
               </div>
             )}
           </div>
 
-          {/* Additional Details - Compact List */}
-          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-xs overflow-hidden">
+          {/* Additional Details */}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs overflow-hidden">
             {property.facing && property.washrooms !== undefined && (
-              <div className="flex items-center gap-1 text-muted-foreground truncate">
-                <Compass className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Compass className="h-3 w-3 text-primary/50 shrink-0" />
                 <span className="truncate"><span className="text-foreground font-medium">{property.facing.replace(/_/g, " ")}</span> Facing</span>
               </div>
             )}
             {property.floor && (
-              <div className="flex items-center gap-1 text-muted-foreground truncate">
-                <Layers className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Layers className="h-3 w-3 text-primary/50 shrink-0" />
                 <span className="truncate">Floor: <span className="text-foreground font-medium">{property.floor}</span></span>
               </div>
             )}
             {property.plotType && (
-              <div className="flex items-center gap-1 text-muted-foreground truncate">
-                <Home className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Home className="h-3 w-3 text-primary/50 shrink-0" />
                 <span className="truncate"><span className="text-foreground font-medium">{getPlotTypeLabel(t, property.plotType)}</span></span>
               </div>
             )}
             {property.frontRoadWidth && (
-              <div className="flex items-center gap-1 text-muted-foreground truncate">
-                <Route className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Route className="h-3 w-3 text-primary/50 shrink-0" />
                 <span className="truncate">Road: <span className="text-foreground font-medium">{property.frontRoadWidth}{property.roadWidthUnit?.toLowerCase() || "ft"}</span></span>
               </div>
             )}
             {property.possessionDate && (
-              <div className="flex items-center gap-1 text-muted-foreground truncate">
-                <Calendar className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Calendar className="h-3 w-3 text-primary/50 shrink-0" />
                 <span className="truncate">Possession: <span className="text-foreground font-medium">
                   {new Date(property.possessionDate).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
                 </span></span>
@@ -241,8 +239,8 @@ export const PropertyDetails = ({
             {property.rentalIncome &&
               ((property.rentalIncome.min || 0) > 0 ||
                 (property.rentalIncome.max || 0) > 0) && (
-                <div className="flex items-center gap-1 text-muted-foreground truncate">
-                  <IndianRupee className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <IndianRupee className="h-3 w-3 text-primary/50 shrink-0" />
                   <span className="truncate">
                     Rent:{" "}
                     <span className="text-foreground font-medium">
@@ -253,58 +251,58 @@ export const PropertyDetails = ({
                 </div>
               )}
             {isRental && property.agreementDuration && (
-              <div className="flex items-center gap-1 text-muted-foreground truncate">
-                <Calendar className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Calendar className="h-3 w-3 text-primary/50 shrink-0" />
                 <span className="truncate">Agreement: <span className="text-foreground font-medium">{property.agreementDuration}</span></span>
               </div>
             )}
             {isRental && property.lockInPeriod != null && property.lockInPeriod > 0 && (
-              <div className="flex items-center gap-1 text-muted-foreground truncate">
-                <Calendar className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Calendar className="h-3 w-3 text-primary/50 shrink-0" />
                 <span className="truncate">Lock-in: <span className="text-foreground font-medium">{property.lockInPeriod} months</span></span>
               </div>
             )}
             {isRental && property.noticePeriod != null && property.noticePeriod > 0 && (
-              <div className="flex items-center gap-1 text-muted-foreground truncate">
-                <Calendar className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Calendar className="h-3 w-3 text-primary/50 shrink-0" />
                 <span className="truncate">Notice: <span className="text-foreground font-medium">{property.noticePeriod} months</span></span>
               </div>
             )}
             {isRental && property.furnishing && (
-              <div className="flex items-center gap-1 text-muted-foreground truncate">
-                <Home className="h-2.5 w-2.5 text-accent/70 shrink-0" />
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Home className="h-3 w-3 text-primary/50 shrink-0" />
                 <span className="truncate"><span className="text-foreground font-medium">{property.furnishing.replace(/_/g, " ")}</span></span>
               </div>
             )}
           </div>
 
-          {/* Amenities - Inline compact */}
+          {/* Amenities */}
           {property.amenities && property.amenities.length > 0 && (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5">
               {property.amenities.slice(0, 4).map((amenity, index) => (
-                <Badge key={index} variant="secondary" className="font-normal text-[10px] py-0">
+                <Badge key={index} variant="secondary" className="font-normal text-[10px] py-0.5 px-2">
                   {amenity}
                 </Badge>
               ))}
               {property.amenities.length > 4 && (
-                <Badge variant="outline" className="font-normal text-[10px] py-0">
+                <Badge variant="outline" className="font-normal text-[10px] py-0.5 px-2">
                   +{property.amenities.length - 4} more
                 </Badge>
               )}
             </div>
           )}
 
-        </Link >
-      </ScrollArea >
+        </Link>
+      </ScrollArea>
 
-      <div className="p-3 border-t border-border/50 bg-muted/5">
-        <Button className="w-full gap-2 shadow-sm h-9" asChild>
+      <div className="px-4 py-3 border-t border-border/50 bg-background shrink-0">
+        <Button className="w-full gap-2 shadow-sm h-9 rounded-lg" asChild>
           <Link href={`/property/detail?id=${property._id}`} target="_blank">
             View Full Details
             <ArrowUpRight className="h-4 w-4" />
           </Link>
         </Button>
       </div>
-    </div >
+    </div>
   );
 };

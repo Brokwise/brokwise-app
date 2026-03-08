@@ -150,6 +150,8 @@ export const OnboardingDetails = ({
   useEffect(() => {
     if (isEditing || step !== 1) return;
 
+    let cancelled = false;
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         window.location.reload();
@@ -158,20 +160,26 @@ export const OnboardingDetails = ({
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    let appStateListener: { remove: () => void } | undefined;
+    let appStateHandle: { remove: () => void } | undefined;
     if (Capacitor.isNativePlatform()) {
       import("@capacitor/app").then(({ App }) => {
+        if (cancelled) return;
         App.addListener("appStateChange", ({ isActive }) => {
-          if (isActive) window.location.reload();
-        }).then((listener) => {
-          appStateListener = listener;
+          if (isActive && !cancelled) window.location.reload();
+        }).then((handle) => {
+          if (cancelled) {
+            handle.remove();
+          } else {
+            appStateHandle = handle;
+          }
         });
       });
     }
 
     return () => {
+      cancelled = true;
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      appStateListener?.remove();
+      appStateHandle?.remove();
     };
   }, [isEditing, step]);
 
