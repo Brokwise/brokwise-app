@@ -160,6 +160,28 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
     let hasEmptyRequired = false;
     const emptyFields: string[] = [];
 
+    const fieldMessages: Record<string, string> = {
+      propertyType: "Please select a property type",
+      "address.state": "State is required",
+      "address.city": "City is required",
+      "address.address": "Address is required",
+      "address.pincode": "Pincode is required",
+      size: "Property size is required",
+      sizeUnit: "Please select a size unit",
+      plotType: "Please select plot access type (single-side or corner)",
+      facing: "Please select front facing direction",
+      frontRoadWidth: "Front road width is required",
+      sideFacing: "Please select side facing direction",
+      sideRoadWidth: "Side road width is required",
+      rate: "Rate per unit is required",
+      monthlyRent: "Monthly rent is required",
+      securityDeposit: "Security deposit is required",
+      agreementDuration: "Agreement duration is required",
+      description: "Description is required",
+      featuredMedia: "Featured media is required",
+      floorPlans: "Site plan is required",
+    };
+
     for (const field of fieldsToValidate) {
       const parts = field.split(".");
       let value: unknown = values;
@@ -177,36 +199,19 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
       if (isEmpty) {
         hasEmptyRequired = true;
         emptyFields.push(field);
-
-        const fieldMessages: Record<string, string> = {
-          propertyType: "Please select a property type",
-          "address.state": "State is required",
-          "address.city": "City is required",
-          "address.address": "Address is required",
-          "address.pincode": "Pincode is required",
-          size: "Property size is required",
-          sizeUnit: "Please select a size unit",
-          plotType: "Please select plot access type (single-side or corner)",
-          facing: "Please select front facing direction",
-          frontRoadWidth: "Front road width is required",
-          sideFacing: "Please select side facing direction",
-          sideRoadWidth: "Side road width is required",
-          rate: "Rate per unit is required",
-          description: "Description is required",
-          featuredMedia: "Featured media is required",
-          floorPlans: "Site plan is required",
-        };
-
-        form.setError(field as keyof IndustrialPropertyFormData, {
-          type: "required",
-          message: fieldMessages[field] || `${field} is required`,
-        });
       }
     }
 
     const schemaResult = await form.trigger(
       fieldsToValidate as (keyof IndustrialPropertyFormData)[]
     );
+
+    for (const field of emptyFields) {
+      form.setError(field as keyof IndustrialPropertyFormData, {
+        type: "required",
+        message: fieldMessages[field] || `${field} is required`,
+      });
+    }
 
     const isValid = schemaResult && !hasEmptyRequired;
 

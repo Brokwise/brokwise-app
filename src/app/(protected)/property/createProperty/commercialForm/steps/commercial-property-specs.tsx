@@ -769,7 +769,7 @@ export const CommercialPropertySpecs: React.FC<
                     </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger data-field="agreementDuration">
                           <SelectValue placeholder="Select duration" />
                         </SelectTrigger>
                       </FormControl>

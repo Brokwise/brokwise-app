@@ -185,6 +185,34 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     let hasEmptyRequired = false;
     const emptyFields: string[] = [];
 
+    const fieldMessages: Record<string, string> = {
+      propertyType: "Please select a property type",
+      "address.state": "State is required",
+      "address.city": "City is required",
+      "address.address": "Address is required",
+      "address.pincode": "Pincode is required",
+      size: "Property size is required",
+      sizeUnit: "Please select a size unit",
+      floor: "Please select a floor",
+      rooms: "Number of rooms is required",
+      beds: "Please select number of beds",
+      propertyStatus: "Please select property status",
+      plotType: "Please select plot access type (single-side or corner)",
+      facing: "Please select front facing direction",
+      frontRoadWidth: "Front road width is required",
+      sideFacing: "Please select side facing direction",
+      sideRoadWidth: "Side road width is required",
+      projectArea: "Project area is required",
+      purpose: "Purpose is required",
+      rate: "Rate per unit is required",
+      monthlyRent: "Monthly rent is required",
+      securityDeposit: "Security deposit is required",
+      agreementDuration: "Agreement duration is required",
+      description: "Description is required",
+      featuredMedia: "Featured media is required",
+      floorPlans: "Floor plans are required",
+    };
+
     for (const field of fieldsToValidate) {
       const parts = field.split(".");
       let value: unknown = values;
@@ -202,42 +230,21 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
       if (isEmpty) {
         hasEmptyRequired = true;
         emptyFields.push(field);
-
-        const fieldMessages: Record<string, string> = {
-          propertyType: "Please select a property type",
-          "address.state": "State is required",
-          "address.city": "City is required",
-          "address.address": "Address is required",
-          "address.pincode": "Pincode is required",
-          size: "Property size is required",
-          sizeUnit: "Please select a size unit",
-          floor: "Please select a floor",
-          rooms: "Number of rooms is required",
-          beds: "Please select number of beds",
-          propertyStatus: "Please select property status",
-          plotType: "Please select plot access type (single-side or corner)",
-          facing: "Please select front facing direction",
-          frontRoadWidth: "Front road width is required",
-          sideFacing: "Please select side facing direction",
-          sideRoadWidth: "Side road width is required",
-          projectArea: "Project area is required",
-          purpose: "Purpose is required",
-          rate: "Rate per unit is required",
-          description: "Description is required",
-          featuredMedia: "Featured media is required",
-          floorPlans: "Floor plans are required",
-        };
-
-        form.setError(field as keyof CommercialPropertyFormData, {
-          type: "required",
-          message: fieldMessages[field] || `${field} is required`,
-        });
       }
     }
 
+    // Run schema validation first, then set manual errors after so they aren't
+    // overwritten by trigger() (fields marked .optional() in Zod would clear them).
     const schemaResult = await form.trigger(
       fieldsToValidate as (keyof CommercialPropertyFormData)[]
     );
+
+    for (const field of emptyFields) {
+      form.setError(field as keyof CommercialPropertyFormData, {
+        type: "required",
+        message: fieldMessages[field] || `${field} is required`,
+      });
+    }
 
     const isValid = schemaResult && !hasEmptyRequired;
 

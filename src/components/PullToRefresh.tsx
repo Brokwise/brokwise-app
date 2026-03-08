@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Capacitor } from "@capacitor/core";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { usePathname } from "next/navigation";
+import { firebaseAuth } from "@/config/firebase";
 
 const THRESHOLD = 80;
 const MAX_PULL = 130;
@@ -13,15 +16,18 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
   const touchStartY = useRef(0);
   const isPulling = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [user] = useAuthState(firebaseAuth);
+  const pathname = usePathname();
 
-  const isNative = typeof window !== "undefined" && Capacitor.isNativePlatform();
+  const isIOS = typeof window !== "undefined" && Capacitor.getPlatform() === "ios";
+  const isEnabled = isIOS && Boolean(user?.uid) && pathname === "/";
 
   const isAtTop = useCallback(() => {
     return window.scrollY <= 0;
   }, []);
 
   useEffect(() => {
-    if (!isNative) return;
+    if (!isEnabled) return;
 
     const onTouchStart = (e: TouchEvent) => {
       if (refreshing) return;
@@ -75,9 +81,9 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
       document.removeEventListener("touchmove", onTouchMove);
       document.removeEventListener("touchend", onTouchEnd);
     };
-  }, [isNative, refreshing, pullDistance, isAtTop]);
+  }, [isEnabled, refreshing, pullDistance, isAtTop]);
 
-  if (!isNative) return <>{children}</>;
+  if (!isEnabled) return <>{children}</>;
 
   const progress = Math.min(pullDistance / THRESHOLD, 1);
   const showIndicator = pullDistance > 10;

@@ -141,6 +141,28 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
     let hasEmptyRequired = false;
     const emptyFields: string[] = [];
 
+    const fieldMessages: Record<string, string> = {
+      "address.state": "State is required",
+      "address.city": "City is required",
+      "address.address": "Address is required",
+      "address.pincode": "Pincode is required",
+      propertyStatus: "Property status is required",
+      size: "Resort area is required",
+      sizeUnit: "Please select an area unit",
+      plotType: "Please select plot access type (single-side or corner)",
+      facing: "Please select front facing direction",
+      frontRoadWidth: "Front road width is required",
+      sideFacing: "Please select side facing direction",
+      sideRoadWidth: "Side road width is required",
+      rate: "Rate per unit is required",
+      monthlyRent: "Monthly rent is required",
+      securityDeposit: "Security deposit is required",
+      agreementDuration: "Agreement duration is required",
+      description: "Description is required",
+      featuredMedia: "Featured media is required",
+      floorPlans: "Floor plans are required",
+    };
+
     for (const field of fieldsToValidate) {
       const parts = field.split(".");
       let value: unknown = values;
@@ -158,36 +180,19 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
       if (isEmpty) {
         hasEmptyRequired = true;
         emptyFields.push(field);
-
-        const fieldMessages: Record<string, string> = {
-          "address.state": "State is required",
-          "address.city": "City is required",
-          "address.address": "Address is required",
-          "address.pincode": "Pincode is required",
-          propertyStatus: "Property status is required",
-          size: "Resort area is required",
-          sizeUnit: "Please select an area unit",
-          plotType: "Please select plot access type (single-side or corner)",
-          facing: "Please select front facing direction",
-          frontRoadWidth: "Front road width is required",
-          sideFacing: "Please select side facing direction",
-          sideRoadWidth: "Side road width is required",
-          rate: "Rate per unit is required",
-          description: "Description is required",
-          featuredMedia: "Featured media is required",
-          floorPlans: "Floor plans are required",
-        };
-
-        form.setError(field as keyof ResortPropertyFormData, {
-          type: "required",
-          message: fieldMessages[field] || `${field} is required`,
-        });
       }
     }
 
     const schemaResult = await form.trigger(
       fieldsToValidate as (keyof ResortPropertyFormData)[]
     );
+
+    for (const field of emptyFields) {
+      form.setError(field as keyof ResortPropertyFormData, {
+        type: "required",
+        message: fieldMessages[field] || `${field} is required`,
+      });
+    }
 
     const isValid = schemaResult && !hasEmptyRequired;
 

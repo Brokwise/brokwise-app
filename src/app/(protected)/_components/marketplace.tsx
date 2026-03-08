@@ -296,6 +296,10 @@ export const MarketPlace = () => {
       const matchesCategory =
         categoryFilter === "ALL" || enquiry.enquiryCategory === categoryFilter;
 
+      const matchesPurpose =
+        enquiryPurposeFilter === "ALL" ||
+        enquiry.enquiryPurpose === enquiryPurposeFilter;
+
       let matchesPrice = true;
       if (enquiryPurposeFilter === "RENT") {
         if (debouncedRentRange && enquiry.monthlyRentBudget) {
@@ -326,7 +330,7 @@ export const MarketPlace = () => {
         }
       }
 
-      return matchesSource && matchesCategory && matchesPrice && matchesBhk;
+      return matchesSource && matchesCategory && matchesPurpose && matchesPrice && matchesBhk;
     });
 
     const normalizedUserCity = userCity?.toLowerCase().trim() || "";

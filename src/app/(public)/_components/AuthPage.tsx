@@ -315,8 +315,8 @@ export default function AuthPage({
       if (user.emailVerified) return;
 
       const continueUrl = Capacitor.isNativePlatform()
-        ? "https://app.brokwise.com"
-        : `${window.location.origin}/app`;
+        ? "https://app.brokwise.com?source=mobile"
+        : `${window.location.origin}`;
       const actionCodeSettings = {
         url: continueUrl,
         handleCodeInApp: false,

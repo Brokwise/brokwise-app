@@ -180,6 +180,33 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
     let hasEmptyRequired = false;
     const emptyFields: string[] = [];
 
+    const fieldMessages: Record<string, string> = {
+      propertyType: "Please select a property type",
+      "address.state": "State is required",
+      "address.city": "City is required",
+      "address.address": "Address is required",
+      "address.pincode": "Pincode is required",
+      size: "Property size is required",
+      sizeUnit: "Please select a size unit",
+      bhk: "Please select number of BHK",
+      washrooms: "Please select number of washrooms",
+      plotType: "Please select plot access type (single-side or corner)",
+      facing: "Please select a front facing direction",
+      sideFacing: "Please select a corner facing direction",
+      frontRoadWidth: "Front road width is required",
+      sideRoadWidth: "Side road width is required",
+      rate: "Rate per unit is required",
+      monthlyRent: "Monthly rent is required",
+      securityDeposit: "Security deposit is required",
+      agreementDuration: "Agreement duration is required",
+      description: "Description is required",
+      featuredMedia:
+        propertyType === "LAND"
+          ? "Featured media is optional for land"
+          : "Featured media is required",
+      floorPlans: propertyType === "LAND" ? "Site plan is required" : "Floor plans are required",
+    };
+
     for (const field of fieldsToValidate) {
       const parts = field.split(".");
       let value: unknown = values;
@@ -197,41 +224,19 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       if (isEmpty) {
         hasEmptyRequired = true;
         emptyFields.push(field);
-
-        const fieldMessages: Record<string, string> = {
-          propertyType: "Please select a property type",
-          "address.state": "State is required",
-          "address.city": "City is required",
-          "address.address": "Address is required",
-          "address.pincode": "Pincode is required",
-          size: "Property size is required",
-          sizeUnit: "Please select a size unit",
-          bhk: "Please select number of BHK",
-          washrooms: "Please select number of washrooms",
-          plotType: "Please select plot access type (single-side or corner)",
-          facing: "Please select a front facing direction",
-          sideFacing: "Please select a corner facing direction",
-          frontRoadWidth: "Front road width is required",
-          sideRoadWidth: "Side road width is required",
-          rate: "Rate per unit is required",
-          description: "Description is required",
-          featuredMedia:
-            propertyType === "LAND"
-              ? "Featured media is optional for land"
-              : "Featured media is required",
-          floorPlans: propertyType === "LAND" ? "Site plan is required" : "Floor plans are required",
-        };
-
-        form.setError(field as keyof ResidentialPropertyFormData, {
-          type: "required",
-          message: fieldMessages[field] || `${field} is required`,
-        });
       }
     }
 
     const schemaResult = await form.trigger(
       fieldsToValidate as (keyof ResidentialPropertyFormData)[]
     );
+
+    for (const field of emptyFields) {
+      form.setError(field as keyof ResidentialPropertyFormData, {
+        type: "required",
+        message: fieldMessages[field] || `${field} is required`,
+      });
+    }
 
     const isValid = schemaResult && !hasEmptyRequired;
 

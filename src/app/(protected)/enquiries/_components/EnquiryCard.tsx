@@ -146,18 +146,7 @@ export const EnquiryCard = ({
         </div>
 
         <div className="space-y-1.5">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[11px] font-medium text-muted-foreground shrink-0">
-              {t("label_enquiry_id")}:
-            </span>
-            <Badge
-              variant="secondary"
-              title={enquiry.enquiryId || enquiry._id}
-              className="h-5 px-2 max-w-full font-mono text-[11px] sm:text-xs truncate"
-            >
-              {enquiry.enquiryId || enquiry._id}
-            </Badge>
-          </div>
+
           <div className="flex items-center text-muted-foreground text-sm">
             <MapPin className="mr-1.5 h-3.5 w-3.5 shrink-0" />
             <span className="line-clamp-1">

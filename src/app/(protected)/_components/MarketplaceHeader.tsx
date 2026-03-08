@@ -371,7 +371,7 @@ export const MarketplaceHeader = ({
       {/* Controls: Filter Pills + View Toggle */}
       <div className="flex flex-col gap-3 sm:gap-4 w-full">
         {/* Category Pills (Scrollable) - Full width on mobile */}
-        <div className="flex justify-between w-full">
+        <div className="flex flex-wrap items-center gap-2 w-full">
           <div className="hidden md:flex items-center gap-1 overflow-x-auto pb-1 w-full scrollbar-thin -mx-3 px-3 sm:mx-0 sm:px-0">
             {categoryPills.map((pill) => (
               <Button
@@ -380,7 +380,6 @@ export const MarketplaceHeader = ({
                 size="sm"
                 onClick={() => {
                   setCategoryFilter(pill.value);
-                  // Reset dependent filters when category changes via pills
                   setPropertyTypeFilter("ALL");
                   if (pill.value !== "ALL" && pill.value !== "RESIDENTIAL") {
                     setBhkFilter("ALL");
@@ -396,12 +395,11 @@ export const MarketplaceHeader = ({
             ))}
           </div>
 
-          <div>
+          <div className="shrink-0">
             <Select
               value={categoryFilter}
               onValueChange={(val) => {
                 setCategoryFilter(val);
-                // Reset dependent filters when category changes via select
                 setPropertyTypeFilter("ALL");
                 if (val !== "ALL" && val !== "RESIDENTIAL") {
                   setBhkFilter("ALL");
@@ -421,7 +419,7 @@ export const MarketplaceHeader = ({
             </Select>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 justify-end">
+          <div className="flex items-center gap-1.5 sm:gap-3 ml-auto">
             {viewMode === "PROPERTIES" && (
               <div className="flex items-center gap-0.5 p-0.5 bg-muted/60 rounded-full border border-border/40 w-fit">
                 {([
@@ -433,13 +431,16 @@ export const MarketplaceHeader = ({
                     key={opt.value}
                     type="button"
                     onClick={() => setListingPurposeFilter(opt.value)}
-                    className={`px-4 sm:px-5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${listingPurposeFilter === opt.value
+                    className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-sm font-semibold transition-all ${listingPurposeFilter === opt.value
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       }`}
                   >
                     <div className="flex items-center gap-1">
-                      {opt.value === "SALE" ? <Tag className="w-4 h-4 " /> : opt.value === "ALL" ? <Home className="w-4 h-4 " /> : <KeyIcon className="w-4 h-4 " />} {opt.label}
+                      <span className="hidden sm:inline">
+                        {opt.value === "SALE" ? <Tag className="w-4 h-4" /> : opt.value === "ALL" ? <Home className="w-4 h-4" /> : <KeyIcon className="w-4 h-4" />}
+                      </span>
+                      {opt.label}
                     </div>
                   </button>
                 ))}
@@ -456,13 +457,16 @@ export const MarketplaceHeader = ({
                     key={opt.value}
                     type="button"
                     onClick={() => setEnquiryPurposeFilter(opt.value)}
-                    className={`px-4 sm:px-5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${enquiryPurposeFilter === opt.value
+                    className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-sm font-semibold transition-all ${enquiryPurposeFilter === opt.value
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       }`}
                   >
                     <div className="flex items-center gap-1">
-                      {opt.value === "BUY" ? <Tag className="w-4 h-4" /> : opt.value === "ALL" ? <Home className="w-4 h-4" /> : <KeyIcon className="w-4 h-4" />} {opt.label}
+                      <span className="hidden sm:inline">
+                        {opt.value === "BUY" ? <Tag className="w-4 h-4" /> : opt.value === "ALL" ? <Home className="w-4 h-4" /> : <KeyIcon className="w-4 h-4" />}
+                      </span>
+                      {opt.label}
                     </div>
                   </button>
                 ))}
@@ -476,17 +480,17 @@ export const MarketplaceHeader = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  className={`relative gap-1.5 sm:gap-2 h-8 rounded-full border-border/60 hover:bg-secondary hover:border-border px-2.5 sm:px-3 ${hasActiveFilters
+                  className={`relative gap-1 sm:gap-2 h-7 sm:h-8 rounded-full border-border/60 hover:bg-secondary hover:border-border px-2 sm:px-3 ${hasActiveFilters
                     ? "text-accent border-accent/30 bg-accent/5"
                     : "text-muted-foreground hover:text-foreground"
                     }`}
                 >
                   <FilterIcon className="h-3.5 w-3.5" />
-                  <span className="hidden xs:inline sm:inline">{t("label_filters")}</span>
+                  <span className="hidden xs:inline">{t("label_filters")}</span>
                   {hasActiveFilters && (
                     <span className="flex h-1.5 w-1.5 rounded-full bg-accent" />
                   )}
-                  <ChevronDown className="h-3 w-3 opacity-50" />
+                  <ChevronDown className="h-3 w-3 opacity-50 hidden xs:block" />
                 </Button>
               </DialogTrigger>{" "}
               <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px] max-h-[85vh] overflow-y-auto rounded-xl mx-auto">
@@ -803,7 +807,6 @@ export const MarketplaceHeader = ({
             {
               viewMode === "PROPERTIES" && (
                 <div className="flex items-center gap-0.5 bg-secondary/50 p-0.5 rounded-full border border-border/40">
-                  {" "}
                   <Button
                     variant={view === "grid" ? "default" : "ghost"}
                     size="icon"
@@ -811,15 +814,14 @@ export const MarketplaceHeader = ({
                       setView("grid");
                       onClearPropertySelection();
                     }}
-                    className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${view === "grid"
+                    className={`h-6 w-6 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${view === "grid"
                       ? "shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                       }`}
                     title="Grid View"
                   >
-                    {" "}
-                    <LayoutGridIcon className="h-3.5 w-3.5" />{" "}
-                  </Button>{" "}
+                    <LayoutGridIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                  </Button>
                   <Button
                     variant={view === "map" ? "default" : "ghost"}
                     size="icon"
@@ -827,15 +829,14 @@ export const MarketplaceHeader = ({
                       setView("map");
                       onClearPropertySelection();
                     }}
-                    className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${view === "map"
+                    className={`h-6 w-6 sm:h-8 sm:w-8 rounded-full transition-all duration-300 ${view === "map"
                       ? "shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                       }`}
                     title="Map View"
                   >
-                    {" "}
-                    <MapPin className="h-3.5 w-3.5" />{" "}
-                  </Button>{" "}
+                    <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                  </Button>
                   <Button
                     variant={view === "split" ? "default" : "ghost"}
                     size="icon"
@@ -843,15 +844,14 @@ export const MarketplaceHeader = ({
                       setView("split");
                       onClearPropertySelection();
                     }}
-                    className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full hidden md:flex transition-all duration-300 ${view === "split"
+                    className={`h-6 w-6 sm:h-8 sm:w-8 rounded-full hidden md:flex transition-all duration-300 ${view === "split"
                       ? "shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                       }`}
                     title="Split View"
                   >
-                    {" "}
-                    <Columns className="h-3.5 w-3.5" />{" "}
-                  </Button>{" "}
+                    <Columns className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                  </Button>
                 </div>
               )
             } {" "}
