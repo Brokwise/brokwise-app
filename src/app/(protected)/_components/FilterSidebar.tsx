@@ -193,7 +193,7 @@ export const FilterSidebar = ({
       <ScrollArea className="flex-1">
         <div className="px-5 py-4 space-y-6">
           {/* Search */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Search
             </Label>
@@ -216,7 +216,7 @@ export const FilterSidebar = ({
             </div>
           </div>
 
-          <Separator className="bg-border/30" />
+          <Separator className="bg-border/30" /> */}
 
           {/* Property Category */}
           <div className="space-y-2.5">
