@@ -167,7 +167,18 @@ export const FilterSidebar = ({
     return `${formatIndianNumber(price)}`;
   };
 
-  const currentCount = viewMode === "PROPERTIES" ? filteredCount : filteredEnquiriesCount;
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (searchQuery) count++;
+    if (categoryFilter !== "ALL") count++;
+    if (propertyTypeFilter !== "ALL") count++;
+    if (sourceFilter !== "ALL") count++;
+    if (priceRange !== null) count++;
+    if (bhkFilter !== "ALL") count++;
+    if (featuredFilter !== "ALL") count++;
+    if (rentRange !== null) count++;
+    return count;
+  }, [searchQuery, categoryFilter, propertyTypeFilter, sourceFilter, priceRange, bhkFilter, featuredFilter, rentRange]);
 
   return (
     <div className="hidden lg:flex flex-col h-full w-[280px] shrink-0 border-r border-border/50 bg-background">
@@ -175,9 +186,11 @@ export const FilterSidebar = ({
       <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-semibold text-foreground tracking-tight">Filter</h2>
-          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-medium">
-            {currentCount}
-          </Badge>
+          {activeFilterCount > 0 && (
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-medium">
+              {activeFilterCount}
+            </Badge>
+          )}
         </div>
         {hasActiveFilters && (
           <button

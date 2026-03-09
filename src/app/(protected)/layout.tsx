@@ -55,11 +55,13 @@ import {
   Calculator,
   Tag,
   KeyIcon,
+  LayoutGrid,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 function TopNavLinks() {
   const pathname = usePathname();
+  const router = useRouter();
   const { companyData } = useApp();
   const { t } = useTranslation();
   const [homeOpen, setHomeOpen] = useState(false);
@@ -198,7 +200,24 @@ function TopNavLinks() {
   return (
     <>
       <nav className="hidden lg:flex items-center gap-2 flex-1 max-w-3xl mx-auto">
-        {/* Home popup trigger */}
+        {/* Home link */}
+        <button
+          onClick={() => {
+            closeAll();
+            router.push("/");
+          }}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-200 whitespace-nowrap border",
+            pathname === "/"
+              ? "bg-primary text-primary-foreground shadow-sm border-primary"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted border-transparent"
+          )}
+        >
+          <Home className="h-3.5 w-3.5" />
+          Home
+        </button>
+
+        {/* Menu popup trigger */}
         <button
           onClick={() => {
             setHomeOpen(!homeOpen);
@@ -211,8 +230,8 @@ function TopNavLinks() {
               : "text-muted-foreground hover:text-foreground hover:bg-muted border-transparent"
           )}
         >
-          <Home className="h-3.5 w-3.5" />
-          Home
+          <LayoutGrid className="h-3.5 w-3.5" />
+          Menu
         </button>
 
         {/* Tools popup trigger */}
@@ -239,7 +258,7 @@ function TopNavLinks() {
             placeholder="search anything..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 pr-8 h-9 text-sm bg-muted/30 border-border/40 rounded-lg placeholder:text-muted-foreground/40 focus-visible:ring-1 focus-visible:ring-primary/30"
+            className="pl-12 pr-12 h-9 text-sm bg-muted/30 border-border/40 rounded-lg placeholder:text-muted-foreground/40 focus-visible:ring-1 focus-visible:ring-primary/30"
           />
           {searchQuery && (
             <button
@@ -252,7 +271,7 @@ function TopNavLinks() {
         </div>
 
         {/* Purpose selector: All | Buy | Rent */}
-        <div className="flex gap-1 p-0.5 bg-muted/40 rounded-lg border border-border/30 shrink-0">
+        <div className="flex gap-1 p-0.5 bg-muted/40 rounded-full border border-border/30 shrink-0">
           {([
             { value: "ALL", label: "All", icon: Home },
             { value: "SALE", label: "Buy", icon: Tag },
@@ -262,11 +281,10 @@ function TopNavLinks() {
               key={opt.value}
               type="button"
               onClick={() => setListingPurposeFilter(opt.value)}
-              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                listingPurposeFilter === opt.value
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${listingPurposeFilter === opt.value
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               <opt.icon className="h-3 w-3" />
               {opt.label}
