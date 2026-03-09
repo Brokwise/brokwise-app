@@ -610,7 +610,7 @@ export const MarketPlace = () => {
     ? "grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3"
     : selectedProperty
       ? "grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
-      : "grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5";
+      : "grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5";
 
   return (
     <div className="flex h-full overflow-hidden relative w-full">
@@ -662,12 +662,12 @@ export const MarketPlace = () => {
         <div className="hidden lg:flex items-center justify-between px-6 py-3 border-b border-border/40 bg-background shrink-0">
           <div className="flex items-center gap-3">
             {/* View mode toggle */}
-            <div className="flex items-center gap-0.5 p-0.5 bg-muted/50 rounded-lg border border-border/30">
+            <div className="flex items-center gap-0.5 p-0.5 bg-muted/50 rounded-full border border-border/30">
               <button
                 type="button"
                 onClick={() => handleViewModeChange("PROPERTIES")}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${viewMode === "PROPERTIES"
-                  ? "bg-background text-foreground shadow-sm"
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${viewMode === "PROPERTIES"
+                  ? "bg-primary text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
                   }`}
               >
@@ -676,8 +676,8 @@ export const MarketPlace = () => {
               <button
                 type="button"
                 onClick={() => handleViewModeChange("ENQUIRIES")}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${viewMode === "ENQUIRIES"
-                  ? "bg-background text-foreground shadow-sm"
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${viewMode === "ENQUIRIES"
+                  ? "bg-primary text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
                   }`}
               >

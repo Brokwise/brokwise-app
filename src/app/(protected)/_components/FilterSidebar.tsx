@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
-
   RotateCcw,
   Home,
   Building2,
@@ -13,6 +12,9 @@ import {
   BedDouble,
   Crown,
   Users,
+  SlidersHorizontal,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -139,6 +141,7 @@ export const FilterSidebar = ({
 }: FilterSidebarProps) => {
   const { userData } = useApp();
   const { t } = useTranslation();
+  const [collapsed, setCollapsed] = useState(false);
 
   const categories = [
     { value: "ALL", label: t("label_all") },
@@ -176,8 +179,34 @@ export const FilterSidebar = ({
     return count;
   }, [searchQuery, categoryFilter, propertyTypeFilter, sourceFilter, priceRange, bhkFilter, featuredFilter, rentRange]);
 
+  if (collapsed) {
+    return (
+      <div className="hidden lg:flex flex-col items-center h-full w-12 shrink-0 border-r border-border/50 bg-background transition-all duration-200">
+        <button
+          onClick={() => setCollapsed(false)}
+          className="flex items-center justify-center w-full py-4 border-b border-border/40 hover:bg-muted/50 transition-colors"
+          title="Expand filters"
+        >
+          <PanelLeftOpen className="h-4 w-4 text-muted-foreground" />
+        </button>
+        <button
+          onClick={() => setCollapsed(false)}
+          className="relative flex items-center justify-center w-full py-4 hover:bg-muted/50 transition-colors"
+          title="Expand filters"
+        >
+          <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+          {activeFilterCount > 0 && (
+            <span className="absolute top-2.5 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="hidden lg:flex flex-col h-full w-[280px] shrink-0 border-r border-border/50 bg-background">
+    <div className="hidden lg:flex flex-col h-full w-[280px] shrink-0 border-r border-border/50 bg-background transition-all duration-200">
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
         <div className="flex items-center gap-2">
@@ -188,15 +217,24 @@ export const FilterSidebar = ({
             </Badge>
           )}
         </div>
-        {hasActiveFilters && (
+        <div className="flex items-center gap-1.5">
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Reset
+            </button>
+          )}
           <button
-            onClick={clearFilters}
-            className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+            onClick={() => setCollapsed(true)}
+            className="p-1 rounded-md hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground"
+            title="Collapse filters"
           >
-            <RotateCcw className="h-3 w-3" />
-            Reset
+            <PanelLeftClose className="h-4 w-4" />
           </button>
-        )}
+        </div>
       </div>
 
       <ScrollArea className="flex-1">

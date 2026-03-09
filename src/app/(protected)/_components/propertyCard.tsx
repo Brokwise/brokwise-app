@@ -212,7 +212,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 <Button
                   size="icon"
                   variant="secondary"
-                  className="h-7 w-7 md:h-8 md:w-8 rounded-full bg-white/90 backdrop-blur-md shadow-sm text-foreground/70 hover:bg-white hover:text-accent transition-colors border-0"
+                  className="h-7 w-7 md:h-8 md:w-8 rounded-full bg-white/90 dark:bg-black/90 backdrop-blur-md shadow-sm text-foreground/70 hover:bg-white hover:text-accent transition-colors border-0"
                   onClick={handleShowOnMap}
                   title="Show on Map"
                 >
@@ -223,7 +223,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               <Button
                 size="icon"
                 variant="secondary"
-                className={`h-7 w-7 md:h-8 md:w-8 rounded-full bg-white/90 backdrop-blur-md shadow-sm hover:bg-white border-0 transition-colors ${isBookmarked ? "text-rose-500" : "text-foreground/60"
+                className={`h-7 w-7 md:h-8 md:w-8 rounded-full bg-white/90 dark:bg-black/90 backdrop-blur-md shadow-sm hover:bg-white border-0 transition-colors ${isBookmarked ? "text-rose-500" : "text-foreground/60"
                   }`}
                 disabled={(!brokerData && !companyData) || isBookmarkPending}
                 onClick={async (e) => {
@@ -300,7 +300,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                   <Button
                     size="icon"
                     variant="secondary"
-                    className="h-7 w-7 md:h-8 md:w-8 rounded-full bg-white/90 backdrop-blur-md shadow-sm hover:bg-white border-0 text-foreground/60"
+                    className="h-7 w-7 md:h-8 md:w-8 rounded-full bg-white/90 dark:bg-black/90 backdrop-blur-md shadow-sm hover:bg-white border-0 text-foreground/60"
                     onClick={(e) => e.stopPropagation()}
                     title="Share"
                   >
@@ -340,7 +340,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           <div className="flex items-baseline gap-1">
             <Typography
               variant="h2"
-              className="text-sm md:text-sm lg:text-base font-semibold leading-none text-foreground"
+              className="text-sm md:text-sm lg:text-base font-semibold leading-none text-white dark:text-black rounded-md px-2 py-[0.5px] bg-black/50 dark:bg-white/70"
             >
               {priceDisplay}
             </Typography>

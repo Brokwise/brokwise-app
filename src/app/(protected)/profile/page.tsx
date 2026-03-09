@@ -80,6 +80,10 @@ import { ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 import { logError } from "@/utils/errors";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TIER_INFO } from "@/config/tier_limits";
 
 // Editable field component for inline editing
 interface EditableFieldProps {
@@ -303,6 +307,14 @@ const EditableField: React.FC<EditableFieldProps> = ({
 
 const ProfilePage = () => {
   const { t } = useTranslation();
+  const {
+    subscription,
+    usage,
+    usageLimits,
+    limits,
+    tier,
+    isLoading: isSubscriptionLoading,
+  } = useSubscription();
 
   const leaveReasonOptions = [
     { value: "Found a better opportunity", label: t("page_profile_leave_reason_better") },
@@ -630,15 +642,28 @@ const ProfilePage = () => {
     })
     : null;
 
+  const currentTier = subscription?.tier || tier || "BASIC";
+  const currentTierInfo = TIER_INFO[currentTier];
+  const formatDate = (date: Date | string) =>
+    new Date(date).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  const statusColorClass =
+    subscription?.status === "active" || subscription?.status === "authenticated"
+      ? "bg-green-100 text-green-800"
+      : subscription?.status === "cancelled" || subscription?.status === "expired"
+        ? "bg-red-100 text-red-800"
+        : "bg-yellow-100 text-yellow-800";
+
   return (
     <PageShell className="max-w-4xl">
       <PageHeader title={t("page_profile_title")} />
 
-      {/* Profile Header Card */}
       <Card>
         <CardHeader className="pb-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-            {/* Profile Photo with Edit */}
             <div className="relative group">
               <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
                 <AvatarImage src={brokerProfile.profilePhoto} className="object-cover" />
@@ -667,7 +692,6 @@ const ProfilePage = () => {
               />
             </div>
 
-            {/* Basic Info */}
             <div className="flex-1 space-y-2">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -703,434 +727,525 @@ const ProfilePage = () => {
         </CardHeader>
       </Card>
 
-      {/* Personal Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <User className="h-5 w-5" />
-            {t("page_profile_personal_info")}
-          </CardTitle>
-          <CardDescription>{t("page_profile_personal_info_desc")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <EditableField
-              label={t("page_profile_label_first_name")}
-              value={brokerProfile.firstName}
-              icon={<User className="h-4 w-4" />}
-              isEditing={false}
-              editable={false}
-              onEdit={() => { }}
-              onSave={() => { }}
-              onCancel={() => { }}
-              placeholder={t("page_profile_placeholder_first_name")}
-              loading={false}
-            />
+      <Tabs defaultValue="personal" className="space-y-4">
+        <TabsList className="h-auto flex-wrap justify-start">
+          <TabsTrigger value="personal">{t("page_profile_personal_info")}</TabsTrigger>
+          <TabsTrigger value="business">{t("page_profile_business_info")}</TabsTrigger>
+          <TabsTrigger value="location">{t("page_profile_location_info")}</TabsTrigger>
+          <TabsTrigger value="security">{t("page_profile_security_title")}</TabsTrigger>
+          <TabsTrigger value="subscription">
+            {t("page_subscription_title", "Subscription")}
+          </TabsTrigger>
+          {brokerCompanyDetails ? (
+            <TabsTrigger value="company">{t("page_profile_company_details")}</TabsTrigger>
+          ) : null}
+        </TabsList>
 
-            <EditableField
-              label={t("page_profile_label_last_name")}
-              value={brokerProfile.lastName}
-              icon={<User className="h-4 w-4" />}
-              isEditing={false}
-              editable={false}
-              onEdit={() => { }}
-              onSave={() => { }}
-              onCancel={() => { }}
-              placeholder={t("page_profile_placeholder_last_name")}
-              loading={false}
-            />
-
-            <EditableField
-              label={t("page_profile_label_email")}
-              value={brokerProfile.email}
-              icon={<Mail className="h-4 w-4" />}
-              isEditing={false}
-              editable={false}
-              onEdit={() => { }}
-              onSave={() => { }}
-              onCancel={() => { }}
-
-            />
-
-            <EditableField
-              label={t("page_profile_label_mobile")}
-              value={brokerProfile.mobile}
-              icon={<Phone className="h-4 w-4" />}
-              isEditing={false}
-              editable={false}
-              onEdit={() => { }}
-              onSave={() => { }}
-              onCancel={() => { }}
-              placeholder={t("page_profile_placeholder_mobile")}
-              maxLength={10}
-              loading={false}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Business Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Briefcase className="h-5 w-5" />
-            {t("page_profile_business_info")}
-          </CardTitle>
-          <CardDescription>{t("page_profile_business_info_desc")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <EditableField
-              label={t("page_profile_label_company_name")}
-              value={brokerProfile.companyName}
-              icon={<Building2 className="h-4 w-4" />}
-              isEditing={editingField === "companyName"}
-              onEdit={() => setEditingField("companyName")}
-              onSave={(value) => handleUpdateField("companyName", value)}
-              onCancel={() => setEditingField(null)}
-              placeholder={t("page_profile_placeholder_company")}
-              loading={loading && editingField === "companyName"}
-              editable={!brokerCompanyDetails}
-            />
-
-            <EditableField
-              label={t("page_profile_label_gstin")}
-              value={brokerProfile.gstin}
-              icon={<FileText className="h-4 w-4" />}
-              isEditing={editingField === "gstin"}
-              onEdit={() => setEditingField("gstin")}
-              onSave={(value) => handleUpdateField("gstin", value)}
-              onCancel={() => setEditingField(null)}
-              placeholder={t("page_profile_placeholder_gstin")}
-              maxLength={15}
-              loading={loading && editingField === "gstin"}
-              editable={!brokerCompanyDetails}
-            />
-
-            <EditableField
-              label={t("page_profile_label_experience")}
-              value={brokerProfile.yearsOfExperience}
-              icon={<Briefcase className="h-4 w-4" />}
-              isEditing={editingField === "yearsOfExperience"}
-              onEdit={() => setEditingField("yearsOfExperience")}
-              onSave={(value) => handleUpdateField("yearsOfExperience", value)}
-              onCancel={() => setEditingField(null)}
-              type="select"
-              options={experienceOptions}
-              suffix={` ${brokerProfile.yearsOfExperience === 1 ? t("page_profile_year") : t("page_profile_years")}`}
-              loading={loading && editingField === "yearsOfExperience"}
-            />
-
-            <EditableField
-              label={t("page_profile_label_rera")}
-              value={brokerProfile.reraNumber}
-              icon={<Award className="h-4 w-4" />}
-              isEditing={editingField === "reraNumber"}
-              onEdit={() => setEditingField("reraNumber")}
-              onSave={(value) => handleUpdateField("reraNumber", value)}
-              onCancel={() => setEditingField(null)}
-              placeholder={t("page_profile_placeholder_rera")}
-              maxLength={50}
-              loading={loading && editingField === "reraNumber"}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Location Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            {t("page_profile_location_info")}
-          </CardTitle>
-          <CardDescription>{t("page_profile_location_info_desc")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-6">
-            <EditableField
-              label={t("page_profile_label_city")}
-              value={brokerProfile.city}
-              icon={<MapPin className="h-4 w-4" />}
-              isEditing={editingField === "city"}
-              onEdit={() => setEditingField("city")}
-              onSave={(value) => handleUpdateField("city", value)}
-              onCancel={() => setEditingField(null)}
-              type="city"
-              placeholder={t("page_profile_placeholder_city")}
-              loading={loading && editingField === "city"}
-            />
-
-            <EditableField
-              label={t("page_profile_label_office_address")}
-              value={brokerProfile.officeAddress}
-              icon={<Building2 className="h-4 w-4" />}
-              isEditing={editingField === "officeAddress"}
-              onEdit={() => setEditingField("officeAddress")}
-              onSave={(value) => handleUpdateField("officeAddress", value)}
-              onCancel={() => setEditingField(null)}
-              type="address"
-              placeholder={t("page_profile_placeholder_address")}
-              loading={loading && editingField === "officeAddress"}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Security Card */}
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
-            <Lock className="h-6 w-6" />
-          </div>
-          <div className="space-y-1">
-            <CardTitle className="text-xl">{t("page_profile_security_title")}</CardTitle>
-            <CardDescription>
-              {t("page_profile_security_desc")}
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Key className="h-4 w-4" /> {t("page_profile_label_password")}
-              </h3>
-              <p className="text-sm">
-                {hasPassword
-                  ? t("page_profile_has_password")
-                  : t("page_profile_no_password")}
-              </p>
-            </div>
-            {hasPassword ? (
-              <Button
-                variant="outline"
-                onClick={handleResetPassword}
-                disabled={loading}
-              >
-                {t("page_profile_reset_password")}
-              </Button>
-            ) : (
-              <Dialog
-                open={isPasswordDialogOpen}
-                onOpenChange={setIsPasswordDialogOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button variant="outline">{t("page_profile_set_password")}</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{t("page_profile_set_password")}</DialogTitle>
-                    <DialogDescription>
-                      {t("page_profile_set_password_desc")}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="new-password">{t("page_profile_new_password")}</Label>
-                      <Input
-                        id="new-password"
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder={t("page_profile_new_password_placeholder")}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm-password">{t("page_profile_confirm_password")}</Label>
-                      <Input
-                        id="confirm-password"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder={t("page_profile_confirm_password_placeholder")}
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsPasswordDialogOpen(false)}
-                      disabled={loading}
-                    >
-                      {t("action_cancel")}
-                    </Button>
-                    <Button onClick={handleAddPassword} disabled={loading}>
-                      {loading ? t("page_profile_setting_password") : t("page_profile_set_password")}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Company Association Card */}
-      {brokerCompanyDetails ? (
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Building2 className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl">
-                    {brokerCompanyDetails.name}
-                  </CardTitle>
-                  <CardDescription>{t("page_profile_company_details")}</CardDescription>
-                </div>
+        <TabsContent value="personal" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="h-5 w-5" />
+                {t("page_profile_personal_info")}
+              </CardTitle>
+              <CardDescription>{t("page_profile_personal_info_desc")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <EditableField
+                  label={t("page_profile_label_first_name")}
+                  value={brokerProfile.firstName}
+                  icon={<User className="h-4 w-4" />}
+                  isEditing={false}
+                  editable={false}
+                  onEdit={() => { }}
+                  onSave={() => { }}
+                  onCancel={() => { }}
+                  placeholder={t("page_profile_placeholder_first_name")}
+                  loading={false}
+                />
+                <EditableField
+                  label={t("page_profile_label_last_name")}
+                  value={brokerProfile.lastName}
+                  icon={<User className="h-4 w-4" />}
+                  isEditing={false}
+                  editable={false}
+                  onEdit={() => { }}
+                  onSave={() => { }}
+                  onCancel={() => { }}
+                  placeholder={t("page_profile_placeholder_last_name")}
+                  loading={false}
+                />
+                <EditableField
+                  label={t("page_profile_label_email")}
+                  value={brokerProfile.email}
+                  icon={<Mail className="h-4 w-4" />}
+                  isEditing={false}
+                  editable={false}
+                  onEdit={() => { }}
+                  onSave={() => { }}
+                  onCancel={() => { }}
+                />
+                <EditableField
+                  label={t("page_profile_label_mobile")}
+                  value={brokerProfile.mobile}
+                  icon={<Phone className="h-4 w-4" />}
+                  isEditing={false}
+                  editable={false}
+                  onEdit={() => { }}
+                  onSave={() => { }}
+                  onCancel={() => { }}
+                  placeholder={t("page_profile_placeholder_mobile")}
+                  maxLength={10}
+                  loading={false}
+                />
               </div>
-              <Dialog
-                open={isLeaveDialogOpen}
-                onOpenChange={setIsLeaveDialogOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button variant="destructive" disabled={isLeavingCompany}>
-                    {t("page_profile_leave_company")}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="business" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Briefcase className="h-5 w-5" />
+                {t("page_profile_business_info")}
+              </CardTitle>
+              <CardDescription>{t("page_profile_business_info_desc")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <EditableField
+                  label={t("page_profile_label_company_name")}
+                  value={brokerProfile.companyName}
+                  icon={<Building2 className="h-4 w-4" />}
+                  isEditing={editingField === "companyName"}
+                  onEdit={() => setEditingField("companyName")}
+                  onSave={(value) => handleUpdateField("companyName", value)}
+                  onCancel={() => setEditingField(null)}
+                  placeholder={t("page_profile_placeholder_company")}
+                  loading={loading && editingField === "companyName"}
+                  editable={!brokerCompanyDetails}
+                />
+                <EditableField
+                  label={t("page_profile_label_gstin")}
+                  value={brokerProfile.gstin}
+                  icon={<FileText className="h-4 w-4" />}
+                  isEditing={editingField === "gstin"}
+                  onEdit={() => setEditingField("gstin")}
+                  onSave={(value) => handleUpdateField("gstin", value)}
+                  onCancel={() => setEditingField(null)}
+                  placeholder={t("page_profile_placeholder_gstin")}
+                  maxLength={15}
+                  loading={loading && editingField === "gstin"}
+                  editable={!brokerCompanyDetails}
+                />
+                <EditableField
+                  label={t("page_profile_label_experience")}
+                  value={brokerProfile.yearsOfExperience}
+                  icon={<Briefcase className="h-4 w-4" />}
+                  isEditing={editingField === "yearsOfExperience"}
+                  onEdit={() => setEditingField("yearsOfExperience")}
+                  onSave={(value) => handleUpdateField("yearsOfExperience", value)}
+                  onCancel={() => setEditingField(null)}
+                  type="select"
+                  options={experienceOptions}
+                  suffix={` ${brokerProfile.yearsOfExperience === 1 ? t("page_profile_year") : t("page_profile_years")}`}
+                  loading={loading && editingField === "yearsOfExperience"}
+                />
+                <EditableField
+                  label={t("page_profile_label_rera")}
+                  value={brokerProfile.reraNumber}
+                  icon={<Award className="h-4 w-4" />}
+                  isEditing={editingField === "reraNumber"}
+                  onEdit={() => setEditingField("reraNumber")}
+                  onSave={(value) => handleUpdateField("reraNumber", value)}
+                  onCancel={() => setEditingField(null)}
+                  placeholder={t("page_profile_placeholder_rera")}
+                  maxLength={50}
+                  loading={loading && editingField === "reraNumber"}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="location" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                {t("page_profile_location_info")}
+              </CardTitle>
+              <CardDescription>{t("page_profile_location_info_desc")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-6">
+                <EditableField
+                  label={t("page_profile_label_city")}
+                  value={brokerProfile.city}
+                  icon={<MapPin className="h-4 w-4" />}
+                  isEditing={editingField === "city"}
+                  onEdit={() => setEditingField("city")}
+                  onSave={(value) => handleUpdateField("city", value)}
+                  onCancel={() => setEditingField(null)}
+                  type="city"
+                  placeholder={t("page_profile_placeholder_city")}
+                  loading={loading && editingField === "city"}
+                />
+                <EditableField
+                  label={t("page_profile_label_office_address")}
+                  value={brokerProfile.officeAddress}
+                  icon={<Building2 className="h-4 w-4" />}
+                  isEditing={editingField === "officeAddress"}
+                  onEdit={() => setEditingField("officeAddress")}
+                  onSave={(value) => handleUpdateField("officeAddress", value)}
+                  onCancel={() => setEditingField(null)}
+                  type="address"
+                  placeholder={t("page_profile_placeholder_address")}
+                  loading={loading && editingField === "officeAddress"}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security" className="space-y-4">
+          <Card>
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <Lock className="h-6 w-6" />
+              </div>
+              <div className="space-y-1">
+                <CardTitle className="text-xl">{t("page_profile_security_title")}</CardTitle>
+                <CardDescription>{t("page_profile_security_desc")}</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Key className="h-4 w-4" /> {t("page_profile_label_password")}
+                  </h3>
+                  <p className="text-sm">
+                    {hasPassword
+                      ? t("page_profile_has_password")
+                      : t("page_profile_no_password")}
+                  </p>
+                </div>
+                {hasPassword ? (
+                  <Button
+                    variant="outline"
+                    onClick={handleResetPassword}
+                    disabled={loading}
+                  >
+                    {t("page_profile_reset_password")}
                   </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{t("page_profile_leave_title")}</DialogTitle>
-                    <DialogDescription>
-                      {t("page_profile_leave_desc")}{" "}
-                      {brokerCompanyDetails.name}. {t("page_profile_leave_desc_suffix")}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="leave-reason">{t("page_profile_leave_reason")}</Label>
-                      <Select
-                        value={leaveReason}
-                        onValueChange={setLeaveReason}
-                      >
-                        <SelectTrigger id="leave-reason">
-                          <SelectValue placeholder={t("page_profile_leave_select_reason")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {leaveReasonOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {isOtherLeaveReason && (
-                      <div className="space-y-2">
-                        <Label htmlFor="leave-reason-custom">
-                          {t("page_profile_leave_custom_message")}
-                        </Label>
-                        <Textarea
-                          id="leave-reason-custom"
-                          value={customLeaveReason}
-                          onChange={(event) =>
-                            setCustomLeaveReason(event.target.value)
-                          }
-                          placeholder={t("page_profile_leave_custom_placeholder")}
-                          className="min-h-[96px]"
-                          maxLength={500}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          {trimmedCustomLeaveReason.length}/500 {t("page_profile_leave_chars")}
-                        </p>
+                ) : (
+                  <Dialog
+                    open={isPasswordDialogOpen}
+                    onOpenChange={setIsPasswordDialogOpen}
+                  >
+                    <DialogTrigger asChild>
+                      <Button variant="outline">{t("page_profile_set_password")}</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>{t("page_profile_set_password")}</DialogTitle>
+                        <DialogDescription>
+                          {t("page_profile_set_password_desc")}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="new-password">{t("page_profile_new_password")}</Label>
+                          <Input
+                            id="new-password"
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder={t("page_profile_new_password_placeholder")}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="confirm-password">{t("page_profile_confirm_password")}</Label>
+                          <Input
+                            id="confirm-password"
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder={t("page_profile_confirm_password_placeholder")}
+                          />
+                        </div>
                       </div>
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsPasswordDialogOpen(false)}
+                          disabled={loading}
+                        >
+                          {t("action_cancel")}
+                        </Button>
+                        <Button onClick={handleAddPassword} disabled={loading}>
+                          {loading ? t("page_profile_setting_password") : t("page_profile_set_password")}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="subscription" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("page_subscription_title", "Subscription")}</CardTitle>
+              <CardDescription>
+                {t("page_subscription_subtitle", "Track your current plan and usage.")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {isSubscriptionLoading ? (
+                <p className="text-sm text-muted-foreground">{t("page_profile_loading")}</p>
+              ) : (
+                <>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline">
+                      {t("page_subscription_plan", "Plan")}: {currentTierInfo?.name || currentTier}
+                    </Badge>
+                    {subscription?.phase ? (
+                      <Badge variant="outline">
+                        {t("page_subscription_phase", "Phase")}: {subscription.phase}
+                      </Badge>
+                    ) : null}
+                    {subscription?.status ? (
+                      <Badge className={statusColorClass}>{subscription.status}</Badge>
+                    ) : (
+                      <Badge variant="secondary">{t("page_subscription_no_plan", "No active subscription")}</Badge>
                     )}
                   </div>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsLeaveDialogOpen(false)}
-                      disabled={isLeavingCompany}
-                    >
-                      {t("action_cancel")}
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={handleLeaveCompany}
-                      disabled={!isLeaveReasonValid || isLeavingCompany}
-                    >
-                      {isLeavingCompany ? t("page_profile_leaving") : t("page_profile_leave_company")}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-1">
-                <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Mail className="h-4 w-4" /> {t("page_profile_label_email")}
-                </h3>
-                <p className="text-lg font-medium">
-                  {brokerCompanyDetails.email}
-                </p>
-              </div>
 
-              <div className="space-y-1">
-                <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Phone className="h-4 w-4" /> {t("page_profile_label_mobile")}
-                </h3>
-                <p className="text-lg font-medium">
-                  {brokerCompanyDetails.mobile}
-                </p>
-              </div>
+                  {subscription?.currentPeriodStart && subscription?.currentPeriodEnd ? (
+                    <div className="text-sm text-muted-foreground">
+                      {t("page_subscription_started", "Started")}:{" "}
+                      {formatDate(subscription.currentPeriodStart)} |{" "}
+                      {t("page_subscription_renews", "Renews")}:{" "}
+                      {formatDate(subscription.currentPeriodEnd)}
+                    </div>
+                  ) : null}
 
-              <div className="space-y-1">
-                <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <MapPin className="h-4 w-4" /> {t("page_profile_label_location")}
-                </h3>
-                <div className="space-y-0.5">
-                  <p className="text-lg font-medium">
-                    {brokerCompanyDetails.city}
-                  </p>
-                  {brokerCompanyDetails.officeAddress && (
-                    <p className="text-sm text-muted-foreground">
-                      {brokerCompanyDetails.officeAddress}
-                    </p>
-                  )}
+                  <div className="space-y-4">
+                    {[
+                      {
+                        key: "property_listing",
+                        label: t("page_subscription_feature_property_listing"),
+                        used: usage?.property_listing || 0,
+                        limit: usageLimits?.property_listing || 0,
+                        total: limits?.PROPERTY_LISTING || 0,
+                      },
+                      {
+                        key: "enquiry_listing",
+                        label: t("page_subscription_feature_enquiry_listing"),
+                        used: usage?.enquiry_listing || 0,
+                        limit: usageLimits?.enquiry_listing || 0,
+                        total: limits?.ENQUIRY_LISTING || 0,
+                      },
+                      {
+                        key: "submit_property_enquiry",
+                        label: t("page_subscription_feature_property_submission"),
+                        used: usage?.submit_property_enquiry || 0,
+                        limit: usageLimits?.submit_property_enquiry || 0,
+                        total: limits?.SUBMIT_PROPERTY_ENQUIRY || 0,
+                      },
+                    ].map((item) => {
+                      const effectiveLimit = item.limit || item.total || 0;
+                      const percentage =
+                        effectiveLimit > 0
+                          ? Math.min(100, Math.round((item.used / effectiveLimit) * 100))
+                          : 0;
+                      return (
+                        <div key={item.key} className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span>{item.label}</span>
+                            <span className="font-medium">
+                              {item.used} / {effectiveLimit}
+                            </span>
+                          </div>
+                          <Progress value={percentage} className="h-2" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {brokerCompanyDetails ? (
+          <TabsContent value="company" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Building2 className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl">
+                        {brokerCompanyDetails.name}
+                      </CardTitle>
+                      <CardDescription>{t("page_profile_company_details")}</CardDescription>
+                    </div>
+                  </div>
+                  <Dialog
+                    open={isLeaveDialogOpen}
+                    onOpenChange={setIsLeaveDialogOpen}
+                  >
+                    <DialogTrigger asChild>
+                      <Button variant="destructive" disabled={isLeavingCompany}>
+                        {t("page_profile_leave_company")}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>{t("page_profile_leave_title")}</DialogTitle>
+                        <DialogDescription>
+                          {t("page_profile_leave_desc")}{" "}
+                          {brokerCompanyDetails.name}. {t("page_profile_leave_desc_suffix")}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="leave-reason">{t("page_profile_leave_reason")}</Label>
+                          <Select
+                            value={leaveReason}
+                            onValueChange={setLeaveReason}
+                          >
+                            <SelectTrigger id="leave-reason">
+                              <SelectValue placeholder={t("page_profile_leave_select_reason")} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {leaveReasonOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {isOtherLeaveReason && (
+                          <div className="space-y-2">
+                            <Label htmlFor="leave-reason-custom">
+                              {t("page_profile_leave_custom_message")}
+                            </Label>
+                            <Textarea
+                              id="leave-reason-custom"
+                              value={customLeaveReason}
+                              onChange={(event) =>
+                                setCustomLeaveReason(event.target.value)
+                              }
+                              placeholder={t("page_profile_leave_custom_placeholder")}
+                              className="min-h-[96px]"
+                              maxLength={500}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              {trimmedCustomLeaveReason.length}/500 {t("page_profile_leave_chars")}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsLeaveDialogOpen(false)}
+                          disabled={isLeavingCompany}
+                        >
+                          {t("action_cancel")}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={handleLeaveCompany}
+                          disabled={!isLeaveReasonValid || isLeavingCompany}
+                        >
+                          {isLeavingCompany ? t("page_profile_leaving") : t("page_profile_leave_company")}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
-              </div>
-
-              <div className="space-y-1">
-                <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <FileText className="h-4 w-4" /> {t("page_profile_label_gstin")}
-                </h3>
-                <p className="text-lg font-medium">
-                  {brokerCompanyDetails.gstin || t("page_profile_na")}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Users className="h-4 w-4" /> {t("page_profile_label_employees")}
-                </h3>
-                <p className="text-lg font-medium">
-                  {brokerCompanyDetails.noOfEmployees || 0}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Award className="h-4 w-4" /> {t("page_profile_label_status")}
-                </h3>
-                <Badge
-                  variant={
-                    brokerCompanyDetails.status === "approved"
-                      ? "default"
-                      : "secondary"
-                  }
-                >
-                  {brokerCompanyDetails.status.toUpperCase()}
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <Mail className="h-4 w-4" /> {t("page_profile_label_email")}
+                    </h3>
+                    <p className="text-lg font-medium">
+                      {brokerCompanyDetails.email}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <Phone className="h-4 w-4" /> {t("page_profile_label_mobile")}
+                    </h3>
+                    <p className="text-lg font-medium">
+                      {brokerCompanyDetails.mobile}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <MapPin className="h-4 w-4" /> {t("page_profile_label_location")}
+                    </h3>
+                    <div className="space-y-0.5">
+                      <p className="text-lg font-medium">
+                        {brokerCompanyDetails.city}
+                      </p>
+                      {brokerCompanyDetails.officeAddress && (
+                        <p className="text-sm text-muted-foreground">
+                          {brokerCompanyDetails.officeAddress}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <FileText className="h-4 w-4" /> {t("page_profile_label_gstin")}
+                    </h3>
+                    <p className="text-lg font-medium">
+                      {brokerCompanyDetails.gstin || t("page_profile_na")}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <Users className="h-4 w-4" /> {t("page_profile_label_employees")}
+                    </h3>
+                    <p className="text-lg font-medium">
+                      {brokerCompanyDetails.noOfEmployees || 0}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <Award className="h-4 w-4" /> {t("page_profile_label_status")}
+                    </h3>
+                    <Badge
+                      variant={
+                        brokerCompanyDetails.status === "approved"
+                          ? "default"
+                          : "secondary"
+                      }
+                    >
+                      {brokerCompanyDetails.status.toUpperCase()}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        ) : null}
+      </Tabs>
     </PageShell>
   );
 };

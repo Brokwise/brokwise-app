@@ -98,13 +98,13 @@ function TopNavLinks() {
   type NavItem = { title: string; url: string; icon: React.ElementType };
 
   const brokerHomeItems: NavItem[] = [
+    { title: t("nav_bookmarks"), url: "/bookmarks", icon: Bookmark },
     { title: t("nav_my_listings"), url: "/my-listings", icon: Building2 },
     { title: t("nav_my_enquiries"), url: "/my-enquiries", icon: FileText },
     { title: t("nav_contacts"), url: "/contacts", icon: Contact2 },
     { title: t("nav_messages"), url: "/message", icon: MessageSquare },
     { title: t("nav_projects"), url: "/projects", icon: LandPlotIcon },
     { title: t("nav_subscription"), url: "/subscription", icon: Crown },
-    { title: t("nav_bookmarks"), url: "/bookmarks", icon: Bookmark },
   ];
 
   const companyHomeItems: NavItem[] = [
@@ -158,12 +158,7 @@ function TopNavLinks() {
             className="fixed inset-0 z-[110] hidden lg:flex items-center justify-center pointer-events-none"
           >
             <div className="pointer-events-auto flex flex-col items-center gap-3">
-              <button
-                onClick={closeAll}
-                className="mb-4 h-12 w-12 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg hover:bg-destructive/90 transition-colors"
-              >
-                <X className="h-6 w-6" />
-              </button>
+
               {activeItems.map((item, i) => {
                 const Icon = item.icon;
                 return (
@@ -182,7 +177,7 @@ function TopNavLinks() {
                     <Link
                       href={item.url}
                       onClick={closeAll}
-                      className="flex items-center gap-3 rounded-full bg-primary px-8 py-3.5 text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors min-w-[240px] justify-center"
+                      className="flex items-center gap-3 rounded-full bg-primary px-8 py-3.5 text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors min-w-[240px] justify-center "
                     >
                       <Icon className="h-5 w-5" />
                       <span className="font-medium">{item.title}</span>
@@ -190,6 +185,12 @@ function TopNavLinks() {
                   </motion.div>
                 );
               })}
+              <button
+                onClick={closeAll}
+                className="mb-4 h-12 w-12 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg hover:bg-destructive/90 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
             </div>
           </motion.div>
         </>
