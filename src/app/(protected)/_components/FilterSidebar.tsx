@@ -2,8 +2,7 @@
 
 import React, { useMemo } from "react";
 import {
-  Search,
-  X,
+
   RotateCcw,
   Home,
   Building2,
@@ -116,7 +115,6 @@ const categoryIcons: Record<string, React.ElementType> = {
 export const FilterSidebar = ({
   viewMode,
   searchQuery,
-  setSearchQuery,
   categoryFilter,
   setCategoryFilter,
   propertyTypeFilter,
@@ -138,8 +136,6 @@ export const FilterSidebar = ({
   effectivePriceRange,
   clearFilters,
   hasActiveFilters,
-  filteredCount,
-  filteredEnquiriesCount,
 }: FilterSidebarProps) => {
   const { userData } = useApp();
   const { t } = useTranslation();
