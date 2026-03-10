@@ -186,12 +186,7 @@ export const PropertyPreviewModal: React.FC<PropertyPreviewModalProps> = ({
 
                       {/* Status Badges Overlay */}
                       <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                        {property.isVerified && (
-                          <Badge className="bg-emerald-500/90 hover:bg-emerald-500 text-white border-0 text-[10px] h-6">
-                            <BadgeCheck className="h-3 w-3 mr-1" />
-                            Verified
-                          </Badge>
-                        )}
+
                         {property.isFeatured && (
                           <Badge className="bg-amber-500/90 hover:bg-amber-500 text-white border-0 text-[10px] h-6">
                             <Sparkles className="h-3 w-3 mr-1" />

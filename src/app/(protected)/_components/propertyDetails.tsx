@@ -142,12 +142,7 @@ export const PropertyDetails = ({
               >
                 {property.listingStatus.replace(/_/g, " ")}
               </Badge>
-              {property.isVerified && (
-                <Badge variant="outline" className="border-emerald-500/50 text-emerald-600 bg-emerald-50/50 text-[10px] py-0.5 px-2">
-                  <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
-                  Verified
-                </Badge>
-              )}
+
             </div>
           </div>
 
