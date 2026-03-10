@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { PageShell, PageHeader } from "@/components/ui/layout";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 
 const RENTAL_CATEGORIES = new Set<PropertyCategory>(["RESIDENTIAL", "COMMERCIAL"]);
 
@@ -357,7 +358,7 @@ const CreateProperty = () => {
                 </p>
               )}
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div className={cn("grid grid-cols-2 md:grid-cols-3 gap-3", listingPurpose === "RENT" ? "grid-cols-1 md:grid-cols-2" : "grid-cols-2 md:grid-cols-3")}>
                 {availableCategories.map((category) => (
                   <MovingBorderCard
                     key={category.key}
@@ -368,7 +369,7 @@ const CreateProperty = () => {
                     as={motion.div}
                     variants={itemVariants}
                     onClick={() => handleCategorySelect(category.key)}
-                    containerClassName="h-40 w-full overflow-hidden bg-transparent p-[2px]"
+                    containerClassName={cn("h-40 w-full overflow-hidden bg-transparent p-[2px]", listingPurpose === "RENT" ? "h-56" : "h-40")}
                     className="bg-transparent border-none p-0 items-start justify-start"
                     borderClassName="h-24 w-24 opacity-100 bg-[radial-gradient(#3b82f6_30%,#06b6d4_50%,transparent_70%)]"
                   >
