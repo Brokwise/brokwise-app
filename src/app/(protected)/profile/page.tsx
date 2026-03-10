@@ -727,19 +727,20 @@ const ProfilePage = () => {
         </CardHeader>
       </Card>
 
-      <Tabs defaultValue="personal" className="space-y-4">
-        <TabsList className="h-auto flex-wrap justify-start">
-          <TabsTrigger value="personal">{t("page_profile_personal_info")}</TabsTrigger>
-          <TabsTrigger value="business">{t("page_profile_business_info")}</TabsTrigger>
-          <TabsTrigger value="location">{t("page_profile_location_info")}</TabsTrigger>
-          <TabsTrigger value="security">{t("page_profile_security_title")}</TabsTrigger>
-          <TabsTrigger value="subscription">
+      <Tabs defaultValue="personal" className="flex flex-col md:flex-row gap-6">
+        <TabsList className="flex flex-row md:flex-col h-auto flex-wrap md:flex-nowrap justify-start md:w-64 md:shrink-0 bg-muted/20 p-2 rounded-lg gap-2">
+          <TabsTrigger value="personal" className="w-full md:justify-start">{t("page_profile_personal_info")}</TabsTrigger>
+          <TabsTrigger value="business" className="w-full md:justify-start">{t("page_profile_business_info")}</TabsTrigger>
+          <TabsTrigger value="location" className="w-full md:justify-start">{t("page_profile_location_info")}</TabsTrigger>
+          <TabsTrigger value="security" className="w-full md:justify-start">{t("page_profile_security_title")}</TabsTrigger>
+          <TabsTrigger value="subscription" className="w-full md:justify-start">
             {t("page_subscription_title", "Subscription")}
           </TabsTrigger>
           {brokerCompanyDetails ? (
-            <TabsTrigger value="company">{t("page_profile_company_details")}</TabsTrigger>
+            <TabsTrigger value="company" className="w-full md:justify-start">{t("page_profile_company_details")}</TabsTrigger>
           ) : null}
         </TabsList>
+        <div className="flex-1 space-y-4">
 
         <TabsContent value="personal" className="space-y-4">
           <Card>
@@ -1245,6 +1246,7 @@ const ProfilePage = () => {
             </Card>
           </TabsContent>
         ) : null}
+      </div>
       </Tabs>
     </PageShell>
   );

@@ -271,7 +271,7 @@ function TopNavLinks() {
           )}
         </div>
 
-        {/* Purpose selector: All | Buy | Rent */}
+
         <div className="flex gap-1 p-0.5 bg-muted/40 rounded-full border border-border/30 shrink-0">
           {([
             { value: "ALL", label: "All", icon: Home },

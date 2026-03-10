@@ -8,7 +8,6 @@ const config: CapacitorConfig = {
   //   url: "http://localhost:3001",
   //   cleartext: true
   // },
-
   ios: {
     path: "ios",
   },

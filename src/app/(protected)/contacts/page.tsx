@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React, { useState, useMemo } from "react";
 import {
   useGetContacts,
@@ -728,18 +729,38 @@ const ContactCard = ({
                     <div className="flex items-center gap-2 text-xs">
                       <FileText className="h-3 w-3 text-muted-foreground shrink-0" />
                       <span className="text-muted-foreground">{t("page_contacts_label_enquiry")}</span>
-                      <span className="font-medium truncate">
-                        {context.enquiryTitle}
-                      </span>
+                      {context.enquiryId ? (
+                        <Link
+                          href={`/enquiry/${context.enquiryId}`}
+                          className="font-medium truncate hover:text-primary hover:underline transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {context.enquiryTitle}
+                        </Link>
+                      ) : (
+                        <span className="font-medium truncate">
+                          {context.enquiryTitle}
+                        </span>
+                      )}
                     </div>
                   )}
                   {context.propertyTitle && (
                     <div className="flex items-center gap-2 text-xs">
                       <Home className="h-3 w-3 text-muted-foreground shrink-0" />
                       <span className="text-muted-foreground">{t("page_contacts_label_property")}</span>
-                      <span className="font-medium truncate">
-                        {context.propertyTitle}
-                      </span>
+                      {context.propertyId ? (
+                        <Link
+                          href={`/property/${context.propertyId}`}
+                          className="font-medium truncate hover:text-primary hover:underline transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {context.propertyTitle}
+                        </Link>
+                      ) : (
+                        <span className="font-medium truncate">
+                          {context.propertyTitle}
+                        </span>
+                      )}
                     </div>
                   )}
                   {context.availability && (

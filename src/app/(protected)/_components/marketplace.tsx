@@ -287,6 +287,25 @@ export const MarketPlace = () => {
 
   const filteredEnquiries = useMemo(() => {
     let baseEnquiries = marketPlaceEnquiries || [];
+    const normalizedListingPurpose =
+      listingPurposeFilter === "SALE"
+        ? "BUY"
+        : listingPurposeFilter;
+    const effectiveEnquiryPurposeFilter =
+      enquiryPurposeFilter !== "ALL"
+        ? enquiryPurposeFilter
+        : normalizedListingPurpose;
+    const getNormalizedEnquiryPurpose = (enquiry: (typeof baseEnquiries)[number]) => {
+      if (enquiry.enquiryPurpose === "BUY" || enquiry.enquiryPurpose === "RENT") {
+        return enquiry.enquiryPurpose;
+      }
+      // Backward compatibility: some old marketplace responses may still send listingPurpose.
+      const legacyListingPurpose = (enquiry as { listingPurpose?: "SALE" | "RENT" })
+        .listingPurpose;
+      if (legacyListingPurpose === "RENT") return "RENT";
+      // Default undefined/SALE to BUY.
+      return "BUY";
+    };
 
     if (debouncedSearchQuery) {
       if (enquiryFuse) {
@@ -304,12 +323,13 @@ export const MarketPlace = () => {
       const matchesCategory =
         categoryFilter === "ALL" || enquiry.enquiryCategory === categoryFilter;
 
+      const normalizedPurpose = getNormalizedEnquiryPurpose(enquiry);
       const matchesPurpose =
-        enquiryPurposeFilter === "ALL" ||
-        enquiry.enquiryPurpose === enquiryPurposeFilter;
+        effectiveEnquiryPurposeFilter === "ALL" ||
+        normalizedPurpose === effectiveEnquiryPurposeFilter;
 
       let matchesPrice = true;
-      if (enquiryPurposeFilter === "RENT") {
+      if (effectiveEnquiryPurposeFilter === "RENT") {
         if (debouncedRentRange && enquiry.monthlyRentBudget) {
           const [minFilter, maxFilter] = debouncedRentRange;
           const eMin = enquiry.monthlyRentBudget.min || 0;
@@ -392,6 +412,7 @@ export const MarketPlace = () => {
     debouncedEnquiryPriceRange,
     debouncedRentRange,
     enquiryPurposeFilter,
+    listingPurposeFilter,
     bhkFilter,
     userCity,
   ]);

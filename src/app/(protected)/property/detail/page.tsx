@@ -241,6 +241,7 @@ const PropertyPageContent = () => {
               shareUrl={typeof window !== "undefined" ? window.location.href : ""}
               propertyTitle={`Property #${property.propertyId || "N/A"}`}
               isDeleted={property.listingStatus === "DELETED"}
+              property={property}
             />
             <PropertySidebar property={property} />
           </div>

@@ -178,8 +178,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           {/* Featured crown indicator (top-right) */}
           {isFeatured && (
             <div className="absolute top-2 right-2 z-10">
-              <div className="h-6 w-6 md:h-7 md:w-7 rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/30">
-                <Crown className="h-3 w-3 md:h-3.5 md:w-3.5 text-white fill-white drop-shadow-sm" />
+              <div className="group/featured h-8 w-8 hover:w-24 md:h-9 md:w-9 md:hover:w-28 rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 flex items-center justify-start overflow-hidden pl-1.5 md:pl-2 shadow-md shadow-amber-500/30 transition-all duration-300 ease-out">
+                <Crown className="h-5 w-5 text-white fill-white drop-shadow-sm shrink-0" />
+                <span className="ml-2 text-xs font-semibold text-white whitespace-nowrap max-w-0 opacity-0 group-hover/featured:max-w-20 group-hover/featured:opacity-100 transition-all duration-300 ease-out">
+                  Featured
+                </span>
               </div>
             </div>
           )}
