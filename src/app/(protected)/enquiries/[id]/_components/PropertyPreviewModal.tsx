@@ -26,7 +26,6 @@ import {
   Compass,
   Calendar,
   IndianRupee,
-  BadgeCheck,
   Sparkles,
   Tag,
   Car,

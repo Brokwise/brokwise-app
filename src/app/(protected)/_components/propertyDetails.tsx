@@ -19,7 +19,6 @@ import {
   Route,
   IndianRupee,
   Star,
-  CheckCircle2,
   Calendar,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
