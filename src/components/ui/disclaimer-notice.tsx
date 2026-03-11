@@ -2,7 +2,7 @@
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
-import { ShieldAlert } from "lucide-react";
+import { Info } from "lucide-react";
 import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 interface DisclaimerNoticeProps {
@@ -23,7 +23,7 @@ export const DisclaimerNotice = ({
         className
       )}
     >
-      <ShieldAlert className="h-4 w-4 text-amber-700 dark:text-amber-300" />
+      <Info className="h-4 w-4 text-amber-700 dark:text-amber-300" />
       <AlertTitle className="text-amber-800 dark:text-amber-100">
         {title}
       </AlertTitle>
