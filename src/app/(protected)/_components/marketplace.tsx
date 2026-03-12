@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   useGetAllProperties,
   PropertyListFilters,
@@ -16,13 +16,15 @@ import { PropertyCard } from "@/./app/(protected)/_components/propertyCard";
 import { MapBox } from "@/./app/(protected)/_components/mapBox";
 import { PropertyDetails } from "@/./app/(protected)/_components/propertyDetails";
 import { EnquiryCard } from "@/./app/(protected)/enquiries/_components/EnquiryCard";
+import { FilterSidebar } from "@/./app/(protected)/_components/FilterSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, ArrowUp } from "lucide-react";
+import { AlertCircle, ArrowUp, Plus, LayoutGridIcon, MapPin, Columns } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useApp } from "@/context/AppContext";
 import Fuse from "fuse.js";
+import Link from "next/link";
 import {
   Select,
   SelectContent,
@@ -45,13 +47,15 @@ import {
   EmptyEnquiriesState,
   EmptyState,
 } from "@/./app/(protected)/_components/empty-state";
+import { useTranslation } from "react-i18next";
+import { useMarketplaceFilterStore } from "@/stores/marketplaceFilterStore";
 
 export const MarketPlace = () => {
-  console.log("first");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { brokerData, companyData, userData } = useApp();
+  const { t } = useTranslation();
   const userCity =
     userData?.userType === "company" ? companyData?.city : brokerData?.city;
 
@@ -70,16 +74,20 @@ export const MarketPlace = () => {
     [pathname, router, searchParams]
   );
   const [currentPage, setCurrentPage] = useState(1);
-  const [cardsPerPage, setCardsPerPage] = useState(12);
+  const [cardsPerPage, setCardsPerPage] = useState(24);
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const {
+    searchQuery,
+    setSearchQuery,
+    listingPurposeFilter,
+    setListingPurposeFilter,
+  } = useMarketplaceFilterStore();
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [propertyTypeFilter, setPropertyTypeFilter] = useState<string>("ALL");
   const [sourceFilter, setSourceFilter] = useState<string>("ALL");
   const [priceRange, setPriceRange] = useState<number[] | null>(null);
   const [bhkFilter, setBhkFilter] = useState<string>("ALL");
   const [featuredFilter, setFeaturedFilter] = useState<string>("ALL");
-  const [listingPurposeFilter, setListingPurposeFilter] = useState<string>("ALL");
   const [enquiryPurposeFilter, setEnquiryPurposeFilter] = useState<string>("ALL");
   const [rentRange, setRentRange] = useState<number[] | null>(null);
 
@@ -279,6 +287,25 @@ export const MarketPlace = () => {
 
   const filteredEnquiries = useMemo(() => {
     let baseEnquiries = marketPlaceEnquiries || [];
+    const normalizedListingPurpose =
+      listingPurposeFilter === "SALE"
+        ? "BUY"
+        : listingPurposeFilter;
+    const effectiveEnquiryPurposeFilter =
+      enquiryPurposeFilter !== "ALL"
+        ? enquiryPurposeFilter
+        : normalizedListingPurpose;
+    const getNormalizedEnquiryPurpose = (enquiry: (typeof baseEnquiries)[number]) => {
+      if (enquiry.enquiryPurpose === "BUY" || enquiry.enquiryPurpose === "RENT") {
+        return enquiry.enquiryPurpose;
+      }
+      // Backward compatibility: some old marketplace responses may still send listingPurpose.
+      const legacyListingPurpose = (enquiry as { listingPurpose?: "SALE" | "RENT" })
+        .listingPurpose;
+      if (legacyListingPurpose === "RENT") return "RENT";
+      // Default undefined/SALE to BUY.
+      return "BUY";
+    };
 
     if (debouncedSearchQuery) {
       if (enquiryFuse) {
@@ -296,12 +323,13 @@ export const MarketPlace = () => {
       const matchesCategory =
         categoryFilter === "ALL" || enquiry.enquiryCategory === categoryFilter;
 
+      const normalizedPurpose = getNormalizedEnquiryPurpose(enquiry);
       const matchesPurpose =
-        enquiryPurposeFilter === "ALL" ||
-        enquiry.enquiryPurpose === enquiryPurposeFilter;
+        effectiveEnquiryPurposeFilter === "ALL" ||
+        normalizedPurpose === effectiveEnquiryPurposeFilter;
 
       let matchesPrice = true;
-      if (enquiryPurposeFilter === "RENT") {
+      if (effectiveEnquiryPurposeFilter === "RENT") {
         if (debouncedRentRange && enquiry.monthlyRentBudget) {
           const [minFilter, maxFilter] = debouncedRentRange;
           const eMin = enquiry.monthlyRentBudget.min || 0;
@@ -384,6 +412,7 @@ export const MarketPlace = () => {
     debouncedEnquiryPriceRange,
     debouncedRentRange,
     enquiryPurposeFilter,
+    listingPurposeFilter,
     bhkFilter,
     userCity,
   ]);
@@ -525,6 +554,38 @@ export const MarketPlace = () => {
     );
   };
 
+  const filterSidebarProps = {
+    viewMode,
+    searchQuery,
+    setSearchQuery,
+    categoryFilter,
+    setCategoryFilter,
+    propertyTypeFilter,
+    setPropertyTypeFilter,
+    sourceFilter,
+    setSourceFilter,
+    priceRange,
+    setPriceRange,
+    bhkFilter,
+    setBhkFilter,
+    featuredFilter,
+    setFeaturedFilter,
+    listingPurposeFilter,
+    setListingPurposeFilter,
+    enquiryPurposeFilter,
+    setEnquiryPurposeFilter,
+    rentRange,
+    setRentRange,
+    maxRentPrice,
+    effectiveRentRange,
+    maxPropertyPrice,
+    effectivePriceRange,
+    clearFilters,
+    hasActiveFilters,
+    filteredCount: pagination.total,
+    filteredEnquiriesCount: filteredEnquiries.length,
+  };
+
   if (viewMode === "PROPERTIES" && error) {
     return (
       <div className="container mx-auto p-6">
@@ -557,298 +618,483 @@ export const MarketPlace = () => {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
+      transition: { staggerChildren: 0.05 },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 12 },
     show: { opacity: 1, y: 0 },
   };
 
-  return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden relative w-full">
-      <MarketplaceHeader
-        viewMode={viewMode}
-        setViewMode={handleViewModeChange}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        categoryFilter={categoryFilter}
-        setCategoryFilter={setCategoryFilter}
-        propertyTypeFilter={propertyTypeFilter}
-        setPropertyTypeFilter={setPropertyTypeFilter}
-        sourceFilter={sourceFilter}
-        setSourceFilter={setSourceFilter}
-        priceRange={priceRange}
-        setPriceRange={setPriceRange}
-        bhkFilter={bhkFilter}
-        setBhkFilter={setBhkFilter}
-        featuredFilter={featuredFilter}
-        setFeaturedFilter={setFeaturedFilter}
-        listingPurposeFilter={listingPurposeFilter}
-        setListingPurposeFilter={setListingPurposeFilter}
-        enquiryPurposeFilter={enquiryPurposeFilter}
-        setEnquiryPurposeFilter={setEnquiryPurposeFilter}
-        rentRange={rentRange}
-        setRentRange={setRentRange}
-        maxRentPrice={maxRentPrice}
-        effectiveRentRange={effectiveRentRange}
-        view={view}
-        setView={setView}
-        filteredCount={pagination.total}
-        filteredEnquiriesCount={filteredEnquiries.length}
-        maxPropertyPrice={maxPropertyPrice}
-        effectivePriceRange={effectivePriceRange}
-        clearFilters={clearFilters}
-        hasActiveFilters={hasActiveFilters}
-        onClearPropertySelection={() => setSelectedPropertyId(null)}
-      />
+  const desktopGridCols = view === "split"
+    ? "grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3"
+    : selectedProperty
+      ? "grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+      : "grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5";
 
-      {viewMode === "PROPERTIES" ? (
-        <>
-          <div className="flex-1 flex overflow-hidden relative">
-            <div
-              ref={propertiesScrollRef}
-              onScroll={handleScroll}
-              className={`
-            flex-col h-full overflow-y-auto scrollbar-hide transition-all duration-300
-            ${view === "map" ? "hidden" : "flex"}
-            ${view === "grid"
-                  ? "w-full"
-                  : "w-full lg:w-[60%] xl:w-[55%] 2xl:w-[50%]"
-                }
-            ${isMapOverlayActive ? "hidden lg:flex" : ""}
-          `}
-            >
-              <div className="pt-3 px-6 md:px-8 space-y-3 pb-24">
-                {!isLoading && (
-                  <div className="hidden sm:flex items-center justify-between px-1">
-                    <div className="flex items-center gap-4">
-                      <p className="text-sm text-muted-foreground">
-                        Showing{" "}
-                        <span className="font-medium text-foreground">
-                          {filteredProperties.length}
-                        </span>{" "}
-                        of{" "}
-                        <span className="font-medium text-foreground">
-                          {pagination.total}
-                        </span>{" "}
-                        properties
-                        {categoryFilter !== "ALL" && (
-                          <span className="text-accent">
-                            {" "}
-                            in {categoryFilter.toLowerCase().replace("_", " ")}
-                          </span>
-                        )}
-                      </p>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-muted-foreground">
-                          Per page:
-                        </span>
-                        <Select
-                          value={String(cardsPerPage)}
-                          onValueChange={(val) =>
-                            setCardsPerPage(Number(val))
-                          }
-                        >
-                          <SelectTrigger className="w-16 h-7 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="12">12</SelectItem>
-                            <SelectItem value="24">24</SelectItem>
-                            <SelectItem value="48">48</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+  return (
+    <div className="flex h-full overflow-hidden relative w-full">
+      {/* ─── LEFT: Filter Sidebar (desktop only) ─── */}
+      <FilterSidebar {...filterSidebarProps} />
+
+      {/* ─── CENTER + RIGHT: Main content area ─── */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        {/* Mobile-only MarketplaceHeader */}
+        <div className="lg:hidden">
+          <MarketplaceHeader
+            viewMode={viewMode}
+            setViewMode={handleViewModeChange}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            categoryFilter={categoryFilter}
+            setCategoryFilter={setCategoryFilter}
+            propertyTypeFilter={propertyTypeFilter}
+            setPropertyTypeFilter={setPropertyTypeFilter}
+            sourceFilter={sourceFilter}
+            setSourceFilter={setSourceFilter}
+            priceRange={priceRange}
+            setPriceRange={setPriceRange}
+            bhkFilter={bhkFilter}
+            setBhkFilter={setBhkFilter}
+            featuredFilter={featuredFilter}
+            setFeaturedFilter={setFeaturedFilter}
+            listingPurposeFilter={listingPurposeFilter}
+            setListingPurposeFilter={setListingPurposeFilter}
+            enquiryPurposeFilter={enquiryPurposeFilter}
+            setEnquiryPurposeFilter={setEnquiryPurposeFilter}
+            rentRange={rentRange}
+            setRentRange={setRentRange}
+            maxRentPrice={maxRentPrice}
+            effectiveRentRange={effectiveRentRange}
+            view={view}
+            setView={setView}
+            filteredCount={pagination.total}
+            filteredEnquiriesCount={filteredEnquiries.length}
+            maxPropertyPrice={maxPropertyPrice}
+            effectivePriceRange={effectivePriceRange}
+            clearFilters={clearFilters}
+            hasActiveFilters={hasActiveFilters}
+            onClearPropertySelection={() => setSelectedPropertyId(null)}
+          />
+        </div>
+
+        {/* Desktop top bar */}
+        <div className="hidden lg:flex items-center justify-between px-6 py-3 border-b border-border/40 bg-background shrink-0">
+          <div className="flex items-center gap-3">
+            {/* View mode toggle */}
+            <div className="flex items-center gap-0.5 p-0.5 bg-muted/50 rounded-full border border-border/30">
+              <button
+                type="button"
+                onClick={() => handleViewModeChange("PROPERTIES")}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${viewMode === "PROPERTIES"
+                  ? "bg-primary text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                {t("nav_properties")}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleViewModeChange("ENQUIRIES")}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${viewMode === "ENQUIRIES"
+                  ? "bg-primary text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                {t("nav_enquiries")}
+              </button>
+            </div>
+
+            {!isLoading && viewMode === "PROPERTIES" && (
+              <p className="text-xs text-muted-foreground">
+                Showing{" "}
+                <span className="font-semibold text-foreground">
+                  {pagination.total}
+                </span>{" "}
+                {viewMode === "PROPERTIES" ? "properties" : "enquiries"}
+                {categoryFilter !== "ALL" && (
+                  <span className="text-primary ml-1">
+                    in {categoryFilter.toLowerCase().replace("_", " ")}
+                  </span>
+                )}
+              </p>
+            )}
+            {!isEnquiriesLoading && viewMode === "ENQUIRIES" && (
+              <p className="text-xs text-muted-foreground">
+                Showing{" "}
+                <span className="font-semibold text-foreground">
+                  {filteredEnquiries.length}
+                </span>{" "}
+                enquiries
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            {viewMode === "PROPERTIES" && (
+              <div className="flex items-center gap-0.5 bg-secondary/50 p-0.5 rounded-lg border border-border/40 mr-2">
+                <Button
+                  variant={view === "grid" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => {
+                    setView("grid");
+                    setSelectedPropertyId(null);
+                  }}
+                  className={`h-7 w-7 rounded-md transition-all duration-300 ${view === "grid"
+                    ? "shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                    }`}
+                  title="Grid View"
+                >
+                  <LayoutGridIcon className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant={view === "map" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => {
+                    setView("map");
+                    setSelectedPropertyId(null);
+                  }}
+                  className={`h-7 w-7 rounded-md transition-all duration-300 ${view === "map"
+                    ? "shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                    }`}
+                  title="Map View"
+                >
+                  <MapPin className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant={view === "split" ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => {
+                    setView("split");
+                    setSelectedPropertyId(null);
+                  }}
+                  className={`h-7 w-7 rounded-md transition-all duration-300 ${view === "split"
+                    ? "shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                    }`}
+                  title="Split View"
+                >
+                  <Columns className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
+
+            {viewMode === "PROPERTIES" && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] text-muted-foreground">Per page:</span>
+                <Select
+                  value={String(cardsPerPage)}
+                  onValueChange={(val) => setCardsPerPage(Number(val))}
+                >
+                  <SelectTrigger className="w-16 h-7 text-xs border-border/40 rounded-md">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="24">24</SelectItem>
+                    <SelectItem value="48">48</SelectItem>
+                    <SelectItem value="72">72</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {viewMode === "PROPERTIES" && pagination.totalPages > 1 && (
+              <span className="text-[11px] text-muted-foreground">
+                Page <span className="font-semibold text-foreground">{currentPage}</span> of{" "}
+                <span className="font-semibold text-foreground">{pagination.totalPages}</span>
+              </span>
+            )}
+            <Button asChild size="sm" className="h-8 gap-1.5 rounded-lg text-xs font-medium shadow-sm">
+              <Link
+                href={viewMode === "PROPERTIES" ? "/property/createProperty" : "/enquiries/create"}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {viewMode === "PROPERTIES" ? t("nav_list_property") : t("action_post_enquiry")}
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        {/* ─── Content area: Grid + Details panel ─── */}
+        {viewMode === "PROPERTIES" ? (
+          <div className="flex-1 flex overflow-hidden">
+            {/* ─── Mobile: original grid/map/split layout ─── */}
+            <div className="flex-1 flex overflow-hidden lg:hidden">
+              <div
+                ref={propertiesScrollRef}
+                onScroll={handleScroll}
+                className={`
+                  flex-col h-full overflow-y-auto scrollbar-hide transition-all duration-300
+                  ${view === "map" ? "hidden" : "flex"}
+                  ${view === "grid" ? "w-full" : "w-full"}
+                  ${isMapOverlayActive ? "hidden" : ""}
+                `}
+              >
+                <div className="pt-3 px-4 sm:px-6 space-y-3 pb-24">
+                  {isLoading ? (
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                      {[...Array(6)].map((_, i) => (
+                        <div key={i} className="space-y-3">
+                          <Skeleton className="aspect-[16/10] sm:aspect-[16/9] w-full rounded-xl" />
+                          <div className="space-y-2 px-1">
+                            <Skeleton className="h-5 w-24" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-3/4" />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    {pagination.totalPages > 1 && (
-                      <p className="text-sm text-muted-foreground">
-                        Page{" "}
-                        <span className="font-medium text-foreground">
-                          {currentPage}
-                        </span>{" "}
-                        of{" "}
-                        <span className="font-medium text-foreground">
-                          {pagination.totalPages}
-                        </span>
-                      </p>
-                    )}
+                  ) : (
+                    <>
+                      <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="show"
+                        className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
+                      >
+                        {filteredProperties.length > 0 ? (
+                          filteredProperties.map((property) => {
+                            const isSameCity = userCity
+                              ? property.address?.city?.toLowerCase().trim() === userCity.toLowerCase().trim()
+                              : false;
+                            return (
+                              <motion.div key={property._id} variants={itemVariants}>
+                                <PropertyCard
+                                  property={property}
+                                  showMapButton={true}
+                                  onShowOnMap={handleShowOnMap}
+                                  isSameCity={isSameCity}
+                                />
+                              </motion.div>
+                            );
+                          })
+                        ) : (
+                          <EmptyState onClearFilters={clearFilters} />
+                        )}
+                      </motion.div>
+                      {renderPagination()}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Mobile map */}
+              <div
+                className={`
+                  h-full bg-muted border-l border-border/50 transition-all duration-300 relative
+                  ${view === "grid" ? "hidden" : ""}
+                  ${view === "map" ? "block w-full" : ""}
+                  ${view === "split" && !isMapOverlayActive ? "hidden" : ""}
+                  ${isMapOverlayActive ? "block w-full fixed inset-0 top-[120px] z-40" : ""}
+                `}
+              >
+                {selectedProperty && (
+                  <div className="absolute right-4 top-4 bottom-auto max-h-[calc(100vh-10rem)] z-[200] w-[calc(100%-2rem)] sm:w-[400px] bg-background rounded-xl shadow-2xl overflow-y-auto scrollbar-hide border-2 border-border/50 flex flex-col">
+                    <PropertyDetails
+                      property={selectedProperty}
+                      onClose={() => setSelectedPropertyId(null)}
+                    />
+                  </div>
+                )}
+                <MapBox
+                  properties={filteredProperties}
+                  onSelectProperty={setSelectedPropertyId}
+                  selectedPropertyId={selectedPropertyId}
+                  highlightedPropertyId={highlightedPropertyId}
+                  highlightRequestId={highlightRequestId}
+                  onHighlightComplete={handleHighlightComplete}
+                />
+              </div>
+            </div>
+
+            {/* ─── Desktop: Grid + Details panel ─── */}
+            <div className="hidden lg:flex flex-1 overflow-hidden">
+              {/* Property Grid */}
+              <div
+                ref={propertiesScrollRef}
+                onScroll={handleScroll}
+                className="flex-1 h-full overflow-y-auto scrollbar-hide"
+              >
+                <div className="p-5 space-y-4 pb-24">
+                  {isLoading ? (
+                    <div className={`grid gap-3 ${desktopGridCols}`}>
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className="space-y-2">
+                          <Skeleton className="aspect-[16/10] sm:aspect-[16/9] lg:aspect-[2/1] w-full rounded-lg" />
+                          <div className="space-y-1.5 px-1">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-3.5 w-full" />
+                            <Skeleton className="h-3.5 w-3/4" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="show"
+                        className={`grid gap-3 ${desktopGridCols}`}
+                      >
+                        {filteredProperties.length > 0 ? (
+                          filteredProperties.map((property) => {
+                            const isSameCity = userCity
+                              ? property.address?.city?.toLowerCase().trim() === userCity.toLowerCase().trim()
+                              : false;
+                            const isSelected = selectedPropertyId === property._id;
+                            return (
+                              <motion.div
+                                key={property._id}
+                                variants={itemVariants}
+                                ref={(el: HTMLDivElement | null) => {
+                                  propertyRefs.current[property._id] = el;
+                                }}
+                                onClick={() => setSelectedPropertyId(isSelected ? null : property._id)}
+                                className={`rounded-2xl cursor-pointer transition-all duration-200 ${isSelected
+                                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg"
+                                  : "hover:shadow-md"
+                                  }`}
+                              >
+                                <PropertyCard
+                                  property={property}
+                                  showMapButton={false}
+                                  isSameCity={isSameCity}
+                                />
+                              </motion.div>
+                            );
+                          })
+                        ) : (
+                          <EmptyState onClearFilters={clearFilters} />
+                        )}
+                      </motion.div>
+                      <div className="pt-4">
+                        {renderPagination()}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Desktop Map View */}
+              <div
+                className={`
+                  h-full bg-muted border-l border-border/50 transition-all duration-300 relative
+                  ${view === "grid" ? "hidden" : ""}
+                  ${view === "map" ? "block w-full" : ""}
+                  ${view === "split" ? "block w-[40%] xl:w-[45%] 2xl:w-[50%]" : ""}
+                `}
+              >
+                {selectedProperty && view !== "grid" && (
+                  <div className="absolute right-4 top-4 bottom-auto max-h-[calc(100vh-10rem)] z-[200] w-[400px] lg:w-[420px] bg-background rounded-xl shadow-2xl overflow-y-auto scrollbar-hide border-2 border-border/50 flex flex-col">
+                    <PropertyDetails
+                      property={selectedProperty}
+                      onClose={() => setSelectedPropertyId(null)}
+                    />
+                  </div>
+                )}
+                <MapBox
+                  properties={filteredProperties}
+                  onSelectProperty={setSelectedPropertyId}
+                  selectedPropertyId={selectedPropertyId}
+                  highlightedPropertyId={highlightedPropertyId}
+                  highlightRequestId={highlightRequestId}
+                  onHighlightComplete={handleHighlightComplete}
+                />
+              </div>
+
+              {/* ─── RIGHT: Property Details Panel (desktop grid view, conditional) ─── */}
+              <AnimatePresence mode="wait">
+                {selectedProperty && view === "grid" && (
+                  <motion.div
+                    key={selectedProperty._id}
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: 380, opacity: 1 }}
+                    exit={{ width: 0, opacity: 0 }}
+                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                    className="h-full border-l border-border/50 bg-background overflow-hidden shrink-0"
+                  >
+                    <div className="w-[380px] h-full overflow-y-auto scrollbar-hide">
+                      <PropertyDetails
+                        property={selectedProperty}
+                        onClose={() => setSelectedPropertyId(null)}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        ) : (
+          /* ─── ENQUIRIES VIEW ─── */
+          <div className="flex-1 flex overflow-hidden">
+            <div
+              ref={enquiriesScrollRef}
+              onScroll={handleScroll}
+              className="flex-1 overflow-y-auto scrollbar-hide"
+            >
+              <div className="p-4 lg:p-5 space-y-4 pb-24">
+                {/* Mobile count */}
+                {!isEnquiriesLoading && (
+                  <div className="flex sm:hidden lg:hidden items-center px-1">
+                    <p className="text-sm text-muted-foreground">
+                      Showing{" "}
+                      <span className="font-medium text-foreground">{filteredEnquiries.length}</span>{" "}
+                      enquiries
+                    </p>
                   </div>
                 )}
 
-                {isLoading ? (
-                  <div
-                    className={`grid gap-6 ${view === "split"
-                      ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
-                      : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                      }`}
-                  >
+                {isEnquiriesLoading ? (
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
                     {[...Array(6)].map((_, i) => (
                       <div key={i} className="space-y-3">
-                        <Skeleton className="aspect-[4/3] w-full rounded-xl" />
-                        <div className="space-y-2 px-1">
-                          <Skeleton className="h-5 w-24" />
-                          <Skeleton className="h-4 w-full" />
-                          <Skeleton className="h-4 w-3/4" />
-                        </div>
+                        <Skeleton className="h-[220px] w-full rounded-xl" />
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <>
-                    <motion.div
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="show"
-                      className={`grid gap-6 ${view === "split"
-                        ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
-                        : "xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4"
-                        }`}
-                    >
-                      {filteredProperties.length > 0 ? (
-                        filteredProperties.map((property) => {
-                          const isSameCity = userCity
-                            ? property.address?.city?.toLowerCase().trim() ===
-                            userCity.toLowerCase().trim()
-                            : false;
-                          return (
-                            <motion.div
-                              key={property._id}
-                              variants={itemVariants}
-                              ref={(el: HTMLDivElement | null) => {
-                                propertyRefs.current[property._id] = el;
-                              }}
-                              className={`rounded-3xl transition-all duration-300 ${selectedPropertyId === property._id
-                                ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-lg scale-[1.02]"
-                                : ""
-                                }`}
-                            >
-                              <PropertyCard
-                                property={property}
-                                showMapButton={true}
-                                onShowOnMap={handleShowOnMap}
-                                isSameCity={isSameCity}
-                              />
-                            </motion.div>
-                          );
-                        })
-                      ) : (
-                        <EmptyState onClearFilters={clearFilters} />
-                      )}
-                    </motion.div>
-                    {renderPagination()}
-                  </>
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="show"
+                    className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3"
+                  >
+                    {filteredEnquiries.length > 0 ? (
+                      filteredEnquiries.map((enquiry) => {
+                        const normalizedUserCity = userCity?.toLowerCase().trim() || "";
+                        const enquiryCity = enquiry.city?.toLowerCase().trim() || "";
+                        const enquiryAddress = enquiry.address?.toLowerCase() || "";
+                        const preferredLocationsMatch = enquiry.preferredLocations?.some(
+                          (loc) =>
+                            loc.city?.toLowerCase().trim() === normalizedUserCity ||
+                            loc.address?.toLowerCase().includes(normalizedUserCity)
+                        ) ?? false;
+                        const isSameCity = normalizedUserCity
+                          ? enquiryCity === normalizedUserCity ||
+                          enquiryAddress.includes(normalizedUserCity) ||
+                          preferredLocationsMatch
+                          : false;
+                        return (
+                          <motion.div key={enquiry._id} variants={itemVariants}>
+                            <EnquiryCard enquiry={enquiry} isSameCity={isSameCity} />
+                          </motion.div>
+                        );
+                      })
+                    ) : (
+                      <EmptyEnquiriesState />
+                    )}
+                  </motion.div>
                 )}
               </div>
             </div>
-
-            <div
-              className={`
-          h-full bg-muted border-l border-border/50
-          transition-all duration-300 relative
-          ${view === "grid" ? "hidden" : ""}
-          ${view === "map" ? "block w-full" : ""}
-          ${view === "split" && !isMapOverlayActive
-                  ? "hidden lg:block lg:w-[40%] xl:w-[45%] 2xl:w-[50%] lg:sticky lg:top-0 lg:self-start"
-                  : ""
-                }
-          ${isMapOverlayActive
-                  ? "block w-full fixed inset-0 top-[120px] z-40"
-                  : ""
-                }
-        `}
-            >
-              {selectedProperty && (
-                <div className="absolute right-4 top-4 bottom-auto max-h-[calc(100vh-10rem)] z-[200] w-[calc(100%-2rem)] sm:w-[400px] lg:w-[420px] bg-background rounded-xl shadow-2xl overflow-y-auto scrollbar-hide border-2 border-border/50 flex flex-col">
-                  <PropertyDetails
-                    property={selectedProperty}
-                    onClose={() => setSelectedPropertyId(null)}
-                  />
-                </div>
-              )}
-              <MapBox
-                properties={filteredProperties}
-                onSelectProperty={setSelectedPropertyId}
-                selectedPropertyId={selectedPropertyId}
-                highlightedPropertyId={highlightedPropertyId}
-                highlightRequestId={highlightRequestId}
-                onHighlightComplete={handleHighlightComplete}
-              />
-            </div>
           </div>
-        </>
-      ) : (
-        <div
-          ref={enquiriesScrollRef}
-          onScroll={handleScroll}
-          className="flex-1 overflow-y-auto scrollbar-hide"
-        >
-          <div className="p-6 md:p-8 space-y-4 pb-24">
-            {!isEnquiriesLoading && (
-              <div className="hidden sm:flex items-center justify-between px-1">
-                <p className="text-sm text-muted-foreground">
-                  Showing{" "}
-                  <span className="font-medium text-foreground">
-                    {filteredEnquiries.length}
-                  </span>{" "}
-                  enquiries
-                </p>
-              </div>
-            )}
+        )}
+      </div>
 
-            {isEnquiriesLoading ? (
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="space-y-3">
-                    <Skeleton className="h-[220px] w-full rounded-xl" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
-                className="grid gap-6 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
-              >
-                {filteredEnquiries.length > 0 ? (
-                  filteredEnquiries.map((enquiry) => {
-                    const normalizedUserCity =
-                      userCity?.toLowerCase().trim() || "";
-                    const enquiryCity =
-                      enquiry.city?.toLowerCase().trim() || "";
-                    const enquiryAddress = enquiry.address?.toLowerCase() || "";
-                    const preferredLocationsMatch = enquiry.preferredLocations?.some(
-                      (loc) =>
-                        loc.city?.toLowerCase().trim() === normalizedUserCity ||
-                        loc.address?.toLowerCase().includes(normalizedUserCity)
-                    ) ?? false;
-                    const isSameCity = normalizedUserCity
-                      ? enquiryCity === normalizedUserCity ||
-                      enquiryAddress.includes(normalizedUserCity) ||
-                      preferredLocationsMatch
-                      : false;
-                    return (
-                      <motion.div key={enquiry._id} variants={itemVariants}>
-                        <EnquiryCard
-                          enquiry={enquiry}
-                          isSameCity={isSameCity}
-                        />
-                      </motion.div>
-                    );
-                  })
-                ) : (
-                  <EmptyEnquiriesState />
-                )}
-              </motion.div>
-            )}
-          </div>
-        </div>
-      )}
-
+      {/* Scroll to top FAB */}
       {showScrollTop && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}

@@ -149,29 +149,29 @@ export const MapBox = ({
             typeof p.location.coordinates[1] === "number"
         )
         .map((property) => {
-        const isRental = (property.listingPurpose || "SALE") === "RENT";
-        const displayPrice = isRental ? (property.monthlyRent || 0) : property.totalPrice;
-        return {
-          type: "Feature",
-          properties: {
-            id: property._id,
-            price: displayPrice,
-            priceFormatted: isRental ? `${formatPrice(displayPrice)}/mo` : formatPrice(displayPrice),
-            category: property.propertyCategory,
-            address:
-              property.address?.address ||
-              property.society ||
-              "Address available",
-            rate: property.rate,
-            featuredMedia: property.featuredMedia,
-            isRental,
-          },
-          geometry: {
-            type: "Point",
-            coordinates: property.location.coordinates,
-          },
-        };
-      });
+          const isRental = (property.listingPurpose || "SALE") === "RENT";
+          const displayPrice = isRental ? (property.monthlyRent || 0) : property.totalPrice;
+          return {
+            type: "Feature",
+            properties: {
+              id: property._id,
+              price: displayPrice,
+              priceFormatted: isRental ? `${formatPrice(displayPrice)}/mo` : formatPrice(displayPrice),
+              category: property.propertyCategory,
+              address:
+                property.address?.address ||
+                property.society ||
+                "Address available",
+              rate: property.rate,
+              featuredMedia: property.featuredMedia,
+              isRental,
+            },
+            geometry: {
+              type: "Point",
+              coordinates: property.location.coordinates,
+            },
+          };
+        });
 
       return {
         type: "FeatureCollection",
@@ -325,20 +325,20 @@ export const MapBox = ({
         const isRental = (property.listingPurpose || "SALE") === "RENT";
         const displayPrice = isRental ? (property.monthlyRent || 0) : property.totalPrice;
         const priceFormatted = isRental ? `${formatPrice(displayPrice)}/mo` : formatPrice(displayPrice);
+        const markerColor = isRental ? "indigo" : "teal";
 
         const el = document.createElement("div");
         // Start hidden if zoom is below threshold
-        el.className = `price-marker group cursor-pointer ${
-          shouldShowMarkers ? "marker-visible" : "marker-hidden"
-        }`;
+        el.className = `price-marker group cursor-pointer ${shouldShowMarkers ? "marker-visible" : "marker-hidden"
+          }`;
         el.setAttribute("data-property-id", property._id);
         el.style.zIndex = "20";
         el.innerHTML = `
         <div class="marker-inner transition-all duration-300 group-hover:scale-110" style="transform-origin: bottom center;">
-          <div class="marker-bubble" style="background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); padding: 6px 10px; border-radius: 99px; box-shadow: 0 4px 12px hsl(var(--foreground) / 0.2); font-weight: 600; font-size: 13px; white-space: nowrap; display: flex; align-items: center; justify-content: center; border: 2px solid hsl(var(--background)); transition: all 0.3s ease;">
+          <div class="marker-bubble" style="background-color: ${markerColor}; color: white; padding: 6px 10px; border-radius: 99px; box-shadow: 0 4px 12px hsl(var(--foreground) / 0.2); font-weight: 600; font-size: 13px; white-space: nowrap; display: flex; align-items: center; justify-content: center; border: 2px solid hsl(var(--background)); transition: all 0.3s ease;">
             ${priceFormatted}
           </div>
-          <div class="marker-arrow" style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid hsl(var(--primary)); margin: -2px auto 0 auto; filter: drop-shadow(0 2px 1px rgba(0,0,0,0.1)); transition: border-top-color 0.3s ease;"></div>
+          <div class="marker-arrow" style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid ${markerColor}; margin: -2px auto 0 auto; filter: drop-shadow(0 2px 1px rgba(0,0,0,0.1)); transition: border-top-color 0.3s ease;"></div>
         </div>
       `;
 
@@ -592,6 +592,10 @@ export const MapBox = ({
       const el = markerElementsRef.current.get(propertyId);
       if (!el) return;
 
+      const property = properties.find((p) => p._id === propertyId);
+      const isRental = (property?.listingPurpose || "SALE") === "RENT";
+      const markerColor = isRental ? "indigo" : "teal";
+
       const markerInner = el.querySelector(".marker-inner") as HTMLElement;
       const markerBubble = el.querySelector(".marker-bubble") as HTMLElement;
       const markerArrow = el.querySelector(".marker-arrow") as HTMLElement;
@@ -602,13 +606,13 @@ export const MapBox = ({
         markerInner.classList.remove("marker-highlighted");
       }
       if (markerBubble) {
-        markerBubble.style.backgroundColor = "hsl(var(--primary))";
+        markerBubble.style.backgroundColor = markerColor;
         markerBubble.style.boxShadow =
           "0 4px 12px hsl(var(--foreground) / 0.2)";
         markerBubble.style.border = "2px solid hsl(var(--background))";
       }
       if (markerArrow) {
-        markerArrow.style.borderTopColor = "hsl(var(--primary))";
+        markerArrow.style.borderTopColor = markerColor;
       }
       el.style.zIndex = "20";
     };

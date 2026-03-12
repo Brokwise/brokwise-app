@@ -26,7 +26,7 @@ import {
   Loader2,
   Bookmark,
   Map,
-  Sparkles,
+  Crown,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -74,7 +74,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const isSampleLand =
     property.propertyType === "LAND" && isSampleLandMedia(property.featuredMedia);
 
-  // Check bookmark status from the correct user data
   const isBookmarked = isCompany
     ? !!companyData?.bookmarkedPropertyIds?.includes(property._id)
     : !!brokerData?.bookmarkedPropertyIds?.includes(property._id);
@@ -104,7 +103,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     const propertyTitle = `${property.bhk ? `${property.bhk} BHK ` : ""}${property.propertyType.replace(/_/g, " ")}`;
     const shareText = `Check out this property: ${formatAddress(property.address)} - ${formatCurrency(property.totalPrice)}`;
 
-    // Use Web Share API (works on both iOS native and web)
     if (navigator.share) {
       try {
         await navigator.share({
@@ -113,10 +111,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           url: propertyUrl,
         });
       } catch {
-        // User cancelled or share failed - do nothing
+        // User cancelled
       }
     } else {
-      // Fallback: copy to clipboard
       await handleCopyLink(e);
     }
   };
@@ -129,7 +126,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     }
   };
 
-  // Check if property has valid coordinates for map display
   const coordinates = property.location?.coordinates;
   const hasValidCoordinates =
     Array.isArray(coordinates) &&
@@ -137,281 +133,311 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     typeof coordinates[0] === "number" &&
     typeof coordinates[1] === "number";
 
+  const isFeatured = property.isFeatured;
+
   return (
-    <Card className={`group overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 bg-card h-[27rem] flex flex-col rounded-3xl ${isRental ? "" : "border-none"}`}>
-      {/* Image Section */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-        <Link
-          href={`/property/detail?id=${property._id}`}
-          className="block w-full h-full"
-        >
-
-
+    <Card
+      className={`group overflow-hidden transition-all duration-300 hover:-translate-y-0.5 bg-card flex flex-col rounded-xl lg:rounded-xl border-border/40`}
+    >
+      {/* Floating Image Section */}
+      <div className="p-2 md:p-2 pb-0 md:pb-0">
+        <div className="relative aspect-[16/10] sm:aspect-[16/9] lg:aspect-[2/1] w-full overflow-hidden rounded-lg lg:rounded-lg bg-muted">
+          {/* <Link
+            href={`/property/detail?id=${property._id}`}
+            className="block w-full h-full"
+          > */}
           <Image
             src={getPropertyMediaSrc(property.featuredMedia)}
             alt={property.description || "Property Image"}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-700 h-12!"
+            className="object-cover group-hover:scale-105 transition-transform duration-700 w-full h-full"
           />
+          <div
+            className={`absolute inset-0 bg-gradient-to-t ${isRental
+              ? "from-blue-950/50 via-transparent"
+              : "from-black/40 via-transparent"
+              } to-transparent`}
+          />
+          {/* </Link> */}
 
-          <div className={`absolute inset-0 bg-gradient-to-t ${isRental ? "from-blue-950/60 via-blue-900/10" : "from-black/60 via-transparent"} to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300`} />
-        </Link>
-
-        {/* Status Badge */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2 z-10 items-start">
-          {isRental && (
-            <Badge className="shadow-sm backdrop-blur-md border-none bg-blue-600 text-white px-3 py-1.5 font-bold tracking-wide">
-              <Home className="h-3.5 w-3.5 mr-1.5" />
-              FOR RENT
-            </Badge>
-          )}
-          {property.isFeatured && (
-            <Badge className="relative overflow-hidden shadow-[0_0_15px_rgba(245,158,11,0.5)] border-none bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white px-3 py-1.5 font-bold tracking-wide">
-              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] animate-[shimmer_2s_infinite]" />
-              <div className="relative flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 fill-white text-white animate-pulse" />
-                <span className="drop-shadow-md">FEATURED</span>
-              </div>
-            </Badge>
-          )}
-          {isSameCity && (
-            <Badge className="shadow-sm backdrop-blur-md border-none bg-blue-600/90 text-white">
-              <MapPin className="h-3 w-3 mr-1" />
-              {t("label_same_city")}
-            </Badge>
-          )}
-          {isSampleLand && (
-            <Badge className="shadow-sm backdrop-blur-md border-none bg-amber-600/90 text-white">
-              Sample image
-            </Badge>
-          )}
-
-        </div>
-
-        <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
-          {showMapButton && hasValidCoordinates && (
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-md shadow-sm text-foreground/70 hover:bg-background hover:text-accent transition-colors"
-              onClick={handleShowOnMap}
-              title="Show on Map"
-            >
-              <Map className="h-4 w-4" />
-            </Button>
-          )}
-
-          <Button
-            size="icon"
-            variant="secondary"
-            className={`h-8 w-8 rounded-full bg-background/80 backdrop-blur-md hover:bg-background shadow-sm ${isBookmarked ? "text-accent" : ""
-              }`}
-            disabled={(!brokerData && !companyData) || isBookmarkPending}
-            onClick={async (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-
-              if (!brokerData && !companyData) {
-                toast.error(t("toast_error_profile_incomplete"));
-                return;
-              }
-
-              if (isCompany && companyData) {
-                const prev = companyData.bookmarkedPropertyIds ?? [];
-                const next = isBookmarked
-                  ? prev.filter((id) => id !== property._id)
-                  : [property._id, ...prev.filter((id) => id !== property._id)];
-
-                setCompanyData({ ...companyData, bookmarkedPropertyIds: next });
-
-                try {
-                  const res = await toggleBookmarkAsync({
-                    itemType: "PROPERTY",
-                    itemId: property._id,
-                  });
-                  setCompanyData({
-                    ...companyData,
-                    bookmarkedPropertyIds: res.bookmarkedPropertyIds,
-                    bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
-                  });
-                } catch {
-                  setCompanyData({
-                    ...companyData,
-                    bookmarkedPropertyIds: prev,
-                  });
-                }
-              } else if (brokerData) {
-                const prev = brokerData.bookmarkedPropertyIds ?? [];
-                const next = isBookmarked
-                  ? prev.filter((id) => id !== property._id)
-                  : [property._id, ...prev.filter((id) => id !== property._id)];
-
-                setBrokerData({ ...brokerData, bookmarkedPropertyIds: next });
-
-                try {
-                  const res = await toggleBookmarkAsync({
-                    itemType: "PROPERTY",
-                    itemId: property._id,
-                  });
-                  setBrokerData({
-                    ...brokerData,
-                    bookmarkedPropertyIds: res.bookmarkedPropertyIds,
-                    bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
-                  });
-                } catch {
-                  setBrokerData({ ...brokerData, bookmarkedPropertyIds: prev });
-                }
-              }
-            }}
-            title={isBookmarked ? "Remove bookmark" : "Bookmark"}
-          >
-            {isBookmarkPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Bookmark
-                className={`h-4 w-4 ${isBookmarked ? "text-accent" : "text-foreground/70"
-                  }`}
-                fill={isBookmarked ? "currentColor" : "none"}
-              />
+          {/* Top-left badges */}
+          <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 items-start">
+            {isSameCity && (
+              <Badge className="shadow-sm backdrop-blur-md border-none bg-blue-600/90 text-white text-[9px] md:text-[10px] px-1.5 py-0.5">
+                <MapPin className="h-2.5 w-2.5 mr-0.5" />
+                {t("label_same_city")}
+              </Badge>
             )}
-          </Button>
+            {isSampleLand && (
+              <Badge className="shadow-sm backdrop-blur-md border-none bg-amber-600/90 text-white text-[9px] md:text-[10px] px-1.5 py-0.5">
+                Sample image
+              </Badge>
+            )}
+          </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          {/* Featured crown indicator (top-right) */}
+          {isFeatured && (
+            <div className="absolute top-2 right-2 z-10">
+              <div className="group/featured h-8 w-8 hover:w-24 md:h-9 md:w-9 md:hover:w-28 rounded-full bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 flex items-center justify-start overflow-hidden pl-1.5 md:pl-2 shadow-md shadow-amber-500/30 transition-all duration-300 ease-out">
+                <Crown className="h-5 w-5 text-white fill-white drop-shadow-sm shrink-0" />
+                <span className="ml-2 text-xs font-semibold text-white whitespace-nowrap max-w-0 opacity-0 group-hover/featured:max-w-20 group-hover/featured:opacity-100 transition-all duration-300 ease-out">
+                  Featured
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Bottom overlay: badge left, actions right */}
+          <div className="absolute bottom-2 left-2 right-2 z-10 flex items-end justify-between">
+            <div className="flex flex-col gap-1">
+              {isRental && (
+                <Badge className="shadow-sm backdrop-blur-md border-none bg-white/95 text-blue-700 text-[9px] md:text-[10px] px-2 py-0.5 font-normal">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-500 mr-1 inline-block" />
+                  For Rent
+                </Badge>
+              )}
+              {!isRental && property.listingStatus === "ACTIVE" && !property.deletingStatus && (
+                <Badge className="shadow-sm backdrop-blur-md border-none bg-white/95 text-emerald-700 text-[9px] md:text-[10px] px-2 py-0.5 font-normal">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1 inline-block" />
+                  Active
+                </Badge>
+              )}
+              {property.deletingStatus && (
+                <Badge className="shadow-sm backdrop-blur-md border-none bg-white/95 text-red-600 text-[9px] md:text-[10px] px-2 py-0.5 font-normal">
+                  <span className="h-1.5 w-1.5 rounded-full bg-red-500 mr-1 inline-block" />
+                  Deletion Pending
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1">
+              {showMapButton && hasValidCoordinates && (
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-7 w-7 md:h-8 md:w-8 rounded-full bg-white/90 dark:bg-black/90 backdrop-blur-md shadow-sm text-foreground/70 hover:bg-white hover:text-accent transition-colors border-0"
+                  onClick={handleShowOnMap}
+                  title="Show on Map"
+                >
+                  <Map className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                </Button>
+              )}
+
               <Button
                 size="icon"
                 variant="secondary"
-                className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-md hover:bg-background shadow-sm"
-                onClick={(e) => e.stopPropagation()}
-                title="Share"
-              >
-                <Share2 className="h-4 w-4 text-foreground/70" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {canShare && (
-                <>
-                  <DropdownMenuItem
-                    onClick={handleCopyLink}
-                    className="cursor-pointer"
-                  >
-                    <Link2 className="mr-2 h-4 w-4" />
-                    Copy Link
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={handleShareNative}
-                    className="cursor-pointer"
-                  >
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share Property
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+                className={`h-7 w-7 md:h-8 md:w-8 rounded-full bg-white/90 dark:bg-black/90 backdrop-blur-md shadow-sm hover:bg-white border-0 transition-colors ${isBookmarked ? "text-rose-500" : "text-foreground/60"
+                  }`}
+                disabled={(!brokerData && !companyData) || isBookmarkPending}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
 
-        {/* Price Tag Overlay (Luxurious Touch) */}
-        <div className="absolute bottom-3 right-3 z-10">
-          <div className={`bg-background/95 backdrop-blur shadow-md px-3 py-1.5 rounded-lg flex flex-col items-end ${isRental ? "border border-blue-300/40 ring-1 ring-blue-200/30" : "border border-accent/10"}`}>
-            <Typography variant="large" className={`font-bold leading-none ${isRental ? "text-blue-600" : "text-accent"}`}>
-              {priceDisplay}
-            </Typography>
-            {rateDisplay && (
-              <p className="text-[10px] text-muted-foreground font-medium mt-1">
-                {rateDisplay}
-              </p>
-            )}
+                  if (!brokerData && !companyData) {
+                    toast.error(t("toast_error_profile_incomplete"));
+                    return;
+                  }
+
+                  if (isCompany && companyData) {
+                    const prev = companyData.bookmarkedPropertyIds ?? [];
+                    const next = isBookmarked
+                      ? prev.filter((id) => id !== property._id)
+                      : [property._id, ...prev.filter((id) => id !== property._id)];
+
+                    setCompanyData({ ...companyData, bookmarkedPropertyIds: next });
+
+                    try {
+                      const res = await toggleBookmarkAsync({
+                        itemType: "PROPERTY",
+                        itemId: property._id,
+                      });
+                      setCompanyData({
+                        ...companyData,
+                        bookmarkedPropertyIds: res.bookmarkedPropertyIds,
+                        bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
+                      });
+                    } catch {
+                      setCompanyData({
+                        ...companyData,
+                        bookmarkedPropertyIds: prev,
+                      });
+                    }
+                  } else if (brokerData) {
+                    const prev = brokerData.bookmarkedPropertyIds ?? [];
+                    const next = isBookmarked
+                      ? prev.filter((id) => id !== property._id)
+                      : [property._id, ...prev.filter((id) => id !== property._id)];
+
+                    setBrokerData({ ...brokerData, bookmarkedPropertyIds: next });
+
+                    try {
+                      const res = await toggleBookmarkAsync({
+                        itemType: "PROPERTY",
+                        itemId: property._id,
+                      });
+                      setBrokerData({
+                        ...brokerData,
+                        bookmarkedPropertyIds: res.bookmarkedPropertyIds,
+                        bookmarkedEnquiryIds: res.bookmarkedEnquiryIds,
+                      });
+                    } catch {
+                      setBrokerData({ ...brokerData, bookmarkedPropertyIds: prev });
+                    }
+                  }
+                }}
+                title={isBookmarked ? "Remove bookmark" : "Bookmark"}
+              >
+                {isBookmarkPending ? (
+                  <Loader2 className="h-3 w-3 md:h-3.5 md:w-3.5 animate-spin" />
+                ) : (
+                  <Bookmark
+                    className={`h-3 w-3 md:h-3.5 md:w-3.5 ${isBookmarked ? "text-rose-500" : "text-foreground/60"
+                      }`}
+                    fill={isBookmarked ? "currentColor" : "none"}
+                  />
+                )}
+              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="h-7 w-7 md:h-8 md:w-8 rounded-full bg-white/90 dark:bg-black/90 backdrop-blur-md shadow-sm hover:bg-white border-0 text-foreground/60"
+                    onClick={(e) => e.stopPropagation()}
+                    title="Share"
+                  >
+                    <Share2 className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {canShare && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={handleCopyLink}
+                        className="cursor-pointer"
+                      >
+                        <Link2 className="mr-2 h-4 w-4" />
+                        Copy Link
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={handleShareNative}
+                        className="cursor-pointer"
+                      >
+                        <Share2 className="mr-2 h-4 w-4" />
+                        Share Property
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Content Section */}
-      <CardContent className="p-3 flex-grow flex flex-col gap-1 md:gap-2">
-        <div className="flex justify-between items-start gap-1 md:gap-1">
-          <div className="space-y-1 flex-1 min-w-0">
-            <div className={`text-xs font-medium uppercase tracking-wider ${isRental ? "text-blue-600" : "text-accent"}`}>
-              {isRental ? "Rental" : ""} {property.propertyCategory}
-            </div>
-            <Typography variant="h3" className="text-[17px] line-clamp-1 leading-tight">
-              {property.bhk ? `${property.bhk} BHK ` : ""}
-              {property.propertyType.replace(/_/g, " ")}
+      <CardContent className="px-2 lg:px-2.5 pt-2 lg:pt-2.5 pb-1 flex-grow flex flex-col gap-1.5 lg:gap-2">
+        {/* Price Row */}
+        <div className="flex items-baseline justify-between gap-1.5">
+          <div className="flex items-baseline gap-1">
+            <Typography
+              variant="h2"
+              className="text-sm md:text-sm lg:text-base font-semibold leading-none text-white dark:text-black rounded-md px-2 py-[0.5px] bg-black/50 dark:bg-white/70"
+            >
+              {priceDisplay}
             </Typography>
-            <div className="flex items-center text-muted-foreground text-sm">
-              <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0 text-accent/70" />
-              <span className="line-clamp-1 text-sm">
-                {formatAddress(property.address)}
+            {rateDisplay && (
+              <span className="text-[9px] md:text-[10px] text-muted-foreground font-medium">
+                {rateDisplay}
               </span>
-            </div>
+            )}
           </div>
           <Badge
-            className={`shadow-sm backdrop-blur-md border-none shrink-0 ${property.listingStatus === "ACTIVE" && !property.deletingStatus
-              ? "bg-emerald-600/90 text-white"
+            className={`shadow-sm border-none shrink-0 text-[9px] md:text-[9px] px-1.5 py-0 ${property.listingStatus === "ACTIVE" && !property.deletingStatus
+              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
               : property.deletingStatus
-                ? "bg-red-600/90 text-white"
-                : "bg-background/80 text-foreground"
+                ? "bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400"
+                : "bg-muted text-muted-foreground"
               }`}
           >
             {property.deletingStatus
-              ? "Deletion Pending"
+              ? "Pending"
               : property.listingStatus === "ACTIVE"
                 ? "Active"
                 : property.listingStatus.replace("_", " ")}
           </Badge>
         </div>
 
-        <div className="h-px bg-border/40 my-1" />
+        {/* Title */}
+        <div className="space-y-0.5">
+          <h3 className="text-xs md:text-xs font-medium leading-tight line-clamp-1 text-foreground">
+            {property.bhk ? `${property.bhk} BHK ` : ""}
+            {property.propertyType.replace(/_/g, " ")}
+          </h3>
+          <div className="flex items-center text-muted-foreground">
+            <MapPin className="h-2.5 w-2.5 md:h-2.5 md:w-2.5 mr-0.5 shrink-0 text-muted-foreground/60" />
+            <span className="line-clamp-1 text-[10px] md:text-[10px]">
+              {formatAddress(property.address)}
+            </span>
+          </div>
+        </div>
 
-        <div className="grid grid-cols-3 gap-1 text-sm text-muted-foreground">
-          <div className="flex flex-col items-center justify-center gap-1">
+        {/* Amenities Row - Compact Inline */}
+        <div className="flex items-center gap-2 md:gap-2.5 text-muted-foreground mt-auto">
+          <div className="flex items-center gap-0.5">
             {property.propertyCategory === "RESIDENTIAL" && property.bhk ? (
               <>
-                <BedDouble className="h-4 w-4" />
-                <span className="text-xs font-medium">{property.bhk} Beds</span>
+                <BedDouble className="h-2.5 w-2.5 md:h-2.5 md:w-2.5 shrink-0" />
+                <span className="text-[9px] md:text-[9px] font-medium whitespace-nowrap">
+                  {property.bhk} bed
+                </span>
               </>
             ) : (
               <>
-                <Building2 className="h-4 w-4" />
-                <span className="text-xs font-medium truncate w-full text-center">
+                <Building2 className="h-2.5 w-2.5 md:h-2.5 md:w-2.5 shrink-0" />
+                <span className="text-[9px] md:text-[9px] font-medium truncate max-w-[50px] md:max-w-[60px]">
                   {property.propertyCategory}
                 </span>
               </>
             )}
           </div>
 
-          <div className="flex flex-col items-center justify-center gap-1 border-l border-border/40">
+          <div className="flex items-center gap-0.5">
             {property.washrooms ? (
               <>
-                <Bath className="h-4 w-4" />
-                <span className="text-xs font-medium">
-                  {property.washrooms} Baths
+                <Bath className="h-2.5 w-2.5 md:h-2.5 md:w-2.5 shrink-0" />
+                <span className="text-[9px] md:text-[9px] font-medium whitespace-nowrap">
+                  {property.washrooms} bath
                 </span>
               </>
             ) : (
               <>
-                <Home className="h-4 w-4" />
-                <span className="text-xs font-medium truncate w-full text-center">
+                <Home className="h-2.5 w-2.5 md:h-2.5 md:w-2.5 shrink-0" />
+                <span className="text-[9px] md:text-[9px] font-medium truncate max-w-[50px] md:max-w-[60px]">
                   {property.propertyType.replace(/_/g, " ")}
                 </span>
               </>
             )}
           </div>
 
-          <div className="flex flex-col items-center justify-center gap-1.5 border-l border-border/40">
-            <Move className="h-4 w-4" />
-            <span className="text-xs font-medium">
+          <div className="flex items-center gap-0.5">
+            <Move className="h-2.5 w-2.5 md:h-2.5 md:w-2.5 shrink-0" />
+            <span className="text-[9px] md:text-[9px] font-medium whitespace-nowrap">
               {property.size} {property.sizeUnit?.replace("SQ_", "")}
             </span>
           </div>
         </div>
       </CardContent>
 
-      <CardFooter className="p-4 pt-0 gap-2">
+      <CardFooter className="px-2 lg:px-2.5 py-1.5 lg:py-2 gap-2 flex justify-end">
         <Button
           asChild
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm h-7 lg:h-7 text-[10px] md:text-[11px] rounded-md"
         >
-          <Link href={`/property/detail?id=${property._id}`}>{t("action_view_details")}</Link>
+          <Link href={`/property/detail?id=${property._id}`}>
+            {t("action_view_details")}
+          </Link>
         </Button>
         {actionSlot}
       </CardFooter>

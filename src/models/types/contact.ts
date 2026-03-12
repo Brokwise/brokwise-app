@@ -21,6 +21,8 @@ export interface ConnectionContext {
   propertyTitle?: string;
   enquiryTitle?: string;
   availability?: string;
+  propertyId?: string;
+  enquiryId?: string;
 }
 
 // Contact interface based on actual backend response

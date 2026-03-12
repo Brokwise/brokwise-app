@@ -75,16 +75,16 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
       {/* Content - Price & Details */}
       <CardContent className="p-4 pt-0 flex-grow">
-      <div className="mb-3">
-        <div className="text-lg font-bold text-primary leading-tight">
-          {formatPrice(property.totalPrice)}
-        </div>
-        {rateDisplay && (
-          <div className="text-xs text-muted-foreground mt-0.5 font-medium">
-            {rateDisplay}
+        <div className="mb-3">
+          <div className="text-lg font-bold text-primary leading-tight">
+            {formatPrice(property.totalPrice)}
           </div>
-        )}
-      </div>
+          {rateDisplay && (
+            <div className="text-xs text-muted-foreground mt-0.5 font-medium">
+              {rateDisplay}
+            </div>
+          )}
+        </div>
 
         <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
           {sizeDisplay && (

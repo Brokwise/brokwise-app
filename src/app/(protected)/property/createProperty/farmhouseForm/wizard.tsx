@@ -127,12 +127,16 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
         "propertyStatus",
         "size",
         "sizeUnit",
+        "rate",
+      ],
+      1: [
         "plotType",
         ...(plotType ? ["facing", "frontRoadWidth"] : []),
         ...(plotType === "CORNER" ? ["sideFacing", "sideRoadWidth"] : []),
-        "rate",
+        "description",
+        "featuredMedia",
+        "floorPlans",
       ],
-      1: ["description", "featuredMedia", "floorPlans"],
       2: [], // Review step - no validation needed
     };
 

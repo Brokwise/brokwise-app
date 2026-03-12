@@ -6,9 +6,10 @@ import { useTranslation } from "react-i18next";
 
 interface DocumentsListProps {
     property: Property;
+    hideHeader?: boolean;
 }
 
-export const DocumentsList = ({ property }: DocumentsListProps) => {
+export const DocumentsList = ({ property, hideHeader = false }: DocumentsListProps) => {
     const { t } = useTranslation();
 
     if (property.listingStatus === "DELETED") return null;
@@ -31,7 +32,7 @@ export const DocumentsList = ({ property }: DocumentsListProps) => {
 
     return (
         <div className="space-y-4">
-            <h3 className="text-lg font-semibold">{t("label_documents")}</h3>
+            {!hideHeader && <h3 className="text-lg font-semibold">{t("label_documents")}</h3>}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {documents.map((doc, index) => (
                     <a

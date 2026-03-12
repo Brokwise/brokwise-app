@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React, { useState, useMemo } from "react";
 import {
   useGetContacts,
@@ -83,6 +84,7 @@ import {
   XCircle,
   Bell,
   Timer,
+  Info,
 } from "lucide-react";
 
 import { formatDistanceToNow } from "date-fns";
@@ -401,6 +403,12 @@ const ContactsPage = () => {
           )}
         </div>
       </div>
+      {contactTypeFilter !== "all" && <div className="w-full h-10 bg-blue-500/20 rounded-lg p-2 flex items-center gap-2">
+        <Info className="h-4 w-4 text-blue-500" />
+        {
+          contactTypeFilter === "SENT" ? <div>Your contacts are shared with the requester.</div> : <div>You have received a contact request from the requester.</div>
+        }
+      </div>}
 
       {/* Contacts List */}
       <div className="space-y-4">
@@ -728,18 +736,38 @@ const ContactCard = ({
                     <div className="flex items-center gap-2 text-xs">
                       <FileText className="h-3 w-3 text-muted-foreground shrink-0" />
                       <span className="text-muted-foreground">{t("page_contacts_label_enquiry")}</span>
-                      <span className="font-medium truncate">
-                        {context.enquiryTitle}
-                      </span>
+                      {context.enquiryId ? (
+                        <Link
+                          href={`/enquiries/detail?id=${context.enquiryId}`}
+                          className="font-medium truncate hover:text-primary hover:underline transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {context.enquiryTitle}
+                        </Link>
+                      ) : (
+                        <span className="font-medium truncate">
+                          {context.enquiryTitle}
+                        </span>
+                      )}
                     </div>
                   )}
                   {context.propertyTitle && (
                     <div className="flex items-center gap-2 text-xs">
                       <Home className="h-3 w-3 text-muted-foreground shrink-0" />
                       <span className="text-muted-foreground">{t("page_contacts_label_property")}</span>
-                      <span className="font-medium truncate">
-                        {context.propertyTitle}
-                      </span>
+                      {context.propertyId ? (
+                        <Link
+                          href={`/property/detail?id=${context.propertyId}`}
+                          className="font-medium truncate hover:text-primary hover:underline transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {context.propertyTitle}
+                        </Link>
+                      ) : (
+                        <span className="font-medium truncate">
+                          {context.propertyTitle}
+                        </span>
+                      )}
                     </div>
                   )}
                   {context.availability && (

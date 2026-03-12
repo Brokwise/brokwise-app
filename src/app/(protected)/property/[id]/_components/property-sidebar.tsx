@@ -280,7 +280,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                     )}
 
                     <AlertDialog open={showContactRequestDialog} onOpenChange={setShowContactRequestDialog}>
-                        <AlertDialogContent className="mx-auto max-w-[95%]  rounded-2xl">
+                        <AlertDialogContent className="mx-auto max-w-[95%]  rounded-2xl md:max-w-[50%]">
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Request Contact Details?</AlertDialogTitle>
                                 <AlertDialogDescription className="space-y-2">

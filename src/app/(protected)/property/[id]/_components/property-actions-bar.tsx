@@ -9,8 +9,17 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { Property } from "@/types/property";
+import { DocumentsList } from "./documents-list";
 
 interface PropertyActionsBarProps {
     isBookmarked: boolean;
@@ -19,6 +28,7 @@ interface PropertyActionsBarProps {
     shareUrl: string;
     propertyTitle?: string;
     isDeleted?: boolean;
+    property?: Property;
 }
 
 export const PropertyActionsBar = ({
@@ -28,8 +38,15 @@ export const PropertyActionsBar = ({
     shareUrl,
     propertyTitle = "Property",
     isDeleted = false,
+    property,
 }: PropertyActionsBarProps) => {
     const { t } = useTranslation();
+
+    const hasDocuments = property && (
+        (property.floorPlans && property.floorPlans.length > 0) ||
+        !!property.jamabandiUrl ||
+        !!property.khasraPlanUrl
+    );
 
     const handleCopyLink = async () => {
         try {
@@ -80,10 +97,24 @@ export const PropertyActionsBar = ({
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="outline" size="sm" className="gap-2">
-                <FileText className="h-4 w-4" />
-                Show documents
-            </Button>
+
+            {hasDocuments && property && (
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2">
+                            <FileText className="h-4 w-4" />
+                            <span className="hidden sm:inline">{t("label_documents", "Documents")}</span>
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>{t("label_documents", "Documents")}</DialogTitle>
+                        </DialogHeader>
+                        <DocumentsList property={property} hideHeader />
+                    </DialogContent>
+                </Dialog>
+            )}
+
             <Button
                 variant={isBookmarked ? "default" : "outline"}
                 size="sm"
