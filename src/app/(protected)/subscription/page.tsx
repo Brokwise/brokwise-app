@@ -170,6 +170,12 @@ const getStatusBadge = (status: string) => {
           Expired
         </Badge>
       );
+    case "inactive":
+      return (
+        <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">
+          Inactive
+        </Badge>
+      );
     default:
       return <Badge variant="outline">{status}</Badge>;
   }
