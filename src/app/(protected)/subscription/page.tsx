@@ -1146,12 +1146,19 @@ const SubscriptionPage = () => {
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                               <div className="space-y-1">
                                 <p className="font-semibold text-lg">
-                                  {t("page_subscription_upgrade_to", { plan: TIER_INFO[selectedTier].name })}
+                                  {hasActiveSubscription && currentPhase === "regular"
+                                    ? t("page_subscription_change_to", { plan: TIER_INFO[selectedTier].name, duration: REGULAR_DURATION_LABELS[selectedDuration] })
+                                    : t("page_subscription_upgrade_to", { plan: TIER_INFO[selectedTier].name })}
                                 </p>
                                 <p className="text-muted-foreground">
                                   ₹{getRazorpayPlan(selectedTier, selectedDuration)?.displayAmount.toLocaleString()}{" "}
                                   for {REGULAR_DURATION_LABELS[selectedDuration]}
                                 </p>
+                                {hasActiveSubscription && currentPhase === "regular" && (
+                                  <p className="text-xs text-amber-600">
+                                    {t("page_subscription_change_note", "Your current plan will be cancelled and a prorated refund for unused days will be issued to your original payment method.")}
+                                  </p>
+                                )}
                               </div>
                               <Button
                                 size="lg"
@@ -1168,8 +1175,10 @@ const SubscriptionPage = () => {
                                   <>
                                     <Rocket className="mr-2 h-4 w-4" />
                                     {isInActivation
-                                      ? (t("page_subscription_subscribe_now", "Subscribe Now"))
-                                      : t("page_subscription_upgrade_now")}
+                                      ? t("page_subscription_subscribe_now", "Subscribe Now")
+                                      : hasActiveSubscription && currentPhase === "regular"
+                                        ? t("page_subscription_change_plan", "Change Plan")
+                                        : t("page_subscription_upgrade_now")}
                                   </>
                                 )}
                               </Button>
