@@ -11,6 +11,7 @@ import {
   ShieldX,
   ArrowLeft,
   MapPin,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
@@ -158,6 +159,22 @@ const PropertyPageContent = () => {
         onFlag={() => setIsFlagDialogOpen(true)}
       />
 
+      {property.listingStatus === "INACTIVE" && (
+        <div className="container mx-auto px-4 max-w-7xl pt-4">
+          <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+            <EyeOff className="h-5 w-5 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium">{t("property_inactive_title", "This property is currently inactive")}</p>
+              <p className="text-amber-700 dark:text-amber-300 mt-0.5">
+                {isOwner
+                  ? t("property_inactive_owner_desc", "Your subscription has been cancelled or expired. This property is hidden from other brokers. Renew your subscription to make it visible again.")
+                  : t("property_inactive_desc", "This property is not currently available.")}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-4 max-w-7xl pt-4 pb-20 md:pb-0">
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
           <div className="order-1 lg:order-1 lg:col-span-7">
@@ -240,7 +257,7 @@ const PropertyPageContent = () => {
               }}
               shareUrl={typeof window !== "undefined" ? window.location.href : ""}
               propertyTitle={`Property #${property.propertyId || "N/A"}`}
-              isDeleted={property.listingStatus === "DELETED"}
+              isDeleted={property.listingStatus === "DELETED" || property.listingStatus === "INACTIVE"}
               property={property}
             />
             <PropertySidebar property={property} />
@@ -263,7 +280,7 @@ const PropertyPageContent = () => {
                 </div>
               </div>
             )}
-            {isOwner && property.listingStatus !== "ENQUIRY_ONLY" && property.listingStatus !== "DELETED" && (
+            {isOwner && property.listingStatus !== "ENQUIRY_ONLY" && property.listingStatus !== "DELETED" && property.listingStatus !== "INACTIVE" && (
               <PropertyOffers property={property} />
             )}
             <DocumentsList property={property} />

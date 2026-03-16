@@ -9,11 +9,11 @@ import {
 import { Property } from "@/types/property";
 
 // === ENUMS ===
-export type EnquiryStatus = "active" | "closed" | "expired";
+export type EnquiryStatus = "active" | "closed" | "expired" | "inactive";
 export type EnquirySource = "broker" | "admin" | "company";
 export type EnquiryPurpose = "BUY" | "RENT";
 export type PossessionType = "IMMEDIATE" | "SPECIFIC_DATE";
-export type SubmissionStatus = "pending" | "approved" | "rejected";
+export type SubmissionStatus = "pending" | "approved" | "rejected" | "inactive";
 export type MessageThreadType = "enquirer_admin" | "submitter_admin";
 export type SubmissionViewStatus = "not_viewed" | "viewed" | "contact_shared";
 

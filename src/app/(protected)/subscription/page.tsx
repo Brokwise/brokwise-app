@@ -937,7 +937,9 @@ const SubscriptionPage = () => {
 
                     {/* Cancel button for active regular subscriptions */}
                     {currentPhase === "regular" &&
-                      subscription?.status === "active" && (
+                      (subscription?.status === "active" ||
+                        subscription?.status === "authenticated" ||
+                        subscription?.status === "created") && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="outline" className="text-red-500">
@@ -950,8 +952,13 @@ const SubscriptionPage = () => {
                               <AlertDialogTitle>
                                 {t("page_subscription_cancel_title", "Cancel Subscription")}
                               </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t("page_subscription_cancel_desc", "Are you sure you want to cancel your subscription?")}
+                              <AlertDialogDescription className="space-y-2">
+                                <span className="block">
+                                  {t("page_subscription_cancel_desc", "Are you sure you want to cancel your subscription?")}
+                                </span>
+                                <span className="block text-red-600 font-medium">
+                                  {t("page_subscription_cancel_warning", "All your active properties, enquiries and proposals will be hidden from other brokers until you re-subscribe.")}
+                                </span>
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -1122,7 +1129,7 @@ const SubscriptionPage = () => {
                           key={planTier}
                           tier={planTier}
                           isCurrentPlan={
-                            currentPhase === "regular" && currentTier === planTier
+                            currentPhase === "regular" && currentTier === planTier && subscription?.duration === selectedDuration
                           }
                           selectedDuration={selectedDuration}
                           onSelect={() => setSelectedTier(planTier)}
@@ -1133,7 +1140,7 @@ const SubscriptionPage = () => {
 
                     {/* Regular Checkout Card */}
                     {selectedTier &&
-                      !(currentPhase === "regular" && currentTier === selectedTier) && (
+                      !(currentPhase === "regular" && currentTier === selectedTier && subscription?.duration === selectedDuration) && (
                         <Card className="border-primary">
                           <CardContent className="pt-6">
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">

@@ -26,6 +26,7 @@ import {
   DoorOpen,
   LayoutGrid,
   ThumbsUp,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -98,6 +99,7 @@ const SingleEnquiryContent = () => {
     myEnquiries &&
     myEnquiries.length > 0 &&
     myEnquiries.some((e) => e._id === enquiry?._id);
+  const isInactive = enquiry?.status === "inactive";
 
   if (!id) {
     return (
@@ -235,7 +237,7 @@ const SingleEnquiryContent = () => {
 
         {/* Header Actions */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          {isMyEnquiry && enquiry.status === "active" && (
+          {isMyEnquiry && enquiry.status === "active" && !isInactive && (
             <Dialog
               open={isCloseDialogOpen}
               onOpenChange={(open) => {
@@ -293,6 +295,20 @@ const SingleEnquiryContent = () => {
           )}
         </div>
       </div>
+
+      {isInactive && (
+        <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 px-4 py-3 text-sm text-amber-900 dark:text-amber-200 mb-6">
+          <EyeOff className="h-5 w-5 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="font-medium">{t("enquiry_inactive_title", "This enquiry is currently inactive")}</p>
+            <p className="text-amber-700 dark:text-amber-300 mt-0.5">
+              {isMyEnquiry
+                ? t("enquiry_inactive_owner_desc", "Your subscription has been cancelled or expired. This enquiry is hidden from other brokers. Renew your subscription to make it visible again.")
+                : t("enquiry_inactive_desc", "This enquiry is not currently available for submissions.")}
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-6 md:gap-8 lg:grid-cols-3 ">
         {/* Main Content Column */}
@@ -538,7 +554,7 @@ const SingleEnquiryContent = () => {
                   variant="outline"
                   size="lg"
                   className="flex-1 py-3 md:py-0"
-                  disabled={!!enquiry.isInterested || isMarkingInterested}
+                  disabled={!!enquiry.isInterested || isMarkingInterested || isInactive}
                   onClick={() => {
                     markAsInterested(enquiry._id, {
                       onSuccess: () => {
@@ -575,15 +591,21 @@ const SingleEnquiryContent = () => {
                       brokerData?.companyId !== null &&
                       enquiry.createdByCompanyId ===
                       brokerData?.companyId._id) ||
-                    enquiry.status === "closed"
+                    enquiry.status === "closed" ||
+                    isInactive
                   }
                 >
                   {t("page_enquiry_detail_submit_proposal")}
                 </Button>
               </div>
-              {enquiry.status == "closed" && (
+              {enquiry.status === "closed" && (
                 <Alert>
                   {t("page_enquiry_detail_enquiry_closed")}
+                </Alert>
+              )}
+              {isInactive && (
+                <Alert>
+                  {t("enquiry_inactive_no_submissions", "This enquiry is inactive and not accepting submissions.")}
                 </Alert>
               )}
             </div>

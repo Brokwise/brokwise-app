@@ -56,6 +56,7 @@ export type ListingStatus =
   | "DRAFT"
   | "PENDING_APPROVAL"
   | "ACTIVE"
+  | "INACTIVE"
   | "REJECTED"
   | "SOLD"
   | "RENTED"
