@@ -49,6 +49,7 @@ import {
   Smartphone,
   CreditCard,
   Star,
+  DollarSign,
 } from "lucide-react";
 import {
   TIER,
@@ -866,7 +867,7 @@ const SubscriptionPage = () => {
           title={t("page_subscription_title")}
           description={t("page_subscription_subtitle")}
         >
-          <Crown className="h-8 w-8 text-primary" />
+          <DollarSign className="h-8 w-8 text-primary" />
         </PageHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -1189,61 +1190,61 @@ const SubscriptionPage = () => {
                           estimatedCredits = Math.round((currentPlanPrice / totalDays) * daysLeft);
                         }
                         return (
-                        <Card className="border-primary">
-                          <CardContent className="pt-6">
-                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                              <div className="space-y-1">
-                                <p className="font-semibold text-lg">
-                                  {isPlanChange
-                                    ? t("page_subscription_change_to", { plan: TIER_INFO[selectedTier].name, duration: REGULAR_DURATION_LABELS[selectedDuration] })
-                                    : t("page_subscription_upgrade_to", { plan: TIER_INFO[selectedTier].name })}
-                                </p>
-                                <p className="text-muted-foreground">
-                                  ₹{getRazorpayPlan(selectedTier, selectedDuration)?.displayAmount.toLocaleString()}{" "}
-                                  for {REGULAR_DURATION_LABELS[selectedDuration]}
-                                </p>
-                                {isPlanChange && daysLeft > 0 && (
-                                  <div className="text-xs space-y-1 mt-2 p-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
-                                    <p className="text-amber-700 dark:text-amber-300 font-medium">
-                                      {t("page_subscription_days_remaining", { days: daysLeft })}
-                                    </p>
-                                    <p className="text-amber-600 dark:text-amber-400">
-                                      {t("page_subscription_credit_disclaimer", { credits: estimatedCredits })}
-                                    </p>
-                                  </div>
-                                )}
+                          <Card className="border-primary">
+                            <CardContent className="pt-6">
+                              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div className="space-y-1">
+                                  <p className="font-semibold text-lg">
+                                    {isPlanChange
+                                      ? t("page_subscription_change_to", { plan: TIER_INFO[selectedTier].name, duration: REGULAR_DURATION_LABELS[selectedDuration] })
+                                      : t("page_subscription_upgrade_to", { plan: TIER_INFO[selectedTier].name })}
+                                  </p>
+                                  <p className="text-muted-foreground">
+                                    ₹{getRazorpayPlan(selectedTier, selectedDuration)?.displayAmount.toLocaleString()}{" "}
+                                    for {REGULAR_DURATION_LABELS[selectedDuration]}
+                                  </p>
+                                  {isPlanChange && daysLeft > 0 && (
+                                    <div className="text-xs space-y-1 mt-2 p-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
+                                      <p className="text-amber-700 dark:text-amber-300 font-medium">
+                                        {t("page_subscription_days_remaining", { days: daysLeft })}
+                                      </p>
+                                      <p className="text-amber-600 dark:text-amber-400">
+                                        {t("page_subscription_credit_disclaimer", { credits: estimatedCredits })}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                                <Button
+                                  size="lg"
+                                  onClick={handleUpgrade}
+                                  disabled={createPending}
+                                  className="w-full sm:w-auto"
+                                >
+                                  {createPending ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      {t("page_subscription_processing")}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Rocket className="mr-2 h-4 w-4" />
+                                      {isInActivation
+                                        ? t("page_subscription_subscribe_now", "Subscribe Now")
+                                        : isPlanChange
+                                          ? t("page_subscription_change_plan", "Change Plan")
+                                          : t("page_subscription_upgrade_now")}
+                                    </>
+                                  )}
+                                </Button>
                               </div>
-                              <Button
-                                size="lg"
-                                onClick={handleUpgrade}
-                                disabled={createPending}
-                                className="w-full sm:w-auto"
-                              >
-                                {createPending ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    {t("page_subscription_processing")}
-                                  </>
-                                ) : (
-                                  <>
-                                    <Rocket className="mr-2 h-4 w-4" />
-                                    {isInActivation
-                                      ? t("page_subscription_subscribe_now", "Subscribe Now")
-                                      : isPlanChange
-                                        ? t("page_subscription_change_plan", "Change Plan")
-                                        : t("page_subscription_upgrade_now")}
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-                          </CardContent>
-                          <CardFooter className="text-xs text-muted-foreground border-t pt-4">
-                            <div className="flex items-center gap-2">
-                              <Shield className="h-4 w-4" />
-                              {t("page_subscription_secure_payment", "Secure Payment")}
-                            </div>
-                          </CardFooter>
-                        </Card>
+                            </CardContent>
+                            <CardFooter className="text-xs text-muted-foreground border-t pt-4">
+                              <div className="flex items-center gap-2">
+                                <Shield className="h-4 w-4" />
+                                {t("page_subscription_secure_payment", "Secure Payment")}
+                              </div>
+                            </CardFooter>
+                          </Card>
                         );
                       })()}
 
