@@ -1164,7 +1164,7 @@ const SubscriptionPage = () => {
                           key={planTier}
                           tier={planTier}
                           isCurrentPlan={
-                            currentPhase === "regular" && currentTier === planTier && subscription?.duration === selectedDuration
+                            currentPhase === "regular" && currentTier === planTier && subscription?.duration === selectedDuration && subscription?.status !== "cancelled"
                           }
                           selectedDuration={selectedDuration}
                           onSelect={() => setSelectedTier(planTier)}
@@ -1175,7 +1175,7 @@ const SubscriptionPage = () => {
 
                     {/* Regular Checkout Card */}
                     {selectedTier &&
-                      !(currentPhase === "regular" && currentTier === selectedTier && subscription?.duration === selectedDuration) && (() => {
+                      !(currentPhase === "regular" && currentTier === selectedTier && subscription?.duration === selectedDuration && subscription?.status !== "cancelled") && (() => {
                         const isPlanChange = hasActiveSubscription && currentPhase === "regular";
                         let daysLeft = 0;
                         let estimatedCredits = 0;
