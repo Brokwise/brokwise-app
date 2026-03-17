@@ -795,11 +795,18 @@ const SubscriptionPage = () => {
   const WEB_APP_URL = "https://app.brokwise.com";
 
   // Whether the broker has any usable subscription right now
+  // A cancelled subscription is still usable until currentPeriodEnd
+  const isCancelledButActive =
+    subscription?.status === "cancelled" &&
+    subscription?.currentPeriodEnd &&
+    new Date(subscription.currentPeriodEnd) > new Date();
+
   const hasActiveSubscription =
     !!subscription &&
     (subscription.status === "active" ||
       subscription.status === "authenticated" ||
-      subscription.status === "created");
+      subscription.status === "created" ||
+      isCancelledButActive);
 
   // Determine if the user should see activation plans or regular plans
   const showActivationPlans = needsActivation;
@@ -941,8 +948,9 @@ const SubscriptionPage = () => {
                         : t("page_subscription_upgrade_plan", "Upgrade Plan")}
                     </Button>
 
-                    {/* Cancel button for active regular subscriptions */}
+                    {/* Cancel button — hide if already cancelled */}
                     {currentPhase === "regular" &&
+                      subscription?.status !== "cancelled" &&
                       (subscription?.status === "active" ||
                         subscription?.status === "authenticated" ||
                         subscription?.status === "created") && (
@@ -962,8 +970,15 @@ const SubscriptionPage = () => {
                                 <span className="block">
                                   {t("page_subscription_cancel_desc", "Are you sure you want to cancel your subscription?")}
                                 </span>
-                                <span className="block text-red-600 font-medium">
-                                  {t("page_subscription_cancel_warning", "All your active properties, enquiries and proposals will be hidden from other brokers until you re-subscribe.")}
+                                {subscription?.currentPeriodEnd && (
+                                  <span className="block text-sm font-medium">
+                                    {t("page_subscription_cancel_active_until", {
+                                      date: new Date(subscription.currentPeriodEnd).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+                                    })}
+                                  </span>
+                                )}
+                                <span className="block text-amber-600 text-sm">
+                                  {t("page_subscription_cancel_warning", "After the billing period ends, your properties, enquiries and proposals will be hidden from other brokers.")}
                                 </span>
                               </AlertDialogDescription>
                             </AlertDialogHeader>
@@ -987,6 +1002,20 @@ const SubscriptionPage = () => {
                           </AlertDialogContent>
                         </AlertDialog>
                       )}
+
+                    {/* Cancellation scheduled notice */}
+                    {isCancelledButActive && subscription?.currentPeriodEnd && (
+                      <div className="w-full p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm">
+                        <p className="text-amber-700 dark:text-amber-300 font-medium">
+                          {t("page_subscription_cancellation_scheduled", "Cancellation scheduled")}
+                        </p>
+                        <p className="text-amber-600 dark:text-amber-400 mt-0.5">
+                          {t("page_subscription_active_until", {
+                            date: new Date(subscription.currentPeriodEnd).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+                          })}
+                        </p>
+                      </div>
+                    )}
                   </>
                 )}
               </CardContent>
@@ -1146,13 +1175,26 @@ const SubscriptionPage = () => {
 
                     {/* Regular Checkout Card */}
                     {selectedTier &&
-                      !(currentPhase === "regular" && currentTier === selectedTier && subscription?.duration === selectedDuration) && (
+                      !(currentPhase === "regular" && currentTier === selectedTier && subscription?.duration === selectedDuration) && (() => {
+                        const isPlanChange = hasActiveSubscription && currentPhase === "regular";
+                        let daysLeft = 0;
+                        let estimatedCredits = 0;
+                        if (isPlanChange && subscription?.currentPeriodEnd) {
+                          const now = new Date();
+                          const end = new Date(subscription.currentPeriodEnd);
+                          const start = new Date(subscription.currentPeriodStart);
+                          const totalDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+                          daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+                          const currentPlanPrice = getRazorpayPlan(currentTier as TIER, subscription.duration as RegularDuration)?.displayAmount || 0;
+                          estimatedCredits = Math.round((currentPlanPrice / totalDays) * daysLeft);
+                        }
+                        return (
                         <Card className="border-primary">
                           <CardContent className="pt-6">
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                               <div className="space-y-1">
                                 <p className="font-semibold text-lg">
-                                  {hasActiveSubscription && currentPhase === "regular"
+                                  {isPlanChange
                                     ? t("page_subscription_change_to", { plan: TIER_INFO[selectedTier].name, duration: REGULAR_DURATION_LABELS[selectedDuration] })
                                     : t("page_subscription_upgrade_to", { plan: TIER_INFO[selectedTier].name })}
                                 </p>
@@ -1160,10 +1202,15 @@ const SubscriptionPage = () => {
                                   ₹{getRazorpayPlan(selectedTier, selectedDuration)?.displayAmount.toLocaleString()}{" "}
                                   for {REGULAR_DURATION_LABELS[selectedDuration]}
                                 </p>
-                                {hasActiveSubscription && currentPhase === "regular" && (
-                                  <p className="text-xs text-amber-600">
-                                    {t("page_subscription_change_note", "Your current plan will be cancelled and a prorated refund for unused days will be issued to your original payment method.")}
-                                  </p>
+                                {isPlanChange && daysLeft > 0 && (
+                                  <div className="text-xs space-y-1 mt-2 p-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
+                                    <p className="text-amber-700 dark:text-amber-300 font-medium">
+                                      {t("page_subscription_days_remaining", { days: daysLeft })}
+                                    </p>
+                                    <p className="text-amber-600 dark:text-amber-400">
+                                      {t("page_subscription_credit_disclaimer", { credits: estimatedCredits })}
+                                    </p>
+                                  </div>
                                 )}
                               </div>
                               <Button
@@ -1182,7 +1229,7 @@ const SubscriptionPage = () => {
                                     <Rocket className="mr-2 h-4 w-4" />
                                     {isInActivation
                                       ? t("page_subscription_subscribe_now", "Subscribe Now")
-                                      : hasActiveSubscription && currentPhase === "regular"
+                                      : isPlanChange
                                         ? t("page_subscription_change_plan", "Change Plan")
                                         : t("page_subscription_upgrade_now")}
                                   </>
@@ -1197,7 +1244,8 @@ const SubscriptionPage = () => {
                             </div>
                           </CardFooter>
                         </Card>
-                      )}
+                        );
+                      })()}
 
                     <FeatureComparisonTable phase="regular" />
                   </>
