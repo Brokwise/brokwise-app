@@ -92,7 +92,12 @@ function EditPropertyPageContent() {
             setSideFacing(property.sideFacing);
             setSelectedAmenities(property.amenities || []);
             setFeaturedMedia(property.featuredMedia || "");
-            setAllImages(property.images || []);
+            const existingImages = property.images || [];
+            if (property.featuredMedia && !existingImages.includes(property.featuredMedia)) {
+                setAllImages([property.featuredMedia, ...existingImages]);
+            } else {
+                setAllImages(existingImages);
+            }
 
             // Rental fields
             setMonthlyRent(property.monthlyRent);
