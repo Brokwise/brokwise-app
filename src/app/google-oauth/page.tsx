@@ -339,6 +339,7 @@ const GoogleOauthPage = () => {
           // Ignore sign out failures while handling OAuth errors.
         }
       }
+      console.error("Google auth error:", error);
       logError({
         error: error as Error,
         slackChannel: "frontend-errors",

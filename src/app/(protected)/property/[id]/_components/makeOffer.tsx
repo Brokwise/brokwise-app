@@ -311,7 +311,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
       </Card>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-[95%] rounded-2xl">
+        <DialogContent className="max-w-[95%] md:max-w-lg rounded-2xl">
           <DialogHeader>
             <DialogTitle>
               {isFinalOfferMode ? t("property_submit_final_offer") : t("action_submit_offer")}
@@ -440,10 +440,10 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
                   (isRental
                     ? !rentalOffer || parseFloat(rentalOffer) > askingPrice
                     : !perUnitRate ||
-                      parseFloat(perUnitRate) > property.rate ||
-                      (Boolean(property.size) &&
-                        parseFloat(totalRate || "0") >
-                        (Number(property.size) || 0) * property.rate))
+                    parseFloat(perUnitRate) > property.rate ||
+                    (Boolean(property.size) &&
+                      parseFloat(totalRate || "0") >
+                      (Number(property.size) || 0) * property.rate))
                 }
               >
                 {isSubmitting || isSubmittingFinal

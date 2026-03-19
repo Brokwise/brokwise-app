@@ -22,6 +22,9 @@ import { firebaseAuth, getUserDoc, setUserDoc } from "@/config/firebase";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  OAuthProvider,
+  signInWithCredential,
+  signInWithPopup,
 } from "firebase/auth";
 import { signInWithEmailAndPassword, User } from "firebase/auth";
 import { createUser } from "@/models/api/user";
@@ -40,6 +43,7 @@ import {
 
 import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
+import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { buildAcceptedLegalConsents } from "@/constants/legal";
 
 const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
@@ -256,6 +260,70 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
     }
   };
 
+  const handleAppleSignIn = async () => {
+    try {
+      setLoading(true);
+      const isNative = Capacitor.isNativePlatform();
+      let user: User;
+
+      if (isNative) {
+        const result = await FirebaseAuthentication.signInWithApple({
+          skipNativeAuth: true,
+        });
+
+        if (!result?.credential?.idToken) {
+          return;
+        }
+
+        const provider = new OAuthProvider("apple.com");
+        const oauthCredential = provider.credential({
+          idToken: result.credential.idToken,
+          rawNonce: result.credential.nonce,
+        });
+        const userCredential = await signInWithCredential(
+          firebaseAuth,
+          oauthCredential
+        );
+        user = userCredential.user;
+      } else {
+        const provider = new OAuthProvider("apple.com");
+        provider.addScope("email");
+        provider.addScope("name");
+        const userCredential = await signInWithPopup(firebaseAuth, provider);
+        user = userCredential.user;
+      }
+
+      if (isSignup) {
+        await createUserInDb(user, user.displayName ?? "");
+        await sendVerificatinLink(user);
+      } else {
+        if (!user.emailVerified) {
+          await sendVerificatinLink(user);
+        }
+      }
+      router.push("/");
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (
+        errMsg.includes("canceled") ||
+        errMsg.includes("cancelled") ||
+        errMsg.includes("popup-closed-by-user") ||
+        errMsg.includes("The user canceled the sign-in flow")
+      ) {
+        return;
+      }
+      logError({
+        description: "Error signing in with Apple",
+        error: err as Error,
+        slackChannel: "frontend-errors",
+      });
+      console.error("Apple auth error:", err);
+      toast.error(t("apple_auth_failed"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-end mb-4">
@@ -400,15 +468,28 @@ const Signupcard = ({ isSignup = false }: { isSignup?: boolean }) => {
         <span className="text-gray-500 z-10">{t("or")}</span>
         <div className="w-1/4 h-[1px] bg-gray-200 absolute top-1/2 right-0"></div>
       </div>
-      <Button
-        onClick={handleGoogleSignUp}
-        size={"lg"}
-        variant="outline"
-        className="w-full"
-      >
-        <Image src="/icons/google.svg" alt="google" width={24} height={24} />
-        <span>{t("google_button")}</span>
-      </Button>
+      <div className="flex flex-col gap-3 w-full">
+        <Button
+          onClick={handleGoogleSignUp}
+          size={"lg"}
+          variant="outline"
+          className="w-full"
+          disabled={loading}
+        >
+          <Image src="/icons/google.svg" alt="google" width={24} height={24} />
+          <span>{t("google_button")}</span>
+        </Button>
+        <Button
+          onClick={handleAppleSignIn}
+          size={"lg"}
+          variant="outline"
+          className="w-full"
+          disabled={loading}
+        >
+          <Image src="/icons/apple.svg" alt="apple" width={24} height={24} className="dark:invert" />
+          <span>{t("apple_button")}</span>
+        </Button>
+      </div>
     </div>
   );
 };
