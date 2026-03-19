@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { coerceStringArray } from "@/utils/helper";
+import { coerceStringArray, coerceFloorPlanDocs } from "@/utils/helper";
 
 import { Form } from "@/components/ui/form";
 import { Wizard, WizardStep } from "@/components/ui/wizard";
@@ -88,7 +88,7 @@ export const IndustrialWizard: React.FC<IndustrialWizardProps> = ({
       featuredMedia: "",
       ...initialData,
       images: coerceStringArray(initialData?.images),
-      floorPlans: coerceStringArray(initialData?.floorPlans),
+      floorPlans: coerceFloorPlanDocs(initialData?.floorPlans),
       amenities: coerceStringArray(initialData?.amenities),
     },
     mode: "onChange",

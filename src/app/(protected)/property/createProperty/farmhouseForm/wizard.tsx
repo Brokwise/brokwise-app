@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { coerceStringArray } from "@/utils/helper";
+import { coerceStringArray, coerceFloorPlanDocs } from "@/utils/helper";
 
 import { Form } from "@/components/ui/form";
 import { Wizard, WizardStep } from "@/components/ui/wizard";
@@ -85,7 +85,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
       featuredMedia: "",
       ...initialData,
       images: coerceStringArray(initialData?.images),
-      floorPlans: coerceStringArray(initialData?.floorPlans),
+      floorPlans: coerceFloorPlanDocs(initialData?.floorPlans),
       amenities: coerceStringArray(initialData?.amenities),
     },
     mode: "onChange",
@@ -166,7 +166,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
       agreementDuration: "Agreement duration is required",
       description: "Description is required",
       featuredMedia: "Featured media is required",
-      floorPlans: "Floor plans are required",
+      floorPlans: "Documents are required",
     };
 
     for (const field of fieldsToValidate) {

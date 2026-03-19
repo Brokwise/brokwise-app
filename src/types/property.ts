@@ -118,6 +118,7 @@ export interface PropertyOffer {
   offerBy: string;
   rate: number;
   status: OfferStatus;
+  message?: string;
   rejectionReason?: string;
   isFinalOffer: boolean;
   isContactShared?: boolean;
@@ -128,12 +129,14 @@ export interface PropertyOffer {
 export interface OfferDataDTO {
   propertyId: string;
   rate: number;
+  message?: string;
 }
 
 export interface SubmitFinalOfferDTO {
   propertyId: string;
   offerId: string;
   rate: number;
+  message?: string;
 }
 
 //  Main Property Interface
@@ -156,7 +159,7 @@ export interface Property {
 
   featuredMedia: string;
   images: string[];
-  floorPlans?: string[];
+  floorPlans?: { url: string; name?: string }[];
 
   listedBy: Broker;
   companyId?: string;

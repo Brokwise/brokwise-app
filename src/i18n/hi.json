@@ -687,6 +687,8 @@
   "property_total": "टोटल",
   "property_offer_rate_label": "ऑफ़र रेट",
   "property_offer_total_label": "ऑफ़र टोटल",
+  "offer_message_label": "संदेश",
+  "offer_message_placeholder": "प्रॉपर्टी मालिक को एक संदेश जोड़ें (वैकल्पिक)",
   "property_asking_total": "आस्किंग टोटल",
   "property_nearby_localities": "नज़दीकी लोकैलिटीज़",
   "page_my_enquiries_title": "मेरी इन्क्वायरीज़",

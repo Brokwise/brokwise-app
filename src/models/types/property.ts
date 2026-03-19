@@ -122,7 +122,7 @@ export interface Property {
   // Media
   featuredMedia: string; // Featured (JPEG image or MP4 video)
   images: string[]; // Images List (JPEG image)
-  floorPlans?: string[]; // Site Plan (PDF Doc or JPEG image)
+  floorPlans?: { url: string; name?: string }[]; // Site Plan (PDF Doc or JPEG image)
 
   // Relational IDs
   listedBy: string; // Ref: 'Broker'

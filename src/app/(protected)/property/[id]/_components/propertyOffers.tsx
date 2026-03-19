@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCheck, PhoneCall, User, XCircle } from "lucide-react";
+import { CheckCheck, MessageSquare, PhoneCall, User, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Property } from "@/types/property";
 import { ShareContactDialog } from "./share-contact-dialog";
@@ -123,6 +123,13 @@ export const PropertyOffers = ({ property }: { property: Property }) => {
                     </p>
                   </div>
                 </div>
+
+                {offer.message && (
+                  <div className="flex items-start gap-1.5 p-2 bg-muted/50 rounded-md">
+                    <MessageSquare className="h-3 w-3 mt-0.5 text-muted-foreground shrink-0" />
+                    <p className="text-xs text-muted-foreground">{offer.message}</p>
+                  </div>
+                )}
 
                 <div className="flex gap-2 pt-1">
                   {offer.isContactShared ? (
