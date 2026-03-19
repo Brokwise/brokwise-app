@@ -75,6 +75,11 @@ const getStatusBadge = (status: EnquiryStatus) => {
       label: "Expired",
       className: "text-gray-500",
     },
+    inactive: {
+      variant: "outline",
+      label: "Inactive",
+      className: "text-gray-500",
+    },
   };
   const config = variants[status] || { variant: "outline", label: status };
 

@@ -216,12 +216,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { subscription, isLoading: subLoading } = useGetCurrentSubscription({
     enabled: isBroker,
   });
+  const isCancelledButActive =
+    subscription?.status === "cancelled" &&
+    subscription?.currentPeriodEnd &&
+    new Date(subscription.currentPeriodEnd) > new Date();
+
   const hasActiveSubscription =
     isBroker &&
     !!subscription &&
     (subscription.status === "active" ||
       subscription.status === "authenticated" ||
-      subscription.status === "created");
+      subscription.status === "created" ||
+      !!isCancelledButActive);
 
   // When broker has no active subscription, only show Subscription link
   const gatedBrokerNav: SidebarNavItem[] =

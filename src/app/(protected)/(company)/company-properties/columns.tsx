@@ -98,6 +98,11 @@ const getStatusBadge = (status: ListingStatus) => {
       label: "Deleted",
       className: "bg-red-600 text-white hover:bg-red-700",
     },
+    INACTIVE: {
+      variant: "outline",
+      label: "Inactive",
+      className: "text-gray-500",
+    },
   };
   const config = variants[status] || { variant: "outline", label: status };
 

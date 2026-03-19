@@ -169,7 +169,7 @@ const RAZORPAY_PLANS_STAGING: RazorpayPlanConfig[] = [
         credits: 400,
     },
     {
-        planId: "plan_SFw1lbdWbw0Gi8",
+        planId: "plan_SFw1lbdWbwOGi8",
         tier: "ESSENTIAL",
         duration: "3_MONTHS",
         amount: 8999,

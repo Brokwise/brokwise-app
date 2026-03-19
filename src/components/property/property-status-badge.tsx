@@ -78,6 +78,11 @@ export function PropertyStatusBadge({
       label: "Expired",
       className: "text-gray-500",
     },
+    INACTIVE: {
+      variant: "secondary",
+      label: "Inactive",
+      className: "bg-gray-100 text-gray-800 hover:bg-gray-200",
+    },
     DELISTED: {
       variant: "destructive",
       label: "Delisted",

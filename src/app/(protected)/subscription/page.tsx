@@ -49,6 +49,7 @@ import {
   Smartphone,
   CreditCard,
   Star,
+  DollarSign,
 } from "lucide-react";
 import {
   TIER,
@@ -168,6 +169,12 @@ const getStatusBadge = (status: string) => {
       return (
         <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">
           Expired
+        </Badge>
+      );
+    case "inactive":
+      return (
+        <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">
+          Inactive
         </Badge>
       );
     default:
@@ -789,11 +796,18 @@ const SubscriptionPage = () => {
   const WEB_APP_URL = "https://app.brokwise.com";
 
   // Whether the broker has any usable subscription right now
+  // A cancelled subscription is still usable until currentPeriodEnd
+  const isCancelledButActive =
+    subscription?.status === "cancelled" &&
+    subscription?.currentPeriodEnd &&
+    new Date(subscription.currentPeriodEnd) > new Date();
+
   const hasActiveSubscription =
     !!subscription &&
     (subscription.status === "active" ||
       subscription.status === "authenticated" ||
-      subscription.status === "created");
+      subscription.status === "created" ||
+      isCancelledButActive);
 
   // Determine if the user should see activation plans or regular plans
   const showActivationPlans = needsActivation;
@@ -853,7 +867,7 @@ const SubscriptionPage = () => {
           title={t("page_subscription_title")}
           description={t("page_subscription_subtitle")}
         >
-          <Crown className="h-8 w-8 text-primary" />
+          <DollarSign className="h-8 w-8 text-primary" />
         </PageHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -935,9 +949,12 @@ const SubscriptionPage = () => {
                         : t("page_subscription_upgrade_plan", "Upgrade Plan")}
                     </Button>
 
-                    {/* Cancel button for active regular subscriptions */}
+                    {/* Cancel button — hide if already cancelled */}
                     {currentPhase === "regular" &&
-                      subscription?.status === "active" && (
+                      subscription?.status !== "cancelled" &&
+                      (subscription?.status === "active" ||
+                        subscription?.status === "authenticated" ||
+                        subscription?.status === "created") && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="outline" className="text-red-500">
@@ -950,8 +967,20 @@ const SubscriptionPage = () => {
                               <AlertDialogTitle>
                                 {t("page_subscription_cancel_title", "Cancel Subscription")}
                               </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t("page_subscription_cancel_desc", "Are you sure you want to cancel your subscription?")}
+                              <AlertDialogDescription className="space-y-2">
+                                <span className="block">
+                                  {t("page_subscription_cancel_desc", "Are you sure you want to cancel your subscription?")}
+                                </span>
+                                {subscription?.currentPeriodEnd && (
+                                  <span className="block text-sm font-medium">
+                                    {t("page_subscription_cancel_active_until", {
+                                      date: new Date(subscription.currentPeriodEnd).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+                                    })}
+                                  </span>
+                                )}
+                                <span className="block text-amber-600 text-sm">
+                                  {t("page_subscription_cancel_warning", "After the billing period ends, your properties, enquiries and proposals will be hidden from other brokers.")}
+                                </span>
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -974,6 +1003,20 @@ const SubscriptionPage = () => {
                           </AlertDialogContent>
                         </AlertDialog>
                       )}
+
+                    {/* Cancellation scheduled notice */}
+                    {isCancelledButActive && subscription?.currentPeriodEnd && (
+                      <div className="w-full p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm">
+                        <p className="text-amber-700 dark:text-amber-300 font-medium">
+                          {t("page_subscription_cancellation_scheduled", "Cancellation scheduled")}
+                        </p>
+                        <p className="text-amber-600 dark:text-amber-400 mt-0.5">
+                          {t("page_subscription_active_until", {
+                            date: new Date(subscription.currentPeriodEnd).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+                          })}
+                        </p>
+                      </div>
+                    )}
                   </>
                 )}
               </CardContent>
@@ -1122,7 +1165,7 @@ const SubscriptionPage = () => {
                           key={planTier}
                           tier={planTier}
                           isCurrentPlan={
-                            currentPhase === "regular" && currentTier === planTier
+                            currentPhase === "regular" && currentTier === planTier && subscription?.duration === selectedDuration && subscription?.status !== "cancelled"
                           }
                           selectedDuration={selectedDuration}
                           onSelect={() => setSelectedTier(planTier)}
@@ -1133,49 +1176,77 @@ const SubscriptionPage = () => {
 
                     {/* Regular Checkout Card */}
                     {selectedTier &&
-                      !(currentPhase === "regular" && currentTier === selectedTier) && (
-                        <Card className="border-primary">
-                          <CardContent className="pt-6">
-                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                              <div className="space-y-1">
-                                <p className="font-semibold text-lg">
-                                  {t("page_subscription_upgrade_to", { plan: TIER_INFO[selectedTier].name })}
-                                </p>
-                                <p className="text-muted-foreground">
-                                  ₹{getRazorpayPlan(selectedTier, selectedDuration)?.displayAmount.toLocaleString()}{" "}
-                                  for {REGULAR_DURATION_LABELS[selectedDuration]}
-                                </p>
+                      !(currentPhase === "regular" && currentTier === selectedTier && subscription?.duration === selectedDuration && subscription?.status !== "cancelled") && (() => {
+                        const isPlanChange = hasActiveSubscription && currentPhase === "regular";
+                        let daysLeft = 0;
+                        let estimatedCredits = 0;
+                        if (isPlanChange && subscription?.currentPeriodEnd) {
+                          const now = new Date();
+                          const end = new Date(subscription.currentPeriodEnd);
+                          const start = new Date(subscription.currentPeriodStart);
+                          const totalDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+                          daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+                          const currentPlanPrice = getRazorpayPlan(currentTier as TIER, subscription.duration as RegularDuration)?.displayAmount || 0;
+                          estimatedCredits = Math.round((currentPlanPrice / totalDays) * daysLeft);
+                        }
+                        return (
+                          <Card className="border-primary">
+                            <CardContent className="pt-6">
+                              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div className="space-y-1">
+                                  <p className="font-semibold text-lg">
+                                    {isPlanChange
+                                      ? t("page_subscription_change_to", { plan: TIER_INFO[selectedTier].name, duration: REGULAR_DURATION_LABELS[selectedDuration] })
+                                      : t("page_subscription_upgrade_to", { plan: TIER_INFO[selectedTier].name })}
+                                  </p>
+                                  <p className="text-muted-foreground">
+                                    ₹{getRazorpayPlan(selectedTier, selectedDuration)?.displayAmount.toLocaleString()}{" "}
+                                    for {REGULAR_DURATION_LABELS[selectedDuration]}
+                                  </p>
+                                  {isPlanChange && daysLeft > 0 && (
+                                    <div className="text-xs space-y-1 mt-2 p-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
+                                      <p className="text-amber-700 dark:text-amber-300 font-medium">
+                                        {t("page_subscription_days_remaining", { days: daysLeft })}
+                                      </p>
+                                      <p className="text-amber-600 dark:text-amber-400">
+                                        {t("page_subscription_credit_disclaimer", { credits: estimatedCredits })}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                                <Button
+                                  size="lg"
+                                  onClick={handleUpgrade}
+                                  disabled={createPending}
+                                  className="w-full sm:w-auto"
+                                >
+                                  {createPending ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      {t("page_subscription_processing")}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Rocket className="mr-2 h-4 w-4" />
+                                      {isInActivation
+                                        ? t("page_subscription_subscribe_now", "Subscribe Now")
+                                        : isPlanChange
+                                          ? t("page_subscription_change_plan", "Change Plan")
+                                          : t("page_subscription_upgrade_now")}
+                                    </>
+                                  )}
+                                </Button>
                               </div>
-                              <Button
-                                size="lg"
-                                onClick={handleUpgrade}
-                                disabled={createPending}
-                                className="w-full sm:w-auto"
-                              >
-                                {createPending ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    {t("page_subscription_processing")}
-                                  </>
-                                ) : (
-                                  <>
-                                    <Rocket className="mr-2 h-4 w-4" />
-                                    {isInActivation
-                                      ? (t("page_subscription_subscribe_now", "Subscribe Now"))
-                                      : t("page_subscription_upgrade_now")}
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-                          </CardContent>
-                          <CardFooter className="text-xs text-muted-foreground border-t pt-4">
-                            <div className="flex items-center gap-2">
-                              <Shield className="h-4 w-4" />
-                              {t("page_subscription_secure_payment", "Secure Payment")}
-                            </div>
-                          </CardFooter>
-                        </Card>
-                      )}
+                            </CardContent>
+                            <CardFooter className="text-xs text-muted-foreground border-t pt-4">
+                              <div className="flex items-center gap-2">
+                                <Shield className="h-4 w-4" />
+                                {t("page_subscription_secure_payment", "Secure Payment")}
+                              </div>
+                            </CardFooter>
+                          </Card>
+                        );
+                      })()}
 
                     <FeatureComparisonTable phase="regular" />
                   </>

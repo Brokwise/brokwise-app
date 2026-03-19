@@ -46,11 +46,18 @@ export const SubscriptionGate = ({
   );
 
   // Determine if the subscription is usable
+  // A cancelled subscription is still usable until currentPeriodEnd
+  const isCancelledButWithinPeriod =
+    subscription?.status === "cancelled" &&
+    subscription?.currentPeriodEnd &&
+    new Date(subscription.currentPeriodEnd) > new Date();
+
   const hasActiveSubscription =
     !!subscription &&
     (subscription.status === "active" ||
       subscription.status === "authenticated" ||
-      subscription.status === "created");
+      subscription.status === "created" ||
+      !!isCancelledButWithinPeriod);
 
   // Redirect when needed
   useEffect(() => {
