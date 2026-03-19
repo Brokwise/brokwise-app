@@ -90,7 +90,7 @@ const basePropertySchema = z.object({
   // Required common fields
   floorPlans: z
     .array(z.object({ url: z.string().url(), name: z.string().optional() }))
-    .min(1, "At least one layout plan/site plan/map is mandatory"),
+    .optional(),
   isFeatured: z.boolean().optional(),
   isPriceNegotiable: z.boolean().optional(),
   size: z.number().min(0).optional(),
@@ -193,6 +193,8 @@ export const residentialPropertySchema = basePropertySchema
   )
   .refine(
     (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "RENT") return true;
       if (data.propertyType === "FLAT" || data.propertyType === "VILLA") {
         return !!data.featuredMedia;
       }
@@ -201,6 +203,32 @@ export const residentialPropertySchema = basePropertySchema
     {
       message: "Featured media is required for this property type",
       path: ["featuredMedia"],
+    }
+  )
+  .refine(
+    (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "RENT") {
+        return Array.isArray(data.images) && data.images.length >= 1;
+      }
+      return true;
+    },
+    {
+      message: "At least one image is required for rental listings",
+      path: ["images"],
+    }
+  )
+  .refine(
+    (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "RENT") return true;
+      return (
+        Array.isArray(data.floorPlans) && data.floorPlans.length >= 1
+      );
+    },
+    {
+      message: "At least one document is required for sale listings",
+      path: ["floorPlans"],
     }
   )
   .refine(
@@ -383,6 +411,28 @@ export const commercialPropertySchema = basePropertySchema
       return true;
     },
     { message: "Agreement duration is required for rental listings", path: ["agreementDuration"] }
+  )
+  .refine(
+    (data) => {
+      const purpose = data.listingPurpose || "SALE";
+      if (purpose === "RENT") {
+        return Array.isArray(data.images) && data.images.length >= 1;
+      }
+      return true;
+    },
+    {
+      message: "At least one image is required for rental listings",
+      path: ["images"],
+    }
+  )
+  .refine(
+    (data) => {
+      return Array.isArray(data.floorPlans) && data.floorPlans.length >= 1;
+    },
+    {
+      message: "At least one document is required",
+      path: ["floorPlans"],
+    }
   )
   .refine(
     (data) => {

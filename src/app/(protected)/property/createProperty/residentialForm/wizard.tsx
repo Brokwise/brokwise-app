@@ -107,6 +107,9 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   }, [watchedPropertyType, form]);
 
   const onSubmit = async (data: ResidentialPropertyFormData, shouldUseCredits: boolean) => {
+    if (!data.featuredMedia && data.images && data.images.length > 0) {
+      data.featuredMedia = data.images[0];
+    }
     if (onSubmitProp) {
       onSubmitProp(data);
     } else {
@@ -138,8 +141,10 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
   }, [currentStep, propertyType]);
 
   const validateCurrentStep = async (): Promise<boolean> => {
-    const mediaStepFields =
-      propertyType === "LAND"
+    const isRentMedia = listingPurpose === "RENT";
+    const mediaStepFields = isRentMedia
+      ? ["description", "images"]
+      : propertyType === "LAND"
         ? ["description", "floorPlans"]
         : ["description", "featuredMedia", "floorPlans"];
 
@@ -200,11 +205,12 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       securityDeposit: "Security deposit is required",
       agreementDuration: "Agreement duration is required",
       description: "Description is required",
+      images: "At least one image is required",
       featuredMedia:
-        propertyType === "LAND"
-          ? "Featured media is optional for land"
+        propertyType === "LAND" || isRentMedia
+          ? "Featured media is optional"
           : "Featured media is required",
-      floorPlans: propertyType === "LAND" ? "Documents are required" : "Documents are required",
+      floorPlans: isRentMedia ? "Documents are optional for rentals" : "Documents are required",
     };
 
     for (const field of fieldsToValidate) {
@@ -436,6 +442,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
                 setUploading={setUploading}
                 uploading={uploading}
                 propertyType={propertyType}
+                listingPurpose={listingPurpose}
               />
             }
           </div>
