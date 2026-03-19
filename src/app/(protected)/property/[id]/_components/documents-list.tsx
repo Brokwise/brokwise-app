@@ -15,11 +15,15 @@ export const DocumentsList = ({ property, hideHeader = false }: DocumentsListPro
     if (property.listingStatus === "DELETED") return null;
 
     const documents = [
-        ...(property.floorPlans?.map((url, i) => ({
-            name: `${t("property_floor_plan")} ${i + 1}`,
-            url,
-            type: t("property_floor_plan_type"),
-        })) || []),
+        ...(property.floorPlans?.map((doc, i) => {
+            const url = typeof doc === "string" ? doc : doc.url;
+            const name = typeof doc === "string" ? undefined : doc.name;
+            return {
+                name: name || `${t("property_floor_plan")} ${i + 1}`,
+                url,
+                type: t("property_floor_plan_type"),
+            };
+        }) || []),
         ...(property.jamabandiUrl
             ? [{ name: t("label_jamabandi_document"), url: property.jamabandiUrl, type: t("property_legal_type") }]
             : []),

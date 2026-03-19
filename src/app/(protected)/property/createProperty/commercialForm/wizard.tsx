@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { coerceStringArray } from "@/utils/helper";
+import { coerceStringArray, coerceFloorPlanDocs } from "@/utils/helper";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -97,7 +97,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
       ...initialData,
       propertyType: initialData?.propertyType || "SHOP",
       images: coerceStringArray(initialData?.images),
-      floorPlans: coerceStringArray(initialData?.floorPlans),
+      floorPlans: coerceFloorPlanDocs(initialData?.floorPlans),
       amenities: coerceStringArray(initialData?.amenities),
     },
     mode: "onChange",
@@ -210,7 +210,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
       agreementDuration: "Agreement duration is required",
       description: "Description is required",
       featuredMedia: "Featured media is required",
-      floorPlans: "Floor plans are required",
+      floorPlans: "Documents are required",
     };
 
     for (const field of fieldsToValidate) {

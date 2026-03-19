@@ -31,7 +31,9 @@ import {
   signInWithEmailAndPassword,
   sendEmailVerification,
   signInWithCredential,
+  signInWithPopup,
   GoogleAuthProvider,
+  OAuthProvider,
   User,
 } from "firebase/auth";
 import { toast } from "sonner";
@@ -611,6 +613,204 @@ export default function AuthPage({
     }
   };
 
+  const handleAppleAuth = async () => {
+    let activationAttempted = false;
+    try {
+      if (mode === "signup" && !isSignupConsentSatisfied) {
+        form.setError("legalConsent", {
+          message: t("legal_consent_required"),
+        });
+        toast.error(t("legal_accept_required_error"));
+        return;
+      }
+
+      const isNative = Capacitor.isNativePlatform();
+
+      if (isNative) {
+        setLoading(true);
+
+        try {
+          await PrivacyScreen.disable();
+        } catch {
+          // PrivacyScreen might not be available
+        }
+
+
+
+        let result;
+        try {
+          result = await FirebaseAuthentication.signInWithApple({
+            skipNativeAuth: true,
+          });
+          alert(`[Apple Debug] signInWithApple returned. result: ${JSON.stringify({
+            hasUser: !!result?.user,
+            userEmail: result?.user?.email,
+            hasCredential: !!result?.credential,
+            hasIdToken: !!result?.credential?.idToken,
+            hasNonce: !!result?.credential?.nonce,
+            hasAccessToken: !!result?.credential?.accessToken,
+          })}`);
+        } catch (error: unknown) {
+          try { await PrivacyScreen.enable(); } catch { /* ignore */ }
+
+          const errMsg = error instanceof Error ? error.message : String(error);
+          alert(`[Apple Debug] signInWithApple threw: ${errMsg}`);
+          if (
+            errMsg.includes("canceled") ||
+            errMsg.includes("cancelled") ||
+            errMsg.includes("The user canceled the sign-in flow")
+          ) {
+            return;
+          }
+          throw error;
+        }
+
+        try { await PrivacyScreen.enable(); } catch { /* ignore */ }
+
+        if (!result) {
+
+          return;
+        }
+
+        let user: User | null = null;
+
+        if (result.credential?.idToken) {
+          const provider = new OAuthProvider("apple.com");
+          const oauthCredential = provider.credential({
+            idToken: result.credential.idToken,
+            rawNonce: result.credential.nonce,
+          });
+          const userCredential = await signInWithCredential(
+            firebaseAuth,
+            oauthCredential
+          );
+          user = userCredential.user;
+          alert(`[Apple Debug] signInWithCredential success: ${user.email}`);
+        } else {
+          throw new Error("No idToken returned from Apple Sign-In");
+        }
+
+        if (!user) {
+          throw new Error("No user returned from Apple Sign-In");
+        }
+
+        alert(`[Apple Debug] User obtained: ${user.email}, uid: ${user.uid}`);
+
+        const isFirstTimeUser =
+          user.metadata.creationTime === user.metadata.lastSignInTime;
+
+        if (mode === "login" && isFirstTimeUser) {
+          await firebaseAuth.signOut();
+          toast.error("No account found. Please sign up first.");
+          return;
+        }
+
+        if (mode === "signup") {
+          await createUserInDb(user, user.displayName ?? "", {
+            provisionIfFirstTime: true,
+            legalConsents: buildAcceptedLegalConsents("signup"),
+          });
+        } else {
+          await createUserInDb(user, user.displayName ?? "", {
+            provisionIfFirstTime: false,
+          });
+        }
+
+
+        localStorage.removeItem("brokwise_password_reset_attempts");
+
+        posthog.identify(user.uid, {
+          email: user.email ?? undefined,
+          name: user.displayName ?? undefined,
+        });
+
+        activationAttempted = true;
+        await activateSingleDeviceSession();
+
+        toast.success(
+          mode === "signup"
+            ? t("account_created_success")
+            : t("logged_in_success")
+        );
+        router.push(targetPath);
+      } else {
+        setLoading(true);
+        const provider = new OAuthProvider("apple.com");
+        provider.addScope("email");
+        provider.addScope("name");
+
+        const userCredential = await signInWithPopup(firebaseAuth, provider);
+        const user = userCredential.user;
+
+        const isFirstTimeUser =
+          user.metadata.creationTime === user.metadata.lastSignInTime;
+
+        if (mode === "login" && isFirstTimeUser) {
+          await firebaseAuth.signOut();
+          toast.error("No account found. Please sign up first.");
+          return;
+        }
+
+        if (mode === "signup") {
+          await createUserInDb(user, user.displayName ?? "", {
+            provisionIfFirstTime: true,
+            legalConsents: buildAcceptedLegalConsents("signup"),
+          });
+        } else {
+          await createUserInDb(user, user.displayName ?? "", {
+            provisionIfFirstTime: false,
+          });
+        }
+
+        localStorage.removeItem("brokwise_password_reset_attempts");
+
+        posthog.identify(user.uid, {
+          email: user.email ?? undefined,
+          name: user.displayName ?? undefined,
+        });
+
+        activationAttempted = true;
+        await activateSingleDeviceSession();
+
+        toast.success(
+          mode === "signup"
+            ? t("account_created_success")
+            : t("logged_in_success")
+        );
+        router.push(targetPath);
+      }
+    } catch (error) {
+      if (activationAttempted) {
+        clearSessionId();
+        try {
+          await firebaseAuth.signOut();
+        } catch {
+          // Ignore sign out errors while recovering
+        }
+      }
+
+      const errMsg = error instanceof Error ? error.message : String(error);
+      alert(`[Apple Debug] Caught error: ${errMsg}`);
+      if (
+        errMsg.includes("canceled") ||
+        errMsg.includes("cancelled") ||
+        errMsg.includes("popup-closed-by-user")
+      ) {
+        return;
+      }
+
+      logError({
+        description: "Error signing in with Apple",
+        error: error as Error,
+        slackChannel: "frontend-errors",
+      });
+      console.error("Apple auth error:", error);
+      toast.error(t("apple_auth_failed"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // --- Render ---
 
   return (
@@ -1039,22 +1239,40 @@ export default function AuthPage({
                   <div className="flex-1 h-px bg-border" />
                 </div>
 
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="w-full h-11 font-semibold bg-card border-border text-foreground hover:bg-muted/50 hover:text-foreground transition-all"
-                  onClick={handleGoogleAuth}
-                  disabled={loading || !isSignupConsentSatisfied}
-                >
-                  <Image
-                    src="/icons/google.svg"
-                    alt="Google"
-                    width={20}
-                    height={20}
-                    className="mr-3"
-                  />
-                  {t("continue_with_google")}
-                </Button>
+                <div className="flex flex-col gap-3">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="w-full h-11 font-semibold bg-card border-border text-foreground hover:bg-muted/50 hover:text-foreground transition-all"
+                    onClick={handleGoogleAuth}
+                    disabled={loading || !isSignupConsentSatisfied}
+                  >
+                    <Image
+                      src="/icons/google.svg"
+                      alt="Google"
+                      width={20}
+                      height={20}
+                      className="mr-3"
+                    />
+                    {t("continue_with_google")}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="w-full h-11 font-semibold bg-card border-border text-foreground hover:bg-muted/50 hover:text-foreground transition-all"
+                    onClick={handleAppleAuth}
+                    disabled={loading || !isSignupConsentSatisfied}
+                  >
+                    <Image
+                      src="/icons/apple.svg"
+                      alt="Apple"
+                      width={20}
+                      height={20}
+                      className="mr-3 dark:invert"
+                    />
+                    {t("continue_with_apple")}
+                  </Button>
+                </div>
               </motion.div>
             </AnimatePresence>
           </div>

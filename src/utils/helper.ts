@@ -260,6 +260,20 @@ export const coerceStringArray = (value: unknown): string[] => {
   return [];
 };
 
+export const coerceFloorPlanDocs = (
+  value: unknown
+): { url: string; name?: string }[] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (typeof item === "string") return { url: item };
+      if (item && typeof item === "object" && "url" in item)
+        return item as { url: string; name?: string };
+      return null;
+    })
+    .filter((v): v is { url: string; name?: string } => v !== null && !!v.url);
+};
+
 export const isNativeIOS = () => {
   const isNative = Capacitor.isNativePlatform();
   const isiOS = Capacitor.getPlatform() === "ios";

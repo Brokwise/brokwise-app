@@ -613,7 +613,7 @@ export const Notifications = () => {
                         {readNotifications.length}
                       </Badge>
                     </div>
-                    {readNotifications.map((notification) => (
+                    {readNotifications.reverse().map((notification) => (
                       <NotificationItem
                         key={notification._id}
                         notification={notification}

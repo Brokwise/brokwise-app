@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/utils/helper";
@@ -45,6 +46,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
   const [perUnitRate, setPerUnitRate] = useState<string>("");
   const [totalRate, setTotalRate] = useState<string>("");
   const [rentalOffer, setRentalOffer] = useState<string>("");
+  const [offerMessage, setOfferMessage] = useState<string>("");
   const [isFinalOfferMode, setIsFinalOfferMode] = useState(false);
 
   const isRental = (property.listingPurpose || "SALE") === "RENT";
@@ -77,6 +79,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
       setPerUnitRate("");
       setTotalRate("");
       setRentalOffer("");
+      setOfferMessage("");
       setIsFinalOfferMode(false);
     }
   };
@@ -145,17 +148,21 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
       }
     }
 
+    const trimmedMessage = offerMessage.trim() || undefined;
+
     try {
       if (isFinalOfferMode && myOffer) {
         await submitFinalOffer({
           propertyId: property._id,
           offerId: myOffer._id!,
           rate: offerRate,
+          message: trimmedMessage,
         });
       } else {
         await offerPrice({
           propertyId: property._id,
           rate: offerRate,
+          message: trimmedMessage,
         });
       }
       setOpen(false);
@@ -199,7 +206,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
       );
     }
 
-    const { status, rate: offerRate, rejectionReason } = myOffer;
+    const { status, rate: offerRate, rejectionReason, message } = myOffer;
 
     return (
       <div className="space-y-4">
@@ -210,13 +217,19 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
 
         <div className="p-3 bg-muted rounded-lg space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">{isRental ? t("property_offered_rate") : t("property_offered_rate")}:</span>
+            <span className="text-muted-foreground">{t("property_offered_rate")}:</span>
             <span className="font-semibold">{formatCurrency(offerRate)}{isRental ? "/mo" : ""}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">{isRental ? t("label_asking_rate") : t("label_asking_rate")}:</span>
+            <span className="text-muted-foreground">{t("label_asking_rate")}:</span>
             <span>{formatCurrency(askingPrice)}{isRental ? "/mo" : ""}</span>
           </div>
+          {message && (
+            <div className="pt-1 border-t text-sm">
+              <span className="text-muted-foreground">{t("offer_message_label")}:</span>
+              <p className="mt-0.5 text-foreground">{message}</p>
+            </div>
+          )}
         </div>
 
         {status === "pending" && (
@@ -311,7 +324,7 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
       </Card>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-[95%] rounded-2xl">
+        <DialogContent className="max-w-[95%] md:max-w-lg rounded-2xl">
           <DialogHeader>
             <DialogTitle>
               {isFinalOfferMode ? t("property_submit_final_offer") : t("action_submit_offer")}
@@ -424,6 +437,22 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
               </>
             )}
 
+            <div className="space-y-2">
+              <Label htmlFor="offer-message">{t("offer_message_label")}</Label>
+              <Textarea
+                id="offer-message"
+                placeholder={t("offer_message_placeholder")}
+                value={offerMessage}
+                onChange={(e) => setOfferMessage(e.target.value)}
+                maxLength={500}
+                rows={3}
+                className="resize-none"
+              />
+              <p className="text-xs text-muted-foreground text-right">
+                {offerMessage.length}/500
+              </p>
+            </div>
+
             <DialogFooter className="gap-2">
               <Button
                 type="button"
@@ -440,10 +469,10 @@ export const MakeOffer = ({ property }: MakeOfferProps) => {
                   (isRental
                     ? !rentalOffer || parseFloat(rentalOffer) > askingPrice
                     : !perUnitRate ||
-                      parseFloat(perUnitRate) > property.rate ||
-                      (Boolean(property.size) &&
-                        parseFloat(totalRate || "0") >
-                        (Number(property.size) || 0) * property.rate))
+                    parseFloat(perUnitRate) > property.rate ||
+                    (Boolean(property.size) &&
+                      parseFloat(totalRate || "0") >
+                      (Number(property.size) || 0) * property.rate))
                 }
               >
                 {isSubmitting || isSubmittingFinal

@@ -19,6 +19,7 @@ import {
   BedDouble,
   Bath,
   Compass,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PropertyPreviewModal } from "./PropertyPreviewModal";
@@ -261,6 +262,12 @@ export const ReceivedProperties = ({
                     ))}
                   </div>
                 )}
+                {submission.privateMessage && (
+                  <div className="flex items-center gap-1.5 rounded-md border bg-muted/20 px-1.5 py-1 text-[11px] text-muted-foreground">
+                    <MessageCircle className="h-3 w-3 mr-1" />
+                    &quot;{submission.privateMessage}&quot;
+                  </div>
+                )}
                 {enquiry?.preferredLocations && enquiry.preferredLocations.length > 1 && (
                   <div className="flex items-center text-xs">
                     <Badge variant="outline" className="text-[10px] h-5 px-1.5">
@@ -270,17 +277,13 @@ export const ReceivedProperties = ({
                   </div>
                 )}
 
-                {submission.privateMessage && (
-                  <div className="bg-muted/20 p-2 rounded text-xs text-muted-foreground italic">
-                    &quot;{submission.privateMessage}&quot;
-                  </div>
-                )}
+
 
                 <div className="flex gap-2 pt-1">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 h-7 text-xs"
+                    className="flex-1 h-10 text-xs"
                     onClick={() => {
                       if (propertyIdStr) {
                         setPreviewPropertyId(propertyIdStr);
@@ -307,7 +310,7 @@ export const ReceivedProperties = ({
                     <Button
                       variant="secondary"
                       size="sm"
-                      className="flex-1 h-7 text-xs text-green-700 bg-green-50 hover:bg-green-100 border-green-200 border"
+                      className="flex-1 h-10 text-xs text-green-700 bg-green-50 hover:bg-green-100 border-green-200 border"
                       disabled
                     >
                       <CheckCheck className="h-3 w-3 mr-1.5" />
@@ -316,7 +319,7 @@ export const ReceivedProperties = ({
                   ) : (
                     <Button
                       size="sm"
-                      className="flex-1 h-7 text-xs bg-accent"
+                      className="flex-1 h-10 text-xs bg-accent text-white"
                       onClick={() => {
                         setShareContactSubmissionId(submission._id);
                         setIsShareContactOpen(true);

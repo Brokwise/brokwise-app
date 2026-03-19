@@ -17,7 +17,8 @@ import {
   generateFilePath,
   convertImageToWebP,
 } from "@/utils/upload";
-import { Loader2, Wand2Icon, X, Plus, Upload } from "lucide-react";
+import { Loader2, Wand2Icon, X, Plus, Upload, Pencil } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { CommercialPropertyFormData } from "@/validators/property";
 import useAxios from "@/hooks/useAxios";
@@ -62,6 +63,10 @@ export const CommercialMedia: React.FC<CommercialMediaProps> = ({
 
       if (fieldName === "featuredMedia") {
         form.setValue(fieldName, urls[0], { shouldValidate: true });
+      } else if (fieldName === "floorPlans") {
+        const current = form.getValues(fieldName) || [];
+        const newDocs = urls.map((url) => ({ url, name: "" }));
+        form.setValue(fieldName, [...current, ...newDocs], { shouldValidate: true });
       } else {
         const currentUrls = form.getValues(fieldName) || [];
         form.setValue(fieldName, [...currentUrls, ...urls], {
@@ -82,12 +87,19 @@ export const CommercialMedia: React.FC<CommercialMediaProps> = ({
   ) => {
     if (fieldName === "featuredMedia") {
       form.setValue(fieldName, "", { shouldValidate: true });
+    } else if (fieldName === "floorPlans") {
+      const current = form.getValues("floorPlans") || [];
+      if (typeof index === "number") {
+        const newDocs = [...current];
+        newDocs.splice(index, 1);
+        form.setValue("floorPlans", newDocs, { shouldValidate: true });
+      }
     } else {
-      const currentUrls = form.getValues(fieldName) || [];
+      const currentUrls = form.getValues("images") || [];
       if (typeof index === "number") {
         const newUrls = [...currentUrls];
         newUrls.splice(index, 1);
-        form.setValue(fieldName, newUrls, { shouldValidate: true });
+        form.setValue("images", newUrls, { shouldValidate: true });
       }
     }
   };
@@ -326,7 +338,7 @@ export const CommercialMedia: React.FC<CommercialMediaProps> = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Floor Plans <span className="text-destructive">*</span>
+                Documents <span className="text-destructive">*</span>
               </FormLabel>
               <FormControl>
                 <div className="space-y-4">
@@ -342,7 +354,7 @@ export const CommercialMedia: React.FC<CommercialMediaProps> = ({
                         </div>
                         <div className="text-center">
                           <p className="text-xs font-semibold">
-                            Upload floor plans
+                            Upload documents
                           </p>
                         </div>
                       </div>
@@ -358,54 +370,74 @@ export const CommercialMedia: React.FC<CommercialMediaProps> = ({
                       />
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                      {/* Upload Button */}
-                      <div className="relative aspect-[4/3] rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary cursor-pointer group">
-                        <div className="p-3 rounded-full bg-background shadow-sm ring-1 ring-border group-hover:scale-110 transition-transform duration-200">
-                          {uploading["floorPlans"] ? (
-                            <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                          ) : (
-                            <Plus className="h-5 w-5" />
-                          )}
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                        {/* Upload Button */}
+                        <div className="relative aspect-[4/3] rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary cursor-pointer group">
+                          <div className="p-3 rounded-full bg-background shadow-sm ring-1 ring-border group-hover:scale-110 transition-transform duration-200">
+                            {uploading["floorPlans"] ? (
+                              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                            ) : (
+                              <Plus className="h-5 w-5" />
+                            )}
+                          </div>
+                          <span className="text-xs font-semibold">Add More</span>
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                            disabled={uploading["floorPlans"]}
+                            onChange={(e) =>
+                              handleFileUpload(e.target.files, "floorPlans")
+                            }
+                          />
                         </div>
-                        <span className="text-xs font-semibold">Add More</span>
-                        <input
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                          disabled={uploading["floorPlans"]}
-                          onChange={(e) =>
-                            handleFileUpload(e.target.files, "floorPlans")
-                          }
-                        />
+
+                        {field.value?.map((doc: { url: string; name?: string }, index: number) => (
+                          <div
+                            key={index}
+                            className="relative aspect-[4/3] rounded-xl border bg-muted overflow-hidden group"
+                          >
+                            <Image
+                              width={200}
+                              height={200}
+                              src={doc.url}
+                              alt={doc.name || `Document ${index + 1}`}
+                              className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                className="h-8 w-8 translate-y-2 group-hover:translate-y-0 transition-transform duration-200"
+                                onClick={() => removeFile("floorPlans", index)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
 
-                      {field.value?.map((url: string, index: number) => (
-                        <div
-                          key={index}
-                          className="relative aspect-[4/3] rounded-xl border bg-muted overflow-hidden group"
-                        >
-                          <Image
-                            width={200}
-                            height={200}
-                            src={url}
-                            alt={`Floor plan ${index + 1}`}
-                            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                          />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="icon"
-                              className="h-8 w-8 translate-y-2 group-hover:translate-y-0 transition-transform duration-200"
-                              onClick={() => removeFile("floorPlans", index)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
+                      <div className="space-y-2">
+                        {field.value?.map((doc: { url: string; name?: string }, index: number) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <Pencil className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <Input
+                              placeholder={`Document ${index + 1} name (e.g. Floor Plan, Site Map)`}
+                              value={doc.name || ""}
+                              onChange={(e) => {
+                                const updated = [...(field.value || [])];
+                                updated[index] = { ...updated[index], name: e.target.value };
+                                form.setValue("floorPlans", updated);
+                              }}
+                              className="h-8 text-sm"
+                            />
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

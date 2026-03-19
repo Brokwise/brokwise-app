@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { coerceStringArray } from "@/utils/helper";
+import { coerceStringArray, coerceFloorPlanDocs } from "@/utils/helper";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -87,7 +87,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
       ...initialData,
       propertyType: initialData?.propertyType || "FLAT",
       images: coerceStringArray(initialData?.images),
-      floorPlans: coerceStringArray(initialData?.floorPlans),
+      floorPlans: coerceFloorPlanDocs(initialData?.floorPlans),
       amenities: coerceStringArray(initialData?.amenities),
     },
     mode: "onChange",
@@ -204,7 +204,7 @@ export const ResidentialWizard: React.FC<ResidentialWizardProps> = ({
         propertyType === "LAND"
           ? "Featured media is optional for land"
           : "Featured media is required",
-      floorPlans: propertyType === "LAND" ? "Site plan is required" : "Floor plans are required",
+      floorPlans: propertyType === "LAND" ? "Documents are required" : "Documents are required",
     };
 
     for (const field of fieldsToValidate) {

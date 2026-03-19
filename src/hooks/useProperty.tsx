@@ -464,6 +464,36 @@ export const useSharePropertyContact = () => {
   return { sharePropertyContact: mutate, isPending, error };
 };
 
+export const useRejectOffer = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation<
+    PropertyOffer,
+    AxiosError<{ message: string }>,
+    { propertyId: string; offerId: string }
+  >({
+    mutationFn: async ({ propertyId, offerId }) => {
+      return (
+        await api.post("/property/reject-offer", { propertyId, offerId })
+      ).data.data;
+    },
+    onSuccess: (_data, { propertyId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["property", propertyId],
+      });
+      toast.success(i18n.t("toast_offer_rejected"));
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        i18n.t("toast_error_reject_offer");
+      toast.error(errorMessage);
+    },
+  });
+  return { rejectOffer: mutateAsync, isPending, error };
+};
+
 export const useEditProperty = () => {
   const api = useAxios();
   const queryClient = useQueryClient();

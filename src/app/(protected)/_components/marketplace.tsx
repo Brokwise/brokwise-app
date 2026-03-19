@@ -688,7 +688,7 @@ export const MarketPlace = () => {
                 type="button"
                 onClick={() => handleViewModeChange("PROPERTIES")}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${viewMode === "PROPERTIES"
-                  ? "bg-primary text-foreground shadow-sm"
+                  ? "bg-primary text-white shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
                   }`}
               >
@@ -698,7 +698,7 @@ export const MarketPlace = () => {
                 type="button"
                 onClick={() => handleViewModeChange("ENQUIRIES")}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${viewMode === "ENQUIRIES"
-                  ? "bg-primary text-foreground shadow-sm"
+                  ? "bg-primary text-white shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
                   }`}
               >
