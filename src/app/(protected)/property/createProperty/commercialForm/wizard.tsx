@@ -175,7 +175,9 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
         "purpose",
         ...pricingFields,
       ],
-      1: ["description", "featuredMedia", "floorPlans"],
+      1: isRent
+        ? ["description", "featuredMedia", "images", "floorPlans"]
+        : ["description", "featuredMedia", "floorPlans"],
       2: [],
     };
 
@@ -210,6 +212,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
       agreementDuration: "Agreement duration is required",
       description: "Description is required",
       featuredMedia: "Featured media is required",
+      images: "At least one image is required",
       floorPlans: "Documents are required",
     };
 
@@ -442,6 +445,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
               form={form}
               setUploading={setUploading}
               uploading={uploading}
+              listingPurpose={listingPurpose}
             />
           </div>
         </div>

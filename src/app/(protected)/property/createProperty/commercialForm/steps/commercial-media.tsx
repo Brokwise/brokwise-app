@@ -31,13 +31,17 @@ interface CommercialMediaProps {
       [key: string]: boolean;
     }>
   >;
+  listingPurpose?: "SALE" | "RENT";
 }
 
 export const CommercialMedia: React.FC<CommercialMediaProps> = ({
   form,
   uploading,
   setUploading,
+  listingPurpose = "SALE",
 }) => {
+  const isRental = listingPurpose === "RENT";
+  const isImagesRequired = isRental;
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const api = useAxios();
 
@@ -241,7 +245,10 @@ export const CommercialMedia: React.FC<CommercialMediaProps> = ({
           name="images"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Images</FormLabel>
+              <FormLabel>
+                Images{" "}
+                {isImagesRequired && <span className="text-destructive">*</span>}
+              </FormLabel>
               <FormControl>
                 <div className="space-y-4">
                   {!field.value || field.value.length === 0 ? (

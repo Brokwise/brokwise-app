@@ -36,6 +36,7 @@ interface ResidentialMediaProps {
     }>
   >;
   propertyType: "FLAT" | "VILLA" | "LAND";
+  listingPurpose?: "SALE" | "RENT";
 }
 
 export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
@@ -43,10 +44,14 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
   setUploading,
   uploading,
   propertyType,
+  listingPurpose = "SALE",
 }) => {
-  // Dynamic label based on property type
   const isLandProperty = propertyType === "LAND";
-  const floorPlanLabel = propertyType === "LAND" ? "Documents" : "Documents";
+  const isRental = listingPurpose === "RENT";
+  const floorPlanLabel = "Documents";
+  const isFeaturedRequired = !isLandProperty && !isRental;
+  const isImagesRequired = isRental;
+  const isDocumentsRequired = !isRental;
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const api = useAxios();
   const handleFileUpload = async (
@@ -174,7 +179,7 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
             <FormItem>
               <FormLabel>
                 Featured Media{" "}
-                {!isLandProperty && <span className="text-destructive">*</span>}
+                {isFeaturedRequired && <span className="text-destructive">*</span>}
               </FormLabel>
               <FormControl>
                 <div className="space-y-2">
@@ -265,6 +270,12 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
                   photo or use the sample image.
                 </FormDescription>
               )}
+              {isRental && !isLandProperty && (
+                <FormDescription>
+                  Featured media is optional for rentals. The first gallery image
+                  will be used if not provided.
+                </FormDescription>
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -275,7 +286,10 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
           name="images"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Images</FormLabel>
+              <FormLabel>
+                Images{" "}
+                {isImagesRequired && <span className="text-destructive">*</span>}
+              </FormLabel>
               <FormControl>
                 <div className="space-y-4">
                   {!field.value || field.value.length === 0 ? (
@@ -372,7 +386,8 @@ export const ResidentialMedia: React.FC<ResidentialMediaProps> = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {floorPlanLabel} <span className="text-destructive">*</span>
+                {floorPlanLabel}{" "}
+                {isDocumentsRequired && <span className="text-destructive">*</span>}
               </FormLabel>
               <FormControl>
                 <div className="space-y-4">
