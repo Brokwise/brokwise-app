@@ -1,18 +1,19 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { Property } from "@/types/property";
-import { Loader2, Layers } from "lucide-react";
+import { MapPin } from "@/types/property";
+import { Loader2, Layers, LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 
 interface MapBoxProps {
-  properties: Property[];
+  properties: MapPin[];
   onSelectProperty?: (propertyId: string) => void;
   selectedPropertyId?: string | null;
   highlightedPropertyId?: string | null;
   highlightRequestId?: number;
   onHighlightComplete?: () => void;
+  userCity?: string;
 }
 
 const formatPrice = (price: number) => {
@@ -101,6 +102,7 @@ export const MapBox = ({
   highlightedPropertyId,
   highlightRequestId,
   onHighlightComplete,
+  userCity,
 }: MapBoxProps) => {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -111,7 +113,7 @@ export const MapBox = ({
   );
   const previousHighlightedIdRef = useRef<string | null>(null);
   const appliedStyleRef = useRef<string>("");
-  const propertiesDataRef = useRef<Property[]>([]);
+  const propertiesDataRef = useRef<MapPin[]>([]);
   const currentZoomRef = useRef<number>(4); // Track zoom without re-renders
 
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -136,9 +138,37 @@ export const MapBox = ({
     setMapStyleType((prev) => (prev === "streets" ? "satellite" : "streets"));
   };
 
+  const [isFlyingToCity, setIsFlyingToCity] = useState(false);
+
+  const flyToCity = useCallback(async () => {
+    const map = mapRef.current;
+    if (!map || !userCity) return;
+
+    setIsFlyingToCity(true);
+    try {
+      const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
+      const res = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(userCity)}.json?access_token=${token}&types=place&country=in&limit=1`
+      );
+      const data = await res.json();
+      const feature = data.features?.[0];
+      if (feature) {
+        map.flyTo({
+          center: feature.center as [number, number],
+          zoom: 11,
+          duration: 1500,
+        });
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setIsFlyingToCity(false);
+    }
+  }, [userCity]);
+
   // Create GeoJSON from properties
   const createGeoJSON = useCallback(
-    (props: Property[]): GeoJSON.FeatureCollection => {
+    (props: MapPin[]): GeoJSON.FeatureCollection => {
       const features: GeoJSON.Feature[] = props
         .filter(
           (p) =>
@@ -303,7 +333,7 @@ export const MapBox = ({
 
   // Create individual DOM markers for high zoom
   const createIndividualMarkers = useCallback(
-    (map: mapboxgl.Map, props: Property[]) => {
+    (map: mapboxgl.Map, props: MapPin[]) => {
       // Clear existing markers
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
@@ -737,6 +767,22 @@ export const MapBox = ({
             {mapStyleType === "streets" ? "Satellite" : "Map"}
           </span>
         </Button>
+        {userCity && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="shadow-lg bg-background/80 backdrop-blur-md border-border/50 hover:bg-background/90 text-foreground transition-all"
+            onClick={flyToCity}
+            disabled={isFlyingToCity}
+          >
+            {isFlyingToCity ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <LocateFixed className="h-4 w-4 mr-2" />
+            )}
+            <span className="font-medium">My City</span>
+          </Button>
+        )}
       </div>
 
       {!mapLoaded && (

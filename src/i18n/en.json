@@ -1227,8 +1227,8 @@
   "disclaimer_land_converter":"Results are indicative only. Brokwise does not warrant accuracy. Please independently verify all measurements before relying on them.",
   "disclaimer_news":"News content may be sourced from third parties and is provided for informational purposes only. Brokwise does not verify or endorse such content and shall not be responsible for its accuracy or reliance thereon.",
   "disclaimer_reverification":"For security reasons, any change to your name, email, or mobile number will require mandatory re-verification.",
-  "feedback_button":"Help Brokwise Better",
-  "feedback_dialog_title":"Help Brokwise Better",
+  "feedback_button":"Help Improve Brokwise",
+  "feedback_dialog_title":"Help Improve Brokwise",
   "feedback_dialog_description":"Share your thoughts, suggestions, or issues to help us improve.",
   "feedback_placeholder":"Tell us what's on your mind...",
   "feedback_submit":"Submit Feedback",
@@ -1236,6 +1236,6 @@
   "feedback_success":"Thank you for your feedback!",
   "feedback_error":"Failed to submit feedback. Please try again.",
   "feedback_thankyou_title":"Thank you for your feedback!",
-  "feedback_thankyou_description":"Your input helps us make Brokwise better for everyone.",
+  "feedback_thankyou_description":"Your input helps us improve Brokwise for everyone.",
   "feedback_close":"Close"
 }

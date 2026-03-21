@@ -19,7 +19,7 @@ import {
   VerifyActivationPayload,
   ActivationPurchaseResponse,
 } from "@/models/types/subscription";
-import { getRazorpayPlan } from "@/config/tier_limits";
+import { useTierConfig } from "@/hooks/useTierConfig";
 
 interface CreateSubscriptionResponse {
   subscription: SubscriptionResponse;
@@ -90,6 +90,8 @@ export const useGetUsage = (options?: { enabled?: boolean }) => {
   return {
     usage: data?.usage,
     limits: data?.limits,
+    upcomingLimits: data?.upcomingLimits,
+    upcomingLimitsEffectiveDate: data?.upcomingLimitsEffectiveDate,
     tier: data?.tier,
     periodStart: data?.periodStart,
     periodEnd: data?.periodEnd,
@@ -324,6 +326,7 @@ export const useCancelSubscription = () => {
  * Combined hook for subscription management with Razorpay integration
  */
 export const useSubscription = () => {
+  const { getRazorpayPlan } = useTierConfig();
   const { plans, durations, activationPlans, regularPlans, isLoading: plansLoading } = useGetPlans();
   const {
     subscription,
@@ -334,6 +337,8 @@ export const useSubscription = () => {
   const {
     usage,
     limits: usageLimits,
+    upcomingLimits,
+    upcomingLimitsEffectiveDate,
     tier,
     periodStart,
     periodEnd,
@@ -539,6 +544,8 @@ export const useSubscription = () => {
     limits,
     usage,
     usageLimits,
+    upcomingLimits,
+    upcomingLimitsEffectiveDate,
     tier,
     remaining,
     periodStart,

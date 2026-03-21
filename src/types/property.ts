@@ -238,6 +238,19 @@ export interface PaginatedPropertyResponse {
   totalPages: number;
 }
 
+export interface MapPin {
+  _id: string;
+  location: GeoLocation;
+  totalPrice: number;
+  monthlyRent?: number;
+  listingPurpose?: ListingPurpose;
+  propertyCategory: PropertyCategory;
+  address: { address?: string; city?: string };
+  society?: string;
+  rate: number;
+  featuredMedia?: string;
+}
+
 export interface EditPropertyDTO {
   propertyId: string;
   rate?: number;

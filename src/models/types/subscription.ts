@@ -86,6 +86,12 @@ export interface UsageWithLimits {
     enquiry_listing: number;
     submit_property_enquiry: number;
   };
+  upcomingLimits?: {
+    property_listing: number;
+    enquiry_listing: number;
+    submit_property_enquiry: number;
+  };
+  upcomingLimitsEffectiveDate?: Date | string;
   tier: TIER;
   periodStart: Date | string;
   periodEnd: Date | string;

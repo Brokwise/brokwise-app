@@ -50,22 +50,14 @@ import {
   CreditCard,
   Star,
   DollarSign,
+  AlertTriangle,
 } from "lucide-react";
 import {
   TIER,
   RegularDuration,
   REGULAR_DURATION_LABELS,
 } from "@/models/types/subscription";
-import {
-  TIER_INFO,
-  ACTIVATION_TIER_INFO,
-  ACTIVATION_PLANS,
-  // DURATION_SAVINGS,
-  getRazorpayPlan,
-  ACTIVATION_LIMITS,
-  REGULAR_LIMITS,
-  REGULAR_CREDITS,
-} from "@/config/tier_limits";
+import { useTierConfig } from "@/hooks/useTierConfig";
 import { cn } from "@/lib/utils";
 import { PageShell, PageHeader } from "@/components/ui/layout";
 import { isNativeIOS } from "@/utils/helper";
@@ -226,10 +218,11 @@ const CurrentSubscriptionCard = ({
   };
 }) => {
   const { t } = useTranslation();
+  const { tierInfo: allTierInfo } = useTierConfig();
   const currentTier = subscription?.tier || tier || "BASIC";
   const tierNameKey = `page_subscription_tier_${currentTier.toLowerCase()}_name`;
   const tierDescriptionKey = `page_subscription_tier_${currentTier.toLowerCase()}_desc`;
-  const fallbackTierInfo = TIER_INFO[currentTier];
+  const fallbackTierInfo = allTierInfo[currentTier];
   const tierName = t(tierNameKey, fallbackTierInfo?.name || currentTier);
   const tierDescription = t(
     tierDescriptionKey,
@@ -491,8 +484,9 @@ const ActivationPlanCard = ({
   onSelect: () => void;
   isSelected: boolean;
 }) => {
-  const info = ACTIVATION_TIER_INFO[tier];
-  const plan = ACTIVATION_PLANS[tier];
+  const { activationTierInfo, activationPlans } = useTierConfig();
+  const info = activationTierInfo[tier];
+  const plan = activationPlans[tier];
 
   return (
     <Card
@@ -578,10 +572,10 @@ const RegularPlanCard = ({
   onSelect: () => void;
   isSelected: boolean;
 }) => {
-  const tierInfo = TIER_INFO[tier];
+  const { tierInfo: allTierInfo, getRazorpayPlan, regularCredits } = useTierConfig();
+  const tierInfo = allTierInfo[tier];
   const plan = getRazorpayPlan(tier, selectedDuration);
-  const credits = REGULAR_CREDITS[tier]?.[selectedDuration] || 0;
-  // const savingsInfo = DURATION_SAVINGS[selectedDuration] || { savingsPercent: 0 };
+  const credits = regularCredits[tier]?.[selectedDuration] || 0;
 
   return (
     <Card
@@ -680,7 +674,8 @@ const FeatureComparisonTable = ({
   phase: "activation" | "regular";
 }) => {
   const { t } = useTranslation();
-  const limits = phase === "activation" ? ACTIVATION_LIMITS : REGULAR_LIMITS;
+  const { activationLimits, regularLimits } = useTierConfig();
+  const limits = phase === "activation" ? activationLimits : regularLimits;
 
   return (
     <Card>
@@ -762,6 +757,8 @@ const SubscriptionPage = () => {
     subscription,
     usage,
     usageLimits,
+    upcomingLimits,
+    upcomingLimitsEffectiveDate,
     tier,
     limits,
     periodStart,
@@ -778,6 +775,13 @@ const SubscriptionPage = () => {
     initiateSubscription,
     cancelSubscription,
   } = useSubscription();
+
+  const {
+    tierInfo: allTierInfo,
+    activationTierInfo,
+    activationPlans,
+    getRazorpayPlan,
+  } = useTierConfig();
 
   const [selectedTier, setSelectedTier] = useState<TIER | null>(null);
   const [selectedDuration, setSelectedDuration] =
@@ -925,6 +929,65 @@ const SubscriptionPage = () => {
               />
             </div>
 
+            {/* Pending Limit Changes Notice */}
+            {upcomingLimits && upcomingLimitsEffectiveDate && (
+              <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/10">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2 text-amber-800 dark:text-amber-300">
+                    <AlertTriangle className="h-5 w-5" />
+                    Upcoming Limit Changes
+                  </CardTitle>
+                  <CardDescription className="text-amber-700/80 dark:text-amber-400/80">
+                    Some of your plan limits are decreasing. Changes take effect on{" "}
+                    <strong>
+                      {new Date(upcomingLimitsEffectiveDate).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </strong>{" "}
+                    (your next billing cycle). Your current limits remain active until then.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-amber-200 dark:border-amber-800">
+                          <th className="text-left py-2 px-3 font-medium text-amber-800 dark:text-amber-300">Limit</th>
+                          <th className="text-center py-2 px-3 font-medium text-amber-800 dark:text-amber-300">Current</th>
+                          <th className="text-center py-2 px-3 font-medium text-amber-800 dark:text-amber-300">Upcoming</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-amber-900 dark:text-amber-200">
+                        {usageLimits && upcomingLimits.property_listing < usageLimits.property_listing && (
+                          <tr className="border-b border-amber-100 dark:border-amber-900">
+                            <td className="py-2 px-3 flex items-center gap-2"><Building className="h-4 w-4" /> Property Listings</td>
+                            <td className="text-center py-2 px-3">{usageLimits.property_listing}</td>
+                            <td className="text-center py-2 px-3 font-semibold text-red-600 dark:text-red-400">{upcomingLimits.property_listing}</td>
+                          </tr>
+                        )}
+                        {usageLimits && upcomingLimits.enquiry_listing < usageLimits.enquiry_listing && (
+                          <tr className="border-b border-amber-100 dark:border-amber-900">
+                            <td className="py-2 px-3 flex items-center gap-2"><FileText className="h-4 w-4" /> Enquiry Listings</td>
+                            <td className="text-center py-2 px-3">{usageLimits.enquiry_listing}</td>
+                            <td className="text-center py-2 px-3 font-semibold text-red-600 dark:text-red-400">{upcomingLimits.enquiry_listing}</td>
+                          </tr>
+                        )}
+                        {usageLimits && upcomingLimits.submit_property_enquiry < usageLimits.submit_property_enquiry && (
+                          <tr>
+                            <td className="py-2 px-3 flex items-center gap-2"><Send className="h-4 w-4" /> Property Submissions</td>
+                            <td className="text-center py-2 px-3">{usageLimits.submit_property_enquiry}</td>
+                            <td className="text-center py-2 px-3 font-semibold text-red-600 dark:text-red-400">{upcomingLimits.submit_property_enquiry}</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Quick Actions */}
             <Card>
               <CardHeader>
@@ -1066,10 +1129,10 @@ const SubscriptionPage = () => {
                           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div className="space-y-1">
                               <p className="font-semibold text-lg">
-                                {ACTIVATION_TIER_INFO[selectedTier].name} {t("page_subscription_activation_pack", "Activation Pack")}
+                                {activationTierInfo[selectedTier].name} {t("page_subscription_activation_pack", "Activation Pack")}
                               </p>
                               <p className="text-muted-foreground">
-                                ₹{ACTIVATION_PLANS[selectedTier].displayAmount} {t("page_subscription_1_month_access", "for 1 month")}
+                                ₹{activationPlans[selectedTier].displayAmount} {t("page_subscription_1_month_access", "for 1 month")}
                               </p>
                             </div>
                             <Button
@@ -1196,8 +1259,8 @@ const SubscriptionPage = () => {
                                 <div className="space-y-1">
                                   <p className="font-semibold text-lg">
                                     {isPlanChange
-                                      ? t("page_subscription_change_to", { plan: TIER_INFO[selectedTier].name, duration: REGULAR_DURATION_LABELS[selectedDuration] })
-                                      : t("page_subscription_upgrade_to", { plan: TIER_INFO[selectedTier].name })}
+                                      ? t("page_subscription_change_to", { plan: allTierInfo[selectedTier].name, duration: REGULAR_DURATION_LABELS[selectedDuration] })
+                                      : t("page_subscription_upgrade_to", { plan: allTierInfo[selectedTier].name })}
                                   </p>
                                   <p className="text-muted-foreground">
                                     ₹{getRazorpayPlan(selectedTier, selectedDuration)?.displayAmount.toLocaleString()}{" "}

@@ -53,9 +53,7 @@ import {
   getDigiLockerStatus,
 } from "@/models/api/kyc";
 import { TIER } from "@/models/types/subscription";
-import {
-  ACTIVATION_PLANS,
-} from "@/config/tier_limits";
+import { useTierConfig } from "@/hooks/useTierConfig";
 import { usePurchaseActivation, useVerifyActivation } from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
 import { DisclaimerNotice } from "@/components/ui/disclaimer-notice";
@@ -113,6 +111,7 @@ export const OnboardingDetails = ({
   // Activation hooks
   const { purchaseActivation, isPending: activationPending } = usePurchaseActivation();
   const { verifyActivation, isPending: verifyPending } = useVerifyActivation();
+  const { activationPlans } = useTierConfig();
 
   // ─── KYC State ───────────────────────────────────────────────────────────────
   const [kycState, setKycState] = useState<KycState>({ status: "not_started" });
@@ -907,7 +906,7 @@ export const OnboardingDetails = ({
       case 5:
         return loading || activationPending || verifyPending
           ? (t("onboarding_processing", "Processing..."))
-          : `${t("onboarding_proceed_to_pay", "Proceed to Pay")} ₹${selectedTier ? ACTIVATION_PLANS[selectedTier].displayAmount : ""}`;
+          : `${t("onboarding_proceed_to_pay", "Proceed to Pay")} ₹${selectedTier ? activationPlans[selectedTier].displayAmount : ""}`;
       default:
         return t("onboarding_continue", "Continue");
     }

@@ -20,7 +20,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { TIER } from "@/models/types/subscription";
-import { ACTIVATION_PLANS, ACTIVATION_TIER_INFO } from "@/config/tier_limits";
+import { useTierConfig } from "@/hooks/useTierConfig";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,7 @@ export const ActivationPendingGate = ({
   const { verifyActivation, isPending: verifyPending } = useVerifyActivation();
   const { setBrokerData } = useApp();
   const [signOut] = useSignOut(firebaseAuth);
+  const { activationPlans, activationTierInfo } = useTierConfig();
   const [isSwitchingPlan, setIsSwitchingPlan] = useState(false);
   const [iosRedirectLoading, setIosRedirectLoading] = useState(false);
   const isIOSNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
@@ -197,8 +198,8 @@ export const ActivationPendingGate = ({
 
   // ── Activation payment is pending — show payment screen ────────────────────
   const currentTier = subscription.tier;
-  const plan = ACTIVATION_PLANS[currentTier];
-  const info = ACTIVATION_TIER_INFO[currentTier];
+  const plan = activationPlans[currentTier];
+  const info = activationTierInfo[currentTier];
   const isProcessing = purchasePending || verifyPending;
 
   const processPayment = async (selectedTier: TIER) => {
@@ -284,9 +285,9 @@ export const ActivationPendingGate = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {(Object.keys(ACTIVATION_PLANS) as TIER[]).map((tierKey) => {
-              const planConfig = ACTIVATION_PLANS[tierKey];
-              const tierInfo = ACTIVATION_TIER_INFO[tierKey];
+            {(Object.keys(activationPlans) as TIER[]).map((tierKey) => {
+              const planConfig = activationPlans[tierKey];
+              const tierInfo = activationTierInfo[tierKey];
               const isCurrentPlan = tierKey === currentTier;
 
               return (

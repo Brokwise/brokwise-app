@@ -2,7 +2,7 @@ import React from "react";
 import { Check, CreditCard, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { TIER } from "@/models/types/subscription";
-import { ACTIVATION_PLANS, ACTIVATION_TIER_INFO } from "@/config/tier_limits";
+import { useTierConfig } from "@/hooks/useTierConfig";
 import {
   Card,
   CardContent,
@@ -21,8 +21,9 @@ interface Step5WelcomeProps {
 
 export const Step5Welcome: React.FC<Step5WelcomeProps> = ({ selectedTier, loading }) => {
   const { t } = useTranslation();
-  const plan = ACTIVATION_PLANS[selectedTier];
-  const info = ACTIVATION_TIER_INFO[selectedTier];
+  const { activationPlans, activationTierInfo } = useTierConfig();
+  const plan = activationPlans[selectedTier];
+  const info = activationTierInfo[selectedTier];
 
   return (
     <div className="space-y-8 text-center">
