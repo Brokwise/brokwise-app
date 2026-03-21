@@ -83,7 +83,7 @@ import { logError } from "@/utils/errors";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TIER_INFO } from "@/config/tier_limits";
+import { useTierConfig } from "@/hooks/useTierConfig";
 
 // Editable field component for inline editing
 interface EditableFieldProps {
@@ -642,8 +642,9 @@ const ProfilePage = () => {
     })
     : null;
 
+  const { tierInfo } = useTierConfig();
   const currentTier = subscription?.tier || tier || "BASIC";
-  const currentTierInfo = TIER_INFO[currentTier];
+  const currentTierInfo = tierInfo[currentTier];
   const formatDate = (date: Date | string) =>
     new Date(date).toLocaleDateString("en-IN", {
       day: "numeric",

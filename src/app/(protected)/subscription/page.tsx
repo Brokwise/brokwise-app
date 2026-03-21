@@ -56,16 +56,7 @@ import {
   RegularDuration,
   REGULAR_DURATION_LABELS,
 } from "@/models/types/subscription";
-import {
-  TIER_INFO,
-  ACTIVATION_TIER_INFO,
-  ACTIVATION_PLANS,
-  // DURATION_SAVINGS,
-  getRazorpayPlan,
-  ACTIVATION_LIMITS,
-  REGULAR_LIMITS,
-  REGULAR_CREDITS,
-} from "@/config/tier_limits";
+import { useTierConfig } from "@/hooks/useTierConfig";
 import { cn } from "@/lib/utils";
 import { PageShell, PageHeader } from "@/components/ui/layout";
 import { isNativeIOS } from "@/utils/helper";
@@ -226,10 +217,11 @@ const CurrentSubscriptionCard = ({
   };
 }) => {
   const { t } = useTranslation();
+  const { tierInfo: allTierInfo } = useTierConfig();
   const currentTier = subscription?.tier || tier || "BASIC";
   const tierNameKey = `page_subscription_tier_${currentTier.toLowerCase()}_name`;
   const tierDescriptionKey = `page_subscription_tier_${currentTier.toLowerCase()}_desc`;
-  const fallbackTierInfo = TIER_INFO[currentTier];
+  const fallbackTierInfo = allTierInfo[currentTier];
   const tierName = t(tierNameKey, fallbackTierInfo?.name || currentTier);
   const tierDescription = t(
     tierDescriptionKey,
@@ -491,8 +483,9 @@ const ActivationPlanCard = ({
   onSelect: () => void;
   isSelected: boolean;
 }) => {
-  const info = ACTIVATION_TIER_INFO[tier];
-  const plan = ACTIVATION_PLANS[tier];
+  const { activationTierInfo, activationPlans } = useTierConfig();
+  const info = activationTierInfo[tier];
+  const plan = activationPlans[tier];
 
   return (
     <Card
@@ -578,10 +571,10 @@ const RegularPlanCard = ({
   onSelect: () => void;
   isSelected: boolean;
 }) => {
-  const tierInfo = TIER_INFO[tier];
+  const { tierInfo: allTierInfo, getRazorpayPlan, regularCredits } = useTierConfig();
+  const tierInfo = allTierInfo[tier];
   const plan = getRazorpayPlan(tier, selectedDuration);
-  const credits = REGULAR_CREDITS[tier]?.[selectedDuration] || 0;
-  // const savingsInfo = DURATION_SAVINGS[selectedDuration] || { savingsPercent: 0 };
+  const credits = regularCredits[tier]?.[selectedDuration] || 0;
 
   return (
     <Card
@@ -680,7 +673,8 @@ const FeatureComparisonTable = ({
   phase: "activation" | "regular";
 }) => {
   const { t } = useTranslation();
-  const limits = phase === "activation" ? ACTIVATION_LIMITS : REGULAR_LIMITS;
+  const { activationLimits, regularLimits } = useTierConfig();
+  const limits = phase === "activation" ? activationLimits : regularLimits;
 
   return (
     <Card>
@@ -778,6 +772,13 @@ const SubscriptionPage = () => {
     initiateSubscription,
     cancelSubscription,
   } = useSubscription();
+
+  const {
+    tierInfo: allTierInfo,
+    activationTierInfo,
+    activationPlans,
+    getRazorpayPlan,
+  } = useTierConfig();
 
   const [selectedTier, setSelectedTier] = useState<TIER | null>(null);
   const [selectedDuration, setSelectedDuration] =
@@ -1066,10 +1067,10 @@ const SubscriptionPage = () => {
                           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div className="space-y-1">
                               <p className="font-semibold text-lg">
-                                {ACTIVATION_TIER_INFO[selectedTier].name} {t("page_subscription_activation_pack", "Activation Pack")}
+                                {activationTierInfo[selectedTier].name} {t("page_subscription_activation_pack", "Activation Pack")}
                               </p>
                               <p className="text-muted-foreground">
-                                ₹{ACTIVATION_PLANS[selectedTier].displayAmount} {t("page_subscription_1_month_access", "for 1 month")}
+                                ₹{activationPlans[selectedTier].displayAmount} {t("page_subscription_1_month_access", "for 1 month")}
                               </p>
                             </div>
                             <Button
@@ -1196,8 +1197,8 @@ const SubscriptionPage = () => {
                                 <div className="space-y-1">
                                   <p className="font-semibold text-lg">
                                     {isPlanChange
-                                      ? t("page_subscription_change_to", { plan: TIER_INFO[selectedTier].name, duration: REGULAR_DURATION_LABELS[selectedDuration] })
-                                      : t("page_subscription_upgrade_to", { plan: TIER_INFO[selectedTier].name })}
+                                      ? t("page_subscription_change_to", { plan: allTierInfo[selectedTier].name, duration: REGULAR_DURATION_LABELS[selectedDuration] })
+                                      : t("page_subscription_upgrade_to", { plan: allTierInfo[selectedTier].name })}
                                   </p>
                                   <p className="text-muted-foreground">
                                     ₹{getRazorpayPlan(selectedTier, selectedDuration)?.displayAmount.toLocaleString()}{" "}

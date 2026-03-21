@@ -13,6 +13,7 @@ import {
   Property,
   ListingStatus,
   PaginatedPropertyResponse,
+  MapPin,
   OfferDataDTO,
   SubmitFinalOfferDTO,
   PropertyOffer,
@@ -148,6 +149,72 @@ export const useGetAllProperties = (
       page: data?.page || 1,
       totalPages: data?.totalPages || 1,
     },
+    isLoading,
+    error,
+  };
+};
+
+export const useGetMapProperties = (
+  filters: PropertyListFilters = {},
+  options?: { enabled?: boolean }
+) => {
+  const api = useAxios();
+
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams();
+
+    if (filters.propertyCategory && filters.propertyCategory !== "ALL") {
+      params.set("propertyCategory", filters.propertyCategory);
+    }
+    if (filters.propertyType && filters.propertyType !== "ALL") {
+      params.set("propertyType", filters.propertyType);
+    }
+    if (filters.minPrice !== undefined && filters.minPrice > 0) {
+      params.set("minPrice", String(filters.minPrice));
+    }
+    if (filters.maxPrice !== undefined) {
+      params.set("maxPrice", String(filters.maxPrice));
+    }
+    if (filters.bhk && filters.bhk !== "ALL") {
+      params.set("bhk", filters.bhk === "5+" ? "5" : filters.bhk);
+    }
+    if (filters.source && filters.source !== "ALL") {
+      params.set("source", filters.source);
+    }
+    if (filters.search && filters.search.trim()) {
+      params.set("search", filters.search.trim());
+    }
+    if (filters.userCity) {
+      params.set("userCity", filters.userCity);
+    }
+    if (filters.featured !== undefined) {
+      params.set("isFeatured", String(filters.featured));
+    }
+    if (filters.listingPurpose) {
+      params.set("listingPurpose", filters.listingPurpose);
+    }
+    if (filters.minRent !== undefined && filters.minRent > 0) {
+      params.set("minRent", String(filters.minRent));
+    }
+    if (filters.maxRent !== undefined) {
+      params.set("maxRent", String(filters.maxRent));
+    }
+
+    return params.toString();
+  }, [filters]);
+
+  const { data, isLoading, error } = useQuery<MapPin[]>({
+    queryKey: ["map-pins", queryString],
+    queryFn: async () => {
+      return (await api.get(`/property/map-pins?${queryString}`)).data.data;
+    },
+    enabled: options?.enabled ?? true,
+    placeholderData: keepPreviousData,
+    staleTime: 60_000,
+  });
+
+  return {
+    mapProperties: data || [],
     isLoading,
     error,
   };

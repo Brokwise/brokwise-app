@@ -9,6 +9,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useGetAllProperties,
+  useGetMapProperties,
   PropertyListFilters,
 } from "@/hooks/useProperty";
 import { useGetAllMarketPlaceEnquiries } from "@/hooks/useEnquiry";
@@ -54,7 +55,10 @@ export const MarketPlace = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
   const { brokerData, companyData, userData } = useApp();
+  console.log(brokerData)
+  console.log(userData)
   const { t } = useTranslation();
   const userCity =
     userData?.userType === "company" ? companyData?.city : brokerData?.city;
@@ -170,6 +174,11 @@ export const MarketPlace = () => {
   >(null);
   const [highlightRequestId, setHighlightRequestId] = useState(0);
 
+  const isMapVisible = view === "map" || view === "split";
+  const { mapProperties } = useGetMapProperties(serverFilters, {
+    enabled: viewMode === "PROPERTIES" && isMapVisible,
+  });
+
   const [isBelowLg, setIsBelowLg] = useState(false);
   const isMapOverlayActive = isBelowLg && isMobileMapOpen;
 
@@ -284,6 +293,7 @@ export const MarketPlace = () => {
 
   // Properties are now filtered and sorted server-side
   const filteredProperties = properties;
+  const allMapProperties = mapProperties.length > 0 ? mapProperties : filteredProperties;
 
   const filteredEnquiries = useMemo(() => {
     let baseEnquiries = marketPlaceEnquiries || [];
@@ -899,12 +909,13 @@ export const MarketPlace = () => {
                   </div>
                 )}
                 <MapBox
-                  properties={filteredProperties}
+                  properties={allMapProperties}
                   onSelectProperty={setSelectedPropertyId}
                   selectedPropertyId={selectedPropertyId}
                   highlightedPropertyId={highlightedPropertyId}
                   highlightRequestId={highlightRequestId}
                   onHighlightComplete={handleHighlightComplete}
+                  userCity={userCity}
                 />
               </div>
             </div>
@@ -996,12 +1007,13 @@ export const MarketPlace = () => {
                   </div>
                 )}
                 <MapBox
-                  properties={filteredProperties}
+                  properties={allMapProperties}
                   onSelectProperty={setSelectedPropertyId}
                   selectedPropertyId={selectedPropertyId}
                   highlightedPropertyId={highlightedPropertyId}
                   highlightRequestId={highlightRequestId}
                   onHighlightComplete={handleHighlightComplete}
+                  userCity={userCity}
                 />
               </div>
 

@@ -2,11 +2,7 @@ import React from "react";
 import { Check, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { TIER } from "@/models/types/subscription";
-import {
-  ACTIVATION_PLANS,
-  ACTIVATION_TIER_INFO,
-  ACTIVATION_LIMITS,
-} from "@/config/tier_limits";
+import { useTierConfig } from "@/hooks/useTierConfig";
 import {
   Card,
   CardContent,
@@ -26,16 +22,17 @@ interface Step4PlanProps {
 
 export const Step4Plan: React.FC<Step4PlanProps> = ({ selectedTier, onSelect }) => {
   const { t } = useTranslation();
+  const { activationTierInfo, activationPlans, activationLimits } = useTierConfig();
   const tiers: TIER[] = ["BASIC", "ESSENTIAL", "PRO"];
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4">
         {tiers.map((tier) => {
-          const info = ACTIVATION_TIER_INFO[tier];
-          const plan = ACTIVATION_PLANS[tier];
+          const info = activationTierInfo[tier];
+          const plan = activationPlans[tier];
           const isSelected = selectedTier === tier;
-          const limits = ACTIVATION_LIMITS[tier];
+          const limits = activationLimits[tier];
 
           return (
             <Card

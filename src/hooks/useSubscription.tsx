@@ -19,7 +19,7 @@ import {
   VerifyActivationPayload,
   ActivationPurchaseResponse,
 } from "@/models/types/subscription";
-import { getRazorpayPlan } from "@/config/tier_limits";
+import { useTierConfig } from "@/hooks/useTierConfig";
 
 interface CreateSubscriptionResponse {
   subscription: SubscriptionResponse;
@@ -324,6 +324,7 @@ export const useCancelSubscription = () => {
  * Combined hook for subscription management with Razorpay integration
  */
 export const useSubscription = () => {
+  const { getRazorpayPlan } = useTierConfig();
   const { plans, durations, activationPlans, regularPlans, isLoading: plansLoading } = useGetPlans();
   const {
     subscription,
