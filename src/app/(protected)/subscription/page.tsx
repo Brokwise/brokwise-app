@@ -50,6 +50,7 @@ import {
   CreditCard,
   Star,
   DollarSign,
+  AlertTriangle,
 } from "lucide-react";
 import {
   TIER,
@@ -756,6 +757,8 @@ const SubscriptionPage = () => {
     subscription,
     usage,
     usageLimits,
+    upcomingLimits,
+    upcomingLimitsEffectiveDate,
     tier,
     limits,
     periodStart,
@@ -925,6 +928,65 @@ const SubscriptionPage = () => {
                 periodEnd={periodEnd}
               />
             </div>
+
+            {/* Pending Limit Changes Notice */}
+            {upcomingLimits && upcomingLimitsEffectiveDate && (
+              <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/10">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2 text-amber-800 dark:text-amber-300">
+                    <AlertTriangle className="h-5 w-5" />
+                    Upcoming Limit Changes
+                  </CardTitle>
+                  <CardDescription className="text-amber-700/80 dark:text-amber-400/80">
+                    Some of your plan limits are decreasing. Changes take effect on{" "}
+                    <strong>
+                      {new Date(upcomingLimitsEffectiveDate).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </strong>{" "}
+                    (your next billing cycle). Your current limits remain active until then.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-amber-200 dark:border-amber-800">
+                          <th className="text-left py-2 px-3 font-medium text-amber-800 dark:text-amber-300">Limit</th>
+                          <th className="text-center py-2 px-3 font-medium text-amber-800 dark:text-amber-300">Current</th>
+                          <th className="text-center py-2 px-3 font-medium text-amber-800 dark:text-amber-300">Upcoming</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-amber-900 dark:text-amber-200">
+                        {usageLimits && upcomingLimits.property_listing < usageLimits.property_listing && (
+                          <tr className="border-b border-amber-100 dark:border-amber-900">
+                            <td className="py-2 px-3 flex items-center gap-2"><Building className="h-4 w-4" /> Property Listings</td>
+                            <td className="text-center py-2 px-3">{usageLimits.property_listing}</td>
+                            <td className="text-center py-2 px-3 font-semibold text-red-600 dark:text-red-400">{upcomingLimits.property_listing}</td>
+                          </tr>
+                        )}
+                        {usageLimits && upcomingLimits.enquiry_listing < usageLimits.enquiry_listing && (
+                          <tr className="border-b border-amber-100 dark:border-amber-900">
+                            <td className="py-2 px-3 flex items-center gap-2"><FileText className="h-4 w-4" /> Enquiry Listings</td>
+                            <td className="text-center py-2 px-3">{usageLimits.enquiry_listing}</td>
+                            <td className="text-center py-2 px-3 font-semibold text-red-600 dark:text-red-400">{upcomingLimits.enquiry_listing}</td>
+                          </tr>
+                        )}
+                        {usageLimits && upcomingLimits.submit_property_enquiry < usageLimits.submit_property_enquiry && (
+                          <tr>
+                            <td className="py-2 px-3 flex items-center gap-2"><Send className="h-4 w-4" /> Property Submissions</td>
+                            <td className="text-center py-2 px-3">{usageLimits.submit_property_enquiry}</td>
+                            <td className="text-center py-2 px-3 font-semibold text-red-600 dark:text-red-400">{upcomingLimits.submit_property_enquiry}</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Quick Actions */}
             <Card>

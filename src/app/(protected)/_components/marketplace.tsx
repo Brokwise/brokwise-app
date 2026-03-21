@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   useGetAllProperties,
   useGetMapProperties,
+  useGetProperty,
   PropertyListFilters,
 } from "@/hooks/useProperty";
 import { useGetAllMarketPlaceEnquiries } from "@/hooks/useEnquiry";
@@ -243,9 +244,16 @@ export const MarketPlace = () => {
     }
   }, [viewMode]);
 
-  const selectedProperty = properties?.find(
+  const selectedPropertyFromPage = properties?.find(
     (p) => p._id === selectedPropertyId
   );
+  const needsRemoteFetch =
+    !!selectedPropertyId && !selectedPropertyFromPage && isMapVisible;
+  const { property: fetchedProperty } = useGetProperty(
+    selectedPropertyId ?? "",
+    { enabled: needsRemoteFetch }
+  );
+  const selectedProperty = selectedPropertyFromPage ?? (needsRemoteFetch ? fetchedProperty : undefined);
 
   const maxPropertyPrice = 1_000_000_000; // 100 Crore fixed max for price slider
   const maxRentPrice = 500_000; // 5 Lakh per month max for rent slider

@@ -90,6 +90,8 @@ export const useGetUsage = (options?: { enabled?: boolean }) => {
   return {
     usage: data?.usage,
     limits: data?.limits,
+    upcomingLimits: data?.upcomingLimits,
+    upcomingLimitsEffectiveDate: data?.upcomingLimitsEffectiveDate,
     tier: data?.tier,
     periodStart: data?.periodStart,
     periodEnd: data?.periodEnd,
@@ -335,6 +337,8 @@ export const useSubscription = () => {
   const {
     usage,
     limits: usageLimits,
+    upcomingLimits,
+    upcomingLimitsEffectiveDate,
     tier,
     periodStart,
     periodEnd,
@@ -540,6 +544,8 @@ export const useSubscription = () => {
     limits,
     usage,
     usageLimits,
+    upcomingLimits,
+    upcomingLimitsEffectiveDate,
     tier,
     remaining,
     periodStart,
