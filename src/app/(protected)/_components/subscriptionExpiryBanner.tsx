@@ -14,7 +14,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { AlertTriangle, Clock, Crown } from "lucide-react";
+import { AlertTriangle, Clock } from "lucide-react";
 
 const DISMISS_KEY = "bw_expiry_banner_dismissed";
 

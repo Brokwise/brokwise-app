@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, CheckCircle2, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 
 const DISMISS_KEY = "bw_stale_dialog_dismissed";
 
@@ -113,7 +114,7 @@ export function StalePropertyDialog() {
               className={`flex h-14 w-14 items-center justify-center rounded-full ${isUrgent
                 ? "bg-destructive/10 text-destructive"
                 : "bg-amber-500/10 text-amber-500"
-              }`}
+                }`}
             >
               <AlertTriangle className="h-7 w-7" />
             </div>
@@ -126,8 +127,10 @@ export function StalePropertyDialog() {
         <div className="space-y-3">
           {thumbnail && (
             <div className="overflow-hidden rounded-lg">
-              <img
-                src={thumbnail}
+              <Image
+                width={100}
+                height={100}
+                src={thumbnail as string}
                 alt={displayName}
                 className="h-32 w-full object-cover"
               />
