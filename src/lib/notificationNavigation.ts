@@ -6,7 +6,8 @@ export type NotificationRelatedTo =
   | "ENQUIRY"
   | "COMPANY"
   | "CONTACT_REQUEST"
-  | "MESSAGING";
+  | "MESSAGING"
+  | "SUBSCRIPTION";
 
 export interface NotificationNavigationInput {
   route?: string | null;
@@ -22,6 +23,7 @@ const FALLBACK_BY_RELATED_TO: Record<NotificationRelatedTo, string> = {
   COMPANY: "/",
   CONTACT_REQUEST: "/contacts",
   MESSAGING: "/message",
+  SUBSCRIPTION: "/subscription",
 };
 
 const LEGACY_ROUTE_MAP: Record<string, string> = {

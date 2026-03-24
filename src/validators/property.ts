@@ -13,7 +13,10 @@ const CommercialFurnishingEnum = z.enum(["BARE_SHELL", "WARM_SHELL", "FULLY_FURN
 
 const geoLocationSchema = z.object({
   type: z.literal("Point"),
-  coordinates: z.tuple([z.number(), z.number()]),
+  coordinates: z.tuple([z.number(), z.number()]).refine(
+    (coords) => coords[0] !== 0 || coords[1] !== 0,
+    { message: "Please select a property location" }
+  ),
 });
 
 const rentalIncomeSchema = z

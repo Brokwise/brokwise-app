@@ -17,6 +17,8 @@ import { UserAvatar } from "./_components/userAvatar";
 import { CreditsBadge } from "./_components/creditsBadge";
 import { LandConverter } from "./_components/landConverter";
 import { SubscriptionGate } from "./_components/subscriptionGate";
+import { SubscriptionExpiryBanner } from "./_components/subscriptionExpiryBanner";
+import { StalePropertyDialog } from "./_components/stalePropertyDialog";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { ChatbotWidget } from "@/components/chatbot";
@@ -469,6 +471,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                     </main>
                   </div>
 
+                  <SubscriptionExpiryBanner />
+                  <StalePropertyDialog />
                   <BottomNav />
                   <ChatbotWidget />
                   <ScrollToTop />

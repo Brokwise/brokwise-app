@@ -3,6 +3,7 @@
 import {
   useGetReceivedProperties,
   useMarkSubmissionViewed,
+  useDeclineSubmission,
 } from "@/hooks/useEnquiry";
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,8 +21,19 @@ import {
   Bath,
   Compass,
   MessageCircle,
+  XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { PropertyPreviewModal } from "./PropertyPreviewModal";
 import { Enquiry, EnquirySubmission } from "@/models/types/enquiry";
 import { Property } from "@/types/property";
@@ -96,13 +108,29 @@ export const ReceivedProperties = ({
     string | null
   >(null);
   const [isShareContactOpen, setIsShareContactOpen] = useState(false);
+  const [declineConfirmSubmissionId, setDeclineConfirmSubmissionId] = useState<
+    string | null
+  >(null);
 
   const { receivedProperties, isPending, error } = useGetReceivedProperties(
     id as string,
     isMyEnquiry
   );
   const { markSubmissionViewed } = useMarkSubmissionViewed();
+  const { declineSubmission, isPending: isDeclining } = useDeclineSubmission();
   const { t } = useTranslation();
+
+  const handleDeclineSubmission = async () => {
+    if (!declineConfirmSubmissionId) return;
+    try {
+      await declineSubmission({
+        enquiryId: id,
+        submissionId: declineConfirmSubmissionId,
+      });
+    } finally {
+      setDeclineConfirmSubmissionId(null);
+    }
+  };
 
   const sortedProperties = React.useMemo(() => {
     if (!receivedProperties) return [];
@@ -316,18 +344,41 @@ export const ReceivedProperties = ({
                       <CheckCheck className="h-3 w-3 mr-1.5" />
                       {t("page_enquiry_detail_shared")}
                     </Button>
-                  ) : (
+                  ) : submission.status === "rejected" ? (
                     <Button
+                      variant="secondary"
                       size="sm"
-                      className="flex-1 h-10 text-xs bg-accent text-white"
-                      onClick={() => {
-                        setShareContactSubmissionId(submission._id);
-                        setIsShareContactOpen(true);
-                      }}
+                      className="flex-1 h-10 text-xs text-red-600 bg-red-50 border-red-200 border"
+                      disabled
                     >
-                      <PhoneCall className="h-3 w-3 mr-1.5" />
-                      {t("page_enquiry_detail_share_contact")}
+                      <XCircle className="h-3 w-3 mr-1.5" />
+                      {t("page_enquiry_detail_declined")}
                     </Button>
+                  ) : (
+                    <>
+                      <Button
+                        size="sm"
+                        className="flex-1 h-10 text-xs bg-accent text-white"
+                        onClick={() => {
+                          setShareContactSubmissionId(submission._id);
+                          setIsShareContactOpen(true);
+                        }}
+                      >
+                        <PhoneCall className="h-3 w-3 mr-1.5" />
+                        {t("page_enquiry_detail_share_contact")}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-10 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:text-red-600"
+                        onClick={() => {
+                          setDeclineConfirmSubmissionId(submission._id);
+                        }}
+                      >
+                        <XCircle className="h-3 w-3 mr-1.5" />
+                        {t("page_enquiry_detail_decline")}
+                      </Button>
+                    </>
                   )}
                 </div>
               </CardContent>
@@ -357,6 +408,38 @@ export const ReceivedProperties = ({
           />
         </div>
       )}
+
+      <AlertDialog
+        open={!!declineConfirmSubmissionId}
+        onOpenChange={(open) => {
+          if (!open) setDeclineConfirmSubmissionId(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("page_enquiry_detail_decline_confirm_title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("page_enquiry_detail_decline_confirm_desc")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeclining}>
+              {t("action_cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeclineSubmission}
+              disabled={isDeclining}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeclining
+                ? t("page_enquiry_detail_declining")
+                : t("page_enquiry_detail_decline")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

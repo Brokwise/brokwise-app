@@ -141,6 +141,10 @@ export const Step3: React.FC<Step3Props> = ({ form }) => {
                                     field.onChange(details.placeName);
                                     setOfficeCoordinates(details.coordinates);
                                 }}
+                                onLocationClear={() => {
+                                    field.onChange("");
+                                    setOfficeCoordinates([0, 0]);
+                                }}
                             />
                         </FormControl>
                         <FormMessage />

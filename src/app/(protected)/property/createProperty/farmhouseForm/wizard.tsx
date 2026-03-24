@@ -120,6 +120,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
     const stepRequiredFields: { [key: number]: string[] } = {
       0: [
         "propertyType",
+        "location.coordinates",
         "address.state",
         "address.city",
         "address.pincode",
@@ -148,6 +149,7 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
 
     const fieldMessages: Record<string, string> = {
       propertyType: "Please select a property type",
+      "location.coordinates": "Please select a property location",
       "address.state": "State is required",
       "address.city": "City is required",
       "address.address": "Address is required",
@@ -176,12 +178,17 @@ export const FarmHouseWizard: React.FC<FarmHouseWizardProps> = ({
         value = (value as Record<string, unknown>)?.[part];
       }
 
+      const isZeroCoords =
+        field === "location.coordinates" &&
+        Array.isArray(value) &&
+        value.every((v) => v === 0);
       const isEmpty =
         value === undefined ||
         value === null ||
         value === "" ||
         value === 0 ||
-        (Array.isArray(value) && value.length === 0);
+        (Array.isArray(value) && value.length === 0) ||
+        isZeroCoords;
 
       if (isEmpty) {
         hasEmptyRequired = true;
