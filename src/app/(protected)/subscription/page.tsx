@@ -781,6 +781,8 @@ const SubscriptionPage = () => {
     activationTierInfo,
     activationPlans,
     getRazorpayPlan,
+    regularCredits,
+    creditPrices,
   } = useTierConfig();
 
   const [selectedTier, setSelectedTier] = useState<TIER | null>(null);
@@ -1242,16 +1244,29 @@ const SubscriptionPage = () => {
                       !(currentPhase === "regular" && currentTier === selectedTier && subscription?.duration === selectedDuration && subscription?.status !== "cancelled") && (() => {
                         const isPlanChange = hasActiveSubscription && currentPhase === "regular";
                         let daysLeft = 0;
-                        let estimatedCredits = 0;
+                        let unusedDaysCredits = 0;
+                        let unusedUsageCredits = 0;
                         if (isPlanChange && subscription?.currentPeriodEnd) {
                           const now = new Date();
                           const end = new Date(subscription.currentPeriodEnd);
-                          const start = new Date(subscription.currentPeriodStart);
-                          const totalDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
                           daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-                          const currentPlanPrice = getRazorpayPlan(currentTier as TIER, subscription.duration as RegularDuration)?.displayAmount || 0;
-                          estimatedCredits = Math.round((currentPlanPrice / totalDays) * daysLeft);
+
+                          const monthlyCredits = regularCredits[currentTier as TIER]?.["1_MONTH"] || 0;
+                          const creditsPerDay = Math.floor(monthlyCredits / 30);
+                          unusedDaysCredits = creditsPerDay * daysLeft;
+
+                          if (usageLimits && usage) {
+                            const remainingListings = Math.max(0, usageLimits.property_listing - (usage.property_listing || 0));
+                            const remainingEnquiries = Math.max(0, usageLimits.enquiry_listing - (usage.enquiry_listing || 0));
+                            const remainingSubmissions = Math.max(0, usageLimits.submit_property_enquiry - (usage.submit_property_enquiry || 0));
+
+                            unusedUsageCredits =
+                              Math.floor(remainingListings * (creditPrices.PROPERTY_LISTING / 2)) +
+                              Math.floor(remainingEnquiries * (creditPrices.ENQUIRY_LISTING / 2)) +
+                              Math.floor(remainingSubmissions * (creditPrices.SUBMIT_PROPERTY_ENQUIRY / 2));
+                          }
                         }
+                        const estimatedCredits = unusedDaysCredits + unusedUsageCredits;
                         return (
                           <Card className="border-primary">
                             <CardContent className="pt-6">
