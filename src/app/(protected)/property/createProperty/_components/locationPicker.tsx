@@ -102,8 +102,8 @@ export const LocationPicker = ({
   const [open, setOpen] = useState(false);
   const [selectedPlaceName, setSelectedPlaceName] = useState("");
   const [showCoordInput, setShowCoordInput] = useState(false);
-  const [coordLat, setCoordLat] = useState("");
-  const [coordLng, setCoordLng] = useState("");
+  const [coordInput, setCoordInput] = useState("");
+  const [coordError, setCoordError] = useState("");
   const [isResolvingCoords, setIsResolvingCoords] = useState(false);
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
@@ -399,8 +399,8 @@ export const LocationPicker = ({
   const handleClearLocation = () => {
     setSelectedPlaceName("");
     setShowCoordInput(false);
-    setCoordLat("");
-    setCoordLng("");
+    setCoordInput("");
+    setCoordError("");
     onChange([0, 0]);
     onLocationClear?.();
 
@@ -412,15 +412,85 @@ export const LocationPicker = ({
     }
   };
 
-  const handleCoordinateSubmit = async () => {
-    const lat = parseFloat(coordLat);
-    const lng = parseFloat(coordLng);
+  const parseCoordinates = (
+    input: string
+  ): { lat: number; lng: number } | null => {
+    const trimmed = input.trim();
 
-    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    // DMS: 26°55'30.5"N 75°46'00.5"E  (or with commas, various separators)
+    const dmsRegex =
+      /(-?\d+)[°]\s*(\d+)[''′]\s*([\d.]+)[""″]?\s*([NSns])\s*[,\s]+\s*(-?\d+)[°]\s*(\d+)[''′]\s*([\d.]+)[""″]?\s*([EWew])/;
+    const dmsMatch = trimmed.match(dmsRegex);
+    if (dmsMatch) {
+      const latDeg = parseFloat(dmsMatch[1]);
+      const latMin = parseFloat(dmsMatch[2]);
+      const latSec = parseFloat(dmsMatch[3]);
+      const latDir = dmsMatch[4].toUpperCase();
+      const lngDeg = parseFloat(dmsMatch[5]);
+      const lngMin = parseFloat(dmsMatch[6]);
+      const lngSec = parseFloat(dmsMatch[7]);
+      const lngDir = dmsMatch[8].toUpperCase();
+
+      let lat = latDeg + latMin / 60 + latSec / 3600;
+      let lng = lngDeg + lngMin / 60 + lngSec / 3600;
+      if (latDir === "S") lat = -lat;
+      if (lngDir === "W") lng = -lng;
+
+      if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        return { lat, lng };
+      }
+    }
+
+    // Decimal degrees with direction: 26.925105N, 75.766942E
+    const decDirRegex =
+      /(-?[\d.]+)\s*([NSns])\s*[,\s]+\s*(-?[\d.]+)\s*([EWew])/;
+    const decDirMatch = trimmed.match(decDirRegex);
+    if (decDirMatch) {
+      let lat = parseFloat(decDirMatch[1]);
+      const latDir = decDirMatch[2].toUpperCase();
+      let lng = parseFloat(decDirMatch[3]);
+      const lngDir = decDirMatch[4].toUpperCase();
+      if (latDir === "S") lat = -lat;
+      if (lngDir === "W") lng = -lng;
+
+      if (
+        !isNaN(lat) && !isNaN(lng) &&
+        lat >= -90 && lat <= 90 &&
+        lng >= -180 && lng <= 180
+      ) {
+        return { lat, lng };
+      }
+    }
+
+    // Decimal degrees: 26.925105, 75.766942  or  26.925105 75.766942
+    const decimalRegex = /(-?[\d.]+)\s*[,\s]+\s*(-?[\d.]+)/;
+    const decimalMatch = trimmed.match(decimalRegex);
+    if (decimalMatch) {
+      const a = parseFloat(decimalMatch[1]);
+      const b = parseFloat(decimalMatch[2]);
+      if (
+        !isNaN(a) && !isNaN(b) &&
+        a >= -90 && a <= 90 &&
+        b >= -180 && b <= 180
+      ) {
+        return { lat: a, lng: b };
+      }
+    }
+
+    return null;
+  };
+
+  const handleCoordinateSubmit = async () => {
+    const parsed = parseCoordinates(coordInput);
+    if (!parsed) {
+      setCoordError("Could not parse coordinates. Try formats like 26.925, 75.766 or 26°55'30\"N 75°46'00\"E");
       return;
     }
 
+    setCoordError("");
     setIsResolvingCoords(true);
+    const { lat, lng } = parsed;
+
     onChange([lng, lat]);
 
     if (onLocationSelect) {
@@ -443,20 +513,9 @@ export const LocationPicker = ({
     }
 
     setShowCoordInput(false);
-    setCoordLat("");
-    setCoordLng("");
+    setCoordInput("");
     setIsResolvingCoords(false);
   };
-
-  const isValidCoords =
-    coordLat !== "" &&
-    coordLng !== "" &&
-    !isNaN(parseFloat(coordLat)) &&
-    !isNaN(parseFloat(coordLng)) &&
-    parseFloat(coordLat) >= -90 &&
-    parseFloat(coordLat) <= 90 &&
-    parseFloat(coordLng) >= -180 &&
-    parseFloat(coordLng) <= 180;
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -484,54 +543,37 @@ export const LocationPicker = ({
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs"
-                onClick={() => setShowCoordInput(false)}
+                onClick={() => {
+                  setShowCoordInput(false);
+                  setCoordInput("");
+                  setCoordError("");
+                }}
               >
                 Back to search
               </Button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">
-                  Latitude
-                </label>
-                <Input
-                  type="number"
-                  step="any"
-                  placeholder="e.g. 26.9124"
-                  value={coordLat}
-                  onChange={(e) => setCoordLat(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && isValidCoords) {
-                      e.preventDefault();
-                      handleCoordinateSubmit();
-                    }
-                  }}
-                />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">
-                  Longitude
-                </label>
-                <Input
-                  type="number"
-                  step="any"
-                  placeholder="e.g. 75.7873"
-                  value={coordLng}
-                  onChange={(e) => setCoordLng(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && isValidCoords) {
-                      e.preventDefault();
-                      handleCoordinateSubmit();
-                    }
-                  }}
-                />
-              </div>
-            </div>
+            <Input
+              placeholder={'e.g. 26.925105, 75.766942 or 26°55\'30"N 75°46\'00"E'}
+              value={coordInput}
+              onChange={(e) => {
+                setCoordInput(e.target.value);
+                if (coordError) setCoordError("");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleCoordinateSubmit();
+                }
+              }}
+            />
+            {coordError && (
+              <p className="text-xs text-destructive">{coordError}</p>
+            )}
             <Button
               type="button"
               size="sm"
               className="w-full"
-              disabled={!isValidCoords || isResolvingCoords}
+              disabled={!coordInput.trim() || isResolvingCoords}
               onClick={handleCoordinateSubmit}
             >
               {isResolvingCoords ? (
