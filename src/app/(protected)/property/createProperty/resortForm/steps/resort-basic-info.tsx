@@ -44,7 +44,6 @@ export const ResortBasicInfo: React.FC<ResortBasicInfoProps> = ({ form }) => {
         if (item.id.startsWith("place")) {
           form.setValue("address.city", item.text, { shouldValidate: true });
         }
-        // Fallback: if pincode wasn't directly provided, try from context
         if (!details.pincode && item.id.startsWith("postcode")) {
           const numericPincode = item.text.replace(/\D/g, "").slice(0, 6);
           if (numericPincode.length === 6) {
@@ -57,13 +56,42 @@ export const ResortBasicInfo: React.FC<ResortBasicInfoProps> = ({ form }) => {
     }
   };
 
+  const handleLocationClear = () => {
+    form.setValue("location.coordinates", [0, 0]);
+    form.setValue("address.address", "");
+    form.setValue("address.state", "");
+    form.setValue("address.city", "");
+    form.setValue("address.pincode", "");
+  };
+
+  const coordinates = form.watch("location.coordinates");
+  const hasLocation = coordinates?.[0] !== 0 || coordinates?.[1] !== 0;
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column: Address Fields */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Property Address</h3>
-          <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Property Location</h3>
+        <FormField
+          control={form.control}
+          name="location.coordinates"
+          render={({ field, fieldState }) => (
+            <FormItem>
+              <FormControl>
+                <LocationPicker
+                  value={field.value as [number, number]}
+                  onChange={field.onChange}
+                  onLocationSelect={handleLocationSelect}
+                  onLocationClear={handleLocationClear}
+                  hasError={!!fieldState.error}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {hasLocation && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
             <FormField
               control={form.control}
               name="address.state"
@@ -94,87 +122,64 @@ export const ResortBasicInfo: React.FC<ResortBasicInfoProps> = ({ form }) => {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="address.pincode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Pincode <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <PincodeInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Enter 6-digit pincode"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="address.address"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>
+                    Full Address <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter complete resort address"
+                      className="min-h-[80px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="propertyStatus"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>
+                    Property Status <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Operational, Under Construction"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-          <FormField
-            control={form.control}
-            name="address.pincode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Pincode <span className="text-destructive">*</span>
-                </FormLabel>
-                <FormControl>
-                  <PincodeInput
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder="Enter 6-digit pincode"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="address.address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Full Address <span className="text-destructive">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Enter complete resort address"
-                    className="min-h-[100px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="propertyStatus"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Property Status <span className="text-destructive">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="e.g., Operational, Under Construction"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Right Column: Map */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Locate on Map</h3>
-          <FormField
-            control={form.control}
-            name="location.coordinates"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <LocationPicker
-                    value={field.value as [number, number]}
-                    onChange={field.onChange}
-                    onLocationSelect={handleLocationSelect}
-                    className="h-full"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        )}
       </div>
     </div>
   );

@@ -148,7 +148,7 @@ export const PropertyOffers = ({ property }: { property: Property }) => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="flex-1 h-7 text-xs text-white"
+                          className="flex-1 h-7 text-xs "
                           onClick={() => {
                             if (offer._id) {
                               setShareContactOfferId(offer._id);

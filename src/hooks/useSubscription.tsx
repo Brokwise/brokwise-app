@@ -32,6 +32,34 @@ interface CreateSubscriptionResponse {
 }
 
 
+export interface ExpiryStatus {
+  expiringSoon: boolean;
+  daysLeft?: number;
+  tier?: TIER;
+  currentPeriodEnd?: string;
+  status?: string;
+}
+
+export const useGetExpiryStatus = (options?: { enabled?: boolean }) => {
+  const api = useAxios();
+  const { data, isLoading, error } = useQuery<ExpiryStatus>({
+    queryKey: ["subscription-expiry-status"],
+    queryFn: async () => {
+      const response = await api.get("/subscription/expiry-status");
+      return response.data.data;
+    },
+    enabled: options?.enabled ?? true,
+    staleTime: 1000 * 60 * 30,
+    refetchOnWindowFocus: false,
+  });
+
+  return {
+    expiryStatus: data,
+    isLoading,
+    error,
+  };
+};
+
 export const useGetPlans = () => {
   const api = useAxios();
   const { data, isLoading, error } = useQuery<PlansResponse>({

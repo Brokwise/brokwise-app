@@ -119,6 +119,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
   const validateCurrentStep = async (): Promise<boolean> => {
     const stepRequiredFields: { [key: number]: string[] } = {
       0: [
+        "location.coordinates",
         "address.state",
         "address.city",
         "address.address",
@@ -142,6 +143,7 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
     const emptyFields: string[] = [];
 
     const fieldMessages: Record<string, string> = {
+      "location.coordinates": "Please select a property location",
       "address.state": "State is required",
       "address.city": "City is required",
       "address.address": "Address is required",
@@ -170,12 +172,17 @@ export const ResortWizard: React.FC<ResortWizardProps> = ({
         value = (value as Record<string, unknown>)?.[part];
       }
 
+      const isZeroCoords =
+        field === "location.coordinates" &&
+        Array.isArray(value) &&
+        value.every((v) => v === 0);
       const isEmpty =
         value === undefined ||
         value === null ||
         value === "" ||
         value === 0 ||
-        (Array.isArray(value) && value.length === 0);
+        (Array.isArray(value) && value.length === 0) ||
+        isZeroCoords;
 
       if (isEmpty) {
         hasEmptyRequired = true;

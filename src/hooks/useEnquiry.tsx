@@ -7,6 +7,9 @@ import {
   MarketplaceEnquiry,
   EnquiryMessage,
 } from "@/models/types/enquiry";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
+import i18n from "@/i18n";
 
 export type MarketplaceEnquiriesResponse = {
   enquiries: MarketplaceEnquiry[];
@@ -387,4 +390,36 @@ export const useMarkSubmissionViewed = () => {
     },
   });
   return { markSubmissionViewed: mutate, isPending, error };
+};
+
+export const useDeclineSubmission = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending, error } = useMutation<
+    void,
+    AxiosError<{ message: string }>,
+    { enquiryId: string; submissionId: string }
+  >({
+    mutationFn: async ({ enquiryId, submissionId }) => {
+      return (
+        await api.patch(
+          `/broker/enquiry/${enquiryId}/submission/${submissionId}/decline`
+        )
+      ).data.data;
+    },
+    onSuccess: (_data, { enquiryId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["received-properties", enquiryId],
+      });
+      toast.success(i18n.t("toast_proposal_declined"));
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        i18n.t("toast_error_decline_proposal");
+      toast.error(errorMessage);
+    },
+  });
+  return { declineSubmission: mutateAsync, isPending, error };
 };
