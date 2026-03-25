@@ -245,7 +245,15 @@ export default function MyListings() {
           columns={columns}
           data={filteredListings}
           viewMode={effectiveView}
-          onRowClick={(property) => router.push(`/property/detail?id=${property._id}`)}
+          onRowClick={(property) => {
+            if (property.listingStatus === "DRAFT") {
+              router.push(
+                `/property/createProperty?draftId=${property._id}&category=${property.propertyCategory}`
+              );
+            } else {
+              router.push(`/property/detail?id=${property._id}`);
+            }
+          }}
           renderGridItem={(property) => (
             <PropertyCard
               property={property}
