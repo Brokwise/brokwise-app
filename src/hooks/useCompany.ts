@@ -106,7 +106,7 @@ export const useSoftDeleteCompanyProperty = () => {
   const api = useAxios();
   const queryClient = useQueryClient();
 
-  const { mutate, isPending, error } = useMutation<
+  const { mutate, mutateAsync, isPending, error } = useMutation<
     unknown,
     AxiosError<{ message: string }>,
     { propertyId: string; reason?: string }
@@ -130,7 +130,12 @@ export const useSoftDeleteCompanyProperty = () => {
       toast.error(errorMessage);
     },
   });
-  return { softDeleteProperty: mutate, isPending, error };
+  return {
+    softDeleteProperty: mutate,
+    softDeletePropertyAsync: mutateAsync,
+    isPending,
+    error,
+  };
 };
 
 export const useGetCompanyBrokers = (status?: string) => {

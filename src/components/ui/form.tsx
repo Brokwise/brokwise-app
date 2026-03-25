@@ -18,6 +18,9 @@ import { Label } from "@/components/ui/label"
 
 const Form = FormProvider
 
+const FormStepValidationContext = React.createContext<boolean>(false)
+const FormStepValidationProvider = FormStepValidationContext.Provider
+
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
@@ -81,7 +84,7 @@ const FormItem = React.forwardRef<
 
   return (
     <FormItemContext.Provider value={{ id }}>
-      <div ref={ref} className={cn("space-y-2", className)} {...props} />
+      <div ref={ref} data-form-item className={cn("space-y-2", className)} {...props} />
     </FormItemContext.Provider>
   )
 })
@@ -93,8 +96,9 @@ const FormLabel = React.forwardRef<
 >(({ className, ...props }, ref) => {
   const { error, formItemId, isDirty, isTouched } = useFormField()
   const { formState } = useFormContext()
+  const stepValidationAttempted = React.useContext(FormStepValidationContext)
 
-  const shouldShowError = !!error && (isDirty || isTouched || formState.isSubmitted)
+  const shouldShowError = !!error && (isDirty || isTouched || formState.isSubmitted || stepValidationAttempted)
 
   return (
     <Label
@@ -113,8 +117,9 @@ const FormControl = React.forwardRef<
 >(({ ...props }, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId, isDirty, isTouched } = useFormField()
   const { formState } = useFormContext()
+  const stepValidationAttempted = React.useContext(FormStepValidationContext)
 
-  const shouldShowError = !!error && (isDirty || isTouched || formState.isSubmitted)
+  const shouldShowError = !!error && (isDirty || isTouched || formState.isSubmitted || stepValidationAttempted)
 
   return (
     <Slot
@@ -155,9 +160,10 @@ const FormMessage = React.forwardRef<
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId, isDirty, isTouched } = useFormField()
   const { formState } = useFormContext()
+  const stepValidationAttempted = React.useContext(FormStepValidationContext)
 
   const { t } = useTranslation()
-  const shouldShowError = !!error && (isDirty || isTouched || formState.isSubmitted)
+  const shouldShowError = !!error && (isDirty || isTouched || formState.isSubmitted || stepValidationAttempted)
   const body = shouldShowError ? t(String(error?.message ?? "")) : children
 
   if (!body) {
@@ -186,4 +192,5 @@ export {
   FormDescription,
   FormMessage,
   FormField,
+  FormStepValidationProvider,
 }

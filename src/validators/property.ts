@@ -106,7 +106,7 @@ const basePropertySchema = z.object({
   agreementDuration: z.string().min(1, "Agreement duration is required").optional(),
   lockInPeriod: z.number().min(0).optional(),
   noticePeriod: z.number().min(0).optional(),
-  tenantType: z.array(TenantTypeEnum).min(1).optional(),
+  tenantType: z.array(TenantTypeEnum).optional(),
   petsAllowed: z.boolean().optional(),
   nonVegAllowed: z.boolean().optional(),
   furnishing: CommercialFurnishingEnum.optional(),

@@ -91,7 +91,7 @@ export const FarmhouseBasicInfo: React.FC<FarmhouseBasicInfoProps> = ({
                 className={cn(
                   "flex flex-wrap gap-2 p-2 rounded-lg transition-colors",
                   fieldState.error &&
-                    "bg-destructive/10 ring-1 ring-destructive"
+                  "bg-destructive/10 ring-1 ring-destructive"
                 )}
                 data-field="propertyType"
               >
@@ -127,7 +127,7 @@ export const FarmhouseBasicInfo: React.FC<FarmhouseBasicInfoProps> = ({
       />
 
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Property Location</h3>
+        <h3 className="text-lg font-medium">Property Location <span className="text-destructive">*</span></h3>
         <FormField
           control={form.control}
           name="location.coordinates"

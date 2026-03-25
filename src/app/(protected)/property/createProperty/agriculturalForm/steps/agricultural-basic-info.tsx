@@ -86,7 +86,7 @@ export const AgriculturalBasicInfo: React.FC<AgriculturalBasicInfoProps> = ({
       />
 
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Property Location</h3>
+        <h3 className="text-lg font-medium">Property Location <span className="text-destructive">*</span></h3>
         <FormField
           control={form.control}
           name="location.coordinates"
