@@ -5,8 +5,9 @@ import { coerceStringArray, coerceFloorPlanDocs } from "@/utils/helper";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Form } from "@/components/ui/form";
+import { Form, FormStepValidationProvider } from "@/components/ui/form";
 import { Wizard, WizardStep } from "@/components/ui/wizard";
+import { useWizardStepValidation } from "@/hooks/useWizardStepValidation";
 import {
   commercialPropertySchema,
   CommercialPropertyFormData,
@@ -58,6 +59,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   listingPurpose = "SALE",
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const { stepValidationAttempted, onValidationFailed } = useWizardStepValidation(currentStep);
   const queryClient = useQueryClient();
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const router = useRouter();
@@ -119,12 +121,13 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   }, [watchedPropertyType, form]);
 
   const onSubmit = async (data: CommercialPropertyFormData, shouldUseCredits: boolean) => {
+    const { _id, ...propertyData } = data;
     if (onSubmitProp) {
       onSubmitProp(data);
     } else {
       try {
         setIsSubmitting(true);
-        await addPropertyAsync({ property: data, shouldUseCredits });
+        await addPropertyAsync({ property: propertyData as CommercialPropertyFormData, shouldUseCredits });
         form.reset();
         setCompletedSteps(new Set());
         setCurrentStep(0);
@@ -259,31 +262,7 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
     const isValid = schemaResult && !hasEmptyRequired;
 
     if (!isValid) {
-      const errors = form.formState.errors;
-      const firstErrorField =
-        emptyFields[0] ||
-        fieldsToValidate.find((field) => {
-          const parts = field.split(".");
-          let error: unknown = errors;
-          for (const part of parts) {
-            error = (error as Record<string, unknown>)?.[part];
-          }
-          return !!error;
-        });
-
-      if (firstErrorField) {
-        const fieldName = firstErrorField.replace(/\./g, "-");
-        const element =
-          document.querySelector(`[name="${firstErrorField}"]`) ||
-          document.querySelector(`[data-field="${firstErrorField}"]`) ||
-          document.getElementById(fieldName);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "center" });
-          if (element instanceof HTMLElement && "focus" in element) {
-            setTimeout(() => (element as HTMLElement).focus(), 300);
-          }
-        }
-      }
+      onValidationFailed();
     }
 
     return isValid;
@@ -469,24 +448,26 @@ export const CommercialWizard: React.FC<CommercialWizardProps> = ({
   ];
 
   return (
-    <Form {...form}>
-      <Wizard
-        steps={steps}
-        currentStep={currentStep}
-        onNext={handleNext}
-        onPrevious={handlePrevious}
-        onStepClick={handleStepClick}
-        onCancel={onBack}
-        onSubmit={handleSubmit}
-        submitLabel={submitLabel}
-        onSaveDraft={handleSaveDraft}
-        isSavingDraft={isSavingDraft}
-        canProceed={!Object.values(uploading).some(Boolean)}
-        isLoading={externalIsLoading ?? isLoading}
-        isSubmitting={isSubmitting}
-        draftCount={draftCount}
-        isEditingDraft={isEditingDraft}
-      />
-    </Form>
+    <FormStepValidationProvider value={stepValidationAttempted}>
+      <Form {...form}>
+        <Wizard
+          steps={steps}
+          currentStep={currentStep}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+          onStepClick={handleStepClick}
+          onCancel={onBack}
+          onSubmit={handleSubmit}
+          submitLabel={submitLabel}
+          onSaveDraft={handleSaveDraft}
+          isSavingDraft={isSavingDraft}
+          canProceed={!Object.values(uploading).some(Boolean)}
+          isLoading={externalIsLoading ?? isLoading}
+          isSubmitting={isSubmitting}
+          draftCount={draftCount}
+          isEditingDraft={isEditingDraft}
+        />
+      </Form>
+    </FormStepValidationProvider>
   );
 };

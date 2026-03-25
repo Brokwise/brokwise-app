@@ -423,6 +423,34 @@ export const useSavePropertyAsDraft = () => {
   return { savePropertyAsDraft: mutateAsync, isPending, error };
 };
 
+export const useDeleteDraftProperty = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending, error } = useMutation<
+    { propertyId: string; deleted: boolean },
+    AxiosError<{ message: string }>,
+    { propertyId: string }
+  >({
+    mutationFn: async ({ propertyId }) => {
+      return (await api.delete(`/property/draft/${propertyId}`)).data.data;
+    },
+    onSuccess: () => {
+      toast.success(i18n.t("toast_property_deleted"));
+      queryClient.invalidateQueries({ queryKey: ["my-listings"] });
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        i18n.t("toast_error_property_delete");
+      toast.error(errorMessage);
+    },
+  });
+
+  return { deleteDraftProperty: mutateAsync, isPending, error };
+};
+
 export const useOfferPrice = () => {
   const api = useAxios();
   const queryClient = useQueryClient();

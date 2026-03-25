@@ -1,7 +1,10 @@
 "use client";
 
-import { useGetCompanyProperties } from "@/hooks/useCompany";
-import { useGetMyListings } from "@/hooks/useProperty";
+import {
+  useGetCompanyProperties,
+  useSoftDeleteCompanyProperty,
+} from "@/hooks/useCompany";
+import { useDeleteDraftProperty, useGetMyListings } from "@/hooks/useProperty";
 import { useApp } from "@/context/AppContext";
 import { Property, PropertyCategory } from "@/types/property";
 import { propertyCategories } from "@/constants";
@@ -11,12 +14,14 @@ import {
   Loader2,
   ChevronRight,
   Inbox,
+  Trash2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PageShell, PageHeader } from "@/components/ui/layout";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useState, type MouseEvent } from "react";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -37,6 +42,7 @@ const DraftPropertyPage = () => {
   const { companyData } = useApp();
   const router = useRouter();
   const { t } = useTranslation();
+  const [deletingDraftId, setDeletingDraftId] = useState<string | null>(null);
 
   const { myListings, isLoading: isBrokerLoading } = useGetMyListings({
     enabled: !companyData,
@@ -49,6 +55,12 @@ const DraftPropertyPage = () => {
     );
 
   const isLoading = companyData ? isCompanyLoading : isBrokerLoading;
+  const { deleteDraftProperty, isPending: isDeletingBrokerDraft } =
+    useDeleteDraftProperty();
+  const {
+    softDeletePropertyAsync,
+    isPending: isDeletingCompanyDraft,
+  } = useSoftDeleteCompanyProperty();
 
   const drafts = companyData
     ? companyPropertiesData?.properties || []
@@ -61,6 +73,37 @@ const DraftPropertyPage = () => {
     );
   };
 
+  const handleDraftDelete = async (
+    event: MouseEvent<HTMLButtonElement>,
+    draft: Property
+  ) => {
+    event.stopPropagation();
+
+    const confirmed = window.confirm(
+      t(
+        "page_property_drafts_delete_confirm",
+        "Remove this draft? This action cannot be undone."
+      )
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingDraftId(draft._id);
+    try {
+      if (companyData) {
+        await softDeletePropertyAsync({
+          propertyId: draft._id,
+          reason: "Draft removed by company",
+        });
+      } else {
+        await deleteDraftProperty({ propertyId: draft._id });
+      }
+    } finally {
+      setDeletingDraftId(null);
+    }
+  };
+
   const getCategoryLabel = (category: PropertyCategory) => {
     return (
       propertyCategories.find((c) => c.key === category)?.label || category
@@ -70,8 +113,8 @@ const DraftPropertyPage = () => {
   return (
     <PageShell>
       <PageHeader
-        title={t("page_property_drafts_title")}
-        description={t("page_property_drafts_subtitle")}
+        title={t("page_property_drafts_title", "Property Drafts")}
+        description={t("page_property_drafts_subtitle", "Manage your property drafts")}
       >
         {drafts.length > 0 && (
           <Badge
@@ -122,6 +165,7 @@ const DraftPropertyPage = () => {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
         >
           {drafts.map((draft) => {
+            const isDeletingThisDraft = deletingDraftId === draft._id;
             const lastEdited = draft.updatedAt
               ? formatDistanceToNow(new Date(draft.updatedAt), {
                 addSuffix: true,
@@ -145,18 +189,39 @@ const DraftPropertyPage = () => {
               >
                 {/* Category Badge */}
                 <div className="flex items-center justify-between">
-                  <Badge
-                    variant="outline"
-                    className="text-xs px-2 py-0.5 bg-accent/5 text-accent border-accent/20"
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className="text-xs px-2 py-0.5 bg-accent/5 text-accent border-accent/20"
+                    >
+                      {getCategoryLabel(draft.propertyCategory)}
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="text-[10px] px-1.5 py-0 h-5 bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
+                    >
+                      Draft
+                    </Badge>
+                  </div>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={(event) => handleDraftDelete(event, draft)}
+                    disabled={
+                      isDeletingThisDraft ||
+                      isDeletingBrokerDraft ||
+                      isDeletingCompanyDraft
+                    }
+                    aria-label={t("action_remove", "Remove")}
                   >
-                    {getCategoryLabel(draft.propertyCategory)}
-                  </Badge>
-                  <Badge
-                    variant="secondary"
-                    className="text-[10px] px-1.5 py-0 h-5 bg-yellow-500/10 text-yellow-700 border-yellow-500/20"
-                  >
-                    Draft
-                  </Badge>
+                    {isDeletingThisDraft ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
                 </div>
 
                 {/* Property Info */}
