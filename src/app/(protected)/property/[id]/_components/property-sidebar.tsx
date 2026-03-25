@@ -8,7 +8,7 @@ import { Property } from "@/types/property";
 import { formatCurrency, formatAddress } from "@/utils/helper";
 import { format } from "date-fns";
 import { MakeOffer } from "./makeOffer";
-import { MapPin, ExternalLink, CalendarClock, Info, Coins, Loader2, MessageSquare } from "lucide-react";
+import { MapPin, ExternalLink, Info, Coins, Loader2, MessageSquare } from "lucide-react";
 import { useEditProperty } from "@/hooks/useProperty";
 import {
     AlertDialog,
