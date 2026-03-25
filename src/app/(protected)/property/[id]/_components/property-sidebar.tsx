@@ -8,7 +8,7 @@ import { Property } from "@/types/property";
 import { formatCurrency, formatAddress } from "@/utils/helper";
 import { format } from "date-fns";
 import { MakeOffer } from "./makeOffer";
-import { MapPin, ExternalLink, CalendarClock, Info, Coins, Loader2 } from "lucide-react";
+import { MapPin, ExternalLink, CalendarClock, Info, Coins, Loader2, MessageSquare } from "lucide-react";
 import { useEditProperty } from "@/hooks/useProperty";
 import {
     AlertDialog,
@@ -31,6 +31,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCheckContactRequestStatus, useCreateContactRequest } from "@/hooks/useContactRequest";
 import { DisclaimerAcknowledge } from "@/components/ui/disclaimer-acknowledge";
 import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface PropertySidebarProps {
     property: Property;
@@ -49,6 +51,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
     const [showFeatureDialog, setShowFeatureDialog] = useState(false);
     const [showContactRequestDialog, setShowContactRequestDialog] = useState(false);
     const [isContactRequestDisclaimerAccepted, setIsContactRequestDisclaimerAccepted] = useState(false);
+    const [contactRequestMessage, setContactRequestMessage] = useState("");
 
     // Contact request hooks
     const { createContactRequest, isPending: isCreatingContactRequest } = useCreateContactRequest();
@@ -260,6 +263,7 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                                             disabled={!canRequestContact || isCreatingContactRequest}
                                             onClick={() => {
                                                 setIsContactRequestDisclaimerAccepted(false);
+                                                setContactRequestMessage("");
                                                 setShowContactRequestDialog(true);
                                             }}
                                         >
@@ -292,6 +296,23 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                                     </p>
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
+                            <div className="space-y-2">
+                                <Label htmlFor="contact-request-message" className="flex items-center gap-1.5 text-sm font-medium">
+                                    <MessageSquare className="h-3.5 w-3.5" />
+                                    Private Message <span className="text-muted-foreground font-normal">(optional)</span>
+                                </Label>
+                                <Textarea
+                                    id="contact-request-message"
+                                    placeholder="Introduce yourself or mention why you're interested in this property..."
+                                    value={contactRequestMessage}
+                                    onChange={(e) => setContactRequestMessage(e.target.value.slice(0, 500))}
+                                    rows={3}
+                                    className="resize-none"
+                                />
+                                <p className="text-xs text-muted-foreground text-right">
+                                    {contactRequestMessage.length}/500
+                                </p>
+                            </div>
                             <DisclaimerAcknowledge
                                 text={DISCLAIMER_TEXT.contactSharing}
                                 checked={isContactRequestDisclaimerAccepted}
@@ -307,9 +328,11 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                                         createContactRequest({
                                             propertyId: property._id,
                                             disclaimerAccepted: true,
+                                            ...(contactRequestMessage.trim() && { message: contactRequestMessage.trim() }),
                                         });
                                         setShowContactRequestDialog(false);
                                         setIsContactRequestDisclaimerAccepted(false);
+                                        setContactRequestMessage("");
                                     }}
                                 >
                                     Confirm Request
@@ -322,41 +345,6 @@ export const PropertySidebar = ({ property }: PropertySidebarProps) => {
                     {!property.deletingStatus && property.listingStatus !== "ENQUIRY_ONLY" && property.listingStatus !== "DELETED" && (
                         <div className="space-y-3">
                             <MakeOffer property={property} />
-                            <Button
-                                variant="outline"
-                                className="w-full"
-                                onClick={() => {
-                                    // Create a Google Calendar event URL
-                                    const eventTitle = encodeURIComponent(
-                                        `Property Visit: ${property.bhk ? `${property.bhk} BHK ` : ""}${property.propertyType.replace(/_/g, " ")}`
-                                    );
-                                    const eventDetails = encodeURIComponent(
-                                        `Property Visit\n\nProperty ID: ${property.propertyId || property._id}\nPrice: ${formatCurrency(property.totalPrice)}\nSize: ${property.size} ${property.sizeUnit?.replace("SQ_", "")}\nAddress: ${formatAddress(property.address)}\n\nView Property: ${typeof window !== "undefined" ? window.location.href : ""}`
-                                    );
-                                    const eventLocation = encodeURIComponent(formatAddress(property.address));
-
-                                    // Schedule for tomorrow at 10am, 1 hour duration
-                                    const tomorrow = new Date();
-                                    tomorrow.setDate(tomorrow.getDate() + 1);
-                                    tomorrow.setHours(10, 0, 0, 0);
-                                    const endTime = new Date(tomorrow);
-                                    endTime.setHours(11, 0, 0, 0);
-
-                                    // Format dates for Google Calendar (YYYYMMDDTHHMMSS format)
-                                    const formatDate = (date: Date) =>
-                                        date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-
-                                    const startDate = formatDate(tomorrow);
-                                    const endDate = formatDate(endTime);
-
-                                    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&details=${eventDetails}&location=${eventLocation}&dates=${startDate}/${endDate}`;
-
-                                    window.open(googleCalendarUrl, "_blank", "noopener,noreferrer");
-                                }}
-                            >
-                                <CalendarClock className="mr-2 h-4 w-4" />
-                                {t("property_schedule_visit")}
-                            </Button>
                         </div>
                     )}
                 </CardContent>

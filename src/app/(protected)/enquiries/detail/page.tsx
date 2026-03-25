@@ -27,6 +27,9 @@ import {
   LayoutGrid,
   ThumbsUp,
   EyeOff,
+  Coins,
+  Info,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,11 +54,27 @@ import {
   formatEnquiryLocation,
   formatAllEnquiryLocations,
 } from "@/utils/helper";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useApp } from "@/context/AppContext";
 import { toast } from "sonner";
-import { Alert } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTranslation } from "react-i18next";
 import { getPlotTypeLabel } from "@/lib/plotType";
+import useCredits, { useGetCreditPrices } from "@/hooks/useCredits";
+import { useCreateContactRequest, useCheckEnquiryContactRequestStatus } from "@/hooks/useContactRequest";
+import { DisclaimerAcknowledge } from "@/components/ui/disclaimer-acknowledge";
+import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
 
 const isPopulatedProperty = (
   propertyId: Property | string | undefined | null
@@ -87,6 +106,9 @@ const SingleEnquiryContent = () => {
     null
   );
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [showContactRequestDialog, setShowContactRequestDialog] = useState(false);
+  const [isContactRequestDisclaimerAccepted, setIsContactRequestDisclaimerAccepted] = useState(false);
+  const [contactRequestMessage, setContactRequestMessage] = useState("");
   const router = useRouter();
   const { enquiry, isPending, error } = useGetEnquiryById(id);
   const { myEnquiries } = useGetMyEnquiries();
@@ -95,11 +117,21 @@ const SingleEnquiryContent = () => {
     useCloseEnquiry();
   const { markAsInterested, isPending: isMarkingInterested } =
     useMarkAsInterested();
+  const { balance } = useCredits();
+  const { prices } = useGetCreditPrices();
+  const { createContactRequest, isPending: isCreatingContactRequest } = useCreateContactRequest();
+  const {
+    hasExistingRequest: hasExistingEnquiryContactRequest,
+    isPending: hasPendingEnquiryRequest,
+    isAccepted: hasAcceptedEnquiryRequest,
+    isLoading: isCheckingEnquiryRequestStatus,
+  } = useCheckEnquiryContactRequestStatus(id);
   const isMyEnquiry =
     myEnquiries &&
     myEnquiries.length > 0 &&
     myEnquiries.some((e) => e._id === enquiry?._id);
   const isInactive = enquiry?.status === "inactive";
+  const canRequestEnquiryContact = balance >= prices.REQUEST_CONTACT && !hasExistingEnquiryContactRequest;
 
   if (!id) {
     return (
@@ -638,6 +670,78 @@ const SingleEnquiryContent = () => {
             </CardContent>
           </Card>
 
+          {/* Contact Owner Section */}
+          {!isMyEnquiry && enquiry.status !== "closed" && (
+            <Card className="border shadow-sm">
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-sm">Contact Enquiry Owner</span>
+                  {!hasExistingEnquiryContactRequest && (
+                    <Badge variant="secondary" className="flex items-center gap-1.5 px-2 py-1">
+                      <Coins className="h-3.5 w-3.5 text-primary" />
+                      <span className="font-medium">{prices.REQUEST_CONTACT} Credits</span>
+                    </Badge>
+                  )}
+                </div>
+
+                {!hasExistingEnquiryContactRequest && (
+                  <Alert className="bg-blue-50/50 border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/50 py-3">
+                    <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <AlertDescription className="text-xs text-blue-700 dark:text-blue-300 ml-2">
+                      100% refund of credits if the owner doesn&apos;t respond within 48 hours
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="space-y-2">
+                  {isCheckingEnquiryRequestStatus ? (
+                    <Button className="w-full font-medium" size="lg" disabled>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Checking status...
+                    </Button>
+                  ) : hasAcceptedEnquiryRequest ? (
+                    <Alert className="bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900/50">
+                      <Info className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      <AlertDescription className="text-sm text-green-700 dark:text-green-300 ml-2">
+                        Contact details have been shared! Check your contacts.
+                      </AlertDescription>
+                    </Alert>
+                  ) : hasPendingEnquiryRequest ? (
+                    <Alert className="bg-yellow-50/50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-900/50">
+                      <Info className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                      <AlertDescription className="text-sm text-yellow-700 dark:text-yellow-300 ml-2">
+                        Contact request pending. Waiting for owner response.
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <>
+                      <Button
+                        className="w-full font-medium"
+                        size="lg"
+                        disabled={!canRequestEnquiryContact || isCreatingContactRequest}
+                        onClick={() => {
+                          setIsContactRequestDisclaimerAccepted(false);
+                          setContactRequestMessage("");
+                          setShowContactRequestDialog(true);
+                        }}
+                      >
+                        {isCreatingContactRequest && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        Request Contact Details
+                      </Button>
+                      {balance < prices.REQUEST_CONTACT && (
+                        <p className="text-xs text-center text-destructive font-medium">
+                          Insufficient credits to perform this action
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Admin Messages */}
           {typeof brokerData?.companyId === "object" &&
             brokerData?.companyId !== null &&
@@ -656,6 +760,65 @@ const SingleEnquiryContent = () => {
           )}
         </div>
       </div>
+
+      {/* Contact Request Dialog */}
+      <AlertDialog open={showContactRequestDialog} onOpenChange={setShowContactRequestDialog}>
+        <AlertDialogContent className="mx-auto max-w-[95%] rounded-2xl md:max-w-[50%]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Request Contact Details?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                This will deduct <strong>{prices.REQUEST_CONTACT} credits</strong> from your balance.
+              </p>
+              <p className="text-muted-foreground">
+                If the enquiry owner doesn&apos;t respond within 48 hours, your credits will be automatically refunded.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="enquiry-contact-request-message" className="flex items-center gap-1.5 text-sm font-medium">
+              <MessageSquare className="h-3.5 w-3.5" />
+              Private Message <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
+            <Textarea
+              id="enquiry-contact-request-message"
+              placeholder="Introduce yourself or mention why you're interested in this enquiry..."
+              value={contactRequestMessage}
+              onChange={(e) => setContactRequestMessage(e.target.value.slice(0, 500))}
+              rows={3}
+              className="resize-none"
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {contactRequestMessage.length}/500
+            </p>
+          </div>
+          <DisclaimerAcknowledge
+            text={DISCLAIMER_TEXT.contactSharing}
+            checked={isContactRequestDisclaimerAccepted}
+            onCheckedChange={setIsContactRequestDisclaimerAccepted}
+            checkboxLabel={DISCLAIMER_TEXT.acknowledgeLabel}
+            showRequiredMessage
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!isContactRequestDisclaimerAccepted}
+              onClick={() => {
+                createContactRequest({
+                  enquiryId: enquiry._id,
+                  disclaimerAccepted: true,
+                  ...(contactRequestMessage.trim() && { message: contactRequestMessage.trim() }),
+                });
+                setShowContactRequestDialog(false);
+                setIsContactRequestDisclaimerAccepted(false);
+                setContactRequestMessage("");
+              }}
+            >
+              Confirm Request
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Property Preview Modal */}
       <PropertyPreviewModal

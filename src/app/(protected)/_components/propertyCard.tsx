@@ -27,6 +27,7 @@ import {
   Bookmark,
   Map,
   Crown,
+  Trash2,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -34,6 +35,7 @@ import { formatCurrency, formatAddress, formatPriceShort } from "@/utils/helper"
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { getPropertyMediaSrc, isSampleLandMedia } from "@/lib/property-media";
+import { useDeleteDraftProperty } from "@/hooks/useProperty";
 
 interface PropertyCardProps {
   property: Property;
@@ -57,7 +59,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const { toggleBookmarkAsync, isPending: isBookmarkPending } =
     useToggleBookmark();
   const { t } = useTranslation();
-
+  const { deleteDraftProperty } = useDeleteDraftProperty();
   const isCompany = userData?.userType === "company";
 
   const isRental = (property.listingPurpose || "SALE") === "RENT";
@@ -431,14 +433,38 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       </CardContent>
 
       <CardFooter className="px-2 lg:px-2.5 py-1.5 lg:py-2 gap-2 flex justify-end">
-        <Button
+        {
+          property.listingStatus === "DRAFT" && <div className="flex items-center gap-2">
+
+            <Button variant="outline" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm h-7 lg:h-7 text-[10px] md:text-[11px] rounded-md">
+              <Link href={`/property/createProperty?draftId=${property._id}&category=${property.propertyCategory}`}>
+                {t("action_continue_form", "Continue Form")}
+              </Link>
+            </Button>
+            <Button variant="outline" className="bg-red-50 text-red-700 hover:bg-red-50/90 shadow-sm h-7 lg:h-7 text-[10px] md:text-[11px] rounded-md" onClick={() => {
+              if (window.confirm(t("page_property_drafts_delete_confirm", "Remove this draft? This action cannot be undone."))) {
+                deleteDraftProperty({ propertyId: property._id }).then(() => {
+                  toast.success(t("toast_property_deleted", "Property deleted successfully"));
+                }).catch(() => {
+                  toast.error(t("toast_error_property_delete", "Failed to delete property"));
+                });
+              }
+            }}>
+              <Trash2 className="h-3 w-3 md:h-3.5 md:w-3.5" />
+
+
+            </Button>
+          </div>
+        }
+
+        {property.listingStatus !== "DELETED" && property.listingStatus !== "DRAFT" && <Button
           asChild
           className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm h-7 lg:h-7 text-[10px] md:text-[11px] rounded-md"
         >
           <Link href={`/property/detail?id=${property._id}`}>
             {t("action_view_details")}
           </Link>
-        </Button>
+        </Button>}
         {actionSlot}
       </CardFooter>
     </Card>
