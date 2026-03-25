@@ -28,24 +28,32 @@ export const useCreateContactRequest = () => {
   const { mutate, mutateAsync, isPending, error } = useMutation<
     CreateContactRequestResponse,
     AxiosError<{ message: string }>,
-    { propertyId: string; disclaimerAccepted?: boolean }
+    { propertyId?: string; enquiryId?: string; disclaimerAccepted?: boolean; message?: string }
   >({
-    mutationFn: async ({ propertyId, disclaimerAccepted }) => {
+    mutationFn: async ({ propertyId, enquiryId, disclaimerAccepted, message }) => {
       const response = await api.post("/contact-requests", {
-        propertyId,
+        ...(propertyId && { propertyId }),
+        ...(enquiryId && { enquiryId }),
         disclaimerAccepted,
+        ...(message && { message }),
       });
       return response.data.data;
     },
     onSuccess: (data, variables) => {
       toast.success("Contact request sent successfully");
-      // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ["wallet-balance"] });
       queryClient.invalidateQueries({ queryKey: ["credit-history"] });
       queryClient.invalidateQueries({ queryKey: ["contact-requests"] });
-      queryClient.invalidateQueries({
-        queryKey: ["contact-request-status", variables.propertyId],
-      });
+      if (variables.propertyId) {
+        queryClient.invalidateQueries({
+          queryKey: ["contact-request-status", variables.propertyId],
+        });
+      }
+      if (variables.enquiryId) {
+        queryClient.invalidateQueries({
+          queryKey: ["enquiry-contact-request-status", variables.enquiryId],
+        });
+      }
     },
     onError: (error) => {
       const errorMessage =
@@ -231,6 +239,47 @@ export const useCheckContactRequestStatus = (
       return existingRequest || null;
     },
     enabled: (options?.enabled ?? true) && !!propertyId,
+  });
+
+  return {
+    existingRequest: data,
+    hasExistingRequest: !!data,
+    isPending: data?.status === "PENDING",
+    isAccepted: data?.status === "ACCEPTED",
+    isRejected: data?.status === "REJECTED",
+    isExpired: data?.status === "EXPIRED",
+    isLoading,
+    error,
+    refetch,
+  };
+};
+
+/**
+ * Hook to check if a contact request exists for an enquiry
+ */
+export const useCheckEnquiryContactRequestStatus = (
+  enquiryId: string,
+  options?: { enabled?: boolean }
+) => {
+  const api = useAxios();
+
+  const { data, isLoading, error, refetch } = useQuery<PopulatedContactRequest | null>({
+    queryKey: ["enquiry-contact-request-status", enquiryId],
+    queryFn: async () => {
+      const response = await api.get(`/contact-requests?type=sent`);
+      const requests: PopulatedContactRequest[] = response.data.data.requests || [];
+
+      const existingRequest = requests.find((req) => {
+        if (!req.enquiryId) return false;
+        const reqEnquiryId = typeof req.enquiryId === "string"
+          ? req.enquiryId
+          : req.enquiryId._id;
+        return reqEnquiryId === enquiryId;
+      });
+
+      return existingRequest || null;
+    },
+    enabled: (options?.enabled ?? true) && !!enquiryId,
   });
 
   return {

@@ -24,8 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { useSoftDeleteProperty } from "@/hooks/useProperty";
+import { Eye, MoreHorizontal, Pencil, Trash2, PlayCircle } from "lucide-react";
+import { useSoftDeleteProperty, useDeleteDraftProperty } from "@/hooks/useProperty";
 import { useUndoDelete } from "@/context/UndoDeleteContext";
 import Image from "next/image";
 import Link from "next/link";
@@ -51,6 +51,8 @@ const formatDate = (dateString: string) => {
 
 export function PropertyActions({ property }: { property: Property }) {
   const { softDelete, isPending: isDeleting } = useSoftDeleteProperty();
+  const { deleteDraftProperty, isPending: isDeletingDraft } =
+    useDeleteDraftProperty();
   const { showUndo } = useUndoDelete();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
@@ -58,6 +60,7 @@ export function PropertyActions({ property }: { property: Property }) {
   const [additionalDetails, setAdditionalDetails] = useState("");
   const { t } = useTranslation();
 
+  const isDraft = property.listingStatus === "DRAFT";
   const isDeleted = property.listingStatus === "DELETED";
 
   // Validation: reason required, if "OTHER" then details min 10 chars
@@ -313,29 +316,61 @@ export function PropertyActions({ property }: { property: Property }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => setShowViewDialog(true)}>
-            <Eye className="mr-2 h-4 w-4" />
-            View Details
-          </DropdownMenuItem>
-          {!isDeleted && (
+          <DropdownMenuLabel>{t("label_actions", "Actions")}</DropdownMenuLabel>
+          {isDraft ? (
             <>
               <DropdownMenuItem asChild>
-                <Link href={`/property/edit?id=${property._id}`}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit
+                <Link
+                  href={`/property/createProperty?draftId=${property._id}&category=${property.propertyCategory}`}
+                >
+                  <PlayCircle className="mr-2 h-4 w-4" />
+                  {t("action_continue_form", "Continue")}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => setShowDeleteDialog(true)}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      t(
+                        "page_property_drafts_delete_confirm",
+                        "Remove this draft? This action cannot be undone."
+                      )
+                    )
+                  ) {
+                    deleteDraftProperty({ propertyId: property._id });
+                  }
+                }}
                 className="text-red-600 focus:text-red-600"
-                disabled={property.deletingStatus === "pending"}
+                disabled={isDeletingDraft}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                {property.deletingStatus === "pending"
-                  ? "Deletion Pending"
-                  : "Delete"}
+                {t("action_remove_draft", "Remove Draft")}
               </DropdownMenuItem>
+            </>
+          ) : (
+            <>
+              <DropdownMenuItem onClick={() => setShowViewDialog(true)}>
+                <Eye className="mr-2 h-4 w-4" />
+                {t("action_view_details", "View Details")}
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/property/edit?id=${property._id}`}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  {t("action_edit", "Edit")}
+                </Link>
+              </DropdownMenuItem>
+              {!isDeleted && (
+                <DropdownMenuItem
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="text-red-600 focus:text-red-600"
+                  disabled={property.deletingStatus === "pending"}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {property.deletingStatus === "pending"
+                    ? t("label_deletion_pending", "Deletion Pending")
+                    : t("action_delete", "Delete")}
+                </DropdownMenuItem>
+              )}
             </>
           )}
         </DropdownMenuContent>

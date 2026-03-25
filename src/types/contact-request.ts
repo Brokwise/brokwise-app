@@ -2,6 +2,7 @@ import { Broker, Property } from "./property";
 
 export type ContactRequestStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "EXPIRED";
 export type ContactRequestType = "sent" | "received";
+export type ContactRequestSource = "PROPERTY" | "ENQUIRY";
 
 // Extended broker type for populated contact requests (includes additional populated fields)
 export interface PopulatedBroker extends Broker {
@@ -9,11 +10,23 @@ export interface PopulatedBroker extends Broker {
   profilePhoto?: string;
 }
 
+export interface PopulatedEnquiry {
+  _id: string;
+  enquiryId?: string;
+  enquiryCategory?: string;
+  enquiryType?: string;
+  address?: string;
+  description?: string;
+}
+
 export interface ContactRequest {
   _id: string;
   requesterId: string | Broker;
-  propertyId: string | Property;
+  propertyId?: string | Property;
+  enquiryId?: string | PopulatedEnquiry;
+  requestSource?: ContactRequestSource;
   propertyListerId: string | Broker;
+  message?: string;
   status: ContactRequestStatus;
   creditsDeducted: number;
   creditsRefunded: boolean;
@@ -26,9 +39,10 @@ export interface ContactRequest {
 }
 
 // Populated contact request with broker and property details
-export interface PopulatedContactRequest extends Omit<ContactRequest, "requesterId" | "propertyId" | "propertyListerId"> {
+export interface PopulatedContactRequest extends Omit<ContactRequest, "requesterId" | "propertyId" | "enquiryId" | "propertyListerId"> {
   requesterId: PopulatedBroker;
-  propertyId: Pick<Property, "_id" | "propertyId" | "propertyCategory" | "propertyType" | "address" | "featuredMedia" | "totalPrice">;
+  propertyId?: Pick<Property, "_id" | "propertyId" | "propertyCategory" | "propertyType" | "address" | "featuredMedia" | "totalPrice">;
+  enquiryId?: PopulatedEnquiry;
   propertyListerId: PopulatedBroker;
   requestType: ContactRequestType;
   requesterLabel?: string;
@@ -67,8 +81,10 @@ export interface ProcessExpiredResponse {
 
 // Request DTOs
 export interface CreateContactRequestDTO {
-  propertyId: string;
+  propertyId?: string;
+  enquiryId?: string;
   disclaimerAccepted: true;
+  message?: string;
 }
 
 export type RespondContactRequestDTO =

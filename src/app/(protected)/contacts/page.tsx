@@ -85,6 +85,7 @@ import {
   Bell,
   Timer,
   Info,
+  MessageSquare,
 } from "lucide-react";
 
 import { formatDistanceToNow } from "date-fns";
@@ -863,9 +864,11 @@ const PendingRequestCard = ({
   isResponding,
 }: PendingRequestCardProps) => {
   const property = request.propertyId;
+  const enquiry = request.enquiryId;
+  const isEnquiryRequest = request.requestSource === "ENQUIRY";
   const expiresAt = new Date(request.expiresAt);
   const timeLeft = formatDistanceToNow(expiresAt, { addSuffix: false });
-  const isExpiringSoon = expiresAt.getTime() - Date.now() < 12 * 60 * 60 * 1000; // Less than 12 hours
+  const isExpiringSoon = expiresAt.getTime() - Date.now() < 12 * 60 * 60 * 1000;
 
   const requesterLabel = request.requesterLabel || "A broker";
 
@@ -885,17 +888,29 @@ const PendingRequestCard = ({
           </Typography>
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Home className="h-3 w-3" />
-              <span className="truncate max-w-[200px]">
-                {property.propertyId || `${property.propertyCategory} - ${property.propertyType?.replace(/_/g, " ")}`}
-              </span>
-            </div>
-            {property.totalPrice && (
-              <span className="font-medium text-foreground">
-                {formatCurrency(property.totalPrice)}
-              </span>
-            )}
+            {isEnquiryRequest && enquiry ? (
+              <div className="flex items-center gap-1">
+                <FileText className="h-3 w-3" />
+                <span className="truncate max-w-[200px]">
+                  {enquiry.enquiryId || `${enquiry.enquiryCategory} - ${enquiry.enquiryType?.replace(/_/g, " ")}`}
+                </span>
+                <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 ml-1">Enquiry</Badge>
+              </div>
+            ) : property ? (
+              <>
+                <div className="flex items-center gap-1">
+                  <Home className="h-3 w-3" />
+                  <span className="truncate max-w-[200px]">
+                    {property.propertyId || `${property.propertyCategory} - ${property.propertyType?.replace(/_/g, " ")}`}
+                  </span>
+                </div>
+                {property.totalPrice && (
+                  <span className="font-medium text-foreground">
+                    {formatCurrency(property.totalPrice)}
+                  </span>
+                )}
+              </>
+            ) : null}
           </div>
 
           <div className={cn(
@@ -905,6 +920,15 @@ const PendingRequestCard = ({
             <Timer className="h-3 w-3" />
             <span>Expires in {timeLeft}</span>
           </div>
+
+          {request.message && (
+            <div className="mt-1.5 p-2.5 rounded-md bg-muted/50 border border-border/50">
+              <div className="flex items-start gap-1.5 text-xs">
+                <MessageSquare className="h-3 w-3 text-muted-foreground mt-0.5 shrink-0" />
+                <p className="text-muted-foreground leading-relaxed">{request.message}</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
