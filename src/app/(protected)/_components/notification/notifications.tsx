@@ -324,10 +324,10 @@ export const Notifications = () => {
                 <div className="flex items-center gap-1 min-w-0 max-w-full">
                   <Home className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
                   <span className="truncate">
-                    {property.propertyId || `${property.propertyCategory} - ${property.propertyType?.replace(/_/g, " ")}`}
+                    {property?.propertyId || `${property?.propertyCategory} - ${property?.propertyType?.replace(/_/g, " ")}`}
                   </span>
                 </div>
-                {property.totalPrice && (
+                {property?.totalPrice && (
                   <span className="font-medium text-gray-900 dark:text-gray-100">
                     {formatCurrency(property.totalPrice)}
                   </span>
