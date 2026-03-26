@@ -232,7 +232,7 @@ export const useCheckContactRequestStatus = (
       const existingRequest = requests.find((req) => {
         const reqPropertyId = typeof req.propertyId === "string"
           ? req.propertyId
-          : req.propertyId._id;
+          : req.propertyId?._id;
         return reqPropertyId === propertyId;
       });
 
