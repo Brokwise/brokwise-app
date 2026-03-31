@@ -18,6 +18,7 @@ import {
   PurchaseActivationPayload,
   VerifyActivationPayload,
   ActivationPurchaseResponse,
+  FreeProStatus,
 } from "@/models/types/subscription";
 import { useTierConfig } from "@/hooks/useTierConfig";
 
@@ -97,6 +98,8 @@ export const useGetCurrentSubscription = (options?: { enabled?: boolean }) => {
   return {
     subscription: data?.subscription,
     limits: data?.limits,
+    freeProEligible: data?.freeProEligible,
+    freeProSpotsRemaining: data?.freeProSpotsRemaining,
     isLoading,
     error,
     refetch,
@@ -283,6 +286,64 @@ export const useVerifyActivation = () => {
 };
 
 /**
+ * Hook to get free Pro offer status
+ */
+export const useGetFreeProStatus = (options?: { enabled?: boolean }) => {
+  const api = useAxios();
+  const { data, isLoading, error, refetch } = useQuery<FreeProStatus>({
+    queryKey: ["free-pro-status"],
+    queryFn: async () => {
+      const response = await api.get("/subscription/free-pro-status");
+      return response.data.data;
+    },
+    enabled: options?.enabled ?? true,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  return {
+    freeProStatus: data,
+    isLoading,
+    error,
+    refetch,
+  };
+};
+
+/**
+ * Hook to claim free 3-month Pro plan
+ */
+export const useClaimFreePro = () => {
+  const api = useAxios();
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending, error } = useMutation<
+    { subscription: SubscriptionResponse; message: string },
+    AxiosError<{ message: string }>,
+    void
+  >({
+    mutationFn: async () => {
+      const response = await api.post("/subscription/claim-free-pro");
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["current-subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["free-pro-status"] });
+      queryClient.invalidateQueries({ queryKey: ["usage"] });
+      queryClient.invalidateQueries({ queryKey: ["remaining-quota"] });
+      toast.success("Your free 3-month Pro plan is now active!");
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to claim free Pro plan";
+      toast.error(errorMessage);
+    },
+  });
+
+  return { claimFreePro: mutateAsync, isPending, error };
+};
+
+/**
  * Hook to link Razorpay subscription after payment
  */
 export const useLinkRazorpaySubscription = () => {
@@ -361,6 +422,8 @@ export const useSubscription = () => {
     limits,
     isLoading: subscriptionLoading,
     refetch: refetchSubscription,
+    freeProEligible,
+    freeProSpotsRemaining,
   } = useGetCurrentSubscription();
   const {
     usage,
@@ -385,6 +448,8 @@ export const useSubscription = () => {
     usePurchaseActivation();
   const { verifyActivation, isPending: verifyPending } =
     useVerifyActivation();
+  const { claimFreePro, isPending: freeProPending } =
+    useClaimFreePro();
 
   const queryClient = useQueryClient();
 
@@ -587,6 +652,12 @@ export const useSubscription = () => {
     currentPhase,
     hasCompletedActivation,
     needsActivation,
+
+    // Free Pro offer
+    freeProEligible,
+    freeProSpotsRemaining,
+    freeProPending,
+    claimFreePro,
 
     // Loading states
     isLoading: plansLoading || subscriptionLoading || usageLoading,

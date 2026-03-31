@@ -774,6 +774,10 @@ const SubscriptionPage = () => {
     initiateActivation,
     initiateSubscription,
     cancelSubscription,
+    freeProEligible,
+    freeProSpotsRemaining,
+    freeProPending,
+    claimFreePro,
   } = useSubscription();
 
   const {
@@ -827,6 +831,14 @@ const SubscriptionPage = () => {
       setActiveTab("plans");
     }
   }, [isLoading, hasActiveSubscription]);
+
+  const handleClaimFreePro = async () => {
+    try {
+      await claimFreePro();
+    } catch {
+      // Error handled by hook
+    }
+  };
 
   const handleActivationPurchase = async () => {
     if (!selectedTier || !brokerData) return;
@@ -890,8 +902,47 @@ const SubscriptionPage = () => {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            {/* Activation Required Banner */}
-            {(showActivationPlans && !hasActiveSubscription) && (
+            {/* Free Pro Offer Banner */}
+            {freeProEligible && !hasActiveSubscription && (
+              <Card className="border-2 border-amber-300 bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-950/30 dark:via-yellow-950/20 dark:to-orange-950/20 dark:border-amber-700 shadow-lg">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="p-3 bg-amber-100 dark:bg-amber-900/40 rounded-full">
+                      <Crown className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div className="flex-1 text-center sm:text-left">
+                      <h3 className="font-semibold text-lg text-amber-900 dark:text-amber-100">
+                        Free Pro Plan — Early Adopter Offer
+                      </h3>
+                      <p className="text-sm text-amber-700 dark:text-amber-300">
+                        Get 3 months of Pro for free! No activation required. Only{" "}
+                        <strong>{freeProSpotsRemaining}</strong> spot{freeProSpotsRemaining === 1 ? "" : "s"} remaining.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={handleClaimFreePro}
+                      disabled={freeProPending}
+                      className="bg-amber-600 hover:bg-amber-700 text-white"
+                    >
+                      {freeProPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Claiming...
+                        </>
+                      ) : (
+                        <>
+                          <Crown className="mr-2 h-4 w-4" />
+                          Claim Free Pro
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Activation Required Banner (only when free Pro is NOT available) */}
+            {!freeProEligible && showActivationPlans && !hasActiveSubscription && (
               <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 dark:border-purple-800">
                 <CardContent className="pt-6">
                   <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -937,10 +988,10 @@ const SubscriptionPage = () => {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2 text-amber-800 dark:text-amber-300">
                     <AlertTriangle className="h-5 w-5" />
-                    Upcoming Limit Changes
+                    Upcoming Limit Updates
                   </CardTitle>
                   <CardDescription className="text-amber-700/80 dark:text-amber-400/80">
-                    Some of your plan limits are decreasing. Changes take effect on{" "}
+                    Some of your plan limits will be updated. These updates take effect on{" "}
                     <strong>
                       {new Date(upcomingLimitsEffectiveDate).toLocaleDateString("en-IN", {
                         day: "numeric",
@@ -1098,6 +1149,68 @@ const SubscriptionPage = () => {
               </>
             ) : (
               <>
+                {/* ─── Free Pro Offer (for eligible users) ────────────── */}
+                {freeProEligible && showActivationPlans && !isInActivation && (
+                  <Card className="border-2 border-amber-300 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-950/30 dark:via-yellow-950/20 dark:to-orange-950/20 dark:border-amber-700 shadow-lg overflow-hidden relative">
+                    <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400" />
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+                          <Crown className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-xl text-amber-900 dark:text-amber-100">
+                            Free Pro Plan — 3 Months
+                          </CardTitle>
+                          <CardDescription className="text-amber-700 dark:text-amber-300">
+                            Early adopter offer — only <strong>{freeProSpotsRemaining}</strong> spot{freeProSpotsRemaining === 1 ? "" : "s"} left! Skip activation and get instant Pro access.
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="text-center p-3 bg-white/60 dark:bg-white/5 rounded-lg">
+                          <p className="text-3xl font-bold text-amber-700 dark:text-amber-300">₹0</p>
+                          <p className="text-xs text-muted-foreground">for 3 months</p>
+                        </div>
+                        <div className="text-center p-3 bg-white/60 dark:bg-white/5 rounded-lg">
+                          <p className="text-3xl font-bold text-amber-700 dark:text-amber-300">PRO</p>
+                          <p className="text-xs text-muted-foreground">Full tier access</p>
+                        </div>
+                        <div className="text-center p-3 bg-white/60 dark:bg-white/5 rounded-lg">
+                          <p className="text-3xl font-bold text-amber-700 dark:text-amber-300">0</p>
+                          <p className="text-xs text-muted-foreground">Payment needed</p>
+                        </div>
+                      </div>
+                      <Button
+                        size="lg"
+                        onClick={handleClaimFreePro}
+                        disabled={freeProPending}
+                        className="w-full bg-amber-600 hover:bg-amber-700 text-white h-14 text-base"
+                      >
+                        {freeProPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Activating your Pro plan...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="mr-2 h-5 w-5" />
+                            Claim Free Pro Plan
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                    <CardFooter className="text-xs text-amber-700/70 dark:text-amber-400/70 border-t border-amber-200 dark:border-amber-800 pt-4">
+                      <div className="flex items-center gap-2">
+                        <Shield className="h-4 w-4" />
+                        No payment required. After 3 months, choose a regular plan to continue.
+                      </div>
+                    </CardFooter>
+                  </Card>
+                )}
+
                 {/* ─── Activation Plans (for new users) ──────────────── */}
                 {(showActivationPlans && !isInActivation) && (
                   <>
@@ -1105,7 +1218,9 @@ const SubscriptionPage = () => {
                       <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">
                           <Star className="h-5 w-5 text-purple-600" />
-                          {t("page_subscription_activation_packs", "Activation Packs")}
+                          {freeProEligible
+                            ? "Or Choose an Activation Pack"
+                            : t("page_subscription_activation_packs", "Activation Packs")}
                         </CardTitle>
                         <CardDescription>
                           {t("page_subscription_activation_desc", "Start with a 1-month activation pack to explore the platform with reduced limits")}

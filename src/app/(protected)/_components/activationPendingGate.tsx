@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from "react";
 import Script from "next/script";
-import { useGetCurrentSubscription, usePurchaseActivation, useVerifyActivation } from "@/hooks/useSubscription";
+import { useGetCurrentSubscription, usePurchaseActivation, useVerifyActivation, useClaimFreePro } from "@/hooks/useSubscription";
 import { useApp } from "@/context/AppContext";
 import { Loader } from "@/components/ui/loader";
 import Image from "next/image";
@@ -58,9 +58,10 @@ export const ActivationPendingGate = ({
   children: React.ReactNode;
 }) => {
   const { brokerData } = useApp();
-  const { subscription, isLoading } = useGetCurrentSubscription();
+  const { subscription, isLoading, freeProEligible, freeProSpotsRemaining } = useGetCurrentSubscription();
   const { purchaseActivation, isPending: purchasePending } = usePurchaseActivation();
   const { verifyActivation, isPending: verifyPending } = useVerifyActivation();
+  const { claimFreePro, isPending: freeProPending } = useClaimFreePro();
   const { setBrokerData } = useApp();
   const [signOut] = useSignOut(firebaseAuth);
   const { activationPlans, activationTierInfo } = useTierConfig();
@@ -392,6 +393,66 @@ export const ActivationPendingGate = ({
                 </p>
               </div>
             </div>
+
+            {/* Free Pro Offer */}
+            {freeProEligible && (
+              <Card className="border-2 border-amber-300 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-950/30 dark:via-yellow-950/20 dark:to-orange-950/20">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+                      <Crown className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base text-amber-900 dark:text-amber-100">
+                        Free Pro Plan — 3 Months
+                      </CardTitle>
+                      <CardDescription className="text-xs text-amber-700 dark:text-amber-300">
+                        {freeProSpotsRemaining} spot{freeProSpotsRemaining === 1 ? "" : "s"} remaining
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-3">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    Skip activation and get instant Pro access for 3 months — completely free!
+                  </p>
+                  <Button
+                    size="lg"
+                    className="w-full h-14 text-base bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white"
+                    onClick={async () => {
+                      try {
+                        await claimFreePro();
+                        toast.success("Your free Pro plan is active! Welcome to Brokwise.");
+                        window.location.reload();
+                      } catch {
+                        // Error handled by hook
+                      }
+                    }}
+                    disabled={freeProPending || isProcessing}
+                  >
+                    {freeProPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Activating...
+                      </>
+                    ) : (
+                      <>
+                        <Crown className="mr-2 h-5 w-5" />
+                        Claim Free Pro Plan
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {freeProEligible && (
+              <div className="flex items-center gap-3 text-sm text-slate-400">
+                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+                <span>or pay for activation</span>
+                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+              </div>
+            )}
 
             {/* Plan Summary Card */}
             <Card className="border-2 border-primary/20 bg-primary/5">
