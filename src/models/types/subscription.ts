@@ -107,11 +107,21 @@ export interface SubscriptionResponse {
   activationCompletedAt?: Date | string;
   razorpaySubscriptionId?: string;
   razorpayOrderId?: string;
+  freeProClaim?: boolean;
 }
 
 export interface SubscriptionWithLimitsResponse {
   subscription: SubscriptionResponse;
   limits: TierLimits;
+  freeProEligible?: boolean;
+  freeProSpotsRemaining?: number;
+}
+
+export interface FreeProStatus {
+  available: boolean;
+  claimed: boolean;
+  totalClaimed: number;
+  spotsRemaining: number;
 }
 
 export interface RemainingQuotaResponse {
