@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Sparkles, Crown, Shield } from "lucide-react";
+import { Check, Sparkles, Crown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { TIER } from "@/models/types/subscription";
 import { useTierConfig } from "@/hooks/useTierConfig";
