@@ -54,7 +54,7 @@ import {
 } from "@/models/api/kyc";
 import { TIER } from "@/models/types/subscription";
 import { useTierConfig } from "@/hooks/useTierConfig";
-import { usePurchaseActivation, useVerifyActivation } from "@/hooks/useSubscription";
+import { usePurchaseActivation, useVerifyActivation, useGetFreeProStatus, useClaimFreePro } from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
 import { DisclaimerNotice } from "@/components/ui/disclaimer-notice";
 import { DISCLAIMER_TEXT } from "@/constants/disclaimers";
@@ -112,6 +112,11 @@ export const OnboardingDetails = ({
   const { purchaseActivation, isPending: activationPending } = usePurchaseActivation();
   const { verifyActivation, isPending: verifyPending } = useVerifyActivation();
   const { activationPlans } = useTierConfig();
+
+  // Free Pro hooks
+  const { freeProStatus } = useGetFreeProStatus({ enabled: !isEditing && !isIOSNative });
+  const { claimFreePro, isPending: freeProPending } = useClaimFreePro();
+  const [freeProSelected, setFreeProSelected] = useState(false);
 
   // ─── KYC State ───────────────────────────────────────────────────────────────
   const [kycState, setKycState] = useState<KycState>({ status: "not_started" });
@@ -589,6 +594,67 @@ export const OnboardingDetails = ({
     }
   };
 
+  // ─── Submit profile + claim free Pro plan ─────────────────────────────────
+  const handleClaimFreeProOnboarding = async () => {
+    if (!user || !brokerData) {
+      toast.error("Missing required data");
+      return;
+    }
+
+    const data = form.getValues();
+
+    try {
+      setLoading(true);
+
+      await submitUserDetails({
+        uid: user.uid,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: user.email || "",
+        _id: brokerData._id,
+        mobile: data.mobile,
+        companyName: data.companyName,
+        gstin: data.gstin,
+        yearsOfExperience: data.yearsOfExperience,
+        city: data.city,
+        officeAddress: data.officeAddress,
+        reraNumber: data.reraNumber,
+        profilePhoto: data.profilePhoto,
+      });
+
+      await claimFreePro();
+
+      if (!isRegistrationTracked()) {
+        trackMetaEvent({
+          eventName: "CompleteRegistration",
+          plan: "broker_onboarding_free_pro",
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phoneNumber: data.mobile,
+          email: user.email || "",
+        });
+        markRegistrationTracked();
+      }
+
+      localStorage.removeItem(SELECTED_TIER_KEY);
+      setBrokerData({
+        ...brokerData,
+        ...data,
+        status: "approved",
+      });
+      toast.success("Your free Pro plan is active! Welcome to Brokwise.");
+    } catch (error) {
+      logError({
+        description: "Error during free Pro onboarding",
+        error: error as Error,
+        slackChannel: "frontend-errors",
+      });
+      toast.error("Failed to activate free Pro plan. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ─── Edit mode submission (profile update only) ─────────────────────────────
   const onSubmitProfileEdit = async (
     data: z.infer<typeof submitProfileDetails>
@@ -772,14 +838,14 @@ export const OnboardingDetails = ({
 
     // New user flow: 1=Personal, 2=Business, 3=Location, 4=Plan, 5=Welcome+Pay
     if (step === 4) { // Plan Selection
-      if (!selectedTier) {
+      if (!freeProSelected && !selectedTier) {
         toast.error(t("onboarding_select_plan_error") || "Please select an activation plan");
         return;
       }
       const data = form.getValues();
       trackMetaEvent({
         eventName: "AddToCart",
-        plan: selectedTier,
+        plan: freeProSelected ? "FREE_PRO" : selectedTier!,
         firstName: data.firstName,
         lastName: data.lastName,
         phoneNumber: data.mobile,
@@ -789,15 +855,27 @@ export const OnboardingDetails = ({
       setStep(5);
     } else if (step === 5) {
       const data = form.getValues();
-      trackMetaEvent({
-        eventName: "InitiateCheckout",
-        plan: selectedTier!,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phoneNumber: data.mobile,
-        city: data.city
-      });
-      await handleCompleteOnboarding();
+      if (freeProSelected) {
+        trackMetaEvent({
+          eventName: "InitiateCheckout",
+          plan: "FREE_PRO",
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phoneNumber: data.mobile,
+          city: data.city
+        });
+        await handleClaimFreeProOnboarding();
+      } else {
+        trackMetaEvent({
+          eventName: "InitiateCheckout",
+          plan: selectedTier!,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phoneNumber: data.mobile,
+          city: data.city
+        });
+        await handleCompleteOnboarding();
+      }
     } else {
       setDirection(1);
       setStep(step + 1);
@@ -884,6 +962,7 @@ export const OnboardingDetails = ({
         return t("onboarding_location_step_desc", "Where are you based?");
       case 4:
         if (isIOSNative) return t("onboarding_ios_step4_desc", "Your profile has been set up successfully");
+        if (freeProStatus?.available) return "Claim your free 3-month Pro plan or choose a paid activation pack";
         return t("onboarding_plan_step_desc", "Start with a 1-month activation pack to explore the platform");
       case 5:
         return t("onboarding_welcome_step_desc", "Review your plan and complete the setup");
@@ -904,6 +983,11 @@ export const OnboardingDetails = ({
     }
     switch (step) {
       case 5:
+        if (freeProSelected) {
+          return loading || freeProPending
+            ? "Activating..."
+            : "Activate Free Pro Plan";
+        }
         return loading || activationPending || verifyPending
           ? (t("onboarding_processing", "Processing..."))
           : `${t("onboarding_proceed_to_pay", "Proceed to Pay")} ₹${selectedTier ? activationPlans[selectedTier].displayAmount : ""}`;
@@ -1069,16 +1153,27 @@ export const OnboardingDetails = ({
                       {/* ── Step 4: Plan Selection (non-iOS) ──────────── */}
                       {!isEditing && !isIOSNative && step === 4 && (
                         <Step4Plan
-                          selectedTier={selectedTier}
-                          onSelect={setSelectedTier}
+                          selectedTier={freeProSelected ? null : selectedTier}
+                          onSelect={(tier) => {
+                            setFreeProSelected(false);
+                            setSelectedTier(tier);
+                          }}
+                          freeProEligible={freeProStatus?.available}
+                          freeProSpotsRemaining={freeProStatus?.spotsRemaining}
+                          freeProSelected={freeProSelected}
+                          onSelectFreePro={() => {
+                            setFreeProSelected(true);
+                            setSelectedTier(null);
+                          }}
                         />
                       )}
 
-                      {/* ── Step 5: Welcome + Pay (non-iOS) ──────────── */}
-                      {!isEditing && !isIOSNative && step === 5 && selectedTier && (
+                      {/* ── Step 5: Welcome + Pay / Free Pro (non-iOS) ──────────── */}
+                      {!isEditing && !isIOSNative && step === 5 && (freeProSelected || selectedTier) && (
                         <Step5Welcome
-                          selectedTier={selectedTier}
-                          loading={loading || activationPending || verifyPending}
+                          selectedTier={selectedTier || "PRO"}
+                          loading={loading || activationPending || verifyPending || freeProPending}
+                          freeProSelected={freeProSelected}
                         />
                       )}
                     </motion.div>
@@ -1100,7 +1195,7 @@ export const OnboardingDetails = ({
                     variant="ghost"
                     type="button"
                     onClick={handlePrev}
-                    disabled={loading || activationPending}
+                    disabled={loading || activationPending || freeProPending}
                     className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -1116,8 +1211,10 @@ export const OnboardingDetails = ({
                   disabled={
                     loading ||
                     activationPending ||
-                    verifyPending || !kycState.userDetails || kycState.duplicateReason !== undefined ||
-                    (!isIOSNative && step === 4 && !selectedTier) ||
+                    verifyPending ||
+                    freeProPending ||
+                    !kycState.userDetails || kycState.duplicateReason !== undefined ||
+                    (!isIOSNative && step === 4 && !selectedTier && !freeProSelected) ||
                     (step === 1 && !isEditing && (!isIndianNumber || kycState.status !== "verified"))
                   }
                   className={cn(
@@ -1125,22 +1222,24 @@ export const OnboardingDetails = ({
                     "bg-primary text-white hover:bg-[#1E293B]",
                     "dark:bg-white dark:text-[#0F172A] dark:hover:bg-slate-200",
                     "transition-all duration-300",
-                    !isEditing && step === totalSteps
-                      ? "bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 dark:text-white"
-                      : "",
-                    (loading || activationPending || verifyPending)
+                    !isEditing && step === totalSteps && freeProSelected
+                      ? "bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 dark:text-white"
+                      : !isEditing && step === totalSteps
+                        ? "bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 dark:text-white"
+                        : "",
+                    (loading || activationPending || verifyPending || freeProPending)
                       ? "opacity-80"
                       : "hover:shadow-lg hover:-translate-y-0.5"
                   )}
                 >
-                  {(loading || activationPending || verifyPending) ? (
+                  {(loading || activationPending || verifyPending || freeProPending) ? (
                     <div className="flex items-center gap-2">
                       <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                       {getNextButtonLabel()}
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      {step === 5 && !isEditing && !isIOSNative && <CreditCard className="h-4 w-4" />}
+                      {step === 5 && !isEditing && !isIOSNative && !freeProSelected && <CreditCard className="h-4 w-4" />}
                       {getNextButtonLabel()}
                       {((step < totalSteps && !isEditing) || (isEditing && step < 3)) && <ArrowRight className="h-4 w-4" />}
                     </div>
