@@ -385,11 +385,12 @@ export const ActivationPendingGate = ({
               </div>
               <div className="space-y-2">
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
-                  Complete Your Activation
+                  {freeProEligible ? "Activate Your Account" : "Complete Your Activation"}
                 </h1>
                 <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                  Your profile is set up. Complete the activation payment to
-                  start using Brokwise.
+                  {freeProEligible
+                    ? "Your profile is set up. Claim your free Pro plan to start using Brokwise."
+                    : "Your profile is set up. Complete the activation payment to start using Brokwise."}
                 </p>
               </div>
             </div>
@@ -446,103 +447,98 @@ export const ActivationPendingGate = ({
               </Card>
             )}
 
-            {freeProEligible && (
-              <div className="flex items-center gap-3 text-sm text-slate-400">
-                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-                <span>or pay for activation</span>
-                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-              </div>
-            )}
+            {/* Paid activation flow — hidden when free Pro is available */}
+            {!freeProEligible && (
+              <>
+                <Card className="border-2 border-primary/20 bg-primary/5">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r text-white",
+                            tierColors[currentTier]
+                          )}
+                        >
+                          {React.cloneElement(tierIcons[currentTier] as React.ReactElement, {
+                            className: "h-4 w-4",
+                          })}
+                        </div>
+                        <div>
+                          <CardTitle className="text-base">
+                            {info.name} Activation Pack
+                          </CardTitle>
+                          <CardDescription className="text-xs">
+                            1 Month Access
+                          </CardDescription>
+                        </div>
+                      </div>
+                      <span className="text-2xl font-bold">₹{plan.displayAmount}</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <Separator className="mb-3" />
+                    <ul className="space-y-1.5">
+                      {info.features.map((feature, index) => (
+                        <li
+                          key={index}
+                          className="flex items-center gap-2 text-sm"
+                        >
+                          <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                          <span className="text-slate-600 dark:text-slate-400">
+                            {feature}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
 
-            {/* Plan Summary Card */}
-            <Card className="border-2 border-primary/20 bg-primary/5">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r text-white",
-                        tierColors[currentTier]
-                      )}
-                    >
-                      {React.cloneElement(tierIcons[currentTier] as React.ReactElement, {
-                        className: "h-4 w-4",
-                      })}
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">
-                        {info.name} Activation Pack
-                      </CardTitle>
-                      <CardDescription className="text-xs">
-                        1 Month Access
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <span className="text-2xl font-bold">₹{plan.displayAmount}</span>
+                <div className="space-y-3">
+                  <Badge
+                    variant="secondary"
+                    className="w-full justify-center py-1.5 text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-950/30"
+                  >
+                    Payment Pending
+                  </Badge>
+
+                  <Button
+                    size="lg"
+                    className="w-full h-14 text-base bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 dark:text-white"
+                    onClick={handleRetryPayment}
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="mr-2 h-5 w-5" />
+                        Pay ₹{plan.displayAmount} to Activate
+                      </>
+                    )}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full h-12 text-base"
+                    onClick={() => setIsSwitchingPlan(true)}
+                    disabled={isProcessing}
+                  >
+                    <ArrowLeftRight className="mr-2 h-4 w-4" />
+                    Switch Activation Plan
+                  </Button>
+
+                  <p className="text-center text-xs text-slate-400">
+                    <CreditCard className="h-3 w-3 inline mr-1" />
+                    Secure payment via Razorpay
+                  </p>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <Separator className="mb-3" />
-                <ul className="space-y-1.5">
-                  {info.features.map((feature, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center gap-2 text-sm"
-                    >
-                      <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
-                      <span className="text-slate-600 dark:text-slate-400">
-                        {feature}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Payment status */}
-            <div className="space-y-3">
-              <Badge
-                variant="secondary"
-                className="w-full justify-center py-1.5 text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-950/30"
-              >
-                Payment Pending
-              </Badge>
-
-              <Button
-                size="lg"
-                className="w-full h-14 text-base bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 dark:text-white"
-                onClick={handleRetryPayment}
-                disabled={isProcessing}
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="mr-2 h-5 w-5" />
-                    Pay ₹{plan.displayAmount} to Activate
-                  </>
-                )}
-              </Button>
-
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full h-12 text-base"
-                onClick={() => setIsSwitchingPlan(true)}
-                disabled={isProcessing}
-              >
-                <ArrowLeftRight className="mr-2 h-4 w-4" />
-                Switch Activation Plan
-              </Button>
-
-              <p className="text-center text-xs text-slate-400">
-                <CreditCard className="h-3 w-3 inline mr-1" />
-                Secure payment via Razorpay
-              </p>
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>
